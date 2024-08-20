@@ -1,0 +1,438 @@
+use master
+Create database TwoSportDB
+go
+use TwoSportDB
+
+CREATE TABLE [Orders] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[OrderCode] NVARCHAR(255),
+	[OrderDetailId] INT,
+	[Status] BIT,
+	[TotalPrice] DECIMAL,
+	[TransportFee] DECIMAL,
+	[IntoMoney] DECIMAL,
+	[PaymentMethodId] INT,
+	[ShipmentDetailId] INT,
+	[ReceivedDate] DATETIME,
+	[TransportUnitId] INT,
+	[UserId] INT, /* add foreign key userId */
+	PRIMARY KEY([Id])
+);
+GO
+CREATE TABLE [Sports] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[Name] NVARCHAR(Max),
+	PRIMARY KEY([Id])
+);
+GO
+INSERT INTO Sports (Name) VALUES ('Basketball');
+INSERT INTO Sports (Name) VALUES ('Badminton');
+
+CREATE TABLE [Categories] (
+	[Id] INT NOT NULL IDENTITY(1,1) UNIQUE,
+	[CategoryName] NVARCHAR(255),
+	[Quantity] INT,
+	[Status] BIT,
+	PRIMARY KEY([Id])
+);
+GO
+INSERT INTO Categories (CategoryName, Status) VALUES ('Socks', 1);
+INSERT INTO Categories (CategoryName, Status) VALUES ('Basketball Ball', 1);
+INSERT INTO Categories (CategoryName, Status) VALUES ('Shoes', 1);
+INSERT INTO Categories (CategoryName, Status) VALUES ('Accessories', 1);
+INSERT INTO Categories (CategoryName, Status) VALUES ('Rackets', 1);
+INSERT INTO Categories (CategoryName, Status) VALUES ('Badminton Shuttlecock', 1);
+INSERT INTO Categories (CategoryName, Status) VALUES ('Clothes', 1);
+
+CREATE TABLE [Brands] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[BrandName] NVARCHAR(255),
+	[Logo] NVARCHAR(Max),
+	[Quantity] INT,
+	[Status] BIT,
+	PRIMARY KEY([Id])
+);
+GO
+
+INSERT INTO Brands (BrandName, Logo, Status) VALUES ('Nike', 'https://th.bing.com/th/id/OIP.vzXVsiGKafq52Ny4fTbseQAAAA?rs=1&pid=ImgDetMain', 1);
+INSERT INTO Brands (BrandName, Logo, Status) VALUES ('Adidas', 'https://th.bing.com/th/id/R.e7f47ddb77f251a66c79cddbb9357235?rik=FxZlXk9PK0KJjw&pid=ImgRaw&r=0', 1);
+INSERT INTO Brands (BrandName, Logo, Status) VALUES ('Spalding', 'https://th.bing.com/th/id/OIP.sziXdfq0Qqpm6Z-uoBAF1wAAAA?pid=ImgDet&w=187&h=124&c=7&dpr=1.3', 1);
+INSERT INTO Brands (BrandName, Logo, Status) VALUES ('Wilson', 'https://th.bing.com/th/id/OIP.Iub1GxagIbslMOb2K4YQrQHaCM?w=343&h=103&c=7&r=0&o=5&dpr=1.3&pid=1.7', 1);
+INSERT INTO Brands (BrandName, Logo, Status) VALUES ('Lining', 'https://th.bing.com/th/id/OIP.o0YpDNFNjWi3fq560U3VqgAAAA?rs=1&pid=ImgDetMain', 1);
+INSERT INTO Brands (BrandName, Logo, Status) VALUES ('Yonex', 'https://curated-content.imgix.net/7a5k9v6bcoox/4nbbcJnrsOhh34EcY9OmeB/71bf68d9182a437040778956ca022ea0/Yonex-logo-grey.png?auto=compress%2Cformat&ch=Width%2CDPR%2CSave-Data&mono=616161&ixlib=react-9.0.2&w=8192', 1);
+INSERT INTO Brands (BrandName, Logo, Status) VALUES ('Venson', '', 1);
+INSERT INTO Brands (BrandName, Logo, Status) VALUES ('Kumpoo', 'https://th.bing.com/th/id/OIP.RJdiV0tM6e89k0JWJsu3qQHaHa?rs=1&pid=ImgDetMain', 1);
+INSERT INTO Brands (BrandName, Logo, Status) VALUES ('Victor', 'https://www.badmintonalley.com/v/vspfiles/photos/manufacturers/VICTOR.jpg', 1);
+GO
+
+CREATE TABLE [BrandCategory] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[BrandId] INT,
+	[CategoryId] INT,
+	PRIMARY KEY([Id])
+);
+GO
+
+ALTER TABLE [BrandCategory]
+ADD FOREIGN KEY([CategoryId]) REFERENCES [Categories]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [BrandCategory]
+ADD FOREIGN KEY([BrandId]) REFERENCES [Brands]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (1, 1);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (1, 2);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (1, 3);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (1, 4);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (1, 7);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (2, 1);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (2, 2);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (2, 3);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (2, 4);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (2, 7);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (3, 1);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (3, 2);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (3, 3);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (3, 4);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (4, 1);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (4, 2);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (4, 3);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (4, 4);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (4, 7);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (5, 1);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (5, 3);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (5, 4);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (5, 5);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (5, 6);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (5, 7);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (6, 1);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (6, 3);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (6, 4);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (6, 5);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (6, 6);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (6, 7);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (7, 1);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (7, 3);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (7, 4);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (7, 5);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (7, 6);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (7, 7);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (8, 1);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (8, 3);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (8, 4);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (8, 5);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (8, 6);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (8, 7);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (9, 1);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (9, 3);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (9, 5);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (9, 5);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (9, 6);
+INSERT INTO [BrandCategory] (BrandId, CategoryId) VALUES (9, 7);
+GO
+CREATE TABLE [Products] (
+	[Id] INT NOT NULL IDENTITY(1,1) UNIQUE,
+	[ProductName] NVARCHAR(255),
+	[ListedPrice] DECIMAL,
+	[Price] DECIMAL,
+	[Size] VARCHAR(5) NOT NULL,
+	[Description] NVARCHAR(Max),
+	[Status] BIT,
+	[Color] NVARCHAR(255) NOT NULL,
+	[Offers] NVARCHAR(Max) NOT NULL,
+	[MainImageName] NVARCHAR(255) NULL,
+	[MainImagePath] VARCHAR(MAX) NULL,
+	[CategoryId] INT,
+	[BrandId] INT,
+	[SportId] INT,
+	[ProductCode] NVARCHAR(255),
+	PRIMARY KEY([Id])
+);
+GO
+ALTER TABLE [Products]
+ADD FOREIGN KEY([SportId]) REFERENCES [Sports]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+
+INSERT INTO [Products] (ProductName, ListedPrice, Price, Size, Description, Status, Color, Offers, 
+MainImageName, MainImagePath, CategoryId, BrandId, SportId, ProductCode) 
+VALUES (N'Quấn Cán Vợt Cầu Lông VS002', 15000, 15000, '', N'', 1, N'Đủ màu', '',N'Quấn cán vợt VS002 Image', 'https://cdn.shopvnb.com/uploads/images/quan-can-vot-cau-long-vs1.webp', 4, 7, 2, 'QC_VS002');
+
+GO
+INSERT INTO [Products] (ProductName, ListedPrice, Price, Size, Description, Status, Color, Offers, 
+MainImageName, MainImagePath, CategoryId, BrandId, SportId, ProductCode) 
+VALUES (N'Quấn Cán Vợt Cầu Lông Lining GP2000', 20000, 20000, '', N'', 1, N'Đủ màu', '',N'Quấn Cán Vợt Cầu Lông Lining GP2000', 'https://cdn.shopvnb.com/uploads/gallery/quan-can-vot-cau-long-lining-gp2000_1712886881.webp', 4, 5, 2, 'QC_GP2000');
+
+GO
+INSERT INTO [Products] (ProductName, ListedPrice, Price, Size, Description, Status, Color, Offers, 
+MainImageName, MainImagePath, CategoryId, BrandId, SportId, ProductCode) 
+VALUES (N'Vớ Cầu Lông Yonex 2225 - Trắng Viền Đỏ Xanh Rêu', 72000, 60000, '', N'', 1, N'Trắng Viền Đỏ', '',N'Vớ Cầu Lông Yonex 2225 - Trắng Viền Đỏ Xanh Rêu Image', 'https://cdn.shopvnb.com/uploads/gallery/vo-cau-long-yonex-2225-trang-vien-do-xanh-reu-60k_1715645158.webp', 1, 6, 2, 'SO_YO2225');
+
+GO
+
+INSERT INTO [Products] (ProductName, ListedPrice, Price, Size, Description, Status, Color, Offers, 
+MainImageName, MainImagePath, CategoryId, BrandId, SportId, ProductCode) 
+VALUES (N'Vớ Cầu Lông Yonex SKSE100', 47000, 39000, '', N'', 1, N'Trắng', '',N'Vớ Cầu Lông Yonex SKSE100 Image', 'https://cdn.shopvnb.com/uploads/gallery/vo-cau-long-yonex-skse100-chinh-hang_1716154218.webp', 1, 6, 2, 'SO_YOSKSE100');
+
+GO
+
+CREATE TABLE [CartItems] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[ProductId] INT,
+	[Quantity] INT,
+	[TotalPrice] DECIMAL,
+	[CartId] INT,
+	PRIMARY KEY([Id])
+);
+GO
+
+CREATE TABLE [Carts] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[UserId] INT,
+	PRIMARY KEY([Id])
+);
+GO
+
+CREATE TABLE [Reviews] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[Star] NUMERIC,
+	[Review] NVARCHAR(255),
+	[Status] BIT,
+	[UserId] INT,
+	[ProductId] INT,
+	PRIMARY KEY([Id])
+);
+GO
+
+CREATE TABLE [Likes] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[UserId] INT,
+	[ProductId] INT,
+	[BlogId] INT,
+	PRIMARY KEY([Id])
+);
+GO
+
+CREATE TABLE [ShipmentDetails] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[FullName] NVARCHAR(255),
+	[Address] NVARCHAR(255),
+	[PhoneNumber] NVARCHAR(255),
+	[UserId] INT,
+	PRIMARY KEY([Id])
+);
+GO
+
+CREATE TABLE [ImagesVideos] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[ImageName] NVARCHAR(50),
+	[ImagePath] VARCHAR(MAX),
+	[VideoName] NVARCHAR(50),
+	[VideoPath] VARCHAR(MAX),
+	[BlogId] INT NULL,
+	[ProductId] INT NULL,
+	PRIMARY KEY([Id])
+);
+GO
+
+CREATE TABLE [Blogs] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[BlogName] NVARCHAR(255),
+	[Content] NVARCHAR(Max),
+	[CreateAt] DATETIME,
+	[MainImageName] VARCHAR(255) NULL,
+	[MainImagePath] VARCHAR(MAX) NULL,
+	[UserId] INT,
+	[SportId] INT,
+	PRIMARY KEY([Id])
+);
+GO
+ALTER TABLE [Blogs]
+ADD FOREIGN KEY([SportId]) REFERENCES [Sports]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+
+CREATE TABLE [Roles] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[RoleName] NVARCHAR(255),
+	[CreatedOn] DATETIME,
+	[UpdatedOn] DATETIME,
+	PRIMARY KEY([Id])
+);
+GO
+ INSERT INTO Roles (RoleName, CreatedOn, UpdatedOn)
+VALUES 
+    ('Admin', GETDATE(), GETDATE()), -- Vai trò quản trị viên
+    ('Manager', GETDATE(), GETDATE()), -- Vai trò quản lý
+    ('Employee', GETDATE(), GETDATE()), -- Vai trò nhân viên
+    ('Customer', GETDATE(), GETDATE()); -- Vai trò khách hàng
+
+CREATE TABLE [Users] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[UserName] NVARCHAR(255),
+	[Password] NVARCHAR(255),
+	[Email] NVARCHAR(255),
+	[FullName] NVARCHAR(255),
+	[Gender] NVARCHAR(20),
+	[Phone] NVARCHAR(20),
+	[Salary] NVARCHAR(20),
+	[BirthDate] DATETIME,
+	[CreatedDate] DATETIME NOT NULL,
+	[LastUpdate] DATETIME,
+	[IsActive] BIT,
+	[RoleId] INT,
+	PRIMARY KEY([Id])
+);
+GO
+ALTER TABLE [Users]
+ADD FOREIGN KEY([RoleId]) REFERENCES [Roles]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+
+CREATE TABLE [RefreshToken] (
+	[RefreshTokenId] INT NOT NULL IDENTITY UNIQUE,
+	[Token] NVARCHAR(Max),
+	[JwtId] NVARCHAR(Max),
+	[CreateDate] DATETIME,
+	[ExpiryDate] DATETIME,
+	Used BIT,
+	UserId INT,
+	PRIMARY KEY([RefreshTokenId])
+);
+GO
+ALTER TABLE [RefreshToken]
+ADD FOREIGN KEY([UserId]) REFERENCES [Users]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+
+CREATE TABLE [OrderDetails] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[ProductId] INT,
+	[Quantity] INT,
+	[OrderId] INT,
+	PRIMARY KEY([Id])
+);
+GO
+
+CREATE TABLE [PaymentMethod] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[PaymentMethodName] NVARCHAR(255),
+	PRIMARY KEY([Id])
+);
+GO
+
+CREATE TABLE [Warehouses] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[ProductId] INT,
+	[Quantity] INT,
+	PRIMARY KEY([Id])
+);
+GO
+
+CREATE TABLE [ImportHistories] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[ProductId] INT,
+	[ImportDate] DATETIME,
+	[Quantity] INT,
+	[SupplierId] INT,
+	[LotCode] NVARCHAR(255),
+	[ImportCode] NVARCHAR(255),
+	PRIMARY KEY([Id])
+);
+GO
+
+CREATE TABLE [Suppliers] (
+	[Id] INT NOT NULL IDENTITY UNIQUE,
+	[SupplierName] NVARCHAR(255),
+	[Location] NVARCHAR(255),
+	PRIMARY KEY([Id])
+);
+GO
+
+
+ALTER TABLE [ImagesVideos]
+ADD FOREIGN KEY([ProductId]) REFERENCES [Products]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [ImagesVideos]
+ADD FOREIGN KEY([BlogId]) REFERENCES [Blogs]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [Carts]
+ADD FOREIGN KEY([UserId]) REFERENCES [Users]([Id]) /* add foreign key */
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [CartItems]
+ADD FOREIGN KEY([CartId]) REFERENCES [Carts]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [ShipmentDetails]
+ADD FOREIGN KEY([UserId]) REFERENCES [Users]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [Products]
+ADD FOREIGN KEY([BrandId]) REFERENCES [Brands]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [Products]
+ADD FOREIGN KEY([CategoryId]) REFERENCES [Categories]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [Likes]
+ADD FOREIGN KEY([ProductId]) REFERENCES [Products]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [Likes]
+ADD FOREIGN KEY([BlogId]) REFERENCES [Blogs]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [Likes]
+ADD FOREIGN KEY([UserId]) REFERENCES [Users]([Id]) /* add foreign key */
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [Reviews]
+ADD FOREIGN KEY([ProductId]) REFERENCES [Products]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [Reviews]
+ADD FOREIGN KEY([UserId]) REFERENCES [Users]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [CartItems]
+ADD FOREIGN KEY([ProductId]) REFERENCES [Products]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [Orders]
+ADD FOREIGN KEY([ShipmentDetailId]) REFERENCES [ShipmentDetails]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [Orders]
+ADD FOREIGN KEY([PaymentMethodId]) REFERENCES [PaymentMethod]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [Orders]
+ADD FOREIGN KEY([UserId]) REFERENCES [Users]([Id])  /* add foreign key */
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [OrderDetails]
+ADD FOREIGN KEY([OrderId]) REFERENCES [Orders]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [OrderDetails]
+ADD FOREIGN KEY([ProductId]) REFERENCES [Products]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [Warehouses]
+ADD FOREIGN KEY([ProductId]) REFERENCES [Products]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [ImportHistories]
+ADD FOREIGN KEY([ProductId]) REFERENCES [Products]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
+ALTER TABLE [ImportHistories]
+ADD FOREIGN KEY([SupplierId]) REFERENCES [Suppliers]([Id])
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+GO
