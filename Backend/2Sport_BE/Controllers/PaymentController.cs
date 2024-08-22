@@ -97,7 +97,7 @@ namespace _2Sport_BE.Controllers
                     ShipmentDetailId = orderCM.ShipmentDetailId,
                     PaymentMethod = order.PaymentMethod.PaymentMethodName,
                     ReceivedDate = order.ReceivedDate,
-                    TransportFee = order.TransportFee,
+                    TransportFee = order.TranSportFee,
                     IntoMoney = order.IntoMoney,
                     Status = order.Status,
                     PaymentLink = paymentLink,
@@ -294,7 +294,7 @@ namespace _2Sport_BE.Controllers
             {
                 OrderCode = GenerateOrderCode(),
                 Status = paymentMethodId == 1 ? (int?)OrderStatus.PROCESSING : (int?)OrderStatus.PENDING,
-                TransportFee = orderCM.TransportFee,
+                TranSportFee = orderCM.TransportFee,
                 PaymentMethodId = paymentMethodId,
                 PaymentMethod = paymentMethod,
                 ShipmentDetailId = (int)orderCM.ShipmentDetailId,
@@ -328,7 +328,7 @@ namespace _2Sport_BE.Controllers
             }
 
             order.TotalPrice = totalPrice;
-            order.IntoMoney = totalPrice + orderCM.TransportFee;
+            order.IntoMoney = (decimal)(totalPrice + orderCM.TransportFee);
             await _orderService.AddOrderAsync(order);
 
             return order;

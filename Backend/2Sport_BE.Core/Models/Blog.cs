@@ -1,27 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace _2Sport_BE.Repository.Models
+namespace _2Sport_BE.Repository.Models;
+
+[Table("Blogs")]
+public class Blog
 {
-    public partial class Blog
-    {
-        public Blog()
-        {
-            ImagesVideos = new HashSet<ImagesVideo>();
-            Likes = new HashSet<Like>();
-        }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-        public int Id { get; set; }
-        public string BlogName { get; set; }
-        public string Content { get; set; }
-        public DateTime? CreateAt { get; set; }
-        public string MainImageName { get; set; }
-        public string MainImagePath { get; set; }
-        public int? UserId { get; set; }
-        public int? SportId { get; set; }
+    [Column("BlogName", TypeName = "nvarchar")]
+    [MaxLength(255)]
+    public string BlogName { get; set; }
 
-        public virtual Sport Sport { get; set; }
-        public virtual ICollection<ImagesVideo> ImagesVideos { get; set; }
-        public virtual ICollection<Like> Likes { get; set; }
-    }
+    [Column("Content", TypeName = "nvarchar")]
+    [MaxLength]
+    public string Content { get; set; }
+
+
+    [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+    [DataType(DataType.DateTime)]
+    public DateTime? CreateAt { get; set; }
+
+    [Column("UserId")]
+    public int UserId { get; set; }
+
+    public virtual User User { get; set; }
+    public virtual ICollection<Like> Likes { get; set; }
+
 }

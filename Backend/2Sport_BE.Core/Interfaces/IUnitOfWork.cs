@@ -16,7 +16,6 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<OrderDetail> OrderDetailRepository { get; }
         IGenericRepository<PaymentMethod> PaymentMethodRepository { get; }
         IGenericRepository<Product> ProductRepository { get; }
-        IGenericRepository<Classification> ClassificationRepository { get; }
         IGenericRepository<Review> ReviewRepository { get; }
         IGenericRepository<Role> RoleRepository { get; }
         IGenericRepository<ShipmentDetail> ShipmentDetailRepository { get; }

@@ -47,7 +47,7 @@ namespace _2Sport_BE.Controllers
                 if (!string.IsNullOrWhiteSpace(username))
                 {
                     username = username.ToLower();
-                    query = query.Where(x => x.UserName.ToLower().Contains(fullName));
+                    query = query.Where(x => x.Username.ToLower().Contains(fullName));
                 }
 
                 var result = _mapper.Map<List<User>, List<UserVM>>(query.ToList());
@@ -133,7 +133,7 @@ namespace _2Sport_BE.Controllers
                     return BadRequest(new { processStatus = "NotExisted" });
                 }
                 user.FullName = userUM.FullName;
-                user.Salary = userUM.Salary;
+                //user.Salary = userUM.Salary;
                 user.Email = userUM.Email;
                 user.BirthDate = userUM.BirthDate;
                 user.Gender = userUM.Gender;

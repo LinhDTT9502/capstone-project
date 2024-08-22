@@ -89,7 +89,7 @@ namespace _2Sport_BE.Controllers
                 {
                     cart = new Cart
                     {
-                        UserId = result.Data.UserId,
+                        UserId = (int)result.Data.UserId,
                         CartItems = new List<CartItem>(),
                         User = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Id == result.Data.UserId),
                     };
@@ -258,7 +258,7 @@ namespace _2Sport_BE.Controllers
                 {
                     User staff = new User()
                     {
-                        UserName = userCM.Username,
+                        Username = userCM.Username,
                         Email = userCM.Email,
                         CreatedDate = DateTime.Now,
                         Password = HashPassword(userCM.Password),
@@ -310,7 +310,7 @@ namespace _2Sport_BE.Controllers
                 var username = forgotVM.Username;
                 var mail = forgotVM.Email;
                 //check
-                var check = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Email == mail && _.UserName == _.UserName);
+                var check = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Email == mail && _.Username == _.Username);
                 if(check != null)
                 {
                     var newPassword = GenerateRandomString(6);

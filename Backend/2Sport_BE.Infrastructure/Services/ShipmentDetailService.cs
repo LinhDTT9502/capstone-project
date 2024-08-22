@@ -1,4 +1,5 @@
-﻿using _2Sport_BE.Repository.Interfaces;
+﻿using _2Sport_BE.Repository.Data;
+using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using System;
 using System.Collections.Generic;
@@ -20,8 +21,8 @@ namespace _2Sport_BE.Service.Services
     public class ShipmentDetailService : IShipmentDetailService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly TwoSportDBContext dbContext;
-        public ShipmentDetailService(IUnitOfWork unitOfWork, TwoSportDBContext dbContext)
+        private readonly TwoSportCapstoneDbContext dbContext;
+        public ShipmentDetailService(IUnitOfWork unitOfWork, TwoSportCapstoneDbContext dbContext)
         {
             _unitOfWork = unitOfWork;
             this.dbContext = dbContext;

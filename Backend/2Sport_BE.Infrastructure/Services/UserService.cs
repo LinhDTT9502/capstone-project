@@ -1,4 +1,5 @@
-﻿using _2Sport_BE.Repository.Interfaces;
+﻿using _2Sport_BE.Repository.Data;
+using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -22,10 +23,10 @@ namespace _2Sport_BE.Infrastructure.Services
     public class UserService : IUserService
     {
         private IUnitOfWork unitOfWork;
-        private TwoSportDBContext _context;
+        private TwoSportCapstoneDbContext _context;
         public UserService(
             IUnitOfWork unitOfWork,
-            TwoSportDBContext dBContext)
+            TwoSportCapstoneDbContext dBContext)
         {
             this.unitOfWork = unitOfWork;
             _context = dBContext;

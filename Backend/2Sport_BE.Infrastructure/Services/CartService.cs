@@ -1,4 +1,5 @@
-﻿using _2Sport_BE.Repository.Interfaces;
+﻿using _2Sport_BE.Repository.Data;
+using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -17,12 +18,12 @@ namespace _2Sport_BE.Service.Services
     public class CartService : ICartService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private TwoSportDBContext _twoSportDBContext;
+        private TwoSportCapstoneDbContext _twoSportDBContext;
         public CartService(IUnitOfWork unitOfWork,
-            TwoSportDBContext twoSportDBContext)
+            TwoSportCapstoneDbContext TwoSportCapstoneDbContext)
         {
             this._unitOfWork = unitOfWork;
-            _twoSportDBContext = twoSportDBContext;
+            _twoSportDBContext = TwoSportCapstoneDbContext;
         }
 
         public async Task<Cart> GetCartByUserId(int userId)

@@ -36,7 +36,7 @@ namespace _2Sport_BE.ViewModels
         public string? Gender { get; set; }
         public string? Phone { get; set; }
         public string? Salary { get; set; }
-        public DateTime? BirthDate { get; set; }
+        public DateOnly? BirthDate { get; set; }
 
     }
     public class UserLogin

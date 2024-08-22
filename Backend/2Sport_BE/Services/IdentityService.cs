@@ -1,5 +1,6 @@
 ﻿using _2Sport_BE.DataContent;
 using _2Sport_BE.Infrastructure.Services;
+using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.ViewModels;
@@ -21,13 +22,13 @@ namespace _2Sport_BE.API.Services
 
     public class IdentityService : IIdentityService
     {
-        private readonly TwoSportDBContext _context;
+        private readonly TwoSportCapstoneDbContext _context;
         private readonly IUserService _userService;
         private readonly IConfiguration _configuration;
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly IUnitOfWork _unitOfWork;
         
-        public IdentityService(TwoSportDBContext context,
+        public IdentityService(TwoSportCapstoneDbContext context,
             IOptions<ServiceConfiguration> settings,
             IUserService userService,
             IConfiguration configuration,
@@ -47,7 +48,7 @@ namespace _2Sport_BE.API.Services
             ResponseModel<TokenModel> response = new ResponseModel<TokenModel>();
             try
             {
-                var loginUser = await _context.Users.FirstOrDefaultAsync(_ => _.UserName == login.UserName && _.Password == login.Password);
+                var loginUser = await _context.Users.FirstOrDefaultAsync(_ => _.Username == login.UserName && _.Password == login.Password);
                     if(loginUser == null)
                     {
                         response.IsSuccess = false;
@@ -98,10 +99,9 @@ namespace _2Sport_BE.API.Services
                     new Claim("UserId", user.Id.ToString()),
                     new Claim("FullName", user.FullName),
                     new Claim("Email",user.Email==null?"":user.Email),
-                    new Claim("UserName",user.UserName==null?"":user.UserName),
+                    new Claim("UserName",user.Username==null?"":user.Username),
                     new Claim("Phone",user.Phone==null?"":user.Phone),
                     new Claim("Gender",user.Gender==null?"":user.Gender),
-                    new Claim("Address",user.Address==null?"":user.Address),
                     new Claim(ClaimTypes.Role, roleName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     });
@@ -121,7 +121,7 @@ namespace _2Sport_BE.API.Services
                     JwtId = token.Id,
                     UserId = user.Id,
                     CreateDate = DateTime.UtcNow,
-                    ExpiryDate = DateTime.UtcNow.AddMonths(6),
+                    ExpireDate = DateTime.UtcNow.AddMonths(6),
                     Used = false
                 };
                 var exist = await _context.RefreshTokens.FirstOrDefaultAsync(_ => _.UserId == refreshToken.UserId && _.Used == false);
@@ -130,7 +130,7 @@ namespace _2Sport_BE.API.Services
                     exist.Token = refreshToken.Token;
                     exist.JwtId = refreshToken.JwtId;
                     exist.CreateDate = refreshToken.CreateDate;
-                    exist.ExpiryDate = refreshToken.ExpiryDate;
+                    exist.ExpireDate = refreshToken.ExpireDate;
                     _context.RefreshTokens.Update(exist);
                 }
                 else
@@ -205,7 +205,7 @@ namespace _2Sport_BE.API.Services
                 return new AuthenticationResult { Errors = new[] { "This refresh token does not exist" } };
             }
 
-            if (DateTime.UtcNow > storedRefreshToken.ExpiryDate)
+            if (DateTime.UtcNow > storedRefreshToken.ExpireDate)
             {
                 return new AuthenticationResult { Errors = new[] { "This refresh token has expired" } };
             }

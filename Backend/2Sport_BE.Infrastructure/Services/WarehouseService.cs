@@ -1,3 +1,4 @@
+using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.EntityFrameworkCore;
@@ -23,8 +24,8 @@ namespace _2Sport_BE.Infrastructure.Services
     public class WarehouseService : IWarehouseService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly TwoSportDBContext _dBContext;
-        public WarehouseService(IUnitOfWork unitOfWork, TwoSportDBContext dBContext)
+        private readonly TwoSportCapstoneDbContext _dBContext;
+        public WarehouseService(IUnitOfWork unitOfWork, TwoSportCapstoneDbContext dBContext)
         {
             _unitOfWork = unitOfWork;
             _dBContext = dBContext;

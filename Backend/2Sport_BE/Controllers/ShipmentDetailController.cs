@@ -28,7 +28,7 @@ namespace _2Shipment_BE.Controllers
         public async Task<IActionResult> GetShipmentDetails()
         {
             var userId = GetCurrentUserIdFromToken();
-            if(userId is 0 || userId.ToString().IsNullOrEmpty())
+            if(userId is 0 || string.IsNullOrEmpty(userId.ToString()))
             {
                 return Unauthorized("Invalid user");
             }

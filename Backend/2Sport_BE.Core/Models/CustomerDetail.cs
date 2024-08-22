@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace _2Sport_BE.Repository.Models;
 
-[Table("Likes")]
-public class Like
+[Table("CustomerDetails")]
+public class CustomerDetail
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -18,13 +15,15 @@ public class Like
     [Column("UserId")]
     public int? UserId { get; set; }
 
-    [Column("ProductId")]
-    public int? ProductId { get; set; }
+    public int? LoyaltyPoints { get; set; }
 
-    [Column("BlogId")]
-    public int? BlogId { get; set; }
+    [Column("MembershipLevel", TypeName = "nvarchar")]
+    [MaxLength(50)]
+    public string MembershipLevel { get; set; }
 
-    public virtual Blog Blog { get; set; }
-    public virtual Product Product { get; set; }
+    [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+    [DataType(DataType.DateTime)]
+    public DateTime? JoinDate { get; set; }
+
     public virtual User User { get; set; }
 }

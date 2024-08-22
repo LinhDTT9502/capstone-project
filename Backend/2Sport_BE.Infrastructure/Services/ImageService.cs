@@ -1,4 +1,5 @@
-﻿using _2Sport_BE.Repository.Interfaces;
+﻿using _2Sport_BE.Repository.Data;
+using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -18,9 +19,9 @@ namespace _2Sport_BE.Service.Services
     {
 
         private readonly IUnitOfWork _unitOfWork;
-        private readonly TwoSportDBContext _dBContext;
+        private readonly TwoSportCapstoneDbContext _dBContext;
 
-        public ImageService(IUnitOfWork unitOfWork, TwoSportDBContext dBContext)
+        public ImageService(IUnitOfWork unitOfWork, TwoSportCapstoneDbContext dBContext)
         {
             _unitOfWork = unitOfWork;
             _dBContext = dBContext;

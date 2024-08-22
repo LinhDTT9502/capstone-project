@@ -81,8 +81,6 @@ namespace _2Sport_BE.Controllers
                     product.Category = category;
 					var sport = await _sportService.GetSportById(product.SportId);
 					product.Sport = sport;
-                    var classification = await _unitOfWork.ClassificationRepository.FindAsync(product.ClassificationId);
-                    product.Classification = classification;
                 }
                 var result = products.Select(_ => _mapper.Map<Product, ProductVM>(_)).ToList();
                 foreach (var product in result)
@@ -150,8 +148,6 @@ namespace _2Sport_BE.Controllers
 					product.Category = category;
 					var sport = await _sportService.GetSportById(product.SportId);
 					product.Sport = sport;
-                    var classification = await _unitOfWork.ClassificationRepository.FindAsync(product.ClassificationId);
-                    product.Classification = classification;
                 }
 
 				var result = query.Sort(defaultSearch.sortBy, defaultSearch.isAscending)
@@ -189,8 +185,6 @@ namespace _2Sport_BE.Controllers
                     product.Category = category;
                     var sport = await _sportService.GetSportById(product.SportId);
                     product.Sport = sport;
-                    var classification = await _unitOfWork.ClassificationRepository.FindAsync(product.ClassificationId);
-                    product.Classification = classification;
 
                 }
 
@@ -235,8 +229,6 @@ namespace _2Sport_BE.Controllers
 					product.Category = category;
 					var sport = await _sportService.GetSportById(product.SportId);
 					product.Sport = sport;
-                    var classification = await _unitOfWork.ClassificationRepository.FindAsync(product.ClassificationId);
-                    product.Classification = classification;
                 }
 
 				var result = query.Sort(defaultSearch.sortBy, defaultSearch.isAscending)
@@ -276,12 +268,11 @@ namespace _2Sport_BE.Controllers
                     updatedProduct.Status = productUM.Status;
                     updatedProduct.Color = productUM.Color;
                     updatedProduct.Offers = productUM.Offers;
-                    updatedProduct.MainImageName = productUM.MainImageName;
-                    updatedProduct.MainImagePath = productUM.MainImagePath;
-                    updatedProduct.CategoryId = productUM.CategoryId;
-                    updatedProduct.BrandId = productUM.BrandId;
-                    updatedProduct.SportId = productUM.SportId;
-                    updatedProduct.ClassificationId = productUM.ClassificationId;
+                    updatedProduct.ImgAvatarName = productUM.MainImageName;
+                    updatedProduct.ImgAvatarPath = productUM.MainImagePath;
+                    updatedProduct.CategoryId = (int)productUM.CategoryId;
+                    updatedProduct.BrandId = (int)productUM.BrandId;
+                    updatedProduct.SportId = (int)productUM.SportId;
                     await _productService.UpdateProduct(updatedProduct);
                     return Ok(updatedProduct);
                 } else

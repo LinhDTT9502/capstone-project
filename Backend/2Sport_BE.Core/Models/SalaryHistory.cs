@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace _2Sport_BE.Repository.Models;
 
-[Table("Likes")]
-public class Like
+
+[Table("SalaryHistories")]
+public class SalaryHistory
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -18,13 +16,12 @@ public class Like
     [Column("UserId")]
     public int? UserId { get; set; }
 
-    [Column("ProductId")]
-    public int? ProductId { get; set; }
+    [Column("Salary", TypeName = "decimal")]
+    public decimal? Salary { get; set; }
 
-    [Column("BlogId")]
-    public int? BlogId { get; set; }
+    [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+    [DataType(DataType.DateTime)]
+    public DateTime? EffectiveDate { get; set; }
 
-    public virtual Blog Blog { get; set; }
-    public virtual Product Product { get; set; }
     public virtual User User { get; set; }
 }

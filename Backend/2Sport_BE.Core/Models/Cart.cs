@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace _2Sport_BE.Repository.Models
+namespace _2Sport_BE.Repository.Models;
+
+[Table("Carts")]
+public class Cart
 {
-    public partial class Cart
-    {
-        public Cart()
-        {
-            CartItems = new HashSet<CartItem>();
-        }
+    [Column("CartId")]
+    public int CartId { get; set; }
 
-        public int Id { get; set; }
-        public int? UserId { get; set; }
+    [Column("UserId")]
+    public int UserId { get; set; }
 
-        public virtual User User { get; set; }
-        public virtual ICollection<CartItem> CartItems { get; set; }
-    }
+    public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
+
+
+    public virtual User User { get; set; }
 }
