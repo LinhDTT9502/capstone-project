@@ -1,50 +1,81 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { Button } from '@material-tailwind/react';
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import { Button } from "@material-tailwind/react";
 import { selectUser } from "../../redux/slices/authSlice";
 import { useTranslation } from "react-i18next";
 
+const UserProfile = () => {
+  const user = useSelector(selectUser);
+  const { t } = useTranslation();
+  const [isEditing, setIsEditing] = useState(false);
 
-const UserProfile = ({ onEditClick }) => {
-    const user = useSelector(selectUser);
-    const { t } = useTranslation();
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleSaveClick = () => {
+    setIsEditing(false);
+    // Code lưu thông tin
+  };
 
   return (
-    <div>
-      <h2 className="text-orange-500 font-semibold text-xl mb-4">{t("user_profile.user_profile")}</h2>
+    <div className="max-w-4xl mx-auto">
+      <h2 className="text-orange-500 font-bold text-xl mb-6">
+        {t("user_profile.user_profile")}
+      </h2>
+
       <div className="space-y-4">
         <div>
-          <label className="block text-gray-700">{t("user_profile.username")}:</label>
-          <p>{user.UserName}</p>
+          <label className="block text-gray-700 font-semibold mb-2">
+            {t("user_profile.username")}:
+          </label>
+          <input 
+            type="text" 
+            className={`w-full p-2 ${isEditing ? 'border border-gray-300 rounded-md' : 'bg-gray-200 text-gray-500 pointer-events-none'}`}
+            value={user.UserName}
+            readOnly={!isEditing} 
+          />
         </div>
+
         <div>
-          <label className="block text-gray-700">{t("user_profile.fullname")}:</label>
-          <p>{user.FullName}</p>
+          <label className="block text-gray-700 font-semibold mb-2">
+            {t("user_profile.fullname")}:
+          </label>
+          <input 
+            type="text" 
+            className={`w-full p-2 ${isEditing ? 'border border-gray-300 rounded-md ' : 'bg-gray-200 text-gray-500 pointer-events-none'}`}
+            value={user.FullName}
+            readOnly={!isEditing} 
+          />
         </div>
-        {/* <div>
-          <label className="block text-gray-700">Gender:</label>
-          <p>{user.Gender}</p>
-        </div> */}
+
         <div>
-          <label className="block text-gray-700">{t("user_profile.email")}:</label>
-          <p>{user.Email}</p>
+          <label className="block text-gray-700 font-semibold mb-2">
+            {t("user_profile.email")}:
+          </label>
+          <input 
+            type="email" 
+            className={`w-full p-2 ${isEditing ? 'border border-gray-300 rounded-md' : 'bg-gray-200 text-gray-500 pointer-events-none'}`}
+            value={user.Email}
+            readOnly={!isEditing} 
+          />
         </div>
-        {/* <div>
-          <label className="block text-gray-700">Phone:</label>
-          <p>{user.Phone}</p>
-        </div> */}
-        {/* <div>
-          <label className="block text-gray-700">Address:</label>
-          <p>{user.Address}</p>
-        </div> */}
-        <div className="flex justify-end space-x-4">
-          <Button
-            color="orange"
-            variant="filled"
-            onClick={onEditClick}
-          >
-            {t("user_profile.edit_profile")}
-          </Button>
+
+        <div className="flex justify-end mt-8">
+          {isEditing ? (
+            <>
+              <Button color="gray" variant="text" onClick={() => setIsEditing(false)}>
+                {t("user_profile.cancel")}
+              </Button>
+              <Button color="orange" variant="filled" onClick={handleSaveClick}>
+                {t("user_profile.save_changes")}
+              </Button>
+            </>
+          ) : (
+            <Button color="orange" variant="filled" onClick={handleEditClick}>
+              {t("user_profile.edit_profile")}
+            </Button>
+          )}
         </div>
       </div>
     </div>
