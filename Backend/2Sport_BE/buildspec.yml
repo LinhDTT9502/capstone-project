@@ -24,7 +24,10 @@ phases:
   post_build:
     commands:
       - echo Publish started on `date`
-      - dotnet publish Backend/2Sport_BE/2Sport_BE.csproj
+      - dotnet publish -c Release -o ./build-output Backend/2Sport_BE/2Sport_BE.csproj
+
 artifacts:
+  name: 2SPORT_API_Build_#$CODEBUILD_BUILD_NUMBER
+  base-directory: './build-output'
   files:
     - ./**/*
