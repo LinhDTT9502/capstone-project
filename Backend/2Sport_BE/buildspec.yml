@@ -10,17 +10,17 @@ phases:
     commands:
       - echo Restore started on `date`
       - echo "CURRENT DIR `pwd`"
-      - dotnet restore 2Sport_BE/2Sport_BE/2Sport_BE.csproj
+      - dotnet restore 2Sport_BE/2Sport_BE.csproj
 
   build:
     commands:
       - echo Build started on `date`
-      - dotnet build 2Sport_BE/2Sport_BE/2Sport_BE.csproj
+      - dotnet build 2Sport_BE/2Sport_BE.csproj
 
   post_build:
     commands:
       - echo Publish started on `date`
-      - dotnet publish -c Release -o ./build-output 2Sport_BE/2Sport_BE/2Sport_BE.csproj
+      - dotnet publish -c Release -o ./build-output 2Sport_BE/2Sport_BE.csproj
 
 artifacts:
   name: DEMO_API_Build_#$CODEBUILD_BUILD_NUMBER
