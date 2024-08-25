@@ -19,7 +19,7 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="container mx-auto px-20 py-5 bg-white blur-none shadow-xl rounded-lg">
       <h2 className="text-orange-500 font-bold text-xl mb-6">
         {t("user_profile.user_profile")}
       </h2>
@@ -31,7 +31,7 @@ const UserProfile = () => {
           </label>
           <input 
             type="text" 
-            className={`w-full p-2 ${isEditing ? 'border border-gray-300 rounded-md' : 'bg-gray-200 text-gray-500 pointer-events-none'}`}
+            className={`w-full p-2 ${isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'}`}
             value={user.UserName}
             readOnly={!isEditing} 
           />
@@ -43,7 +43,7 @@ const UserProfile = () => {
           </label>
           <input 
             type="text" 
-            className={`w-full p-2 ${isEditing ? 'border border-gray-300 rounded-md ' : 'bg-gray-200 text-gray-500 pointer-events-none'}`}
+            className={`w-full p-2 ${isEditing ? 'border border-gray-300 ' : 'bg-gray-100 text-gray-500 pointer-events-none'}`}
             value={user.FullName}
             readOnly={!isEditing} 
           />
@@ -55,7 +55,7 @@ const UserProfile = () => {
           </label>
           <input 
             type="email" 
-            className={`w-full p-2 ${isEditing ? 'border border-gray-300 rounded-md' : 'bg-gray-200 text-gray-500 pointer-events-none'}`}
+            className={`w-full p-2 ${isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'}`}
             value={user.Email}
             readOnly={!isEditing} 
           />

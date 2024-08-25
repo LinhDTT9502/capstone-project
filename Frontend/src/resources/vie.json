@@ -57,6 +57,15 @@
     "manage_account.address_book":"Sổ địa chỉ",
     "manage_account.manage_my_account":"Quản lý tài khoản",
     "manage_account.my_payment_option":"Phướng thức thanh toán",
+    "manage_account.change_password":"Thay đổi mật khẩu",
+    "manage_account.password":"Mật khẩu hiện tại",
+    "manage_account.current_password":"Mật khẩu cũ",
+    "manage_account.confirm_new_password":"Nhập lại mật khẩu mới",
+    "manage_account.new_password":"Mật khẩu mới",
+    "manage_account.cancel_changing_password":"Hủy",
+    "manage_account.confirm_changing_password":"Hoàn tất chỉnh sửa",
+
+    
     "my_order":"Đơn hàng của tôi",
     "my_order.my_return":"Đơn hoàn trả",
     "my_order.my_cancellation":"Đơn hủy bỏ",
