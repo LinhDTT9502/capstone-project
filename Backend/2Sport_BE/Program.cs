@@ -120,11 +120,10 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+
 
 
 app.UseHttpsRedirection();
@@ -138,6 +137,6 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllers();
 });
 
-app.MapGet("/", () => "Hello");
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();
