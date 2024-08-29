@@ -64,7 +64,18 @@
     "manage_account.new_password":"Mật khẩu mới",
     "manage_account.cancel_changing_password":"Hủy",
     "manage_account.confirm_changing_password":"Hoàn tất chỉnh sửa",
-
+    "manage_account.passwords_do_not_match":"Mật khẩu không khớp",
+    "manage_account.password_change_successful":"Mật khẩu thay đổi thành công",
+    "manage_account.password_change_failed":"Mật khẩu thay đổi không thành công",
+    
+"order_status.order_all": "Tất cả",
+  "order_status.order_pending_payment": "Chờ thanh toán",
+  "order_status.order_shipping": "Vận chuyển",
+  "order_status.order_pending_delivery": "Chờ giao hàng",
+  "order_status.order_completed": "Hoàn thành",
+  "order_status.order_return_refund": "Trả hàng/Hoàn tiền",
+  "order_status.order_cancelled": "Đã hủy",
+    
     
     "my_order":"Đơn hàng của tôi",
     "my_order.my_return":"Đơn hoàn trả",
