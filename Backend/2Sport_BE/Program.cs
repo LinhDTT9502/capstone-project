@@ -94,7 +94,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
-    builder.WithOrigins("https://twosport.vercel.app", "http://localhost:5173")
+    builder.WithOrigins("https://twosport.vercel.app", "http://localhost:5173", "http://demo-api.ap-southeast-2.elasticbeanstalk.com")
            .AllowAnyMethod()
            .AllowAnyHeader()
     );
