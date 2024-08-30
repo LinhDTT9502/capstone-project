@@ -33,34 +33,33 @@ namespace _2Sport_BE.Controllers
         [Route("list-all")]
         public async Task<IActionResult> ListAllAsync()
         {
-            return Ok("Hello");
-            //try
-            //{
-            //    var brands = await _brandService.ListAllAsync();
-            //    var warehouses = (await _warehouseService.GetWarehouse(_ => _.Quantity > 0)).Include(_ => _.Product).ToList();
-            //    foreach (var item in warehouses)
-            //    {
-            //        item.Product = await _productService.GetProductById((int)item.ProductId);
-            //    }
-                
-            //    foreach (var item in brands.ToList())
-            //    {
-            //        item.Quantity = 0;
-            //        foreach (var productInWarehouse in warehouses)
-            //        {
-            //            if (productInWarehouse.Product.BrandId == item.Id)
-            //            {
-            //                item.Quantity += 1;
-            //            }
-            //        }
-            //    }
-            //    var result = _mapper.Map<List<BrandVM>>(brands.ToList());
-            //    return Ok(new { total = result.Count(), data = result });
-            //}
-            //catch (Exception e)
-            //{
-            //    return BadRequest(e);
-            //}
+            try
+            {
+                var brands = await _brandService.ListAllAsync();
+                var warehouses = (await _warehouseService.GetWarehouse(_ => _.Quantity > 0)).Include(_ => _.Product).ToList();
+                foreach (var item in warehouses)
+                {
+                    item.Product = await _productService.GetProductById((int)item.ProductId);
+                }
+
+                foreach (var item in brands.ToList())
+                {
+                    item.Quantity = 0;
+                    foreach (var productInWarehouse in warehouses)
+                    {
+                        if (productInWarehouse.Product.BrandId == item.Id)
+                        {
+                            item.Quantity += 1;
+                        }
+                    }
+                }
+                var result = _mapper.Map<List<BrandVM>>(brands.ToList());
+                return Ok(new { total = result.Count(), data = result });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
         }
 
         [HttpPost]
