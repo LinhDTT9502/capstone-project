@@ -99,10 +99,10 @@ builder.Services.AddCors(options =>
            .AllowAnyHeader()
     );
 });
-builder.Services.AddHttpsRedirection(options =>
-{
-    options.HttpsPort = 443;
-});
+//builder.Services.AddHttpsRedirection(options =>
+//{
+//    options.HttpsPort = 443;
+//});
 
 //Mapping services
 var mappingConfig = new MapperConfiguration(mc =>
