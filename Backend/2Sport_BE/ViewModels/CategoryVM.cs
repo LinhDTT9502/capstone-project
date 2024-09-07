@@ -17,9 +17,15 @@ namespace _2Sport_BE.ViewModels
 
     public class CategoryCM : CategoryDTO
     {
+        public string CategoryName { get; set; }
+
+        public string Description { get; set; }
     }
 
     public class CategoryUM : CategoryDTO
     {
+        public string CategoryName { get; set; }
+
+        public string Description { get; set; }
     }
 }
