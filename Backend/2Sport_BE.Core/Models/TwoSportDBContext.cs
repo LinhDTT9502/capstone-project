@@ -39,14 +39,14 @@ namespace _2Sport_BE.Repository.Models
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Warehouse> Warehouses { get; set; }
 
-        /*protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=DESKTOP-E9T9GDT;uid=sa;pwd=12345;database= TwoSportDB;TrustServerCertificate=True");
+                optionsBuilder.UseSqlServer("Server=(local);uid=sa;pwd=12345;database=TwoSportDBTest;TrustServerCertificate=True");
             }
-        }*/
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
