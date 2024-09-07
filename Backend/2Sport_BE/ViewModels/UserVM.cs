@@ -36,7 +36,7 @@ namespace _2Sport_BE.ViewModels
         public string? Gender { get; set; }
         public string? Phone { get; set; }
         public string? Salary { get; set; }
-        public DateOnly? BirthDate { get; set; }
+        public DateTime? BirthDate { get; set; }
 
     }
     public class UserLogin
@@ -61,6 +61,12 @@ namespace _2Sport_BE.ViewModels
         public string OldPassword { get; set; }
         [Required]
         [JsonProperty("newPassword")]
+        public string NewPassword { get; set; }
+    }
+    public class ResetPasswordRequest
+    {
+        public string Token { get; set; }
+        public string Email { get; set; }
         public string NewPassword { get; set; }
     }
 }

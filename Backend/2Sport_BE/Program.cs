@@ -13,10 +13,10 @@ using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
 using _2Sport_BE.Service.Services;
 using System.Configuration;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("AppSettings:MailSettings"));
-builder.Services.AddTransient<ISendMailService, _2Sport_BE.Services.MailService>();
 
 builder.Services.Register();
 // Add services to the container.
@@ -48,9 +48,9 @@ builder.Services.AddAuthentication(options =>
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = tokenValidationParameters;
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = tokenValidationParameters;
     })
    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
    .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
@@ -61,7 +61,22 @@ builder.Services.AddAuthentication(options =>
        options.Scope.Add(builder.Configuration["Auth0:EmailAccess"]);
        options.Scope.Add(builder.Configuration["Auth0:BirthDayAccess"]);
        options.Scope.Add(builder.Configuration["Auth0:PhoneAccess"]);
+       
+   })
+   .AddFacebook(facebookOptions =>
+   {
+       facebookOptions.AppId = builder.Configuration["Facebook:AppId"];
+       facebookOptions.AppSecret = builder.Configuration["Facebook:AppSecret"];
+       facebookOptions.CallbackPath = "/signin-facebook";
+       // Yêu cầu quyền truy cập email
+       facebookOptions.Scope.Add("email");
+
+       // Lấy thông tin từ Facebook
+       facebookOptions.Fields.Add("email"); // Email
+
    });
+
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });

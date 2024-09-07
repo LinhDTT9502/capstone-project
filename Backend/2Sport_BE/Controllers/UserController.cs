@@ -11,10 +11,16 @@ using _2Sport_BE.Service.Services;
 using System.Text;
 using System.Security.Cryptography;
 using _2Sport_BE.Helpers;
+using MailKit;
+using _2Sport_BE.Services;
+using IMailService = _2Sport_BE.Services.IMailService;
+using System.Text.RegularExpressions;
+using Org.BouncyCastle.Asn1.Ocsp;
+using _2Sport_BE.API.Services;
 
 namespace _2Sport_BE.Controllers
 {
-    
+
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -22,15 +28,21 @@ namespace _2Sport_BE.Controllers
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
         private readonly IRefreshTokenService _refreshTokenService;
+        private readonly IMailService _mailService;
+        private readonly IIdentityService _identityService;
         public UserController(
             IUserService userService,
-            IMapper mapper,
-            IRefreshTokenService refreshTokenService
+            IRefreshTokenService refreshTokenService,
+            IMailService mailService,
+            IIdentityService identityService,
+            IMapper mapper
             )
         {
             _userService = userService;
-            _mapper = mapper;
             _refreshTokenService = refreshTokenService;
+            _mailService = mailService;
+            _identityService = identityService;
+            _mapper = mapper;
         }
         [HttpGet]
         [Route("get-all-users")]
@@ -39,7 +51,7 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var query = await _userService.GetAllAsync();
-                if(!string.IsNullOrWhiteSpace(fullName))
+                if (!string.IsNullOrWhiteSpace(fullName))
                 {
                     fullName = fullName.ToLower();
                     query = query.Where(x => x.FullName.ToLower().Contains(fullName));
@@ -47,7 +59,7 @@ namespace _2Sport_BE.Controllers
                 if (!string.IsNullOrWhiteSpace(username))
                 {
                     username = username.ToLower();
-                    query = query.Where(x => x.Username.ToLower().Contains(fullName));
+                    query = query.Where(x => x.UserName.ToLower().Contains(fullName));
                 }
 
                 var result = _mapper.Map<List<User>, List<UserVM>>(query.ToList());
@@ -56,7 +68,7 @@ namespace _2Sport_BE.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
-            } 
+            }
         }
         [HttpGet]
         [Route("get-users-by-role")]
@@ -88,7 +100,7 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(e);
             }
         }
-        
+
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] UserCM userCM)
         {
@@ -133,14 +145,14 @@ namespace _2Sport_BE.Controllers
                     return BadRequest(new { processStatus = "NotExisted" });
                 }
                 user.FullName = userUM.FullName;
-                //user.Salary = userUM.Salary;
+                user.Salary = userUM.Salary;
                 user.Email = userUM.Email;
                 user.BirthDate = userUM.BirthDate;
                 user.Gender = userUM.Gender;
                 user.Phone = userUM.Phone;
 
-               await _userService.UpdateAsync(user);
-               return Ok(new { processStatus = "Success", data = user.Id });
+                await _userService.UpdateAsync(user);
+                return Ok(new { processStatus = "Success", data = user.Id });
             }
             catch (Exception e)
             {
@@ -158,7 +170,7 @@ namespace _2Sport_BE.Controllers
         public async Task<ActionResult<User>> DeleteUser(int id)
         {
             var user = await _userService.FindAsync(id);
-            if(user == null)
+            if (user == null)
             {
                 return NotFound();
             }
@@ -234,5 +246,55 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpPost("send-verification-email")]
+        public async Task<IActionResult> SendVerificationEmail([FromBody] SendEmailRequest request)
+        {
+            var isValid = IsValid(request.Email);
+            if (!isValid)
+            {
+                return BadRequest("Email is invalid!");
+            }
+            var user = (await _userService.GetAsync(_ => _.Email.Equals(request.Email))).FirstOrDefault();
+            if (user is null)
+            {
+                return BadRequest("Email is not found!");
+            }
+
+            var Token = "";//await _identityService.GenerateEmailVerificationTokenAsync(request.Email);
+            user.Token = Token;
+            await _userService.UpdateAsync(user);
+
+            var verificationLink = Url.Action("VerifyEmail", "User", new { token = Token, email = user.Email }, Request.Scheme);
+
+            var result = await _mailService.SendVerifyEmailAsync(verificationLink, user.Email);
+            if (result)
+            {
+                return Ok(new { Message = "Verification email sent." });
+            }
+            return BadRequest("Can not create mail");
+        }
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail(string token, string email)
+        {
+            var user = (await _userService.GetAsync(_ => _.Email.Equals(email) && _.Token.Equals(token))).FirstOrDefault();
+            if (user is null)
+            {
+                return BadRequest("Email or Token are invalid!");
+            }
+            if (user.EmailConfirmed)
+            {
+                return Ok("Your email verified!");
+            }
+            user.EmailConfirmed = true;
+            await _userService.UpdateAsync(user);
+            return Ok(new { Message = "Email verified successfully." });
+        }
+        [NonAction]
+        private static bool IsValid(string email)
+        {
+            string regex = @"^[^@\s]+@[^@\s]+\.(com|net|org|gov)$";
+
+            return Regex.IsMatch(email, regex, RegexOptions.IgnoreCase);
+        }
     }
 }
