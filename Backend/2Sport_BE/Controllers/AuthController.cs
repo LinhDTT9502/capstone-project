@@ -19,6 +19,9 @@ using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using _2Sport_BE.Services;
 using _2Sport_BE.Service.Enums;
+using Microsoft.AspNetCore.Authentication.Facebook;
+using System.Text.RegularExpressions;
+using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace _2Sport_BE.Controllers
 {
@@ -31,7 +34,7 @@ namespace _2Sport_BE.Controllers
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly ISendMailService _mailService;
+        private readonly IMailService _mailService;
         private readonly ICartService _cartService;
 
         public AuthController(
@@ -40,7 +43,7 @@ namespace _2Sport_BE.Controllers
             IRefreshTokenService refreshTokenService,
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            ISendMailService mailService,
+            IMailService mailService,
             ICartService cartService)
         {
             _userService = userService;
@@ -51,64 +54,28 @@ namespace _2Sport_BE.Controllers
             _mailService = mailService;
             _cartService = cartService;
         }
-        [HttpPost("send")]
-        public async Task<IActionResult> SendEmail([FromForm] MailRequest mailRequest)
-        {
-            
 
-            mailRequest.Subject = mailRequest.Subject;
-            mailRequest.Body = mailRequest.Body;
-            mailRequest.ToEmail = mailRequest.ToEmail;
-            mailRequest.Attachments = mailRequest.Attachments;
-            if (mailRequest == null)
-            {
-                return BadRequest("Email request is null");
-            }
-            var result = await _mailService.SendEmailAsync(mailRequest);
-            if (result)
-            {
-            return Ok("Email sent successfully");
-            }
-            else
-            {
-                return BadRequest();
-            }
-        }
-        
         [Route("sign-in")]
         [HttpPost]
         public async Task<IActionResult> LoginAsync([FromBody] UserLogin loginModel)
         {
-            var password = HashPassword(loginModel.Password);
-            loginModel.Password = password;
-            var result = await _identityService.LoginAsync(loginModel);
-            if (result.IsSuccess)
+            if (loginModel is null)
             {
-                var cart = await _cartService.GetCartByUserId((int)result.Data.UserId);
-                if (cart == null)
-                {
-                    cart = new Cart
-                    {
-                        UserId = result.Data.UserId,
-                        CartItems = new List<CartItem>(),
-                        User = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Id == result.Data.UserId),
-                    };
-
-                    await _cartService.AddNewCart(cart);
-                }
+                return BadRequest(new { message = "UserLogin data is required." });
             }
+
+            if (string.IsNullOrEmpty(loginModel.UserName) || string.IsNullOrEmpty(loginModel.Password))
+            {
+                return BadRequest(new { message = "Username and Password are required." });
+            }
+
+            var result = await _identityService.LoginAsync(loginModel);
+
             return Ok(result);
         }
 
-        [Route("refresh-token")]
+        [Route("sign-out")]
         [HttpPost]
-        public async Task<IActionResult> RefreshAsync([FromBody] TokenModel request)
-        {
-            var result = await _identityService.RefreshTokenAsync(request);
-            return Ok(result);
-        }
-
-        [HttpPost("sign-out")]
         public async Task<IActionResult> LogOutAsync([FromBody] TokenModel request)
         {
             var token = await _unitOfWork.RefreshTokenRepository.GetObjectAsync(_ => _.Token == request.RefreshToken);
@@ -124,68 +91,51 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        [HttpGet("oauth-login")]
-        public IActionResult ExternalLogin1()
+        [Route("sign-up")]
+        [HttpPost]
+        public async Task<IActionResult> SignUp([FromBody] UserCM userCM)
         {
-            var props = new AuthenticationProperties { RedirectUri = "api/Auth/signin-google" };
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _identityService.SignUpAsync(userCM);
+
+            if (result.IsSuccess)
+            {
+                return StatusCode(201, new { processStatus = result.Message, userId = result.Data });
+            }
+
+            return StatusCode(500, result);
+        }
+
+        [Route("refresh-token")]
+        [HttpPost]
+        public async Task<IActionResult> RefreshAsync([FromBody] TokenModel request)
+        {
+            var result = await _identityService.RefreshTokenAsync(request);
+            return Ok(result);
+        }
+
+        [HttpGet("signin-google")]
+        public IActionResult GoogleLogin()
+        {
+            var props = new AuthenticationProperties { RedirectUri = "api/Auth/google-response" };
             return Challenge(props, GoogleDefaults.AuthenticationScheme);
         }
-        [HttpGet("signin-google")]
-        public async Task<IActionResult> GoogleLogin()
+        [HttpGet("google-response")]
+        public async Task<IActionResult> GoogleResponse()
         {
             var response = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             if (response.Principal == null) return BadRequest();
 
-            var name = response.Principal.FindFirstValue(ClaimTypes.Name);
-            var email = response.Principal.FindFirstValue(ClaimTypes.Email);
-            var phone = response.Principal.FindFirstValue(ClaimTypes.MobilePhone);
-            var gender = response.Principal.FindFirstValue(ClaimTypes.Gender);
 
-            if (email == null)
-            {
-                return BadRequest("Error retrieving Google user information");
-            }
-
-            ResponseModel<TokenModel> result = new ResponseModel<TokenModel>();
-            var user = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Email == email);
-            if (user != null)
-            {
-                result = await _identityService.LoginGoogleAsync(user);
-                var cart = await _cartService.GetCartByUserId(user.Id);
-                if (cart == null)
-                {
-                    cart = new Cart
-                    {
-                        UserId = user.Id,
-                        CartItems = new List<CartItem>(),
-                        User = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Id == user.Id),
-                    };
-
-                    await _cartService.AddNewCart(cart);
-                }
-            }
-            else
-            {
-                user = new User()
-                {
-                    FullName = name,
-                    Email = email,
-                    Phone = phone,
-                    CreatedDate = DateTime.Now,
-                    RoleId = 4,
-                    Gender = gender,
-                    IsActive = true,
-                };
-                await _userService.AddAsync(user);
-                _unitOfWork.Save();
-
-                result = await _identityService.LoginGoogleAsync(user);
-            }
-
+            var result = await _identityService.HandleLoginGoogle(response.Principal);
             var token = result.Data.Token;
             var refreshToken = result.Data.RefreshToken;
 
-            
+
             var script = $@"
                 <script>
                     window.opener.postMessage({{
@@ -198,208 +148,99 @@ namespace _2Sport_BE.Controllers
             return Content(script, "text/html");
         }
 
-        [HttpPost("sign-up")]
-        public async Task<IActionResult> CreateUser([FromBody] UserCM userCM)
+        //Login Facebook chua xong     
+        [HttpGet("signin-facebook")]
+        public IActionResult FaceBookLogin()
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-                if (await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Email.ToLower() == userCM.Email.ToLower()) != null)
-                {
-                    return StatusCode(500, new { processStatus = "Already have an account!" });
-                }
-
-                var user = _mapper.Map<UserCM, User>(userCM); 
-                user.Password = HashPassword(userCM.Password);
-                user.CreatedDate = DateTime.Now;
-                user.RoleId = (int) UserRole.Customer;
-                user.IsActive = true;
-                await _userService.AddAsync(user);
-                var cart = await _cartService.GetCartByUserId(user.Id);
-                if (cart == null)
-                {
-                    cart = new Cart
-                    {
-                        UserId = user.Id,
-                        CartItems = new List<CartItem>(),
-                        User = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Id == user.Id),
-                    };
-
-                    await _cartService.AddNewCart(cart);
-                }
-                _userService.Save();
-                return StatusCode(201, new { processStatus = "Success", userId = user.Id }); ;
-            }
-            catch (Exception ex)
-            {
-                if (ex is DbUpdateException dbUpdateEx)
-                {
-                    return BadRequest(new { processStatus = "User is duplicated" });
-                }
-                return BadRequest(ex);
-            }
-
+            var redirectUrl = Url.Action("FacebookResponse", "Auth");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, FacebookDefaults.AuthenticationScheme);
         }
-        [HttpPost("create-staff")]
-        public async Task<IActionResult> CreateStaff([FromBody] UserCM userCM, int roleId)
+        [HttpGet("facebook-response")]
+        public async Task<IActionResult> FacebookResponse()
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            try
-            {
-                var role = await _unitOfWork.RoleRepository.GetObjectAsync(_ => _.Id == roleId);
-                var user = await _userService.GetAsync(_ => _.Email == userCM.Email);
-                if(user == null)
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (!result.Succeeded)
+                return BadRequest();
+            // Lấy thông tin người dùng
+            var claims = result.Principal.Identities
+                .FirstOrDefault()?.Claims.Select(claim => new
                 {
-                    User staff = new User()
-                    {
-                        UserName = userCM.Username,
-                        Email = userCM.Email,
-                        CreatedDate = DateTime.Now,
-                        Password = HashPassword(userCM.Password),
-                        FullName = userCM.FullName,
-                        RoleId = roleId,
-                        Role = role,
-                        IsActive = true
-                    };
-                    await _userService.AddAsync(staff);
-                    return StatusCode(201, new { processStatus = "Success", userId = staff.Id });
-                }
-                return StatusCode(500, new { processStatus = $"Already have an account!" });
-            }
-            catch (Exception ex)
-            {
-                //Duplicate
-                if (ex is DbUpdateException dbUpdateEx)
-                {
-                    return BadRequest(new { processStatus = "Duplicate" });
-                }
-                return BadRequest(ex);
-            }
+                    claim.Type,
+                    claim.Value
+                });
+            var email = result.Principal.FindFirstValue(ClaimTypes.Email);
+            var name = result.Principal.FindFirstValue(ClaimTypes.GivenName) ??
+                                   result.Principal.FindFirstValue(ClaimTypes.Name);
+            var lastName = result.Principal.FindFirstValue(ClaimTypes.Surname);
 
-        }
-        [HttpPost("change-password")]
-        public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordVM model)
-        {
-            var user = await GetUserFromToken();
-            if(user is null)
+
+            return Ok(new
             {
-                return Unauthorized("Invalid user");
-            }
-            else
-            {
-                if (!user.Password.Equals(HashPassword(model.OldPassword)))
-                {
-                    return BadRequest("Old passwords do not match");
-                }
-                user.Password = HashPassword(model.NewPassword);
-                _unitOfWork.Save();
-                return Ok("Password changed successfully");
-            } 
+                Email = email,
+                Name = name,
+                LastName = lastName,
+                Claims = claims
+            });
         }
+
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotVM forgotVM)
+        public async Task<IActionResult> SendResetPasswordEmail([FromBody] SendEmailRequest request)
         {
-            try
+            if (string.IsNullOrEmpty(request.Email))
             {
-                var username = forgotVM.Username;
-                var mail = forgotVM.Email;
-                //check
-                var check = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Email == mail && _.UserName == _.UserName);
-                if(check != null)
-                {
-                    var newPassword = GenerateRandomString(6);
-                    check.Password = HashPassword(newPassword);
-                    _unitOfWork.Save();
-                    //Send mail to get a new password
-                    MailRequest mailRequest = new MailRequest();
-                    mailRequest.Subject = "Request to change a new password from TwoSport";
-                    mailRequest.Body = $"We are the administrators of TwoSport. Your new password is {newPassword}. Best Regards!";
-                    mailRequest.ToEmail = mail;
-                    var imailservice = _mailService;
-                    var result = await _mailService.SendEmailAsync(mailRequest);
-                    
-
-                    if(result)
-                    {
-                        return Ok(new { Message = "Query successfully", IsSuccess = true });
-                    }
-                    else
-                    {
-                        return Ok(new { Message = "Query failed", IsSuccess = false });
-                    }
-                   
-                }
-                else
-                {
-                    return BadRequest(new { Message = "Invalid Information!", IsSuccess = false });
-                }
-                
-            }catch(Exception ex)
-            {
-
-            }
-            return BadRequest(new {Message = "Some thing wrongs", IsSuccess = false });
-        }
-        [NonAction]
-        public string HashPassword(string password)
-        {
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
-
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-                return builder.ToString();
-            }
-        }
-        [NonAction]
-        public static string GenerateRandomString(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            StringBuilder result = new StringBuilder(length);
-            Random random = new Random();
-
-            for (int i = 0; i < length; i++)
-            {
-                result.Append(chars[random.Next(chars.Length)]);
+                return BadRequest("Email and Token are required.");
             }
 
-            return result.ToString();
+            if (!_mailService.IsValidEmail(request.Email))
+            {
+                return BadRequest("Email is invalid!");
+            }
+            var user = (await _userService.GetAsync(_ => _.Email.Equals(request.Email))).FirstOrDefault();
+            if (user is null)
+            {
+                return BadRequest("Email is not found!");
+            }
+            var token = await _mailService.GenerateEmailVerificationTokenAsync(request.Email);
+            user.PasswordResetToken = token;
+            await _userService.UpdateAsync(user);
+            var resetLink = Url.Action("ValidateResetToken", "Auth", new { token = token, email = user.Email }, Request.Scheme);
+
+            var result = await _mailService.SendForgotPasswordEmailAsync(resetLink, user.Email);
+            if (result)
+            {
+                return Ok(new { Message = "Reset password email sent successfully." });
+            }
+            return StatusCode(500, "Unable to send reset password email. Please try again later.");
         }
 
-        [NonAction]
-        private async Task<User> GetUserFromToken()
+        [HttpGet("validate-reset-token")]
+        public async Task<IActionResult> ValidateResetToken(string token, string email)
         {
-            int UserId = 0;
-            try
+            var user = (await _userService.GetAsync(_ => _.Email.Equals(email) && _.PasswordResetToken.Equals(token))).FirstOrDefault();
+            if (user is null)
             {
-                if (HttpContext.User.Identity.IsAuthenticated)
-                {
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    if (identity != null)
-                    {
-                        IEnumerable<Claim> claims = identity.Claims;
-                        string strUserId = identity.FindFirst("UserId").Value;
-                        int.TryParse(strUserId, out UserId);
+                return BadRequest("Invalid or expired token.");
+            }
 
-                    }
-                }
-            }
-            catch (Exception ex)
+            return Ok("Token is valid.");
+        }
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            if (string.IsNullOrEmpty(request.NewPassword) || string.IsNullOrEmpty(request.Token) || string.IsNullOrEmpty(request.Email))
             {
-                Console.WriteLine(ex);
+                return BadRequest("Email, token, and new password are required.");
             }
-            var user = await _userService.GetAsync(_ => _.Id == UserId);
-            return user.FirstOrDefault();
+
+            var result = await _identityService.HandleResetPassword(request);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Message);
         }
     }
 }

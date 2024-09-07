@@ -21,7 +21,7 @@ namespace _2Sport_BE.Extensions
             services.AddTransient<IIdentityService, IdentityService>();
             services.AddTransient<IBrandService, BrandService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
-            services.AddTransient<ISendMailService, MailService>();
+            services.AddTransient<IMailService, MailService>();
             services.AddScoped<ISportService, SportService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IProductService, ProductService>();

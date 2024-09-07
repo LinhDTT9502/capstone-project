@@ -29,6 +29,12 @@ namespace _2Sport_BE.Repository.Models
         public bool? IsActive { get; set; }
         public int? RoleId { get; set; }
         public string? Address { get; set; }
+        //Thêm column mới
+        public string? GoogleId { get; set; }
+        public string? FacebookId { get; set; }
+        public bool EmailConfirmed { get; set; }
+        public string? PasswordResetToken { get; set; }
+        public string? Token { get; set; }
 
         public virtual Role Role { get; set; }
         public virtual ICollection<Cart> Carts { get; set; }
