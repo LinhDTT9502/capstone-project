@@ -65,15 +65,13 @@ namespace _2Sport_BE.Controllers
 
         [HttpPost]
         [Route("add-categories")]
-        public async Task<IActionResult> AddCategories(List<CategoryCM> newCategoryCMs)
+        public async Task<IActionResult> AddCategories(List<Category> newCategories)
         {
             try
-
-
-                var newCategories = _mapper.Map<List<Category>>(newCategoryCMs);
+            {
                 await _categoryService.AddCategories(newCategories);
                 await _unitOfWork.SaveChanges();
-                return Ok("Add new categories successfully!");
+                return Ok("Add new sports successfully!");
             }
             catch (Exception ex)
             {
