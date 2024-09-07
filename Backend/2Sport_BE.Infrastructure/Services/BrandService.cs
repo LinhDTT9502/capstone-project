@@ -34,6 +34,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
         public async Task CreateANewBrandAsync(Brand brand)
         {
+            brand.Status = true;
             await _unitOfWork.BrandRepository.InsertAsync(brand);
         }
 
