@@ -22,6 +22,7 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddTransient<IIdentityService, IdentityService>();
             services.AddTransient<IBrandService, BrandService>();
+            services.AddTransient<IBranchService, BranchService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddTransient<IMailService, MailService>();
             services.AddScoped<ISportService, SportService>();
@@ -39,6 +40,7 @@ namespace _2Sport_BE.Extensions
 			services.AddScoped<ISupplierService, SupplierService>();
 			services.AddScoped<IImportHistoryService, ImportHistoryService>();
 			services.AddScoped<IWarehouseService, WarehouseService>();
+			services.AddScoped<IImageService, ImageService>();
         }
 
         private static string GetConnectionStrings()

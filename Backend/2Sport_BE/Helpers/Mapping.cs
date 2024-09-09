@@ -27,6 +27,11 @@ namespace _2Sport_BE.Helpers
             CreateMap<Brand, BrandCM>().ReverseMap();
             CreateMap<Brand, BrandUM>().ReverseMap();
             #endregion
+            #region Branch
+            CreateMap<Branch, BranchVM>().ReverseMap();
+            CreateMap<Branch, BranchCM>().ReverseMap();
+            CreateMap<Branch, BranchUM>().ReverseMap();
+            #endregion
             #region ShipmentDetail
             CreateMap<ShipmentDetail, ShipmentDetailVM>();
             CreateMap<ShipmentDetail, ShipmentDetailCM>();
