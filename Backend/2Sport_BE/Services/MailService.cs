@@ -21,24 +21,14 @@ namespace _2Sport_BE.Services
         public int Port { get; set; }
         public bool EnableSSL { get; set; }
     }
-    public class MailRequest
-    {
-        public string ToEmail { get; set; }
-        public string Subject { get; set; }
-        public string Body { get; set; }
-        public List<IFormFile> Attachments { get; set; }
-    }
-
     public class SendEmailRequest
     {
         public string Email { get; set; }
     }
     public interface IMailService
     {
-        Task<bool> SendEmailAsync(MailRequest mailRequest);
         Task<bool> SendVerifyEmailAsync(string verifyLink, string email);
         Task<bool> SendForgotPasswordEmailAsync(string resetLink, string email);
-        Task<bool> SendConfirmEmailAsync(string confirmLink, string email);
         Task<string> GenerateEmailVerificationTokenAsync(string email);
         bool IsValidEmail(string email);
     }
@@ -47,7 +37,6 @@ namespace _2Sport_BE.Services
     {
         private const string VERIFY_EMAIL_CONSTANT = "Verify Your Mail";
         private const string FORGOT_PASSWORD_CONSTANT = "Reset Your Password";
-        private const string CONFIRM_EMAIL_CONSTANT = "Verify Your Mail";
         private readonly IConfiguration _configuration;
         private readonly ILogger<MailService> _logger;
         private readonly MailSettings _mailSettings;
@@ -77,7 +66,6 @@ namespace _2Sport_BE.Services
 
             return Regex.IsMatch(email, regex, RegexOptions.IgnoreCase);
         }
-
         public async Task<string> GenerateEmailVerificationTokenAsync(string email)
         {
             try
@@ -111,58 +99,6 @@ namespace _2Sport_BE.Services
                 return null;
             }
         }
-        public Task<bool> SendConfirmEmailAsync(string confirmLink, string email)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> SendEmailAsync(MailRequest mailRequest)
-        {
-            bool status = false;
-            try
-            {
-                var email = new MimeMessage();
-                email.From.Add(MailboxAddress.Parse(_mailSettings.Mail));
-                email.To.Add(MailboxAddress.Parse(mailRequest.ToEmail));
-                email.Subject = mailRequest.Subject;
-                var builder = new BodyBuilder();
-                if (mailRequest.Attachments != null)
-                {
-                    byte[] fileBytes;
-                    foreach (var file in mailRequest.Attachments)
-                    {
-                        if (file.Length > 0)
-                        {
-                            using (var ms = new MemoryStream())
-                            {
-                                file.CopyTo(ms);
-                                fileBytes = ms.ToArray();
-                            }
-                            builder.Attachments.Add(file.FileName, fileBytes, ContentType.Parse(file.ContentType));
-                        }
-                    }
-                }
-                builder.HtmlBody = mailRequest.Body;
-                email.Body = builder.ToMessageBody();
-                using (var client = new SmtpClient())
-                {
-                    client.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTlsWhenAvailable);
-                    client.AuthenticationMechanisms.Remove("XOAUTH2");
-                    client.Authenticate(_mailSettings.Mail, _mailSettings.SecrectKey);
-                    client.Send(email);
-                    client.Disconnect(true);
-                }
-                status = true;
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error sending email: {ex.Message}");
-                status = false;
-            }
-            return status;
-        }
-
         public async Task<bool> SendForgotPasswordEmailAsync(string resetLink, string mail)
         {
             bool status = false;
@@ -198,7 +134,6 @@ namespace _2Sport_BE.Services
             }
             return status;
         }
-
         public async Task<bool> SendVerifyEmailAsync(string verifyLink, string mail)
         {
             bool status = false;

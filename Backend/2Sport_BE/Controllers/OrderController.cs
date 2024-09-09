@@ -42,7 +42,7 @@ namespace _2Sport_BE.Controllers
                 if (order != null)
                 {
                     
-                    var user = await _userService.FindAsync((int)order.UserId);
+                    var user = await _userService.GetUserById((int)order.UserId);
                     if (user != null)
                     {
                         var orderDetails = order.OrderDetails ?? new List<OrderDetail>();
@@ -188,7 +188,7 @@ namespace _2Sport_BE.Controllers
                 return BadRequest();
             }
             int userId =  GetCurrentUserIdFromToken();
-            User user = await _userService.FindAsync(userId);
+            User user = await _userService.GetUserById(userId);
             var order = _mapper.Map<OrderCM, Order>(orderCM);
             order.UserId = userId;
             order.User = user;

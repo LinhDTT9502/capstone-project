@@ -1,4 +1,5 @@
 ﻿using _2Sport_BE.Repository.Models;
+using _2Sport_BE.Service.DTOs;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
 
@@ -12,16 +13,17 @@ namespace _2Sport_BE.Helpers
             CreateMap<User, UserVM>()
                 .ForMember(_dest => _dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName));
             CreateMap<UserCM, User>();
-            CreateMap<UserUM, User>();
+            CreateMap<UserUM, User>().
+                ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<ProfileUM, User>().
+               ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
-
             #region Sport
             CreateMap<Sport, SportVM>();
             CreateMap<Sport, SportCM>();
             CreateMap<Sport, SportUM>();
             CreateMap<SportUM, Sport>();
             #endregion
-
             #region Brand
             CreateMap<Brand, BrandVM>().ReverseMap();
             CreateMap<Brand, BrandCM>().ReverseMap();
@@ -54,7 +56,6 @@ namespace _2Sport_BE.Helpers
             CreateMap<Category, CategoryUM>();
             CreateMap<CategoryUM, Category>();
             #endregion
-
             #region Product
             CreateMap<Product, ProductVM>()
                 .ForMember(dest => dest.BrandName, opt => opt.MapFrom(src => src.Brand.BrandName))
@@ -66,8 +67,6 @@ namespace _2Sport_BE.Helpers
             CreateMap<ProductUM, Product>();
             CreateMap<ProductCM, Product>();
             #endregion
-
-
             #region CartItem
             CreateMap<CartItem, CartItemVM>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
@@ -77,14 +76,11 @@ namespace _2Sport_BE.Helpers
             CreateMap<CartItem, CartItemUM>().ReverseMap();
 
             #endregion
-
             #region Supplier
             CreateMap<Supplier, SupplierVM>().ReverseMap();
             CreateMap<SupplierCM, Supplier>().ReverseMap();
             CreateMap<SupplierUM, Supplier>().ReverseMap();
             #endregion
-
-
             #region Import
             CreateMap<ImportHistory, ImportVM>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
@@ -93,7 +89,6 @@ namespace _2Sport_BE.Helpers
             CreateMap<ImportCM, ImportHistory>().ReverseMap();
             CreateMap<ImportUM, ImportHistory>().ReverseMap();
             #endregion
-
             #region Warehouse
             CreateMap<Warehouse, WarehouseVM>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))

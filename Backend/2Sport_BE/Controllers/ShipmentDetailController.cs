@@ -202,7 +202,7 @@ namespace _2Shipment_BE.Controllers
         [NonAction]
         private async Task<User> GetUserFromToken()
         {
-            var user = await _userService.GetAsync(_ => _.Id == GetCurrentUserIdFromToken());
+            var user = await _userService.GetUserWithConditionAsync(_ => _.Id == GetCurrentUserIdFromToken());
             return user.FirstOrDefault();
         }
     }
