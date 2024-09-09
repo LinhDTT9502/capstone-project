@@ -12,9 +12,8 @@ namespace _2Sport_BE.Repository.Models
 
         public int Id { get; set; }
         public string RoleName { get; set; }
-        public DateTime? CreatedOn { get; set; }
-        public DateTime? UpdatedOn { get; set; }
-
+        public string Description { get; set; }
+        public DateTime? CreateAt { get; set; }
         public virtual ICollection<User> Users { get; set; }
     }
 }

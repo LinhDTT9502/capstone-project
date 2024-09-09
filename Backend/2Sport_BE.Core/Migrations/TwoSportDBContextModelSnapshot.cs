@@ -67,7 +67,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Blogs__3214EC0624FD893D")
                         .IsUnique();
 
-                    b.ToTable("Blogs");
+                    b.ToTable("Blogs", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Brand", b =>
@@ -98,7 +98,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Brands__3214EC06D1E78A79")
                         .IsUnique();
 
-                    b.ToTable("Brands");
+                    b.ToTable("Brands", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.BrandCategory", b =>
@@ -148,7 +148,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Carts__3214EC067447A3E7")
                         .IsUnique();
 
-                    b.ToTable("Carts");
+                    b.ToTable("Carts", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.CartItem", b =>
@@ -185,7 +185,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__CartItem__3214EC0670276BEC")
                         .IsUnique();
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItems", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
@@ -212,7 +212,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Categori__3214EC06CEC2D1B1")
                         .IsUnique();
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Classification", b =>
@@ -236,7 +236,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Classifi__3214EC06EE82EB43")
                         .IsUnique();
 
-                    b.ToTable("Classifications");
+                    b.ToTable("Classifications", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ImagesVideo", b =>
@@ -284,7 +284,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__ImagesVi__3214EC06F5E0B1F0")
                         .IsUnique();
 
-                    b.ToTable("ImagesVideos");
+                    b.ToTable("ImagesVideos", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ImportHistory", b =>
@@ -328,7 +328,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__ImportHi__3214EC06CD9E1B2D")
                         .IsUnique();
 
-                    b.ToTable("ImportHistories");
+                    b.ToTable("ImportHistories", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Like", b =>
@@ -362,7 +362,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Likes__3214EC062F085310")
                         .IsUnique();
 
-                    b.ToTable("Likes");
+                    b.ToTable("Likes", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Order", b =>
@@ -422,7 +422,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Orders__3214EC069E0C3512")
                         .IsUnique();
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.OrderDetail", b =>
@@ -454,7 +454,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__OrderDet__3214EC06FADB848B")
                         .IsUnique();
 
-                    b.ToTable("OrderDetails");
+                    b.ToTable("OrderDetails", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.PaymentMethod", b =>
@@ -563,7 +563,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Products__3214EC06CF2D8A01")
                         .IsUnique();
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.RefreshToken", b =>
@@ -642,7 +642,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Reviews__3214EC0637DB1E90")
                         .IsUnique();
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Role", b =>
@@ -669,7 +669,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Roles__3214EC06A0E5B809")
                         .IsUnique();
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ShipmentDetail", b =>
@@ -706,7 +706,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Shipment__3214EC06D1B6B308")
                         .IsUnique();
 
-                    b.ToTable("ShipmentDetails");
+                    b.ToTable("ShipmentDetails", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Sport", b =>
@@ -726,7 +726,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Sports__3214EC063D489370")
                         .IsUnique();
 
-                    b.ToTable("Sports");
+                    b.ToTable("Sports", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Supplier", b =>
@@ -752,7 +752,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Supplier__3214EC061A804565")
                         .IsUnique();
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.User", b =>
@@ -833,7 +833,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Users__3214EC065D802F08")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Warehouse", b =>
@@ -857,7 +857,7 @@ namespace _2Sport_BE.Repository.Migrations
                     b.HasIndex(new[] { "Id" }, "UQ__Warehous__3214EC06033043FA")
                         .IsUnique();
 
-                    b.ToTable("Warehouses");
+                    b.ToTable("Warehouses", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Blog", b =>

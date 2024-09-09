@@ -1,14 +1,19 @@
-﻿/*using _2Sport_BE.Repository.Models;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace _2Sport_BE.ViewModels
+namespace _2Sport_BE.Service.DTOs
 {
     public class UserDTO
     {
         public string? Username { get; set; }
         public string? Password { get; set; }
         public string? FullName { get; set; }
+        public string? Email { get; set; }
     }
     public class UserVM
     {
@@ -19,25 +24,37 @@ namespace _2Sport_BE.ViewModels
         public string? RoleName { get; set; }
         public string? Gender { get; set; }
         public string? Phone { get; set; }
+        public string? Address { get; set; }
         public DateTime? BirthDate { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime? LastUpdate { get; set; }
 
     }
     public class UserCM : UserDTO
     {
-        public string? Email { get; set; }
-
+        public string? Gender { get; set; }
+        public string? Phone { get; set; }
+        public DateTime? BirthDate { get; set; }
+        public int? RoleId { get; set; }
     }
-    public class UserUM : UserDTO
+    public class RegisterModel : UserDTO
     {
+    }
+    public class UserUM
+    {
+        public string? FullName { get; set; }
         public string? Email { get; set; }
+        public int? RoleId { get; set; }
+        public string? Gender { get; set; }
+        public string? Phone { get; set; }
+        public string? Address { get; set; }
+        public DateTime? BirthDate { get; set; }    
+    }
+    public class ProfileUM
+    {
         public string? FullName { get; set; }
         public string? Gender { get; set; }
         public string? Phone { get; set; }
-        public string? Salary { get; set; }
+        public string? Address { get; set; }
         public DateTime? BirthDate { get; set; }
-
     }
     public class UserLogin
     {
@@ -70,4 +87,3 @@ namespace _2Sport_BE.ViewModels
         public string NewPassword { get; set; }
     }
 }
-*/
