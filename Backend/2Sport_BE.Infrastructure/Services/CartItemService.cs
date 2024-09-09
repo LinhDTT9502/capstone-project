@@ -71,7 +71,7 @@ namespace _2Sport_BE.Service.Services
         public async Task<CartItem> AddCartItem(Cart cart, CartItem cartItem)
         {
             var currentItem = (await _cartItemRepository.GetAsync(_ => _.ProductId == cartItem.ProductId &&
-                                                                        _.CartId == cart.Id &&
+                                                                        _.CartId == cart.CartId &&
                                                                         _.Status == true)).FirstOrDefault();
             var product = (await _productRepository.GetAsync(_ => _.Id == cartItem.ProductId && _.Status == true))
                                                    .FirstOrDefault();
@@ -80,7 +80,7 @@ namespace _2Sport_BE.Service.Services
                 currentItem.Quantity += cartItem.Quantity;
                 var totalPrice = product.Price * cartItem.Quantity;
                 currentItem.TotalPrice += totalPrice;
-                currentItem.CartId = cart.Id;
+                currentItem.CartId = cart.CartId;
                 currentItem.Cart = cart;
                 try
                 {
@@ -93,7 +93,7 @@ namespace _2Sport_BE.Service.Services
                 }
             } else
             {
-                cartItem.CartId = cart.Id;
+                cartItem.CartId = cart.CartId;
                 cartItem.ProductId = product.Id;
                 var totalPrice = product.Price * cartItem.Quantity;
                 cartItem.TotalPrice = totalPrice;
@@ -117,7 +117,7 @@ namespace _2Sport_BE.Service.Services
             if (cart != null)
             {
                 var testCartItems = await _cartItemRepository.GetAllAsync();
-                var cartItems = await _cartItemRepository.GetAsync(_ => _.CartId == cart.Id && _.Status == true,
+                var cartItems = await _cartItemRepository.GetAsync(_ => _.CartId == cart.CartId && _.Status == true,
                                                                     null, "", pageIndex, pageSize);
                 return cartItems.AsQueryable();
             }

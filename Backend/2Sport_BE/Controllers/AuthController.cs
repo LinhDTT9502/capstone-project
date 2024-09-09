@@ -22,6 +22,7 @@ using _2Sport_BE.Service.Enums;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using System.Text.RegularExpressions;
 using Org.BouncyCastle.Asn1.Ocsp;
+using _2Sport_BE.Service.DTOs;
 
 namespace _2Sport_BE.Controllers
 {
@@ -93,14 +94,19 @@ namespace _2Sport_BE.Controllers
 
         [Route("sign-up")]
         [HttpPost]
-        public async Task<IActionResult> SignUp([FromBody] UserCM userCM)
+        public async Task<IActionResult> SignUp([FromBody] RegisterModel registerModel)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result = await _identityService.SignUpAsync(userCM);
+            if (!_mailService.IsValidEmail(registerModel.Email))
+            {
+                return BadRequest("Email is invalid!");
+            }
+
+            var result = await _identityService.SignUpAsync(registerModel);
 
             if (result.IsSuccess)
             {
@@ -196,14 +202,14 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest("Email is invalid!");
             }
-            var user = (await _userService.GetAsync(_ => _.Email.Equals(request.Email))).FirstOrDefault();
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(request.Email))).FirstOrDefault();
             if (user is null)
             {
                 return BadRequest("Email is not found!");
             }
             var token = await _mailService.GenerateEmailVerificationTokenAsync(request.Email);
             user.PasswordResetToken = token;
-            await _userService.UpdateAsync(user);
+            await _userService.UpdateUserAsync(user.Id, user);
             var resetLink = Url.Action("ValidateResetToken", "Auth", new { token = token, email = user.Email }, Request.Scheme);
 
             var result = await _mailService.SendForgotPasswordEmailAsync(resetLink, user.Email);
@@ -217,7 +223,7 @@ namespace _2Sport_BE.Controllers
         [HttpGet("validate-reset-token")]
         public async Task<IActionResult> ValidateResetToken(string token, string email)
         {
-            var user = (await _userService.GetAsync(_ => _.Email.Equals(email) && _.PasswordResetToken.Equals(token))).FirstOrDefault();
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(email) && _.PasswordResetToken.Equals(token))).FirstOrDefault();
             if (user is null)
             {
                 return BadRequest("Invalid or expired token.");

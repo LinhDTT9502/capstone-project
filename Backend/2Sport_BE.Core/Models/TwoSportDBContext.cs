@@ -39,14 +39,14 @@ namespace _2Sport_BE.Repository.Models
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Warehouse> Warehouses { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+/*        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=(local);uid=sa;pwd=12345;database=TwoSportDBTest;TrustServerCertificate=True");
+                optionsBuilder.UseSqlServer("Server=tcp:2sportdb.database.windows.net,1433;Initial Catalog=TwoSportDB;Persist Security Info=False;User ID=twosportserver;Password=Password@;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;");
             }
-        }
+        }*/
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -96,18 +96,6 @@ namespace _2Sport_BE.Repository.Models
                     .HasForeignKey(d => d.CategoryId)
                     .HasConstraintName("FK__BrandCate__Categ__74AE54BC");
             });
-
-            modelBuilder.Entity<Cart>(entity =>
-            {
-                entity.HasIndex(e => e.Id, "UQ__Carts__3214EC067447A3E7")
-                    .IsUnique();
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Carts)
-                    .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK__Carts__UserId__787EE5A0");
-            });
-
             modelBuilder.Entity<CartItem>(entity =>
             {
                 entity.HasIndex(e => e.Id, "UQ__CartItem__3214EC0670276BEC")
@@ -316,24 +304,6 @@ namespace _2Sport_BE.Repository.Models
                     .HasForeignKey(d => d.SportId)
                     .HasConstraintName("FK__Products__SportI__07C12930");
             });
-
-            modelBuilder.Entity<RefreshToken>(entity =>
-            {
-                entity.ToTable("RefreshToken");
-
-                entity.HasIndex(e => e.RefreshTokenId, "UQ__RefreshT__F5845E38F471A76F")
-                    .IsUnique();
-
-                entity.Property(e => e.CreateDate).HasColumnType("datetime");
-
-                entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.RefreshTokens)
-                    .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK__RefreshTo__UserI__08B54D69");
-            });
-
             modelBuilder.Entity<Review>(entity =>
             {
                 entity.HasIndex(e => e.Id, "UQ__Reviews__3214EC0637DB1E90")
@@ -361,11 +331,9 @@ namespace _2Sport_BE.Repository.Models
                 entity.HasIndex(e => e.Id, "UQ__Roles__3214EC06A0E5B809")
                     .IsUnique();
 
-                entity.Property(e => e.CreatedOn).HasColumnType("datetime");
-
                 entity.Property(e => e.RoleName).HasMaxLength(255);
-
-                entity.Property(e => e.UpdatedOn).HasColumnType("datetime");
+                entity.Property(e => e.Description).HasMaxLength(255);
+                entity.Property(e => e.CreateAt).HasColumnType("datetime");
             });
 
             modelBuilder.Entity<ShipmentDetail>(entity =>

@@ -32,6 +32,7 @@ namespace _2Sport_BE.Repository.Implements
             {
                 await DeleteAsync(entityToDelete);
             }
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(T entityToDelete)
@@ -41,6 +42,7 @@ namespace _2Sport_BE.Repository.Implements
                 _dbSet.Attach(entityToDelete);
             }
             _dbSet.Remove(entityToDelete);
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<T> FindAsync(int? id)
