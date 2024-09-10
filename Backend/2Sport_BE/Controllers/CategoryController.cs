@@ -16,19 +16,22 @@ namespace _2Sport_BE.Controllers
     {
         private readonly ICategoryService _categoryService;
         private readonly IProductService _productService;
+        private readonly ISportService _sportService;
         private readonly IWarehouseService _warehouseService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         public CategoryController(ICategoryService categoryService, IUnitOfWork unitOfWork,
 									IProductService productService,
                                     IWarehouseService warehouseService,
-                                    IMapper mapper)
+                                    IMapper mapper, 
+                                    ISportService sportService)
         {
             _categoryService = categoryService;
             _productService = productService;
             _warehouseService = warehouseService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _sportService = sportService;
         }
 
         [HttpGet]
@@ -45,6 +48,7 @@ namespace _2Sport_BE.Controllers
                 }
                 foreach (var item in query.ToList())
 				{
+                    item.Sport = await _sportService.GetSportById(item.SportId);
                     item.Quantity = 0;
                     foreach (var productInWarehouse in warehouses)
                     {
@@ -64,14 +68,30 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpPost]
-        [Route("add-categories")]
-        public async Task<IActionResult> AddCategories(List<Category> newCategories)
+        [Route("add-category")]
+        public async Task<IActionResult> AddCategory(CategoryCM newCategoryCM)
         {
             try
             {
+                var newCategory = _mapper.Map<Category>(newCategoryCM);
+                await _categoryService.AddCategory(newCategory);
+                return Ok("Add new category successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPost]
+        [Route("add-categories")]
+        public async Task<IActionResult> AddCategories(List<CategoryCM> newCategoryCMs)
+        {
+            try
+            {
+                var newCategories = _mapper.Map<List<Category>>(newCategoryCMs);
                 await _categoryService.AddCategories(newCategories);
-                await _unitOfWork.SaveChanges();
-                return Ok("Add new sports successfully!");
+                return Ok("Add new categories successfully!");
             }
             catch (Exception ex)
             {
@@ -80,14 +100,17 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpPut]
-        [Route("update-category")]
-        public async Task<IActionResult> UpdateCategory(CategoryUM category)
+        [Route("update-category/{categoryId}")]
+        public async Task<IActionResult> UpdateCategory(int categoryId, CategoryUM categoryUM)
         {
             try
             {
-                var updatedCategory = _mapper.Map<CategoryUM, Category>(category);
+                var updatedCategory = await _categoryService.GetCategoryById(categoryId);
+                updatedCategory.CategoryName = categoryUM.CategoryName;
+                updatedCategory.SportId = categoryUM.SportId;
+                updatedCategory.Sport = await _sportService.GetSportById(categoryUM.SportId);
+                updatedCategory.Description = categoryUM.Description;
                 await _categoryService.UpdateCategory(updatedCategory);
-                await _unitOfWork.SaveChanges();
                 return Ok(updatedCategory);
             }
             catch (Exception ex)
@@ -97,13 +120,24 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpDelete]
-        [Route("delete-category")]
-        public async Task<IActionResult> DeleteCategory(int id)
+        [Route("active-deactive-category/{categoryId}")]
+        public async Task<IActionResult> ActiveDeactiveCategory(int categoryId)
         {
             try
             {
-                await _categoryService.DeleteCategoryById(id);
-                return Ok("Removed successfully");
+                var deletedCategory = await _categoryService.GetCategoryById(categoryId);
+                if (deletedCategory.Status == true)
+                {
+                    deletedCategory.Status = false;
+                    await _categoryService.UpdateCategory(deletedCategory);
+                    return Ok("Deactive successfully");
+                }
+                else
+                {
+                    deletedCategory.Status = true;
+                    await _categoryService.UpdateCategory(deletedCategory);
+                    return Ok("Active successfully");
+                }
             }
             catch (Exception ex)
             {

@@ -49,9 +49,6 @@ public class Product
     [MaxLength(255)]
     public string ProductCode { get; set; }
 
-    [Column("BranchId")]
-    public int BranchId { get; set; }
-
     [Column("SportId")]
     public int SportId { get; set; }
 
@@ -69,8 +66,6 @@ public class Product
     [Column("ImgAvatarName", TypeName = "varchar")]
     [MaxLength(500)]
     public string ImgAvatarName { get; set; }
-
-    public virtual Branch? Branch { get; set; }
 
     public virtual Sport? Sport { get; set; }
     public virtual Brand? Brand { get; set; }

@@ -42,10 +42,11 @@ namespace _2Sport_BE.Controllers
 
         [HttpPost]
         [Route("add-sports")]
-        public async Task<IActionResult> AddSports(List<Sport> newSports)
+        public async Task<IActionResult> AddSports(List<SportCM> newSportCMs)
         {
             try
             {
+                var newSports = _mapper.Map<List<Sport>>(newSportCMs);
                 await _sportService.AddSports(newSports);
                 return Ok("Add new sports successfully!");
             } catch (Exception ex)

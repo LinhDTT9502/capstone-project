@@ -3,6 +3,7 @@ using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
+using _2Sport_BE.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -11,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Security.Claims;
 
 namespace _2Sport_BE.Controllers
 {
@@ -24,6 +26,10 @@ namespace _2Sport_BE.Controllers
         private readonly ISportService _sportService;
         private readonly ILikeService _likeService;
         private readonly IReviewService _reviewService;
+        private readonly IImageService _imageService;
+        private readonly IWarehouseService _warehouseService;
+        private readonly IImageVideosService _imageVideosService;
+        private readonly IImportHistoryService _importHistoryService;
         private readonly IUnitOfWork _unitOfWork;
 		private readonly IMapper _mapper;
 
@@ -34,8 +40,12 @@ namespace _2Sport_BE.Controllers
 								ISportService sportService,
 								ILikeService likeService,
 								IReviewService reviewService,
+                                IWarehouseService warehouseService,
+                                IImageService imageService,
+                                IImageVideosService imageVideosService,
+                                IImportHistoryService importHistoryService,
                                 IMapper mapper)
-		{
+        {
             _productService = productService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -44,9 +54,13 @@ namespace _2Sport_BE.Controllers
             _sportService = sportService;
             _likeService = likeService;
             _reviewService = reviewService;
-		}
+            _warehouseService = warehouseService;
+            _imageService = imageService;
+            _imageVideosService = imageVideosService;
+            _importHistoryService = importHistoryService;
+        }
 
-		[HttpGet]
+        [HttpGet]
         [Route("get-product/{productId}")]
         public async Task<IActionResult> GetProductById(int productId)
         {
@@ -251,47 +265,140 @@ namespace _2Sport_BE.Controllers
 			}
 		}
 
-		[HttpPut]
-        [Route("update-product/{productId}")]
-        public async Task<IActionResult> UpdateProduct(int productId, ProductUM productUM)
+		//[HttpPut]
+  //      [Route("update-product/{productId}")]
+  //      public async Task<IActionResult> UpdateProduct(int productId, ProductUM productUM)
+  //      {
+  //          try
+  //          {
+  //              var updatedProduct = await _productService.GetProductById(productId);
+  //              if (updatedProduct != null)
+  //              {
+  //                  updatedProduct.ProductName = productUM.ProductName;
+  //                  updatedProduct.ListedPrice = productUM.ListedPrice;
+  //                  updatedProduct.Price = productUM.Price;
+  //                  updatedProduct.Size = productUM.Size;
+  //                  updatedProduct.Description = productUM.Description;
+  //                  updatedProduct.Status = productUM.Status;
+  //                  updatedProduct.Color = productUM.Color;
+  //                  updatedProduct.Offers = productUM.Offers;
+  //                  updatedProduct.ImgAvatarName = productUM.MainImageName;
+  //                  updatedProduct.ImgAvatarPath = productUM.MainImagePath;
+  //                  updatedProduct.CategoryId = (int)productUM.CategoryId;
+  //                  updatedProduct.BrandId = (int)productUM.BrandId;
+  //                  updatedProduct.SportId = (int)productUM.SportId;
+  //                  await _productService.UpdateProduct(updatedProduct);
+  //                  return Ok(updatedProduct);
+  //              } else
+  //              {
+  //                  return BadRequest("Update failed!");
+  //              }
+  //          } catch (Exception ex)
+  //          {
+  //              return BadRequest(ex);
+  //          }
+  //      }
+
+        [HttpPost]
+        [Route("import-product")]
+        public async Task<IActionResult> ImportProduct(ProductCM productCM)
         {
+            var product = _mapper.Map<Product>(productCM);
+            product.CreateAt = DateTime.Now;
+            product.Status = true;
             try
             {
-                var updatedProduct = await _productService.GetProductById(productId);
-                if (updatedProduct != null)
+                //var userId = GetCurrentUserIdFromToken();
+
+                //if (userId == 0)
+                //{
+                //    return Unauthorized();
+                //}
+
+                if (productCM.MainImage != null)
                 {
-                    updatedProduct.ProductName = productUM.ProductName;
-                    updatedProduct.ListedPrice = productUM.ListedPrice;
-                    updatedProduct.Price = productUM.Price;
-                    updatedProduct.Size = productUM.Size;
-                    updatedProduct.Description = productUM.Description;
-                    updatedProduct.Status = productUM.Status;
-                    updatedProduct.Color = productUM.Color;
-                    updatedProduct.Offers = productUM.Offers;
-                    updatedProduct.ImgAvatarName = productUM.MainImageName;
-                    updatedProduct.ImgAvatarPath = productUM.MainImagePath;
-                    updatedProduct.CategoryId = (int)productUM.CategoryId;
-                    updatedProduct.BrandId = (int)productUM.BrandId;
-                    updatedProduct.SportId = (int)productUM.SportId;
-                    await _productService.UpdateProduct(updatedProduct);
-                    return Ok(updatedProduct);
-                } else
-                {
-                    return BadRequest("Update failed!");
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(productCM.MainImage);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        product.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
                 }
-            } catch (Exception ex)
-            {
-                return BadRequest(ex);
+                else
+                {
+                    product.ImgAvatarName = "";
+                    product.ImgAvatarPath = "";
+                }
+
+                var addedProduct = await _productService.AddProduct(product);
+
+                //Add product's images into ImageVideo table
+                if (productCM.ProductImages.Length > 0)
+                {
+                    foreach (var image in productCM.ProductImages)
+                    {
+                        var uploadResult = await _imageService.UploadImageToCloudinaryAsync(image);
+                        if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                        {
+                            var imageObject = new ImagesVideo()
+                            {
+                                ProductId = product.Id,
+                                ImageUrl = uploadResult.SecureUri.AbsoluteUri,
+                                CreateAt = DateTime.Now,
+                                VideoUrl = null,
+                                BlogId = null,
+                            };
+                            await _imageVideosService.AddImage(imageObject);
+                        }
+                        else
+                        {
+                            return BadRequest("Something wrong!");
+                        }
+                    }
+                }
+
+                //Import product into warehouse
+                var warehouse = new Warehouse()
+                {
+                    BranchId = productCM.BranchId,
+                    ProductId = product.Id,
+                    Quantity = productCM.Quantity,
+                };
+                await _warehouseService.CreateANewWarehouseAsync(warehouse);
+
+                //Save import history
+                var importHistory = new ImportHistory()
+                {
+                    UserId = 2,
+                    ProductId = product.Id,
+                    ImportDate = DateTime.Now,
+                    Quantity = productCM.Quantity,
+                    SupplierId = productCM.SupplierId,
+                    LotCode = productCM.LotCode,
+                };
+                await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
+
+                return Ok(addedProduct);
             }
+                
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+
         }
 
         [HttpPost]
-        [Route("add-product-list")]
-        public async Task<IActionResult> AddProductList(List<ProductCM> productList)
+        [Route("import-product-list")]
+        public async Task<IActionResult> ImportProductList(List<ProductCM> productList)
         {
             try
             {
                 var addedProducts = _mapper.Map<List<Product>>(productList);
+                
 				await _productService.AddProducts(addedProducts);
                 return Ok("Add products successfully!");
                 
@@ -330,6 +437,30 @@ namespace _2Sport_BE.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+        protected int GetCurrentUserIdFromToken()
+        {
+            int UserId = 0;
+            try
+            {
+                if (HttpContext.User.Identity.IsAuthenticated)
+                {
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    if (identity != null)
+                    {
+                        IEnumerable<Claim> claims = identity.Claims;
+                        string strUserId = identity.FindFirst("UserId").Value;
+                        int.TryParse(strUserId, out UserId);
+
+                    }
+                }
+                return UserId;
+            }
+            catch
+            {
+                return UserId;
             }
         }
     }

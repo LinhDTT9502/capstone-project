@@ -32,10 +32,6 @@ public class ImportHistory
     [MaxLength(50)]
     public string LotCode { get; set; }
 
-    [Column("ImportCode", TypeName = "varchar")]
-    [MaxLength(50)]
-    public string ImportCode { get; set; }
-
     public virtual Product Product { get; set; }
     public virtual User User { get; set; }
     public virtual Supplier Supplier { get; set; }

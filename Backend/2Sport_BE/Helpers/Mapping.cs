@@ -19,15 +19,19 @@ namespace _2Sport_BE.Helpers
                ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
             #region Sport
-            CreateMap<Sport, SportVM>();
-            CreateMap<Sport, SportCM>();
-            CreateMap<Sport, SportUM>();
-            CreateMap<SportUM, Sport>();
+            CreateMap<Sport, SportVM>().ReverseMap();
+            CreateMap<Sport, SportCM>().ReverseMap();
+            CreateMap<Sport, SportUM>().ReverseMap();
             #endregion
             #region Brand
             CreateMap<Brand, BrandVM>().ReverseMap();
             CreateMap<Brand, BrandCM>().ReverseMap();
             CreateMap<Brand, BrandUM>().ReverseMap();
+            #endregion
+            #region Branch
+            CreateMap<Branch, BranchVM>().ReverseMap();
+            CreateMap<Branch, BranchCM>().ReverseMap();
+            CreateMap<Branch, BranchUM>().ReverseMap();
             #endregion
             #region ShipmentDetail
             CreateMap<ShipmentDetail, ShipmentDetailVM>();
@@ -51,21 +55,20 @@ namespace _2Sport_BE.Helpers
             CreateMap<OrderDetail, OrderDetailVM>();
             #endregion
             #region Category
-            CreateMap<Category, CategoryVM>();
-            CreateMap<Category, CategoryCM>();
-            CreateMap<Category, CategoryUM>();
-            CreateMap<CategoryUM, Category>();
+            CreateMap<Category, CategoryVM>()
+                .ForMember(dest => dest.SportName, opt => opt.MapFrom(src => src.Sport.Name))
+                .ReverseMap();
+            CreateMap<Category, CategoryCM>().ReverseMap();
+            CreateMap<Category, CategoryUM>().ReverseMap();
             #endregion
             #region Product
             CreateMap<Product, ProductVM>()
                 .ForMember(dest => dest.BrandName, opt => opt.MapFrom(src => src.Brand.BrandName))
 				.ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.CategoryName))
 				.ForMember(dest => dest.SportName, opt => opt.MapFrom(src => src.Sport.Name))
-				.ForMember(dest => dest.Likes, opt => opt.MapFrom(src => src.Likes.Count));
-            CreateMap<Product, ProductCM>();
-            CreateMap<Product, ProductUM>();
-            CreateMap<ProductUM, Product>();
-            CreateMap<ProductCM, Product>();
+				.ForMember(dest => dest.Likes, opt => opt.MapFrom(src => src.Likes.Count)).ReverseMap();
+            CreateMap<Product, ProductCM>().ReverseMap();
+            CreateMap<Product, ProductUM>().ReverseMap();
             #endregion
             #region CartItem
             CreateMap<CartItem, CartItemVM>()

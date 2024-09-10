@@ -12,12 +12,12 @@ public class ImagesVideo
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    [Column("ImageUrl", TypeName = "nvarchar")]
-    [MaxLength]
+    [Column("ImageUrl", TypeName = "varchar")]
+    [MaxLength(500)]
     public string? ImageUrl { get; set; }
 
-    [Column("VideoUrl", TypeName = "nvarchar")]
-    [MaxLength]
+    [Column("VideoUrl", TypeName = "varchar")]
+    [MaxLength(500)]
     public string? VideoUrl { get; set; }
 
     [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
