@@ -28,7 +28,7 @@ const BarChart = () => {
         const totalIntoMoney = [];
 
         for (const month of months) {
-          const response = await axios.get(`https://twosportapiv2.azurewebsites.net/api/Order/get-orders-sales?month=${month}`);
+          const response = await axios.get(`https://2sportapi-c6ajcce3ezh5h4gw.southeastasia-01.azurewebsites.net/api/Order/get-orders-sales?month=${month}`);
           if (response.data.isSuccess) {
             totalOrders.push(response.data.data.totalOrders);
             totalIntoMoney.push(response.data.data.totalIntoMoney);

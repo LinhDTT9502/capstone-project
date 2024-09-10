@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://twosportapiv2.azurewebsites.net/api/Product';
+const API_BASE_URL = 'https://2sportapi-c6ajcce3ezh5h4gw.southeastasia-01.azurewebsites.net/api/Product';
 const perPage = 15;
 
 export const getProductList = (currentPage) => {
