@@ -41,6 +41,7 @@ namespace _2Sport_BE.Extensions
 			services.AddScoped<IImportHistoryService, ImportHistoryService>();
 			services.AddScoped<IWarehouseService, WarehouseService>();
 			services.AddScoped<IImageService, ImageService>();
+			services.AddScoped<IImageVideosService, ImageVideosService>();
         }
 
         private static string GetConnectionStrings()

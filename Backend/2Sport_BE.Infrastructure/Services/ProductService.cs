@@ -25,6 +25,7 @@ namespace _2Sport_BE.Service.Services
                                   int? pageSize = null);
 
         Task<Product> GetProductById(int id);
+        Task<Product> AddProduct(Product product);
         Task AddProducts(IEnumerable<Product> products);
         Task DeleteProductById(int id);
         Task UpdateProduct(Product newProduct);
@@ -36,6 +37,12 @@ namespace _2Sport_BE.Service.Services
         public ProductService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+        }
+
+        public async Task<Product> AddProduct(Product product)
+        {
+            await _unitOfWork.ProductRepository.InsertAsync(product);
+            return product;
         }
 
         public async Task AddProducts(IEnumerable<Product> products)

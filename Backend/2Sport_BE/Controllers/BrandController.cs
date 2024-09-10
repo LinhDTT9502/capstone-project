@@ -29,7 +29,7 @@ namespace _2Sport_BE.Controllers
             _brandService = brandService;
             _productService = productService;
             _warehouseService = warehouseService;
-            _imageService = imageService,
+            _imageService = imageService;
             _mapper = mapper;
 
         }
@@ -124,12 +124,12 @@ namespace _2Sport_BE.Controllers
                     return BadRequest(ex.Message);
                 }
             }
-            return BadRequest($"Cannot find brand with id: {branchId}");
+            return BadRequest($"Cannot find brand with id: {brandId}");
 
         }
 
         [HttpPost]
-        [Route("active-deactive-brand/{branchId}")]
+        [Route("active-deactive-brand/{brandId}")]
         public async Task<IActionResult> ActiveDeactiveBrand(int brandId)
         {
             var deletedBrand = await (await _brandService.GetBrandById(brandId)).FirstOrDefaultAsync();

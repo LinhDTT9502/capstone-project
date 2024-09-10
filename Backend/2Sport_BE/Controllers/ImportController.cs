@@ -62,7 +62,6 @@ namespace _2Sport_BE.Controllers
             addedImport.ImportDate = DateTime.Now;
             var randomText = GenerateRandomText(10);
             addedImport.LotCode = $"LOT_{DateTime.Now}_{randomText}";
-            addedImport.ImportCode = $"IM_{DateTime.Now}_{randomText}";
             var existedWareHouse = (await _warehouseService.GetWarehouseByProductId(importCM.ProductId)).FirstOrDefault();
             try
             {

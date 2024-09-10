@@ -33,9 +33,9 @@ namespace _2Sport_BE.Infrastructure.Services
             _dBContext = dBContext;
         }
 
-        public async Task CreateANewImportHistoryAsync(ImportHistory supplier)
+        public async Task CreateANewImportHistoryAsync(ImportHistory importHistory)
         {
-            await _unitOfWork.ImportHistoryRepository.InsertAsync(supplier);
+            await _unitOfWork.ImportHistoryRepository.InsertAsync(importHistory);
         }
 
         public async Task DeleteImportHistoryAsync(int id)

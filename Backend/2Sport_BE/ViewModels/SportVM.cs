@@ -2,11 +2,11 @@
 {
     public class SportDTO
     {
-        public int Id { get; set; }
         public string Name { get; set; }
     }
     public class SportVM : SportDTO
     {
+        public int Id { get; set; }
     }
 
     public class SportCM : SportDTO
