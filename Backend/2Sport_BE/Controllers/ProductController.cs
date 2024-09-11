@@ -308,12 +308,12 @@ namespace _2Sport_BE.Controllers
             product.Status = true;
             try
             {
-                //var userId = GetCurrentUserIdFromToken();
+                var userId = GetCurrentUserIdFromToken();
 
-                //if (userId == 0)
-                //{
-                //    return Unauthorized();
-                //}
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
 
                 if (productCM.MainImage != null)
                 {
@@ -372,7 +372,7 @@ namespace _2Sport_BE.Controllers
                 //Save import history
                 var importHistory = new ImportHistory()
                 {
-                    UserId = 2,
+                    UserId = userId,
                     ProductId = product.Id,
                     ImportDate = DateTime.Now,
                     Quantity = productCM.Quantity,
