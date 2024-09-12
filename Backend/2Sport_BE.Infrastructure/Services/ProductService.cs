@@ -25,6 +25,7 @@ namespace _2Sport_BE.Service.Services
                                   int? pageSize = null);
 
         Task<Product> GetProductById(int id);
+        Task<Product> GetProductByProductCode(string productCode);
         Task<Product> AddProduct(Product product);
         Task AddProducts(IEnumerable<Product> products);
         Task DeleteProductById(int id);
@@ -64,6 +65,12 @@ namespace _2Sport_BE.Service.Services
         public async Task<Product> GetProductById(int id)
         {
             return await _unitOfWork.ProductRepository.FindAsync(id);
+        }
+
+        public async Task<Product> GetProductByProductCode(string productCode)
+        {
+            return (await _unitOfWork.ProductRepository.GetAsync(_ => _.ProductCode
+                                                       .ToLower().Equals(productCode.ToLower()))).FirstOrDefault();
         }
 
         public async Task<IQueryable<Product>> GetProducts(Expression<Func<Product, bool>> filter = null)
