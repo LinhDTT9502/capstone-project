@@ -20,6 +20,10 @@ public class ImportHistory
     [Column("ProductId")]
     public int ProductId { get; set; }
 
+    [Column("Content", TypeName = "nvarchar")]
+    [MaxLength(500)]
+    public string Content { get; set; }
+
     [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
     [DataType(DataType.DateTime)]
     public DateTime? ImportDate { get; set; }
