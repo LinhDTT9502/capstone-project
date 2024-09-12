@@ -461,7 +461,7 @@ namespace _2Sport_BE.Controllers
 
                                 var imageObject = new ImagesVideo()
                                 {
-                                    ProductId = product.Id,
+                                    ProductId = updatedProduct.Id,
                                     ImageUrl = uploadResult.SecureUri.AbsoluteUri,
                                     CreateAt = DateTime.Now,
                                     VideoUrl = null,
