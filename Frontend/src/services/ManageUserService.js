@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 export const fetchAllUsers = async (token) => {
   try {
     const users = await apiFetchAllUsers(token);
+    console.log(users);
+    console.log("hello");
     toast.success("Users fetched successfully");
     return users;
   } catch (error) {

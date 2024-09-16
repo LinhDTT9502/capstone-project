@@ -10,7 +10,10 @@ export const fetchAllUsers = async (token) => {
         'Content-Type': 'application/json'
       }
     });
-    return response.data.$values;
+
+    // console.log(response.data);
+    return response.data.data.$values;
+    
   } catch (error) {
     console.error('Error fetching users:', error);
     throw error;

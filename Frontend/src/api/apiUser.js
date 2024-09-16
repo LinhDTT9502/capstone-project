@@ -1,4 +1,5 @@
 import axios from 'axios';
+import axiosInstance from './axiosInstance';
 
 const API_BASE_URL = 'https://2sportapi-c6ajcce3ezh5h4gw.southeastasia-01.azurewebsites.net/api/User';
 
@@ -44,7 +45,7 @@ export const updateUser = (userId, updatedData) => {
 
 // PUT update user profile
 export const updateProfile = (userId, profileData) => {
-  return axios.put(`${API_BASE_URL}/update-profile?id=${userId}`, profileData, {
+  return axiosInstance.put(`${API_BASE_URL}/update-profile?id=${userId}`, profileData, {
     headers: {
       'Content-Type': 'application/json',
     },

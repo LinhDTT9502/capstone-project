@@ -48,6 +48,13 @@ export const changePassword = (data) => {
   });
 };
 
+export const resetPassword = (data) => {
+  return axios.post(`${API_BASE_URL}/reset-password`, data, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+};
 // const axiosInstance = axios.create();
 
 // axiosInstance.interceptors.request.use(async (config) => {

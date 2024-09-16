@@ -16,31 +16,41 @@ export default function UserChangePassword() {
     setIsChangingPassword(!isChangingPassword);
   };
 
-  const handleConfirmPasswordChange = async () => {
-    if (newPassword !== confirmNewPassword) {
-      toast.error(t("manage_account.passwords_do_not_match"));
-      return;
-    }
+  // const handleConfirmPasswordChange = async () => {
+  //   if (newPassword !== confirmNewPassword) {
+  //     toast.error(t("manage_account.passwords_do_not_match"));
+  //     return;
+  //   }
 
-    try {
-      const response = await axios.post("/api/Auth/change-password", {
-        oldPassword,
-        newPassword,
-      });
+  //   try {
+  //     const response = await axios.post("/api/Auth/reset-password", {
+  //       oldPassword,
+  //       newPassword,
+  //     });
 
-      if (response.status === 200) {
-        toast.success(t("manage_account.password_change_successful"));
-        setIsChangingPassword(false);
-      }
-    } catch (error) {
-      toast.error(t("manage_account.password_change_failed"));
-    }
-  };
+  //     if (response.status === 200) {
+  //       toast.success(t("manage_account.password_change_successful"));
+  //       setIsChangingPassword(false);
+  //     }
+  //   } catch (error) {
+  //     toast.error(t("manage_account.password_change_failed"));
+  //   }
+  // };
+
+  
+
 
   return (
     <>
       <ToastContainer />
-      <div className="container mx-auto px-20 py-5 bg-white blur-none shadow-xl rounded-lg">
+      <Button
+                color="gray"
+                variant="text"
+                onClick={handleToggleChangePassword}
+              >
+                Thay đổi mật khẩu
+              </Button>
+      {/* <div className="container mx-auto px-20 py-5 bg-white blur-none shadow-xl rounded-lg">
         <h2 className="text-orange-500 font-bold text-xl mb-6">
           {t("manage_account.change_password")}
         </h2>
@@ -129,7 +139,7 @@ export default function UserChangePassword() {
             </Button>
           )}
         </div>
-      </div>{" "}
+      </div>{" "} */}
     </>
   );
 }

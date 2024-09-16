@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Button } from "@material-tailwind/react";
-import { selectUser } from "../../redux/slices/authSlice";
+import { selectUser, updateUser } from "../../redux/slices/authSlice";
 import { useTranslation } from "react-i18next";
 import { updateProfile } from "../../api/apiUser";
 import { toast, ToastContainer } from 'react-toastify';  
@@ -9,7 +9,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { refreshTokenAPI } from "../../api/apiAuth";
 
 const UserProfile = () => {
-  const user = useSelector(selectUser); 
+  const user = useSelector(selectUser);
+  const dispatch = useDispatch(); // Get the dispatch function
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -40,13 +41,17 @@ const UserProfile = () => {
       toast.warn(t("user_profile.no_changes"));
       return;
     }
-  
+
     updateProfile(user.UserId, formData)
       .then(() => {
-        setIsEditing(false); 
-        toast.success(t("user_profile.update_success")); 
-        setInitialData(formData);  
-        
+        setIsEditing(false);
+        toast.success(t("user_profile.update_success"));
+        setInitialData(formData);
+
+        // Dispatch the updateUser action to update the Redux store
+        dispatch(updateUser(formData)); 
+
+        // Optional: refresh token logic
         // const { token, refreshToken } = user; 
         // refreshTokenAPI(token, refreshToken)
         //   .then((response) => {
@@ -59,12 +64,12 @@ const UserProfile = () => {
       })
       .catch((err) => {
         console.error("Error updating profile:", err);
-        toast.error(t("user_profile.save_failed"));  
+        toast.error(t("user_profile.save_failed"));
       });
   };
 
   const handleCancelClick = () => {
-    setFormData(initialData); 
+    setFormData(initialData);
     setIsEditing(false);
   };
 
@@ -89,153 +94,154 @@ const UserProfile = () => {
 
   return (
     <>
-    <div className="container mx-auto px-20 py-5 bg-white blur-none shadow-xl rounded-lg">
-      <h2 className="text-orange-500 font-bold text-xl mb-6">
-        {t("user_profile.user_profile")}
-      </h2>
+      <ToastContainer />
+      <div className="container mx-auto px-20 py-5 bg-white blur-none shadow-xl rounded-lg">
+        <h2 className="text-orange-500 font-bold text-xl mb-6">
+          {t("user_profile.user_profile")}
+        </h2>
 
-      <div className="space-y-4">
-        <div>
-          <label className="block text-gray-700 font-semibold mb-2">
-            {t("user_profile.username")}:
-          </label>
-          <input
-            type="text"
-            name="UserName"
-            className={`w-full p-2 ${
-              isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
-            }`}
-            value={formData.UserName}
-            onChange={handleChange}
-            readOnly
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-700 font-semibold mb-2">
-            {t("user_profile.fullname")}:
-          </label>
-          <input
-            type="text"
-            name="FullName"
-            className={`w-full p-2 ${
-              isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
-            }`}
-            value={formData.FullName}
-            onChange={handleChange}
-            readOnly
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-700 font-semibold mb-2">
-            {t("user_profile.email")}:
-          </label>
-          <input
-            type="email"
-            name="Email"
-            className={`w-full p-2 ${
-              isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
-            }`}
-            value={formData.Email}
-            onChange={handleChange}
-            readOnly
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-700 font-semibold mb-2">
-            {t("user_profile.gender")}:
-          </label>
-          {isEditing ? (
-            <select
-              name="Gender"
-              className="w-full p-2 border border-gray-300"
-              value={formData.Gender}
-              onChange={handleChange}
-            >
-              <option value="Nam">{t("user_profile.gender_male")}</option>
-              <option value="Nữ">{t("user_profile.gender_female")}</option>
-              <option value="Khác">{t("user_profile.gender_other")}</option>
-            </select>
-          ) : (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              {t("user_profile.username")}:
+            </label>
             <input
               type="text"
-              name="Gender"
-              className="w-full p-2 bg-gray-100 text-gray-500 pointer-events-none"
-              value={formData.Gender}
+              name="UserName"
+              className={`w-full p-2 ${
+                isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
+              }`}
+              value={formData.UserName}
+              onChange={handleChange}
               readOnly
             />
-          )}
-        </div>
+          </div>
 
-        <div>
-          <label className="block text-gray-700 font-semibold mb-2">
-            {t("user_profile.phone")}:
-          </label>
-          <input
-            type="text"
-            name="Phone"
-            className={`w-full p-2 ${
-              isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
-            }`}
-            value={formData.Phone}
-            onChange={handleChange}
-            readOnly={!isEditing}
-            maxLength={10}
-          />
-        </div>
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              {t("user_profile.fullname")}:
+            </label>
+            <input
+              type="text"
+              name="FullName"
+              className={`w-full p-2 ${
+                isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
+              }`}
+              value={formData.FullName}
+              onChange={handleChange}
+              readOnly={!isEditing}
+            />
+          </div>
 
-        <div>
-          <label className="block text-gray-700 font-semibold mb-2">
-            {t("user_profile.address")}:
-          </label>
-          <input
-            type="text"
-            name="Address"
-            className={`w-full p-2 ${
-              isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
-            }`}
-            value={formData.Address}
-            onChange={handleChange}
-            readOnly={!isEditing}
-          />
-        </div>
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              {t("user_profile.email")}:
+            </label>
+            <input
+              type="email"
+              name="Email"
+              className={`w-full p-2 ${
+                isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
+              }`}
+              value={formData.Email}
+              onChange={handleChange}
+              readOnly
+            />
+          </div>
 
-        <div>
-          <label className="block text-gray-700 font-semibold mb-2">
-            {t("user_profile.birthDate")}:
-          </label>
-          <input
-            type="date"
-            name="BirthDate"
-            className={`w-full p-2 ${
-              isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
-            }`}
-            value={formData.BirthDate ? formData.BirthDate.split("T")[0] : ""} 
-            onChange={handleChange}
-            readOnly={!isEditing}
-          />
-        </div>
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              {t("user_profile.gender")}:
+            </label>
+            {isEditing ? (
+              <select
+                name="Gender"
+                className="w-full p-2 border border-gray-300"
+                value={formData.Gender}
+                onChange={handleChange}
+              >
+                <option value="Nam">{t("user_profile.gender_male")}</option>
+                <option value="Nữ">{t("user_profile.gender_female")}</option>
+                <option value="Khác">{t("user_profile.gender_other")}</option>
+              </select>
+            ) : (
+              <input
+                type="text"
+                name="Gender"
+                className="w-full p-2 bg-gray-100 text-gray-500 pointer-events-none"
+                value={formData.Gender}
+                readOnly
+              />
+            )}
+          </div>
 
-        <div className="flex justify-end mt-8">
-          {isEditing ? (
-            <>
-              <Button color="gray" variant="text" onClick={handleCancelClick}>
-                {t("user_profile.cancel")}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              {t("user_profile.phone")}:
+            </label>
+            <input
+              type="text"
+              name="Phone"
+              className={`w-full p-2 ${
+                isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
+              }`}
+              value={formData.Phone}
+              onChange={handleChange}
+              readOnly={!isEditing}
+              maxLength={10}
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              {t("user_profile.address")}:
+            </label>
+            <input
+              type="text"
+              name="Address"
+              className={`w-full p-2 ${
+                isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
+              }`}
+              value={formData.Address}
+              onChange={handleChange}
+              readOnly={!isEditing}
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              {t("user_profile.birthDate")}:
+            </label>
+            <input
+              type="date"
+              name="BirthDate"
+              className={`w-full p-2 ${
+                isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
+              }`}
+              value={formData.BirthDate ? formData.BirthDate.split("T")[0] : ""}
+              onChange={handleChange}
+              readOnly={!isEditing}
+            />
+          </div>
+
+          <div className="flex justify-end mt-8">
+            {isEditing ? (
+              <>
+                <Button color="gray" variant="text" onClick={handleCancelClick}>
+                  {t("user_profile.cancel")}
+                </Button>
+                <Button color="orange" variant="filled" onClick={handleSaveClick}>
+                  {t("user_profile.save_changes")}
+                </Button>
+              </>
+            ) : (
+              <Button color="orange" variant="filled" onClick={handleEditClick}>
+                {t("user_profile.edit_profile")}
               </Button>
-              <Button color="orange" variant="filled" onClick={handleSaveClick}>
-                {t("user_profile.save_changes")}
-              </Button>
-            </>
-          ) : (
-            <Button color="orange" variant="filled" onClick={handleEditClick}>
-              {t("user_profile.edit_profile")}
-            </Button>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };
