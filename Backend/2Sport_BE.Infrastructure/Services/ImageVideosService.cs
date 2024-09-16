@@ -12,6 +12,10 @@ namespace _2Sport_BE.Service.Services
     public interface IImageVideosService
     {
         Task AddImage(ImagesVideo image);
+        Task<IQueryable<ImagesVideo>> GetAllImages();
+        Task<IQueryable<ImagesVideo>> GetAllVideos();
+        Task DeleteImagesVideos(List<ImagesVideo> imagesVideos);
+        Task<IQueryable<ImagesVideo>> GetImageVideosByProductId(int productId);
     }
     public class ImageVideosService : IImageVideosService
     {
@@ -28,6 +32,29 @@ namespace _2Sport_BE.Service.Services
         {
             await _unitOfWork.ImagesVideoRepository.InsertAsync(image);
 
+        }
+
+        public async Task DeleteImagesVideos(List<ImagesVideo> imagesVideos)
+        {
+            await _unitOfWork.ImagesVideoRepository.DeleteRangeAsync(imagesVideos);
+        }
+
+        public async Task<IQueryable<ImagesVideo>> GetAllImages()
+        {
+            var imageList = await _unitOfWork.ImagesVideoRepository.GetAsync(_ => _.VideoUrl == null);
+            return imageList.AsQueryable();
+        }
+
+        public async Task<IQueryable<ImagesVideo>> GetAllVideos()
+        {
+            var videoList = await _unitOfWork.ImagesVideoRepository.GetAsync(_ => _.ImageUrl == null);
+            return videoList.AsQueryable();
+        }
+
+        public async Task<IQueryable<ImagesVideo>> GetImageVideosByProductId(int productId)
+        {
+            var videoList = await _unitOfWork.ImagesVideoRepository.GetAsync(_ => _.ProductId == productId);
+            return videoList.AsQueryable();
         }
     }
 }
