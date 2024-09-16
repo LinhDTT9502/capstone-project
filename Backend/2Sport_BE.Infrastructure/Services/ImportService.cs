@@ -18,10 +18,12 @@ namespace _2Sport_BE.Infrastructure.Services
                                 string includeProperties = "");
         Task<IQueryable<ImportHistory>> GetImportHistorysAsync(string supplierName);
         Task<IQueryable<ImportHistory>> GetImportHistoryById(int? id);
+        Task<IQueryable<ImportHistory>> GetImportHistorysAsync(int productId);
 
         Task CreateANewImportHistoryAsync(ImportHistory import);
         Task UpdateImportHistoryAsync(ImportHistory import);
         Task DeleteImportHistoryAsync(int id);
+        Task DeleteImportHistories(List<ImportHistory> deletedImportHistories);
     }
     public class ImportHistoryService : IImportHistoryService
     {
@@ -36,6 +38,11 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task CreateANewImportHistoryAsync(ImportHistory importHistory)
         {
             await _unitOfWork.ImportHistoryRepository.InsertAsync(importHistory);
+        }
+
+        public async Task DeleteImportHistories(List<ImportHistory> deletedImportHistories)
+        {
+            await _unitOfWork.ImportHistoryRepository.DeleteRangeAsync(deletedImportHistories);
         }
 
         public async Task DeleteImportHistoryAsync(int id)
@@ -61,6 +68,12 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task<IQueryable<ImportHistory>> GetImportHistorysAsync(string supplierName)
         {
             IEnumerable<ImportHistory> filter = await _unitOfWork.ImportHistoryRepository.GetAsync(_ => _.Supplier.SupplierName.ToUpper().Contains(supplierName.ToUpper()));
+            return filter.AsQueryable();
+        }
+
+        public async Task<IQueryable<ImportHistory>> GetImportHistorysAsync(int productId)
+        {
+            IEnumerable<ImportHistory> filter = await _unitOfWork.ImportHistoryRepository.GetAsync(_ => _.ProductId == productId);
             return filter.AsQueryable();
         }
 

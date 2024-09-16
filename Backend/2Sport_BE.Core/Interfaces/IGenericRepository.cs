@@ -29,6 +29,8 @@ namespace _2Sport_BE.Repository.Interfaces
 
         Task DeleteAsync(T entityToDelete);
 
+        Task DeleteRangeAsync(IEnumerable<T> entities);
+
         Task UpdateAsync(T entityToUpdate);
     }
 }

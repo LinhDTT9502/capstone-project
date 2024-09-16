@@ -95,5 +95,25 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(e);
             }
         }
+
+        [HttpDelete]
+        [Route("delete-warehouse/{productId}")]
+        public async Task<IActionResult> DeleteWarehouse(int productId)
+        {
+            try
+            {
+                var deletedWarehouses = (await _warehouseService.GetWarehouseByProductId(productId)).ToList();
+                if (deletedWarehouses.Count <= 0)
+                {
+                    return BadRequest($"Cannot find warehouses with product id: {productId}");
+                }
+                await _warehouseService.DeleteWarehouseAsync(deletedWarehouses);
+                return Ok("Delete warehouse successfully!");
+            } catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+
+        }
     }
 }

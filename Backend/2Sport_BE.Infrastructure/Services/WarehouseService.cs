@@ -20,6 +20,8 @@ namespace _2Sport_BE.Infrastructure.Services
         Task CreateANewWarehouseAsync(Warehouse warehouse);
         Task UpdateWarehouseAsync(Warehouse warehouse);
         Task DeleteWarehouseAsync(int id);
+        Task DeleteWarehouseAsync(List<Warehouse> warehouses);
+        Task<IQueryable<Warehouse>> GetWarehouseByProductIdAndBranchId(int productId, int? branchId);
     }
     public class WarehouseService : IWarehouseService
     {
@@ -45,6 +47,11 @@ namespace _2Sport_BE.Infrastructure.Services
             }
         }
 
+        public async Task DeleteWarehouseAsync(List<Warehouse> warehouses)
+        {
+            await _unitOfWork.WarehouseRepository.DeleteRangeAsync(warehouses);
+        }
+
         public async Task<IQueryable<Warehouse>> GetWarehouse(Expression<Func<Warehouse, bool>> filter = null)
         {
             var query = await _unitOfWork.WarehouseRepository.GetAsync(filter);
@@ -60,6 +67,13 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task<IQueryable<Warehouse>> GetWarehouseByProductId(int? productId)
         {
             IEnumerable<Warehouse> filter = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.ProductId == productId);
+            return filter.AsQueryable();
+        }
+
+        public async Task<IQueryable<Warehouse>> GetWarehouseByProductIdAndBranchId(int productId, int? branchId)
+        {
+            IEnumerable<Warehouse> filter = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.ProductId == productId
+                                                                                            && _.BranchId == branchId);
             return filter.AsQueryable();
         }
 

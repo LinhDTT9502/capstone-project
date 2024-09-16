@@ -13,7 +13,7 @@ namespace _2Sport_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ImportController : ControllerBase
+    public class ImportHistoryController : ControllerBase
     {
         private readonly IImportHistoryService _importService;
         private readonly IWarehouseService _warehouseService;
@@ -21,7 +21,7 @@ namespace _2Sport_BE.Controllers
         private readonly ISupplierService _supplierService;
         private readonly IMapper _mapper;
         private static readonly char[] characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
-        public ImportController(IImportHistoryService importService, 
+        public ImportHistoryController(IImportHistoryService importService, 
                                 IWarehouseService warehouseService,
                                 IProductService productService,
                                 ISupplierService supplierService,
@@ -54,62 +54,25 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("import-product")]
-        public async Task<IActionResult> ImportProduct(ImportCM importCM)
+        [HttpDelete]
+        [Route("delete-import-histories/{productId}")]
+        public async Task<IActionResult> DeleteImportHistories(int productId)
         {
-            var addedImport = _mapper.Map<ImportHistory>(importCM);
-            addedImport.ImportDate = DateTime.Now;
-            var randomText = GenerateRandomText(10);
-            addedImport.LotCode = $"LOT_{DateTime.Now}_{randomText}";
-            var existedWareHouse = (await _warehouseService.GetWarehouseByProductId(importCM.ProductId)).FirstOrDefault();
             try
             {
-                if (existedWareHouse == null)
+                var deletedImportHistories = (await _importService.GetImportHistorysAsync(productId)).ToList();
+                if (deletedImportHistories.Count <= 0)
                 {
-                    var newWareHouse = new Warehouse()
-                    {
-                        ProductId = importCM.ProductId,
-                        Quantity = importCM.Quantity,
-                    };
-                    await _warehouseService.CreateANewWarehouseAsync(newWareHouse);
+                    return BadRequest($"Cannot find import histories with product id: {productId}");
                 }
-                else
-                {
-                    existedWareHouse.Quantity += importCM.Quantity;
-                    await _warehouseService.UpdateWarehouseAsync(existedWareHouse);
-                }
-                await _importService.CreateANewImportHistoryAsync(addedImport);
-                return Ok("Import product successfully!");
+                await _importService.DeleteImportHistories(deletedImportHistories);
+                return Ok("Delete import histories successfully!");
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        // Method to generate random text
-        [NonAction]
-        public static string GenerateRandomText(int length)
-        {
-            if (length <= 0)
-                throw new ArgumentException("Length must be a positive integer.");
-
-            // StringBuilder is more efficient for concatenating multiple characters
-            StringBuilder result = new StringBuilder(length);
-
-            // Create an instance of the Random class
-            Random random = new Random();
-
-            // Generate each character randomly
-            for (int i = 0; i < length; i++)
-            {
-                // Pick a random character from the characters array
-                char randomChar = characters[random.Next(characters.Length)];
-                result.Append(randomChar);
+                return StatusCode(500, e.Message);
             }
 
-            return result.ToString();
         }
     }
 }
