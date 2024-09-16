@@ -40,6 +40,23 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+
+        [HttpGet]
+        [Route("get-sport-by-id/{sportId}")]
+        public async Task<IActionResult> GetSportById(int sportId)
+        {
+            try
+            {
+                var sport = await _sportService.GetSportById(sportId);
+                var result = _mapper.Map<SportVM>(sport);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
         [HttpPost]
         [Route("add-sports")]
         public async Task<IActionResult> AddSports(List<SportCM> newSportCMs)

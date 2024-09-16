@@ -67,6 +67,23 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+
+        [HttpGet]
+        [Route("get-category-by-id/{categoryId}")]
+        public async Task<IActionResult> GetCategoryById(int categoryId)
+        {
+            try
+            {
+                var category = await _categoryService.GetCategoryById(categoryId);
+                var result = _mapper.Map<CategoryVM>(category);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
         [HttpPost]
         [Route("add-category")]
         public async Task<IActionResult> AddCategory(CategoryCM newCategoryCM)
