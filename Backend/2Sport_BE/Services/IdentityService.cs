@@ -1,22 +1,18 @@
-﻿using _2Sport_BE.DataContent;
+﻿/*using _2Sport_BE.DataContent;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.DTOs;
 using _2Sport_BE.Service.Enums;
+using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
-using _2Sport_BE.ViewModels;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Org.BouncyCastle.Asn1.Ocsp;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace _2Sport_BE.API.Services
 {
@@ -37,10 +33,9 @@ namespace _2Sport_BE.API.Services
         private readonly IConfiguration _configuration;
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMailService _mailService;
+        
 
         public IdentityService(TwoSportCapstoneDbContext context,
-            IOptions<ServiceConfiguration> settings,
             IUserService userService,
             IConfiguration configuration,
             TokenValidationParameters tokenValidationParameters,
@@ -53,7 +48,6 @@ namespace _2Sport_BE.API.Services
             _configuration = configuration;
             _tokenValidationParameters = tokenValidationParameters;
             _unitOfWork = unitOfWork;
-            _mailService = mailService;
         }
         public string HashPassword(string password)
         {
@@ -74,7 +68,6 @@ namespace _2Sport_BE.API.Services
             ResponseModel<TokenModel> response = new ResponseModel<TokenModel>();
             try
             {
-                var refresh = await _unitOfWork.RefreshTokenRepository.GetAllAsync();
                 var loginUser = await _unitOfWork.UserRepository
                     .GetObjectAsync(_ => _.UserName == requestUser.UserName && _.Password == HashPassword(requestUser.Password));
 
@@ -457,4 +450,4 @@ namespace _2Sport_BE.API.Services
             return response;
         }
     }
-}
+}*/

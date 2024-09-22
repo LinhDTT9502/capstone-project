@@ -5,7 +5,6 @@ using System.Security.Claims;
 using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
 using IMailService = _2Sport_BE.Services.IMailService;
-using _2Sport_BE.API.Services;
 using _2Sport_BE.Service.DTOs;
 
 namespace _2Sport_BE.Controllers
@@ -19,18 +18,16 @@ namespace _2Sport_BE.Controllers
 
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IMailService _mailService;
-        private readonly IIdentityService _identityService;
+        
         public UserController(
             IUserService userService,
             IRefreshTokenService refreshTokenService,
-            IMailService mailService,
-            IIdentityService identityService
+            IMailService mailService
             )
         {
             _userService = userService;
             _refreshTokenService = refreshTokenService;
             _mailService = mailService;
-            _identityService = identityService;
         }
         [HttpGet]
         [Route("get-all-users")]
@@ -113,7 +110,7 @@ namespace _2Sport_BE.Controllers
         [HttpPut]
         [Route("update-user")]
         //Role Admin
-        public async Task<IActionResult> UpdateUser([FromQuery] int id, [FromBody] UserUM userUM)
+        public async Task<IActionResult> UpdateUserAsync([FromQuery] int id, [FromBody] UserUM userUM)
         {
             if (!ModelState.IsValid)
             {
@@ -129,7 +126,7 @@ namespace _2Sport_BE.Controllers
         [HttpPut]
         [Route("update-profile")]
         //Role Customer
-        public async Task<IActionResult> UpdateProfile([FromQuery] int id, [FromBody] ProfileUM profileUM)
+        public async Task<IActionResult> UpdateProfileAsync([FromQuery] int id, [FromBody] ProfileUM profileUM)
         {
             if (!ModelState.IsValid)
             {
@@ -148,24 +145,34 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
 
-        [HttpDelete]
-        [Route("delete-user")]
-        //Role Admin
-        public async Task<ActionResult<User>> DeleteUser([FromQuery] int id)
+        [HttpPut]
+        [Route("update-password")]
+        //Role Customer
+        public async Task<IActionResult> UpdatePasswordAsync([FromQuery] int id, [FromBody] ChangePasswordVM changePasswordVM)
         {
-            var response = await _userService.RemoveUserAsync(id);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var response = await _userService.UpdatePasswordAsync(id, changePasswordVM);
             if (response.IsSuccess)
             {
                 return Ok(response);
             }
             return BadRequest(response);
         }
-        [HttpPut]
-        [Route("change-status-user")]
+
+        [HttpDelete]
+        [Route("delete-user")]
         //Role Admin
-        public async Task<ActionResult<User>>ChangeStatusUser([FromQuery] int id)
+        public async Task<ActionResult<User>> DeleteUser([FromQuery] int id)
         {
-            var response = await _userService.DisableUserAsync(id);
+            var response = await _userService.RemoveUserAsync(id);
             if (response.IsSuccess)
             {
                 return Ok(response);
@@ -222,22 +229,13 @@ namespace _2Sport_BE.Controllers
             await _userService.UpdateUserAsync(user.Id, user);
             return Ok(new { Message = "Email verified successfully." });
         }
-        /*[HttpGet]
-        [Route("get-users-by-role")]
-        public async Task<IActionResult> GetUsesByRole(int roleId)
+        [HttpGet("verify-phone-number")]
+        public async Task<IActionResult> VerifyPhoneNumber(string from, string to)
         {
-            try
-            {
-                var query = await _userService.GetAsync(_ => _.RoleId == roleId);
-                var result = _mapper.Map<List<User>, List<UserVM>>(query.ToList());
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }*/
+            var response = await _userService.VerifyPhoneNumber(from, to);
 
+            return Ok(response);
+        }
         [NonAction]
         protected int GetCurrentUserIdFromToken()
         {

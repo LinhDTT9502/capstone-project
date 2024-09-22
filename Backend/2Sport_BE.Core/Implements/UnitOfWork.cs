@@ -32,7 +32,33 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<Warehouse> _warehouseRepository;
         private IGenericRepository<RefreshToken> _refreshTokenRepository;
         private IGenericRepository<Sport> _sportRepository;
-
+        private IGenericRepository<Employee> _employeeRepository;
+        private IGenericRepository<EmployeeDetail> _employeeDetailRepository;
+        private IGenericRepository<CustomerDetail> _customerDetailRepository;
+        private IGenericRepository<ErrorLog> _errorLogRepository;
+        private IGenericRepository<Attendance> _attendanceRepository;
+        public IGenericRepository<Attendance> AttendanceRepository
+        {
+            get
+            {
+                if (_attendanceRepository == null)
+                {
+                    _attendanceRepository = new GenericRepository<Attendance>(_dbContext);
+                }
+                return _attendanceRepository;
+            }
+        }
+        public IGenericRepository<ErrorLog> ErrorLogRepository
+        {
+            get
+            {
+                if (_errorLogRepository == null)
+                {
+                    _errorLogRepository = new GenericRepository<ErrorLog>(_dbContext);
+                }
+                return _errorLogRepository;
+            }
+        }
         public IGenericRepository<Blog> BlogRepository
         {
             get
@@ -280,6 +306,42 @@ namespace _2Sport_BE.Repository.Implements
                     _sportRepository = new GenericRepository<Sport>(_dbContext);
                 }
                 return _sportRepository;
+            }
+        }
+
+        public IGenericRepository<CustomerDetail> CustomerDetailRepository
+        {
+            get
+            {
+                if (_customerDetailRepository == null)
+                {
+                    _customerDetailRepository = new GenericRepository<CustomerDetail>(_dbContext);
+                }
+                return _customerDetailRepository;
+            }
+        }
+
+        public IGenericRepository<Employee> EmployeeRepository
+        {
+            get
+            {
+                if (_employeeRepository == null)
+                {
+                    _employeeRepository = new GenericRepository<Employee>(_dbContext);
+                }
+                return _employeeRepository;
+            }
+        }
+
+        public IGenericRepository<EmployeeDetail> EmployeeDetailRepository
+        {
+            get
+            {
+                if (_employeeDetailRepository == null)
+                {
+                    _employeeDetailRepository = new GenericRepository<EmployeeDetail>(_dbContext);
+                }
+                return _employeeDetailRepository;
             }
         }
 

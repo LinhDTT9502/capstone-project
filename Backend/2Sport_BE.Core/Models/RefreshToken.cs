@@ -13,11 +13,11 @@ public class RefreshToken
     public int Id { get; set; }
 
     [Column("Token", TypeName = "varchar")]
-    [MaxLength]
+    [MaxLength(255)]
     public string Token { get; set; }
 
     [Column("JwtId", TypeName = "varchar")]
-    [MaxLength]
+    [MaxLength(255)]
     public string JwtId { get; set; }
 
     [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
@@ -28,10 +28,12 @@ public class RefreshToken
     [DataType(DataType.DateTime)]
     public DateTime? ExpireDate { get; set; }
 
-    public bool? Used { get; set; }
-
     [Column("UserId")]
     public int? UserId { get; set; }
 
+    [Column("EmployeeId")]
+    public int? EmployeeId { get; set; }
+    public bool? Used { get; set; }
     public virtual User User { get; set; }
+    public virtual Employee Employee { get; set; }
 }

@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using _2Sport_BE.Repository.Interfaces;
+using _2Sport_BE.Repository.Models;
 
 
 namespace _2Sport_BE.Services
@@ -40,11 +42,12 @@ namespace _2Sport_BE.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<MailService> _logger;
         private readonly MailSettings _mailSettings;
-
+        private IUnitOfWork _unitOfWork;
         public MailService(
             IConfiguration configuration,
             ILogger<MailService> logger,
-            IOptions<MailSettings> mailSettings
+            IOptions<MailSettings> mailSettings,
+            IUnitOfWork unitOfWork
             )
         {
             this._configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -59,6 +62,7 @@ namespace _2Sport_BE.Services
                 Port = _configuration.GetValue<int>("AppSettings:MailSettings:Port"),
                 EnableSSL = _configuration.GetValue<bool>("AppSettings:MailSettings:EnableSSL")
             };
+            _unitOfWork = unitOfWork;
         }
         public bool IsValidEmail(string email)
         {
@@ -129,8 +133,16 @@ namespace _2Sport_BE.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error sending email: {ex.Message}");
                 status = false;
+                _logger.LogError($"Error sending email: {ex.Message}");
+                var errorLog = new ErrorLog
+                {
+                    ErrorMessage = ex.Message,
+                    StackTrace = ex.StackTrace,
+                    InnerException = ex.InnerException?.Message,
+                    Source = ex.Source
+                };
+                await _unitOfWork.ErrorLogRepository.InsertAsync(errorLog);
             }
             return status;
         }
@@ -165,6 +177,14 @@ namespace _2Sport_BE.Services
             {
                 _logger.LogError($"Error sending email: {ex.Message}");
                 status = false;
+                var errorLog = new ErrorLog
+                {
+                    ErrorMessage = ex.Message,
+                    StackTrace = ex.StackTrace,
+                    InnerException = ex.InnerException?.Message,
+                    Source = ex.Source
+                };
+                await _unitOfWork.ErrorLogRepository.InsertAsync(errorLog);
             }
             return status;
         }

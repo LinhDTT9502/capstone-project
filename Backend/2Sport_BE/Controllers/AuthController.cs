@@ -1,27 +1,14 @@
-﻿using _2Sport_BE.API.Services;
-using _2Sport_BE.DataContent;
-using _2Sport_BE.Infrastructure.Services;
+﻿using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Service.Services;
-using _2Sport_BE.ViewModels;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Linq;
-using _2Sport_BE.Repository.Models;
-using Microsoft.EntityFrameworkCore;
 using AutoMapper;
-using System.Text;
-using System.Security.Cryptography;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using _2Sport_BE.Services;
-using _2Sport_BE.Service.Enums;
 using Microsoft.AspNetCore.Authentication.Facebook;
-using System.Text.RegularExpressions;
-using Org.BouncyCastle.Asn1.Ocsp;
 using _2Sport_BE.Service.DTOs;
 
 namespace _2Sport_BE.Controllers
@@ -31,7 +18,7 @@ namespace _2Sport_BE.Controllers
     public class AuthController : ControllerBase
     {
         public readonly IUserService _userService;
-        private readonly IIdentityService _identityService;
+        private readonly IAuthService _identityService;
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -40,7 +27,7 @@ namespace _2Sport_BE.Controllers
 
         public AuthController(
             IUserService userService,
-            IIdentityService identityService,
+            IAuthService identityService,
             IRefreshTokenService refreshTokenService,
             IUnitOfWork unitOfWork,
             IMapper mapper,
@@ -190,7 +177,7 @@ namespace _2Sport_BE.Controllers
             });
         }
 
-        [HttpPost("forgot-password")]
+        [HttpPost("forgot-password-request")]
         public async Task<IActionResult> SendResetPasswordEmail([FromBody] SendEmailRequest request)
         {
             if (string.IsNullOrEmpty(request.Email))
