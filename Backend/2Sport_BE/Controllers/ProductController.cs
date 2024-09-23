@@ -1,11 +1,15 @@
-﻿using _2Sport_BE.Helpers;
+﻿using _2Sport_BE.Enums;
+using _2Sport_BE.Helpers;
 using _2Sport_BE.Infrastructure.Services;
+using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
+using EntityFrameworkCore.SqlServer.SimpleBulks.BulkInsert;
+using ExcelDataReader;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +28,7 @@ namespace _2Sport_BE.Controllers
         private readonly IBrandService _brandService;
         private readonly IBranchService _branchService;
         private readonly ICategoryService _categoryService;
+        private readonly ISupplierService _supplierService;
         private readonly ISportService _sportService;
         private readonly ILikeService _likeService;
         private readonly IReviewService _reviewService;
@@ -38,8 +43,9 @@ namespace _2Sport_BE.Controllers
                                 IBrandService brandService, 
                                 IBranchService branchService, 
                                 ICategoryService categoryService,
+                                ISupplierService supplierService,
                                 IUnitOfWork unitOfWork,
-								ISportService sportService,
+                                ISportService sportService,
 								ILikeService likeService,
 								IReviewService reviewService,
                                 IWarehouseService warehouseService,
@@ -54,6 +60,7 @@ namespace _2Sport_BE.Controllers
             _brandService = brandService;
             _branchService = branchService;
             _categoryService = categoryService;
+            _supplierService = supplierService;
             _sportService = sportService;
             _likeService = likeService;
             _reviewService = reviewService;
@@ -350,9 +357,10 @@ namespace _2Sport_BE.Controllers
                 } 
                 else
                 {
+                    var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
                     var warehouse = new Warehouse()
                     {
-                        BranchId = productCM.BranchId,
+                        BranchId = branch.Id,
                         ProductId = product.Id,
                         Quantity = productCM.Quantity,
                     };
@@ -509,6 +517,341 @@ namespace _2Sport_BE.Controllers
             }
 
         }
+
+
+        [HttpPost]
+        [Route("import-product-from-excel")]
+        public async Task<IActionResult> ImportProductFromExcel(IFormFile importFile)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
+
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+                if (importFile == null || importFile.Length == 0)
+                {
+                    // Handle invalid file input
+                    return BadRequest("Cannot find import file!");
+                }
+                var products = ImportProductsIntoDB(importFile, userId);
+
+                //using (var dbct = new TwoSportCapstoneDbContext())
+                //{
+                //    dbct.BulkInsert(products);
+                //}
+                return Ok("Import product successfull!");
+            } catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+            
+        }
+
+        [NonAction]
+        protected async Task<int> ImportProductsIntoDB (IFormFile importFile, int managerId)
+        {
+
+            using var fileStream = importFile.OpenReadStream();
+            using var reader = ExcelReaderFactory.CreateReader(fileStream);
+
+            
+
+            do
+            {
+                if (reader.VisibleState != "visible")
+                {
+                    continue;
+                }
+
+                var rowIndex = 0;
+                while (reader.Read())
+                {
+                    if (rowIndex < 3)
+                    {
+                        rowIndex++;
+                        continue;
+                    }
+
+                    // Check if any mandatory fields are null
+                    var brandValue = reader.GetValue(1)?.ToString();
+                    var categoryValue = reader.GetValue(3)?.ToString();
+                    var sportValue = reader.GetValue(4)?.ToString();
+                    var supplierValue = reader.GetValue(5)?.ToString();
+                    var productNameValue = reader.GetValue(7)?.ToString();
+                    var productCodeValue = reader.GetValue(8)?.ToString();
+                    var quantityValue = reader.GetValue(9)?.ToString();
+                    var lotCodeValue = reader.GetValue(10)?.ToString();
+                    var listedPriceValue = reader.GetValue(11)?.ToString();
+                    var priceValue = reader.GetValue(12)?.ToString();
+                    var rentPriceValue = reader.GetValue(13)?.ToString();
+                    var sizeValue = reader.GetValue(14)?.ToString();
+                    var colorValue = reader.GetValue(15)?.ToString();
+                    var avaImgValue = reader.GetValue(17)?.ToString();
+                    var isRent = reader.GetValue(16)?.ToString();
+
+                    // Check for null or empty mandatory fields
+                    if (string.IsNullOrEmpty(brandValue) ||
+                        string.IsNullOrEmpty(categoryValue) ||
+                        string.IsNullOrEmpty(sportValue) ||
+                        string.IsNullOrEmpty(supplierValue) ||
+                        string.IsNullOrEmpty(productNameValue) ||
+                        string.IsNullOrEmpty(productCodeValue) ||
+                        string.IsNullOrEmpty(quantityValue) ||
+                        string.IsNullOrEmpty(lotCodeValue) ||
+                        string.IsNullOrEmpty(listedPriceValue) ||
+                        string.IsNullOrEmpty(priceValue) ||
+                        string.IsNullOrEmpty(sizeValue) ||
+                        string.IsNullOrEmpty(colorValue) ||
+                        string.IsNullOrEmpty(avaImgValue) ||
+                        string.IsNullOrEmpty(isRent))
+                    {
+                        return (int)ProductErrors.NullError;
+                    }
+
+                    //Check if brand is not exist, add new brand
+                    #region Add new brand
+                    var existedBrand = await _brandService.GetBrandsAsync(brandValue);
+                    if (existedBrand == null)
+                    {
+                        var brandImg = reader.GetValue(12)?.ToString();
+                        var brandImgFile = ConvertToIFormFile(brandImg);
+                        if (!string.IsNullOrEmpty(brandImg))
+                        {
+                            var uploadResult = await _imageService.UploadImageToCloudinaryAsync(brandImgFile);
+                            if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                            {
+                                var newBrand = new Brand()
+                                {
+                                    BrandName = brandValue,
+                                    Logo = uploadResult.SecureUrl.AbsoluteUri,
+                                };
+                                await _brandService.CreateANewBrandAsync(newBrand);
+                            }
+                            else
+                            {
+                                return (int)ProductErrors.NotExcepted;
+                            }
+                        }
+                        else
+                        {
+                            return (int)ProductErrors.NullError;
+                        }
+                    }
+                    #endregion
+
+                    //Check if sport is not exist, add a new sport
+                    #region Add new sport
+                    var existedSport = await _sportService.GetSportByName(sportValue);
+                    if (existedSport == null)
+                    {
+                        var newSport = new Sport()
+                        {
+                            Name = sportValue,
+                        };
+                        await _sportService.AddSport(newSport);
+                    }
+                    #endregion
+
+                    //Check if category is not exist, add a new category
+                    #region Add new category
+                    var existedCategory = await _categoryService.GetCategoryByName(categoryValue);
+                    var sport = (await _sportService.GetSportByName(sportValue)).FirstOrDefault();
+                    if (existedCategory == null)
+                    {
+                        var newCategory = new Category()
+                        {
+                            CategoryName = categoryValue,
+                            Sport = sport,
+                            SportId = sport.Id
+                        };
+                        await _categoryService.AddCategory(newCategory);
+                    }
+                    #endregion
+
+                    //Check if supplier is not exist, add a new supplier
+                    #region Add new supplier
+                    var existedSupplier = await _supplierService.GetSuppliersAsync(supplierValue);
+                    if (existedSupplier == null)
+                    {
+                        var supplierLocation = reader.GetValue(6)?.ToString();
+                        if (string.IsNullOrEmpty(supplierLocation))
+                        {
+                            return (int)ProductErrors.NullError;
+                        } else
+                        {
+                            var newSupplier = new Supplier()
+                            {
+                                SupplierName = supplierValue,
+                                Location = supplierLocation,
+                            };
+                            await _supplierService.CreateANewSupplierAsync(newSupplier);
+                        }
+                    }
+                    #endregion
+
+                    // Assuming product creation logic if all fields are valid
+                    var brand = (await _brandService.GetBrandsAsync(brandValue)).FirstOrDefault();
+                    var category = (await _categoryService.GetCategoryByName(categoryValue)).FirstOrDefault();
+                    var supplier = (await _supplierService.GetSuppliersAsync(supplierValue)).FirstOrDefault();
+                    var product = new Product
+                    {
+                        BrandId = brand.Id,
+                        CategoryId = category.Id,
+                        ProductName = productNameValue,
+                        ProductCode = productCodeValue,
+                        ListedPrice = decimal.TryParse(listedPriceValue, out var listedPrice) ? listedPrice : 0,
+                        Price = decimal.TryParse(priceValue, out var price) ? price : 0,
+                        Size = sizeValue,
+                        Color = colorValue,
+                        RentPrice = 0,
+                    };
+
+                    if (!string.IsNullOrEmpty(avaImgValue))
+                    {
+                        var avaImgFile = ConvertToIFormFile(avaImgValue);
+                        var uploadResult = await _imageService.UploadImageToCloudinaryAsync(avaImgFile);
+                        if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                        {
+                            product.ImgAvatarPath = uploadResult.SecureUrl.AbsolutePath;
+                        }
+                        else
+                        {
+                            return (int)ProductErrors.NotExcepted;
+                        }
+                    }
+                    else
+                    {
+                        return (int)ProductErrors.NullError;
+                    }
+
+                    if (isRent.ToLower().Equals("yes"))
+                    {
+                        product.IsRent = true;
+                        if (!string.IsNullOrEmpty(rentPriceValue))
+                        {
+                            product.RentPrice = decimal.Parse(rentPriceValue);
+                        }
+                    } else
+                    {
+                        product.IsRent = false;
+                    }
+
+                    await _productService.AddProduct(product);
+
+                    //Add product's images into ImageVideo table
+                    var listProductImages = new List<string>();
+                    var firstImgValue = reader.GetValue(18)?.ToString();
+                    var secondImgValue = reader.GetValue(19)?.ToString();
+                    var thirdImgValue = reader.GetValue(20)?.ToString();
+                    var fourthImgValue = reader.GetValue(21)?.ToString();
+                    var fifthImgValue = reader.GetValue(22)?.ToString();
+                    if (!string.IsNullOrEmpty(firstImgValue))
+                    {
+                        listProductImages.Add(firstImgValue);
+                    }
+                    if (!string.IsNullOrEmpty(secondImgValue))
+                    {
+                        listProductImages.Add(secondImgValue);
+                    }
+                    if (!string.IsNullOrEmpty(thirdImgValue))
+                    {
+                        listProductImages.Add(thirdImgValue);
+                    }
+                    if (!string.IsNullOrEmpty(fourthImgValue))
+                    {
+                        listProductImages.Add(fourthImgValue);
+                    }
+                    if (!string.IsNullOrEmpty(fifthImgValue))
+                    {
+                        listProductImages.Add(fifthImgValue);
+                    }
+
+                    if (listProductImages.Count > 0)
+                    {
+                        foreach (var imagePath in listProductImages)
+                        {
+                            var imageFile = ConvertToIFormFile(imagePath);
+                            var uploadResult = await _imageService.UploadImageToCloudinaryAsync(imageFile);
+                            if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                            {
+                                var imageObject = new ImagesVideo()
+                                {
+                                    ProductId = product.Id,
+                                    ImageUrl = uploadResult.SecureUri.AbsoluteUri,
+                                    CreateAt = DateTime.Now,
+                                    VideoUrl = null,
+                                    BlogId = null,
+                                };
+                                await _imageVideosService.AddImage(imageObject);
+                            }
+                            else
+                            {
+                                return (int)ProductErrors.NotExcepted;
+
+                            }
+                        }
+                    }
+
+                    //Import product into warehouse
+                    var branch = (await _branchService.GetBranchByManagerId(managerId)).FirstOrDefault();
+                    var warehouse = new Warehouse()
+                    {
+                        BranchId = branch.Id,
+                        ProductId = product.Id,
+                        Quantity = int.Parse(quantityValue),
+                    };
+                    await _warehouseService.CreateANewWarehouseAsync(warehouse);
+
+
+
+                    //Save import history
+                    var importedBranch = await _branchService.GetBranchById(branch.Id);
+                    var importHistory = new ImportHistory()
+                    {
+                        UserId = managerId,
+                        ProductId = product.Id,
+                        Content = $@"{importedBranch.BranchName}: Import {int.Parse(quantityValue)} {productNameValue} ({productCodeValue})",
+                        ImportDate = DateTime.Now,
+                        Quantity = int.Parse(quantityValue),
+                        SupplierId = supplier.Id,
+                        LotCode = lotCodeValue,
+                    };
+                    await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
+
+                    rowIndex++;
+                }
+
+                break;
+
+            } while (reader.NextResult());
+
+            //using (var dbct = new TwoSportCapstoneDbContext())
+            //{
+            //    dbct.BulkInsert(products);
+            //}
+
+            return 1;
+        }
+
+        public IFormFile ConvertToIFormFile(string filePath)
+        {
+            var fileInfo = new FileInfo(filePath);
+            var stream = new FileStream(filePath, FileMode.Open);
+
+            IFormFile formFile = new FormFile(stream, 0, fileInfo.Length, null, fileInfo.Name)
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "image/jpeg"
+            };
+
+            return formFile;
+        }
+
 
         [HttpPut]
         [Route("update-product/{productId}")]

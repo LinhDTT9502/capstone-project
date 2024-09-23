@@ -25,6 +25,7 @@ namespace _2Sport_BE.Service.Services
         Task AddCategory(Category category);
         Task DeleteCategoryById(int id);
         Task UpdateCategory(Category newCategory);
+        Task<IQueryable<Category>> GetCategoryByName(string categoryName);
     }
     public class CategoryService : ICategoryService
     {
@@ -94,6 +95,13 @@ namespace _2Sport_BE.Service.Services
             category.Status = true;
             category.Quantity = 0;
             await _unitOfWork.CategoryRepository.InsertAsync(category);
+        }
+
+        public async Task<IQueryable<Category>> GetCategoryByName(string categoryName)
+        {
+            var query = await _unitOfWork.CategoryRepository.GetAsync(_ => _.CategoryName.ToLower()
+                                                                    .Equals(categoryName.ToLower()));
+            return query.AsQueryable();
         }
     }
 }
