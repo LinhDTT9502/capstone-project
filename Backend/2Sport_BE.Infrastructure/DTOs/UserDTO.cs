@@ -74,9 +74,6 @@ namespace _2Sport_BE.Service.DTOs
     public class ChangePasswordVM
     {
         [Required]
-        [JsonProperty("oldPassword")]
-        public string OldPassword { get; set; }
-        [Required]
         [JsonProperty("newPassword")]
         public string NewPassword { get; set; }
     }

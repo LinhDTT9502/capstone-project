@@ -7,7 +7,10 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
-
+using Vonage;
+using Vonage.Request;
+using Vonage.Messaging;
+using Nexmo.Api;
 namespace _2Sport_BE.Infrastructure.Services
 {
     public interface IUserService
@@ -23,6 +26,8 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<bool>> UpdateProfile(int id, ProfileUM profile);
         Task<ResponseDTO<bool>> RemoveUserAsync(int id);
         Task<ResponseDTO<bool>> DisableUserAsync(int id);
+        Task<ResponseDTO<bool>> UpdatePasswordAsync(int id, ChangePasswordVM changePasswordVM);
+        Task<string> VerifyPhoneNumber(string from, string to);
     }
     public class UserService : IUserService
     {
@@ -108,6 +113,11 @@ namespace _2Sport_BE.Infrastructure.Services
                 newUser.IsActive = true;
 
                 await _unitOfWork.UserRepository.InsertAsync(newUser);
+
+                response.IsSuccess = true;
+                response.Message = "Add user successfully";
+                response.Data = newUser.Id;
+                return response;
             }
             catch (DbUpdateException dbUpdateEx)
             {
@@ -120,7 +130,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 response.Message = $"An unexpected error occurred: {ex.Message}";
             }
             return response;
-        } 
+        }
         public async Task<ResponseDTO<UserVM>> GetUserDetailsById(int id)
         {
             var response = new ResponseDTO<UserVM>();
@@ -314,6 +324,72 @@ namespace _2Sport_BE.Infrastructure.Services
             {
                 return null;
             }
+        }
+        public async Task<ResponseDTO<bool>> UpdatePasswordAsync(int id, ChangePasswordVM changePasswordVM)
+        {
+            var response = new ResponseDTO<bool>();
+            try
+            {
+                var existingUser = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == id);
+                if (existingUser == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "User not found!";
+                    return response;
+                }
+
+                existingUser.Password = HashPassword(changePasswordVM.NewPassword);
+                await _unitOfWork.UserRepository.UpdateAsync(existingUser);
+
+                response.IsSuccess = true;
+                response.Message = "Password updated successfully.";
+                response.Data = true;
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = $"An error occurred: {ex.Message}";
+                response.Data = false;
+            }
+
+            return response;
+        }
+        public async Task<string> VerifyPhoneNumber(string from, string to)
+        {
+            /*var credentials = Credentials.FromApiKeyAndSecret("a985b2e1", "45WqlXONkSho55Yf");
+
+            var vonageClient = new VonageClient(credentials);*/
+
+            /*var request = new Vonage.Messages.Sms.SmsRequest
+            {
+                To = to,
+                From = "0366819078",
+                Text = "Xin chao 2sport"
+            };*/
+            var credentials = new Nexmo.Api.Request.Credentials()
+            {
+                ApiKey = "a985b2e1",
+                ApiSecret = "45WqlXONkSho55Yf"
+         
+            };
+            var results = SMS.Send(new SMS.SMSRequest
+            {
+                from = from,
+                to = to,
+                text = "2sport v3"
+            }, credentials);
+
+
+            /* var VONAGE_API_KEY = "a985b2e1";
+             var VONAGE_API_SECRET = "45WqlXONkSho55Yf";
+             var credentials = Credentials.FromApiKeyAndSecret(VONAGE_API_KEY, VONAGE_API_SECRET);
+             var client = new SmsClient(credentials);
+             var request = new SendSmsRequest { To = to, From = from, Text = "2sport ver2"};
+             var response = await client.SendAnSmsAsync(request);
+             response.Messages[0].MessageId.ToString();
+             */
+
+            return results.messages[0].message_id;
         }
     }
 }
