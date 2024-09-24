@@ -1,9 +1,17 @@
 ﻿steps:
+  # Bước 1: Kiểm tra mã nguồn
+  - name: 'gcr.io/cloud-builders/git'
+    args: ['clone', 'https://github.com/YOUR_REPO_URL.git', 'Backend']
+  
+  # Bước 2: Xây dựng Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/sport-436513/2sport-api', '.']
     dir: 'Backend'
+
+  # Bước 3: Đẩy Docker image lên Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/sport-436513/2sport-api']
     dir: 'Backend'
+
 images:
   - 'gcr.io/sport-436513/2sport-api'
