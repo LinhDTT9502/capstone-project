@@ -1,9 +1,9 @@
 ﻿steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/2sport-api', '.']
+    args: ['build', '-t', 'gcr.io/sport-436513/2sport-api', '.']
     dir: 'Backend'
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/2sport-api']
+    args: ['push', 'gcr.io/sport-436513/2sport-api']
     dir: 'Backend'
 images:
-  - 'gcr.io/$PROJECT_ID/2sport-api'
+  - 'gcr.io/sport-436513/2sport-api'
