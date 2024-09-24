@@ -4,7 +4,7 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["2Sport_BE/2Sport_BE.csproj", "2Sport_BE/"]
+COPY ["2Sport_BE.csproj", "2Sport_BE/"]
 COPY ["2Sport_BE.Core/2Sport_BE.Core.csproj", "2Sport_BE.Core/"]
 COPY ["2Sport_BE.Infrastructure/2Sport_BE.Infrastructure.csproj", "2Sport_BE.Infrastructure/"]
 RUN dotnet restore "2Sport_BE/2Sport_BE.csproj"
