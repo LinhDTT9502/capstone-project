@@ -143,6 +143,7 @@ namespace _2Sport_BE.Services
                     Source = ex.Source
                 };
                 await _unitOfWork.ErrorLogRepository.InsertAsync(errorLog);
+                _unitOfWork.Save();
             }
             return status;
         }
@@ -185,6 +186,7 @@ namespace _2Sport_BE.Services
                     Source = ex.Source
                 };
                 await _unitOfWork.ErrorLogRepository.InsertAsync(errorLog);
+                _unitOfWork.Save();
             }
             return status;
         }
