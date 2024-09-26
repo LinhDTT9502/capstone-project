@@ -108,7 +108,7 @@ namespace _2Sport_BE.Services
             bool status = false;
             try
             {
-                var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Templates", "Forgot_Password_Email.html");
+                var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "Forgot_Password_Email.html");
                 var templateContent = await File.ReadAllTextAsync(templatePath);
 
                 var emailContent = templateContent
@@ -152,7 +152,7 @@ namespace _2Sport_BE.Services
             bool status = false;
             try
             {
-                var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Templates", "Verify_Email.html");
+                var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "Forgot_Password_Email.html");
                 var templateContent = await File.ReadAllTextAsync(templatePath);
 
                 var emailContent = templateContent
