@@ -85,7 +85,7 @@ namespace _2Sport_BE.Controllers
         }
         [HttpGet]
         [Route("get-employees-by-branch")]
-        public async Task<IActionResult> GetDailyAttendance([FromQuery] int branchId)
+        public async Task<IActionResult> GetEmployeeByBranch([FromQuery] int branchId)
         {
             var response = await _employeeService.GetEmployeesByBranch(branchId);
             if (response.IsSuccess)

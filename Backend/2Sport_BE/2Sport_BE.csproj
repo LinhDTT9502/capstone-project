@@ -42,8 +42,16 @@
 		<ProjectReference Include="..\2Sport_BE.Infrastructure\2Sport_BE.Infrastructure.csproj">
 			<Private>True</Private>
 		</ProjectReference>
+		
 	</ItemGroup>
-
+	<ItemGroup>
+		<None Update="Templates\Forgot_Password_Email.html">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Templates\Verify_Email.html">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 	<ItemGroup>
 		<Content Update="appsettings.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
