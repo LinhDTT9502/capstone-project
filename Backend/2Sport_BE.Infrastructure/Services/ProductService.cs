@@ -30,6 +30,7 @@ namespace _2Sport_BE.Service.Services
         Task AddProducts(IEnumerable<Product> products);
         Task DeleteProductById(int id);
         Task UpdateProduct(Product newProduct);
+        Task<IQueryable<Product>> GetProductByProductCodeSizeColorCondition(string productCode, string size, string color, int condition);
     }
     public class ProductService : IProductService
     {
@@ -71,6 +72,16 @@ namespace _2Sport_BE.Service.Services
         {
             return (await _unitOfWork.ProductRepository.GetAsync(_ => _.ProductCode
                                                        .ToLower().Equals(productCode.ToLower()))).FirstOrDefault();
+        }
+
+        public async Task<IQueryable<Product>> GetProductByProductCodeSizeColorCondition(string productCode, string size, string color, int condition)
+        {
+            var product = await _unitOfWork.ProductRepository.GetAsync(_ => _.ProductCode.ToLower()
+                                                                        .Equals(productCode.ToLower()) &&
+                                                                        _.Size.ToLower().Equals(size.ToLower()) &&
+                                                                        _.Color.ToLower().Equals(color.ToLower()) &&
+                                                                        _.Condition == condition);
+            return product.AsQueryable();
         }
 
         public async Task<IQueryable<Product>> GetProducts(Expression<Func<Product, bool>> filter = null)

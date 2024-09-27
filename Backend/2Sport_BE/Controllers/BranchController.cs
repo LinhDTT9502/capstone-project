@@ -43,6 +43,22 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("get-branch-by-id/{branchId}")]
+        public async Task<IActionResult> GetBranchById(int branchId)
+        {
+            try
+            {
+                var branch = await _branchService.GetBranchById(branchId);
+                var result = _mapper.Map<BranchVM>(branch);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
         [HttpPost]
         [Route("add-branch")]
         public async Task<IActionResult> AddBranch(BranchCM branchCM)

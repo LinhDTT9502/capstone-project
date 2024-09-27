@@ -54,7 +54,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
         public async Task<IQueryable<Supplier>> GetSuppliersAsync(string supplierName)
         {
-            IEnumerable<Supplier> filter = await _unitOfWork.SupplierRepository.GetAsync(_ => _.SupplierName.ToUpper().Contains(supplierName.ToUpper()));
+            IEnumerable<Supplier> filter = await _unitOfWork.SupplierRepository.GetAsync(_ => _.SupplierName.ToUpper().Equals(supplierName.ToUpper()));
             return filter.AsQueryable();
         }
 
