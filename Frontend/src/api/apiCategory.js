@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://2sportapi-c6ajcce3ezh5h4gw.southeastasia-01.azurewebsites.net/api/Category';
+const API_BASE_URL = 'https://twosportapi-295683427295.asia-southeast2.run.app/api/Category';
 
 export const getAllCategories = () => {
   return axios.get(`${API_BASE_URL}/list-categories`, {

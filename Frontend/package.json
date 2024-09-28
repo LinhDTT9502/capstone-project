@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-brands-svg-icons": "^6.5.2",
     "@fortawesome/free-regular-svg-icons": "^6.5.2",
@@ -19,6 +21,7 @@
     "@mapbox/mapbox-sdk": "^0.16.0",
     "@material-tailwind/react": "^2.1.9",
     "@motionone/utils": "^10.17.0",
+    "@mui/icons-material": "^6.1.0",
     "@mui/material": "^5.16.7",
     "@reduxjs/toolkit": "^2.2.4",
     "axios": "^1.6.8",
@@ -26,6 +29,7 @@
     "framer-motion": "^11.0.28",
     "i18next": "^23.11.2",
     "jwt-decode": "^4.0.0",
+    "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-apexcharts": "^1.4.1",
     "react-countup": "^6.5.3",

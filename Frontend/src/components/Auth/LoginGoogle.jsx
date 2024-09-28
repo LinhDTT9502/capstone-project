@@ -10,7 +10,7 @@ export default function LoginGoogle({ setIsSignInOpen }) {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const handleSubmitButton = () => {
-    const newTab = window.open('https://2sportapi-c6ajcce3ezh5h4gw.southeastasia-01.azurewebsites.net/api/Auth/oauth-login', '_blank');
+    const newTab = window.open('https://twosportapi-295683427295.asia-southeast2.run.app/api/Auth/oauth-login', '_blank');
 
     window.addEventListener('message', (event) => {
       if (event.origin === 'http://demo-api.ap-southeast-2.elasticbeanstalk.com') {

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import axiosInstance from './axiosInstance';
 
-const API_BASE_URL = 'https://2sportapi-c6ajcce3ezh5h4gw.southeastasia-01.azurewebsites.net/api/Cart';
+const API_BASE_URL = 'https://twosportapi-295683427295.asia-southeast2.run.app/api/Cart';
 
 export const addToCartAPI = (productId, quantity, token) => {
 

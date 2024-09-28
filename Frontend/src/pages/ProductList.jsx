@@ -52,7 +52,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
     };
 
     const fetchWarehouseData = async () => {
-      const response = await fetch('https://2sportapi-c6ajcce3ezh5h4gw.southeastasia-01.azurewebsites.net/api/Warehouse/list-all', {
+      const response = await fetch('https://twosportapi-295683427295.asia-southeast2.run.app/api/Warehouse/list-all', {
         headers: {
           'accept': '*/*'
         }

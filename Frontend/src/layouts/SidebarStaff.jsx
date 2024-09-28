@@ -22,7 +22,7 @@ export default function SidebarStaff() {
       <Link to="/admin/manage-user" >
         <ListItem>
         <FontAwesomeIcon icon={faGauge} className="pr-3" /> 
-        Quản lý tài khoản
+       {t("sidebar_staff.customer_account")}
         </ListItem>
         </Link>
       </List>
