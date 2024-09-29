@@ -54,7 +54,7 @@ namespace _2Sport_BE.Repository.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Server=DESKTOP-E9T9GDT;uid=sa;pwd=12345;database=TwoSport;TrustServerCertificate=True");
+                //optionsBuilder.UseSqlServer("Server=2sportdb.database.windows.net;uid=twosportserver;pwd=Password@;database=TwoSportDB;TrustServerCertificate=True");
             }
         }
         private string GetConnectionStrings()

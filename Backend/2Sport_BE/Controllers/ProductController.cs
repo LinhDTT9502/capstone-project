@@ -22,6 +22,7 @@ namespace _2Sport_BE.Controllers
     {
         private readonly IProductService _productService;
         private readonly IBrandService _brandService;
+        private readonly IBranchService _branchService;
         private readonly ICategoryService _categoryService;
         private readonly ISportService _sportService;
         private readonly ILikeService _likeService;
@@ -35,6 +36,7 @@ namespace _2Sport_BE.Controllers
 
         public ProductController(IProductService productService, 
                                 IBrandService brandService, 
+                                IBranchService branchService, 
                                 ICategoryService categoryService,
                                 IUnitOfWork unitOfWork,
 								ISportService sportService,
@@ -50,6 +52,7 @@ namespace _2Sport_BE.Controllers
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _brandService = brandService;
+            _branchService = branchService;
             _categoryService = categoryService;
             _sportService = sportService;
             _likeService = likeService;
@@ -265,115 +268,106 @@ namespace _2Sport_BE.Controllers
 			}
 		}
 
-		//[HttpPut]
-  //      [Route("update-product/{productId}")]
-  //      public async Task<IActionResult> UpdateProduct(int productId, ProductUM productUM)
-  //      {
-  //          try
-  //          {
-  //              var updatedProduct = await _productService.GetProductById(productId);
-  //              if (updatedProduct != null)
-  //              {
-  //                  updatedProduct.ProductName = productUM.ProductName;
-  //                  updatedProduct.ListedPrice = productUM.ListedPrice;
-  //                  updatedProduct.Price = productUM.Price;
-  //                  updatedProduct.Size = productUM.Size;
-  //                  updatedProduct.Description = productUM.Description;
-  //                  updatedProduct.Status = productUM.Status;
-  //                  updatedProduct.Color = productUM.Color;
-  //                  updatedProduct.Offers = productUM.Offers;
-  //                  updatedProduct.ImgAvatarName = productUM.MainImageName;
-  //                  updatedProduct.ImgAvatarPath = productUM.MainImagePath;
-  //                  updatedProduct.CategoryId = (int)productUM.CategoryId;
-  //                  updatedProduct.BrandId = (int)productUM.BrandId;
-  //                  updatedProduct.SportId = (int)productUM.SportId;
-  //                  await _productService.UpdateProduct(updatedProduct);
-  //                  return Ok(updatedProduct);
-  //              } else
-  //              {
-  //                  return BadRequest("Update failed!");
-  //              }
-  //          } catch (Exception ex)
-  //          {
-  //              return BadRequest(ex);
-  //          }
-  //      }
-
         [HttpPost]
         [Route("import-product")]
         public async Task<IActionResult> ImportProduct(ProductCM productCM)
         {
+            var existedProduct = await _productService.GetProductByProductCode(productCM.ProductCode);
+
+
             var product = _mapper.Map<Product>(productCM);
             product.CreateAt = DateTime.Now;
             product.Status = true;
             try
             {
-                //var userId = GetCurrentUserIdFromToken();
+                var userId = GetCurrentUserIdFromToken();
 
-                //if (userId == 0)
-                //{
-                //    return Unauthorized();
-                //}
-
-                if (productCM.MainImage != null)
+                if (userId == 0)
                 {
-                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(productCM.MainImage);
-                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        product.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
-                    }
-                    else
-                    {
-                        return BadRequest("Something wrong!");
-                    }
-                }
-                else
-                {
-                    product.ImgAvatarName = "";
-                    product.ImgAvatarPath = "";
+                    return Unauthorized();
                 }
 
-                var addedProduct = await _productService.AddProduct(product);
-
-                //Add product's images into ImageVideo table
-                if (productCM.ProductImages.Length > 0)
+                if (existedProduct == null)
                 {
-                    foreach (var image in productCM.ProductImages)
+                    if (productCM.MainImage != null)
                     {
-                        var uploadResult = await _imageService.UploadImageToCloudinaryAsync(image);
+                        var uploadResult = await _imageService.UploadImageToCloudinaryAsync(productCM.MainImage);
                         if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
                         {
-                            var imageObject = new ImagesVideo()
-                            {
-                                ProductId = product.Id,
-                                ImageUrl = uploadResult.SecureUri.AbsoluteUri,
-                                CreateAt = DateTime.Now,
-                                VideoUrl = null,
-                                BlogId = null,
-                            };
-                            await _imageVideosService.AddImage(imageObject);
+                            product.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
                         }
                         else
                         {
                             return BadRequest("Something wrong!");
                         }
                     }
+                    else
+                    {
+                        product.ImgAvatarName = "";
+                        product.ImgAvatarPath = "";
+                    }
+
+                    var addedProduct = await _productService.AddProduct(product);
+
+                    //Add product's images into ImageVideo table
+                    if (productCM.ProductImages.Length > 0)
+                    {
+                        foreach (var image in productCM.ProductImages)
+                        {
+                            var uploadResult = await _imageService.UploadImageToCloudinaryAsync(image);
+                            if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                            {
+                                var imageObject = new ImagesVideo()
+                                {
+                                    ProductId = product.Id,
+                                    ImageUrl = uploadResult.SecureUri.AbsoluteUri,
+                                    CreateAt = DateTime.Now,
+                                    VideoUrl = null,
+                                    BlogId = null,
+                                };
+                                await _imageVideosService.AddImage(imageObject);
+                            }
+                            else
+                            {
+                                return BadRequest("Something wrong!");
+                            }
+                        }
+                    }
                 }
 
                 //Import product into warehouse
-                var warehouse = new Warehouse()
+                if (existedProduct != null)
                 {
-                    BranchId = productCM.BranchId,
-                    ProductId = product.Id,
-                    Quantity = productCM.Quantity,
-                };
-                await _warehouseService.CreateANewWarehouseAsync(warehouse);
+                    var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(existedProduct.Id,
+                                                                                   productCM.BranchId))
+                                                                                   .FirstOrDefault();
+                    if (existedWarehouse != null)
+                    {
+                        existedWarehouse.Quantity += productCM.Quantity;
+                        await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
+                    }
+                    product = existedProduct;
+                } 
+                else
+                {
+                    var warehouse = new Warehouse()
+                    {
+                        BranchId = productCM.BranchId,
+                        ProductId = product.Id,
+                        Quantity = productCM.Quantity,
+                    };
+                    await _warehouseService.CreateANewWarehouseAsync(warehouse);
+                }
+
+
 
                 //Save import history
+                var importedBranch = await _branchService.GetBranchById(productCM.BranchId);
                 var importHistory = new ImportHistory()
                 {
-                    UserId = 2,
+                    UserId = userId,
                     ProductId = product.Id,
+                    Content = $@"{importedBranch.BranchName}: Import {productCM.Quantity} {productCM.ProductName} ({productCM.ProductCode})",
                     ImportDate = DateTime.Now,
                     Quantity = productCM.Quantity,
                     SupplierId = productCM.SupplierId,
@@ -381,7 +375,7 @@ namespace _2Sport_BE.Controllers
                 };
                 await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
 
-                return Ok(addedProduct);
+                return Ok("Add product successfully!");
             }
                 
             catch (Exception e)
@@ -397,25 +391,239 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var addedProducts = _mapper.Map<List<Product>>(productList);
+                foreach (var productCM in productList)
+                {
+                    var existedProduct = await _productService.GetProductByProductCode(productCM.ProductCode);
+
+                    var product = _mapper.Map<Product>(productCM);
+                    product.CreateAt = DateTime.Now;
+                    product.Status = true;
+                    try
+                    {
+                        var userId = GetCurrentUserIdFromToken();
+
+                        if (userId == 0)
+                        {
+                            return Unauthorized();
+                        }
+
+                        if (existedProduct == null)
+                        {
+                            if (productCM.MainImage != null)
+                            {
+                                var uploadResult = await _imageService.UploadImageToCloudinaryAsync(productCM.MainImage);
+                                if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                                {
+                                    product.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
+                                }
+                                else
+                                {
+                                    return BadRequest("Something wrong!");
+                                }
+                            }
+                            else
+                            {
+                                product.ImgAvatarName = "";
+                                product.ImgAvatarPath = "";
+                            }
+
+                            var addedProduct = await _productService.AddProduct(product);
+
+                            //Add product's images into ImageVideo table
+                            if (productCM.ProductImages.Length > 0)
+                            {
+                                foreach (var image in productCM.ProductImages)
+                                {
+                                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(image);
+                                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                                    {
+                                        var imageObject = new ImagesVideo()
+                                        {
+                                            ProductId = product.Id,
+                                            ImageUrl = uploadResult.SecureUri.AbsoluteUri,
+                                            CreateAt = DateTime.Now,
+                                            VideoUrl = null,
+                                            BlogId = null,
+                                        };
+                                        await _imageVideosService.AddImage(imageObject);
+                                    }
+                                    else
+                                    {
+                                        return BadRequest("Something wrong!");
+                                    }
+                                }
+                            }
+                        }
+
+                        //Import product into warehouse
+                        if (existedProduct != null)
+                        {
+                            var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(existedProduct.Id,
+                                                                                           productCM.BranchId))
+                                                                                           .FirstOrDefault();
+                            if (existedWarehouse != null)
+                            {
+                                existedWarehouse.Quantity += productCM.Quantity;
+                                await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
+                            }
+                        }
+                        else
+                        {
+                            var warehouse = new Warehouse()
+                            {
+                                BranchId = productCM.BranchId,
+                                ProductId = product.Id,
+                                Quantity = productCM.Quantity,
+                            };
+                            await _warehouseService.CreateANewWarehouseAsync(warehouse);
+                        }
+
+                        //Save import history
+                        var importedBranch = await _branchService.GetBranchById(productCM.BranchId);
+                        var importHistory = new ImportHistory()
+                        {
+                            UserId = userId,
+                            ProductId = product.Id,
+                            Content = $@"{importedBranch.BranchName}: Import {productCM.Quantity} {productCM.ProductName} ({productCM.ProductCode})",
+                            ImportDate = DateTime.Now,
+                            Quantity = productCM.Quantity,
+                            SupplierId = productCM.SupplierId,
+                            LotCode = productCM.LotCode,
+                        };
+                        await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
+
+                    }
+
+                    catch (Exception e)
+                    {
+                        return BadRequest(e);
+                    }
+                }
                 
-				await _productService.AddProducts(addedProducts);
                 return Ok("Add products successfully!");
-                
-			} catch (Exception e)
+
+            }
+            catch (Exception e)
             {
                 return BadRequest(e);
+            }
+
+        }
+
+        [HttpPut]
+        [Route("update-product/{productId}")]
+        public async Task<IActionResult> UpdateProduct(int productId, ProductUM productUM)
+        {
+            try
+            {
+                var updatedProduct = await _productService.GetProductById(productId);
+                if (updatedProduct == null)
+                {
+                    return BadRequest($"Cannot find the product with id: {productId}");
+                }
+                else
+                {
+                    var userId = GetCurrentUserIdFromToken();
+
+                    if (userId == 0)
+                    {
+                        return Unauthorized();
+                    }
+
+                    if (productUM.MainImage != null)
+                    {
+                        var uploadResult = await _imageService.UploadImageToCloudinaryAsync(productUM.MainImage);
+                        if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                        {
+                            updatedProduct.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
+                        }
+                        else
+                        {
+                            return BadRequest("Something wrong!");
+                        }
+                    }
+
+                    updatedProduct.ProductName = productUM.ProductName;
+                    updatedProduct.ProductCode = productUM.ProductCode;
+                    updatedProduct.BrandId = (int)productUM.BrandId;
+                    updatedProduct.CategoryId = (int)productUM.CategoryId;
+                    updatedProduct.SportId = (int)productUM.SportId;
+                    await _productService.UpdateProduct(updatedProduct);
+
+                    //Add product's images into ImageVideo table
+                    if (productUM.ProductImages.Length > 0)
+                    {
+                        foreach (var image in productUM.ProductImages)
+                        {
+                            var uploadResult = await _imageService.UploadImageToCloudinaryAsync(image);
+                            if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                            {
+
+                                var imageObject = new ImagesVideo()
+                                {
+                                    ProductId = updatedProduct.Id,
+                                    ImageUrl = uploadResult.SecureUri.AbsoluteUri,
+                                    CreateAt = DateTime.Now,
+                                    VideoUrl = null,
+                                    BlogId = null,
+                                };
+                                await _imageVideosService.AddImage(imageObject);
+                            }
+                            else
+                            {
+                                return BadRequest("Something wrong!");
+                            }
+                        }
+                    }
+
+
+                    //Save import history
+                    var importedBranch = await _branchService.GetBranchById(productUM.BranchId);
+                    var importHistory = new ImportHistory()
+                    {
+                        UserId = userId,
+                        ProductId = updatedProduct.Id,
+                        Content = $@"{importedBranch.BranchName}: Updated {productUM.ProductName} ({productUM.ProductCode})",
+                        ImportDate = DateTime.Now,
+                        Quantity = productUM.Quantity,
+                        SupplierId = productUM.SupplierId,
+                        LotCode = productUM.LotCode,
+                    };
+                    await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
+                    return Ok($"Update product with id: {productId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
             }
             
         }
 
         [HttpDelete]
-        [Route("delete-product/{id}")]
-        public async Task<IActionResult> DeleteProduct(int id)
+        [Route("delete-product/{productId}")]
+        public async Task<IActionResult> DeleteProduct(int productId)
         {
             try
             {
-                await _productService.DeleteProductById(id);
+                await _productService.DeleteProductById(productId);
+                return Ok("Delete product successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete]
+        [Route("active-deactive-product/{productId}")]
+        public async Task<IActionResult> ActiveDeactiveProduct(int productId)
+        {
+            try
+            {
+                var deletedProduct = await _productService.GetProductById(productId);
+                deletedProduct.Status = false;
+                await _productService.UpdateProduct(deletedProduct);
                 _unitOfWork.Save();
                 return Ok("Delete product successfully!");
             } catch (Exception ex)

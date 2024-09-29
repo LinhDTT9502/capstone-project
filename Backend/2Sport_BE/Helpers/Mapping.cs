@@ -10,8 +10,7 @@ namespace _2Sport_BE.Helpers
         public Mapping()
         {
             #region User
-            CreateMap<User, UserVM>()
-                .ForMember(_dest => _dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName));
+            CreateMap<User, UserVM>();
             CreateMap<UserCM, User>();
             CreateMap<UserUM, User>().
                 ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
@@ -92,6 +91,14 @@ namespace _2Sport_BE.Helpers
             CreateMap<ImportCM, ImportHistory>().ReverseMap();
             CreateMap<ImportUM, ImportHistory>().ReverseMap();
             #endregion
+
+            #region ImageVideo
+            CreateMap<ImagesVideo, ImagesVideoVM>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
+                .ReverseMap();
+
+            #endregion
+
             #region Warehouse
             CreateMap<Warehouse, WarehouseVM>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
