@@ -38,6 +38,23 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+
+        [HttpGet]
+        [Route("get-supplier-by-id/{supplierId}")]
+        public async Task<IActionResult> GetSupplierById(int supplierId)
+        {
+            try
+            {
+                var supplier = await _supplierService.GetSupplierById(supplierId);
+                var result = _mapper.Map<SupplierVM>(supplier);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
         [HttpPost]
         [Route("add-supplier")]
         public async Task<IActionResult> Addsupplier(SupplierCM supplierCM)

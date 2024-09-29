@@ -55,7 +55,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
         public async Task<IQueryable<Brand>> GetBrandsAsync(string brandName)
         {
-            IEnumerable<Brand> filter = await _unitOfWork.BrandRepository.GetAsync(_ => _.BrandName.ToUpper().Contains(brandName.ToUpper()));
+            IEnumerable<Brand> filter = await _unitOfWork.BrandRepository.GetAsync(_ => _.BrandName.ToUpper().Equals(brandName.ToUpper()));
             return filter.AsQueryable();
         }
 

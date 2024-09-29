@@ -66,6 +66,23 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+
+        [HttpGet]
+        [Route("get-brand-by-id/{brandId}")]
+        public async Task<IActionResult> GetBrandById(int brandId)
+        {
+            try
+            {
+                var brand = await _brandService.GetBrandById(brandId);
+                var result = _mapper.Map<BrandVM>(brand);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
         [HttpPost]
         [Route("add-brand")]
         public async Task<IActionResult> AddBrand(BrandCM brandCM)

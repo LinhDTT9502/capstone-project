@@ -25,6 +25,8 @@ namespace _2Sport_BE.Service.Services
         Task AddSports(IEnumerable<Sport> sports);
         Task DeleteSportById(int id);
         Task UpdateSport(Sport newSport);
+        Task<IQueryable<Sport>> GetSportByName(string sportName);
+        Task AddSport(Sport newSport);
     }
     public class SportService : ISportService
     {
@@ -33,6 +35,11 @@ namespace _2Sport_BE.Service.Services
         public SportService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+        }
+
+        public async Task AddSport(Sport newSport)
+        {
+            await _unitOfWork.SportRepository.InsertAsync(newSport);
         }
 
         public async Task AddSports(IEnumerable<Sport> sports)
@@ -54,6 +61,12 @@ namespace _2Sport_BE.Service.Services
         public async Task<Sport> GetSportById(int? id)
         {
             return await _unitOfWork.SportRepository.FindAsync(id);
+        }
+
+        public async Task<IQueryable<Sport>> GetSportByName(string sportName)
+        {
+            var query = await _unitOfWork.SportRepository.GetAsync(_ => _.Name.ToLower().Equals(sportName.ToLower()));
+            return query.AsQueryable();
         }
 
         public async Task<IQueryable<Sport>> GetSports(Expression<Func<Sport, bool>> filter = null)

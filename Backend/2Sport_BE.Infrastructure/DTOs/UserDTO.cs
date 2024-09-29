@@ -21,7 +21,7 @@ namespace _2Sport_BE.Service.DTOs
         public string? UserName { get; set; }
         public string? FullName { get; set; }
         public string? Email { get; set; }
-        public string? RoleName { get; set; }
+        public int? RoleId { get; set; }
         public string? Gender { get; set; }
         public string? Phone { get; set; }
         public string? Address { get; set; }

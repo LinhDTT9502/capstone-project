@@ -23,7 +23,9 @@ namespace _2Sport_BE.ViewModels
         public string Size { get; set; }
         public string? Description { get; set; }
         public string Color { get; set; }
+        public int Condition { get; set; }
         public string? Offers { get; set; }
+        public int? Discount { get; set; }
 
     }
     public class ProductVM : ProductDTO

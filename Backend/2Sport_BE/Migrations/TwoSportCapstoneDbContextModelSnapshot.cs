@@ -93,10 +93,18 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar")
                         .HasColumnName("Location");
 
+                    b.Property<int>("ManagerId")
+                        .HasColumnType("int");
+
                     b.Property<bool?>("Status")
                         .HasColumnType("bit");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Branches");
                 });
@@ -942,6 +950,17 @@ namespace _2Sport_BE.Migrations
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Blog", b =>
+                {
+                    b.HasOne("_2Sport_BE.Repository.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Branch", b =>
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.User", "User")
                         .WithMany()
