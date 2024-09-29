@@ -12,7 +12,7 @@ import {
   DialogBody,
   DialogFooter,
 } from "@material-tailwind/react";
-import { createUser, updateUser, getUserDetails, changeUserStatus } from "../../api/apiUser";
+import { createAdminUser, updateUser, getUserDetails, changeUserStatus } from "../../api/apiAdmin";
 import { fetchAllUsers } from "../../services/ManageUserService";
 import { useTranslation } from "react-i18next";
 import HeaderStaff from "../../layouts/HeaderStaff";
@@ -153,7 +153,7 @@ export default function ManageUser() {
     }
 
     try {
-      await createUser(newUserData);
+      await createAdminUser(newUserData);
       const updatedUsers = await fetchAllUsers();
       setUsers(updatedUsers);
       setModalOpen(false);

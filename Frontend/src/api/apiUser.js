@@ -18,39 +18,16 @@ export const searchUsers = (fullName, username) => {
   });
 };
 
-// GET user details
-export const getUserDetails = (userId) => {
-  return axiosInstance.get(`${API_BASE_URL}/get-users-detail?userId=${userId}`);
-};
+
 
 // GET user profile
 export const getUserProfile = (userId) => {
   return axios.get(`${API_BASE_URL}/get-profile/${userId}`);
 };
 
-// POST create new user
-export const createUser = (userData) => {
-  return axiosInstance.post(`${API_BASE_URL}/create-user`, userData, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-};
 
-// PUT update user information
-export const updateUser = async (userId, updatedData) => {
-  try {
-    const response = await axiosInstance.put(`${API_BASE_URL}/update-user?id=${userId}`, updatedData, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error updating user:', error.response?.data || error.message);
-    throw error;
-  }
-};
+
+
 
 // PUT update user profile
 export const updateProfile = (userId, profileData) => {
@@ -66,18 +43,7 @@ export const deleteUser = (userId) => {
   return axios.delete(`${API_BASE_URL}/delete-user/${userId}`);
 };
 
-// PUT change user status 
-export const changeUserStatus = (userId, statusData) => {
-  return axios.put(`${API_BASE_URL}/change-status-user`, null, {
-    params: {
-      id: userId
-    },
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: statusData,
-  });
-};
+
 
 // POST send verification email
 export const sendVerificationEmail = (email) => {
