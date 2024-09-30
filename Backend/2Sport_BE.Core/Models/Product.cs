@@ -34,6 +34,9 @@ public class Product
     [MaxLength(255)]
     public string? Color { get; set; }
 
+    [Column("Condition")]
+    public int? Condition { get; set; }
+
     [Column("Offers", TypeName = "nvarchar")]
     [MaxLength]
     public string? Offers { get; set; }
