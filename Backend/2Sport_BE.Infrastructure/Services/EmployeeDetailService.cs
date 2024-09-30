@@ -11,6 +11,7 @@ namespace _2Sport_BE.Service.Services
     public interface IEmployeeDetailService
     {
         Task<EmployeeDetail> GetEmployeeDetail(int id);
+        Task<EmployeeDetail> GetEmployeeDetailByEmployeeId(int employeeId);
     }
     public class EmployeeDetailService : IEmployeeDetailService
     {
@@ -24,6 +25,15 @@ namespace _2Sport_BE.Service.Services
         {
             var query = await _unitOfWork.EmployeeDetailRepository
                 .GetObjectAsync(ed => ed.Id == id);
+            if (query == null) return null;
+
+            return query;
+        }
+
+        public async Task<EmployeeDetail> GetEmployeeDetailByEmployeeId(int employeeId)
+        {
+            var query = await _unitOfWork.EmployeeDetailRepository
+                .GetObjectAsync(ed => ed.EmployeeId == employeeId);
             if (query == null) return null;
 
             return query;

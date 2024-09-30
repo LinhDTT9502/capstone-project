@@ -53,8 +53,6 @@ namespace _2Sport_BE.ViewModels
         [Required]
         public int? BrandId { get; set; }
         [Required]
-        public int? BranchId { get; set; }
-        [Required]
         public int? SportId { get; set; }
         [Required]
         public int? SupplierId { get; set; }
