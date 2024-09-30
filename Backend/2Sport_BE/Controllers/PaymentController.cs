@@ -145,10 +145,11 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var checkOrderExist = await _orderService.GetOrderByIdFromUserAsync(request.OrderId, GetCurrentUserIdFromToken());
-                if (checkOrderExist == null){
+                if (checkOrderExist == null)
+                {
                     return BadRequest("You don't have permission in this function");
                 }
-                checkOrderExist.Status = (int) OrderStatus.CANCELLED;
+                checkOrderExist.Status = (int)OrderStatus.CANCELLED;
                 var cancelledPaymentLinkInfo = await _paymentService.CancelPaymentLink(request.OrderId, request.Reason);
                 return Ok(cancelledPaymentLinkInfo);
             }
@@ -227,12 +228,12 @@ namespace _2Sport_BE.Controllers
                     Data = null
                 });
             }
-            foreach(var item in order.OrderDetails)
+            foreach (var item in order.OrderDetails)
             {
-                if(item!= null)
+                if (item != null)
                 {
-                  var productInWare = (await _warehouseService.GetWarehouseByProductId(item.ProductId)).FirstOrDefault();
-                    productInWare.Quantity = productInWare.Quantity - item.Quantity;  
+                    var productInWare = (await _warehouseService.GetWarehouseByProductId(item.ProductId)).FirstOrDefault();
+                    productInWare.Quantity = productInWare.Quantity - item.Quantity;
                 }
             }
             _unitOfWork.Save();
@@ -314,12 +315,12 @@ namespace _2Sport_BE.Controllers
                     {
                         ProductId = product.Id,
                         Product = product,
-                        Quantity = (int) item.Quantity,
-                        Price = (int) item.Price,
+                        Quantity = (int)item.Quantity,
+                        Price = (int)item.Price,
                     };
 
                     order.OrderDetails.Add(orderDetail);
-                    totalPrice += (decimal) (item.Price * item.Quantity);
+                    totalPrice += (decimal)(item.Price * item.Quantity);
                 }
                 else
                 {
