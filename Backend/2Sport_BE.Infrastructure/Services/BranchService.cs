@@ -21,7 +21,7 @@ namespace _2Sport_BE.Service.Services
         Task CreateANewBranchAsync(Branch branch);
         Task UpdateBranchAsync(Branch branch);
         Task DeleteBranchAsync(int id);
-        Task<IQueryable<Branch>> GetBranchByManagerId(int userId);
+        //Task<IQueryable<Branch>> GetBranchByManagerId(int userId);
     }
 
     public class BranchService : IBranchService
@@ -55,11 +55,11 @@ namespace _2Sport_BE.Service.Services
             return filter.FirstOrDefault();
         }
 
-        public async Task<IQueryable<Branch>> GetBranchByManagerId(int userId)
+       /* public async Task<IQueryable<Branch>> GetBranchByManagerId(int userId)
         {
             var filter = await _unitOfWork.BranchRepository.GetAsync(_ => _.ManagerId == userId);
             return filter.AsQueryable();
-        }
+        }*/
 
         public async Task<IQueryable<Branch>> GetBranchesAsync(string branchName)
         {

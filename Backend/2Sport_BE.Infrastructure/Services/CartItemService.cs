@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Vonage.Messages.Webhooks;
 
 namespace _2Sport_BE.Service.Services
 {
@@ -18,6 +19,7 @@ namespace _2Sport_BE.Service.Services
         Task DeleteCartItem(int cartItemId);
         Task ReduceCartItem(int cartItemId);
         Task UpdateQuantityOfCartItem(int cartItemId, int quantity);
+        Task<bool> DeleteCartItem(Cart cart, int orderId);
 	}
 	public class CartItemService : ICartItemService
     {
@@ -176,5 +178,50 @@ namespace _2Sport_BE.Service.Services
 				}
 			}
 		}
-	}
+
+        public async Task<bool> DeleteCartItem(Cart cart, int orderId)
+        {
+            var order = (await _unitOfWork.OrderRepository.GetAsync(_ => _.Id == orderId, "OrderDetails")).FirstOrDefault();
+            var orderDetails = order.OrderDetails;
+            if (orderDetails == null || !orderDetails.Any())
+            {
+                return false;
+            }
+
+            if (cart != null && cart.CartItems.Any())
+            {
+                bool allItemsDeleted = true;
+                foreach (var orderDetail in orderDetails)
+                {
+                    var warehouses = await _warehouseService.GetWarehouseByProductId(orderDetail.ProductId);
+                    Warehouse wareHouse = warehouses.FirstOrDefault();
+                    if (wareHouse != null && wareHouse.Quantity >= orderDetail.Quantity)
+                    {
+                        var cartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == orderDetail.ProductId && ci.Status == true);
+                        if (cartItem != null)
+                        {
+                            await _cartItemService.DeleteCartItem(cartItem.Id);
+                            wareHouse.Quantity -= orderDetail.Quantity;
+                            await _warehouseService.UpdateWarehouseAsync(wareHouse);
+                        }
+                        else
+                        {
+                            allItemsDeleted = false;
+                        }
+                    }
+                    else
+                    {
+                        allItemsDeleted = false;
+                    }
+                }
+
+                if (allItemsDeleted)
+                {
+                    _unitOfWork.Save();
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 }

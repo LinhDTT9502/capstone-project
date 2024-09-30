@@ -36,17 +36,17 @@ namespace _2Sport_BE.Controllers
         private readonly IImageVideosService _imageVideosService;
         private readonly IImportHistoryService _importHistoryService;
         private readonly IUnitOfWork _unitOfWork;
-		private readonly IMapper _mapper;
+        private readonly IMapper _mapper;
 
-        public ProductController(IProductService productService, 
-                                IBrandService brandService, 
-                                IBranchService branchService, 
+        public ProductController(IProductService productService,
+                                IBrandService brandService,
+                                IBranchService branchService,
                                 ICategoryService categoryService,
                                 ISupplierService supplierService,
                                 IUnitOfWork unitOfWork,
                                 ISportService sportService,
-								ILikeService likeService,
-								IReviewService reviewService,
+                                ILikeService likeService,
+                                IReviewService reviewService,
                                 IWarehouseService warehouseService,
                                 IImageService imageService,
                                 IImageVideosService imageVideosService,
@@ -77,12 +77,13 @@ namespace _2Sport_BE.Controllers
             {
                 var product = await _productService.GetProductById(productId);
                 var productVM = _mapper.Map<ProductVM>(product);
-				var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
-				productVM.Reviews = reviews.ToList();
-				var numOfLikes = await _likeService.CountLikeOfProduct(productId);
-				productVM.Likes = numOfLikes;
-				return Ok(productVM);
-            } catch (Exception ex)
+                var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                productVM.Reviews = reviews.ToList();
+                var numOfLikes = await _likeService.CountLikeOfProduct(productId);
+                productVM.Likes = numOfLikes;
+                return Ok(productVM);
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex);
             }
@@ -96,21 +97,21 @@ namespace _2Sport_BE.Controllers
             {
                 var query = await _productService.GetProducts(_ => _.Status == true, null, "", defaultSearch.currentPage, defaultSearch.perPage);
                 var products = query.ToList();
-                foreach(var product in products)
+                foreach (var product in products)
                 {
                     var brand = await _brandService.GetBrandById(product.BrandId);
                     product.Brand = brand.FirstOrDefault();
                     var category = await _categoryService.GetCategoryById(product.CategoryId);
                     product.Category = category;
-					var sport = await _sportService.GetSportById(product.SportId);
-					product.Sport = sport;
+                    var sport = await _sportService.GetSportById(product.SportId);
+                    product.Sport = sport;
                 }
                 var result = products.Select(_ => _mapper.Map<Product, ProductVM>(_)).ToList();
                 foreach (var product in result)
                 {
-					var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
-					product.Reviews = reviews.ToList();
-					var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
+                    var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                    product.Reviews = reviews.ToList();
+                    var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
                     product.Likes = numOfLikes;
                 }
                 return Ok(new { total = result.Count, data = result });
@@ -123,7 +124,7 @@ namespace _2Sport_BE.Controllers
 
         [HttpGet]
         [Route("filter-sort-products")]
-        public async Task<IActionResult> FilterSortProducts([FromQuery]DefaultSearch defaultSearch, [FromQuery] string? size, 
+        public async Task<IActionResult> FilterSortProducts([FromQuery] DefaultSearch defaultSearch, [FromQuery] string? size,
                                                             [FromQuery] decimal minPrice, [FromQuery] decimal maxPrice,
                                                         [FromQuery] int sportId, [FromQuery] int[] brandIds, [FromQuery] int[] categoryIds)
         {
@@ -164,29 +165,30 @@ namespace _2Sport_BE.Controllers
                 var products = query.ToList();
 
                 foreach (var product in products)
-				{
-					var brand = await _brandService.GetBrandById(product.BrandId);
-					product.Brand = brand.FirstOrDefault();
-					var category = await _categoryService.GetCategoryById(product.CategoryId);
-					product.Category = category;
-					var sport = await _sportService.GetSportById(product.SportId);
-					product.Sport = sport;
+                {
+                    var brand = await _brandService.GetBrandById(product.BrandId);
+                    product.Brand = brand.FirstOrDefault();
+                    var category = await _categoryService.GetCategoryById(product.CategoryId);
+                    product.Category = category;
+                    var sport = await _sportService.GetSportById(product.SportId);
+                    product.Sport = sport;
                 }
 
-				var result = query.Sort(defaultSearch.sortBy, defaultSearch.isAscending)
+                var result = query.Sort(defaultSearch.sortBy, defaultSearch.isAscending)
                                   .Select(_ => _mapper.Map<Product, ProductVM>(_))
                                   .ToList();
 
-				foreach (var product in result)
-				{
+                foreach (var product in result)
+                {
                     var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
                     product.Reviews = reviews.ToList();
-					var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
-					product.Likes = numOfLikes;
-				}
+                    var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
+                    product.Likes = numOfLikes;
+                }
 
-				return Ok(new { total = result.Count, data = result });
-            } catch (Exception ex)
+                return Ok(new { total = result.Count, data = result });
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex);
             }
@@ -233,46 +235,46 @@ namespace _2Sport_BE.Controllers
 
 
         [HttpGet]
-		[Route("search-products")]
-		public async Task<IActionResult> SearchProducts([FromQuery] string keywords, [FromQuery] DefaultSearch defaultSearch)
-		{
-			try
-			{
-				var query = await _productService.GetProducts(_ => _.Status == true && 
+        [Route("search-products")]
+        public async Task<IActionResult> SearchProducts([FromQuery] string keywords, [FromQuery] DefaultSearch defaultSearch)
+        {
+            try
+            {
+                var query = await _productService.GetProducts(_ => _.Status == true &&
                                                                 (_.ProductName.ToLower().Contains(keywords.ToLower()) ||
                                                                 _.ProductCode.ToLower().Contains(keywords.ToLower()))
                                                                 , "", defaultSearch.currentPage, defaultSearch.perPage);
 
-				var products = query.ToList();
-				foreach (var product in products)
-				{
-					var brand = await _brandService.GetBrandById(product.BrandId);
-					product.Brand = brand.FirstOrDefault();
-					var category = await _categoryService.GetCategoryById(product.CategoryId);
-					product.Category = category;
-					var sport = await _sportService.GetSportById(product.SportId);
-					product.Sport = sport;
+                var products = query.ToList();
+                foreach (var product in products)
+                {
+                    var brand = await _brandService.GetBrandById(product.BrandId);
+                    product.Brand = brand.FirstOrDefault();
+                    var category = await _categoryService.GetCategoryById(product.CategoryId);
+                    product.Category = category;
+                    var sport = await _sportService.GetSportById(product.SportId);
+                    product.Sport = sport;
                 }
 
-				var result = query.Sort(defaultSearch.sortBy, defaultSearch.isAscending)
-								  .Select(_ => _mapper.Map<Product, ProductVM>(_))
-								  .ToList();
+                var result = query.Sort(defaultSearch.sortBy, defaultSearch.isAscending)
+                                  .Select(_ => _mapper.Map<Product, ProductVM>(_))
+                                  .ToList();
 
-				foreach (var product in result)
-				{
-					var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
-					product.Reviews = reviews.ToList();
-					var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
-					product.Likes = numOfLikes;
-				}
+                foreach (var product in result)
+                {
+                    var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                    product.Reviews = reviews.ToList();
+                    var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
+                    product.Likes = numOfLikes;
+                }
 
-				return Ok(new { total = result.Count, data = result });
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(ex);
-			}
-		}
+                return Ok(new { total = result.Count, data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
 
         [HttpPost]
         [Route("import-product")]
@@ -350,7 +352,8 @@ namespace _2Sport_BE.Controllers
                     };
                     await _warehouseService.CreateANewWarehouseAsync(warehouse);
 
-                } else
+                }
+                else
                 {
 
                     //Import a new product if it is different size color and condition
@@ -367,7 +370,8 @@ namespace _2Sport_BE.Controllers
                         newProduct.Color = productCM.Color;
                         newProduct.Condition = productCM.Condition;
                         await _productService.AddProduct(newProduct);
-                    } else
+                    }
+                    else
                     {
                         var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(
                                                                                 existedProductWithSizeColorCodition.Id,
@@ -409,7 +413,7 @@ namespace _2Sport_BE.Controllers
 
                 return Ok("Add product successfully!");
             }
-                
+
             catch (Exception e)
             {
                 return BadRequest(e);
@@ -563,7 +567,7 @@ namespace _2Sport_BE.Controllers
                         return BadRequest(e);
                     }
                 }
-                
+
                 return Ok("Add products successfully!");
 
             }
@@ -601,15 +605,16 @@ namespace _2Sport_BE.Controllers
                 //    dbct.BulkInsert(products);
                 //}
                 return Ok("Import product successfull!");
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return BadRequest(e);
             }
-            
+
         }
 
         [NonAction]
-        protected async Task<int> ImportProductsIntoDB (IFormFile importFile, int managerId)
+        protected async Task<int> ImportProductsIntoDB(IFormFile importFile, int managerId)
         {
 
             using var fileStream = importFile.OpenReadStream();
@@ -736,7 +741,8 @@ namespace _2Sport_BE.Controllers
                         if (string.IsNullOrEmpty(supplierLocation))
                         {
                             return (int)ProductErrors.NullError;
-                        } else
+                        }
+                        else
                         {
                             var newSupplier = new Supplier()
                             {
@@ -790,7 +796,8 @@ namespace _2Sport_BE.Controllers
                         {
                             product.RentPrice = decimal.Parse(rentPriceValue);
                         }
-                    } else
+                    }
+                    else
                     {
                         product.IsRent = false;
                     }
@@ -994,7 +1001,7 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest(ex);
             }
-            
+
         }
 
         [HttpDelete]
@@ -1023,7 +1030,8 @@ namespace _2Sport_BE.Controllers
                 await _productService.UpdateProduct(deletedProduct);
                 _unitOfWork.Save();
                 return Ok("Delete product successfully!");
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
