@@ -341,10 +341,10 @@ namespace _2Sport_BE.Controllers
                     }
 
                     //Import product into warehouse
-                    var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
+                    //var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
                     var warehouse = new Warehouse()
                     {
-                        BranchId = branch.Id,
+                        BranchId = 1,
                         ProductId = product.Id,
                         Quantity = productCM.Quantity,
                     };
@@ -366,6 +366,8 @@ namespace _2Sport_BE.Controllers
                         newProduct.Size = productCM.Size;
                         newProduct.Color = productCM.Color;
                         newProduct.Condition = productCM.Condition;
+                        newProduct.ListedPrice = productCM.ListedPrice;
+                        newProduct.Price = productCM.Price;
                         await _productService.AddProduct(newProduct);
                     } else
                     {
@@ -380,10 +382,10 @@ namespace _2Sport_BE.Controllers
                         }
                         else
                         {
-                            var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
+                            //var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
                             var warehouse = new Warehouse()
                             {
-                                BranchId = branch.Id,
+                                BranchId = 1,
                                 ProductId = existedProductWithSizeColorCodition.Id,
                                 Quantity = productCM.Quantity,
                             };
@@ -488,10 +490,10 @@ namespace _2Sport_BE.Controllers
                             }
 
                             //Import product into warehouse
-                            var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
+                            //var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
                             var warehouse = new Warehouse()
                             {
-                                BranchId = branch.Id,
+                                BranchId = 1,
                                 ProductId = product.Id,
                                 Quantity = productCM.Quantity,
                             };
@@ -514,6 +516,8 @@ namespace _2Sport_BE.Controllers
                                 newProduct.Size = productCM.Size;
                                 newProduct.Color = productCM.Color;
                                 newProduct.Condition = productCM.Condition;
+                                newProduct.ListedPrice = productCM.ListedPrice;
+                                newProduct.Price = productCM.Price;
                                 await _productService.AddProduct(newProduct);
                             }
                             else
@@ -529,10 +533,10 @@ namespace _2Sport_BE.Controllers
                                 }
                                 else
                                 {
-                                    var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
+                                    //var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
                                     var warehouse = new Warehouse()
                                     {
-                                        BranchId = branch.Id,
+                                        BranchId = 1,
                                         ProductId = existedProductWithSizeColorCodition.Id,
                                         Quantity = productCM.Quantity,
                                     };
@@ -852,10 +856,10 @@ namespace _2Sport_BE.Controllers
                     }
 
                     //Import product into warehouse
-                    var branch = (await _branchService.GetBranchByManagerId(managerId)).FirstOrDefault();
+                    //var branch = (await _branchService.GetBranchByManagerId(managerId)).FirstOrDefault();
                     var warehouse = new Warehouse()
                     {
-                        BranchId = branch.Id,
+                        BranchId = 1,
                         ProductId = product.Id,
                         Quantity = int.Parse(quantityValue),
                     };
