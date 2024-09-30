@@ -15,9 +15,6 @@ public class CartItem
     [Column("CartId")]
     public int CartId { get; set; }
 
-    [Column("ProductId")]
-    public int ProductId { get; set; }
-
     public int? Quantity { get; set; }
 
     [Column("TotalPrice", TypeName = "decimal")]

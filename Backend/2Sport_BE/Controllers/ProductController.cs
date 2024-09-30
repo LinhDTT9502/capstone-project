@@ -380,7 +380,7 @@ namespace _2Sport_BE.Controllers
                     }
                     else
                     {
-                        
+
                         var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(
                                                                                 existedProductWithSizeColorCodition.Id,
                                                                                 employeeDetail.BranchId))
@@ -533,7 +533,6 @@ namespace _2Sport_BE.Controllers
                             }
                             else
                             {
-                                var employeeDetail = await _employeeDetailService.GetEmployeeDetailByEmployeeId(userId);
                                 var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(
                                                                                         existedProductWithSizeColorCodition.Id,
                                                                                         employeeDetail.BranchId))
@@ -912,6 +911,7 @@ namespace _2Sport_BE.Controllers
             return 1;
         }
 
+        [NonAction]
         public IFormFile ConvertToIFormFile(string filePath)
         {
             var fileInfo = new FileInfo(filePath);
