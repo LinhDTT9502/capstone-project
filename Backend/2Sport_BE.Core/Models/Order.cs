@@ -23,7 +23,7 @@ public class Order
 
     [Column("OrderCode", TypeName = "varchar")]
     [MaxLength(50)]
-    public string OrderCode { get; set; }
+    public string? OrderCode { get; set; }
 
     [Column("PaymentMethodId")]
     public int? PaymentMethodId { get; set; }
@@ -31,6 +31,7 @@ public class Order
     [Column("ShipmentDetailId")]
     public int? ShipmentDetailId { get; set; }
 
+    [Column("Status")]
     public int? Status { get; set; }
 
     [Column("TranSportFee", TypeName = "decimal")]
@@ -44,11 +45,16 @@ public class Order
     [DataType(DataType.DateTime)]
     public DateTime? ReceivedDate { get; set; }
 
+    [Column("Note", TypeName = "nvarchar")]
+    [MaxLength(500)]
+    public string? Note { get; set; }
+
+    [Column("BranchId")]
+    public int? BranchId { get; set; }
+
     public virtual ICollection<OrderDetail> OrderDetails { get; set; }
-
     public virtual PaymentMethod PaymentMethod { get; set; }
-
     public virtual ShipmentDetail ShipmentDetail { get; set; }
-
     public virtual User User { get; set; }
+    public virtual Branch Branch { get; set; }
 }

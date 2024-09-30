@@ -47,9 +47,14 @@ namespace _2Sport_BE.Service.Services
         }
         public string GenerateOrderCode()
         {
+            string datePart = DateTime.UtcNow.ToString("yyyyMMdd");
+
             Random random = new Random();
-            int randomDigits = random.Next(100000, 1000000);
-            return randomDigits.ToString();
+            string randomPart = random.Next(100000, 999999).ToString();
+
+            string orderCode = $"{datePart}_{randomPart}";
+
+            return orderCode;
         }
         public async Task<ResponseDTO<List<OrderVM>>> GetAllOrdersAsync()
         {
@@ -457,28 +462,36 @@ namespace _2Sport_BE.Service.Services
             var response = new ResponseDTO<int>();
             try
             {
+                var branch = await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == orderCM.BranchId);
+                if (branch == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Branch not found!";
+                    return response;
+                }
+
                 if (orderCM.orderDetailCMs == null || !orderCM.orderDetailCMs.Any())
                 {
                     response.IsSuccess = false;
-                    response.Message = "Order details are required.";
+                    response.Message = "Order details are empty.";
                     return response;
                 }
 
                 var user = await _unitOfWork.UserRepository
-                    .GetObjectAsync(u => u.Id == orderCM.userID);
+                    .GetObjectAsync(u => u.Id == orderCM.UserID);
                 if (user == null)
                 {
                     response.IsSuccess = false;
-                    response.Message = $"User with Id = {orderCM.userID} is not found!";
+                    response.Message = $"User with Id = {orderCM.UserID} is not found!";
                     return response;
                 }
 
                 var shipmentDetail = await _unitOfWork.ShipmentDetailRepository
-                    .GetObjectAsync(s => s.Id == orderCM.shipmentDetailID);
+                    .GetObjectAsync(s => s.Id == orderCM.ShipmentDetailID && s.UserId == user.Id);
                 if (shipmentDetail == null)
                 {
                     response.IsSuccess = false;
-                    response.Message = $"ShipmenDetail with Id = {orderCM.shipmentDetailID} is not found!";
+                    response.Message = $"ShipmenDetail with Id = {orderCM.ShipmentDetailID} is not found!";
                     return response;
                 }
 
@@ -486,11 +499,11 @@ namespace _2Sport_BE.Service.Services
                 {
                     OrderCode = GenerateOrderCode(),
                     Status = (int?)OrderStatus.PENDING,
-                    PaymentMethodId = orderCM.paymentMethodID,
-                    ShipmentDetailId = orderCM.shipmentDetailID,
-                    ReceivedDate = DateTime.UtcNow,
+                    PaymentMethodId = orderCM.PaymentMethodID,
+                    ShipmentDetailId = shipmentDetail.Id,
                     UserId = user.Id,
                     OrderDetails = new List<OrderDetail>(),
+                    ReceivedDate = DateTime.UtcNow,
                     CreateAt = DateTime.UtcNow,
 
                 };

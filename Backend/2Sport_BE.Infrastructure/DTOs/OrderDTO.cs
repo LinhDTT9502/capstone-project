@@ -13,10 +13,11 @@ namespace _2Sport_BE.Service.DTOs
     }
     public class OrderCM : OrderDTO
     {
-        public int userID { get; set; }
-        public int shipmentDetailID { get; set; }
-        public int paymentMethodID { get; set; }
-        public string? discountCode { get; set; }
+        public int UserID { get; set; }
+        public int ShipmentDetailID { get; set; }
+        public int PaymentMethodID { get; set; }
+        public string? DiscountCode { get; set; } // Option
+        public int? BranchId { get; set; } //Branch nao nhan order
     }
     public class OrderUM : OrderDTO
     {

@@ -39,4 +39,5 @@ public class Branch
 
     public virtual ICollection<Warehouse> Warehouses { get; set; }
     public virtual ICollection<Attendance> Attendances { get; set; }
+    public virtual ICollection<Order> Orders { get; set; }
 }

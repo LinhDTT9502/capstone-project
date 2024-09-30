@@ -875,7 +875,7 @@ namespace _2Sport_BE.Controllers
 
 
                     //Save import history
-                    var importedBranch = await _branchService.GetBranchById(branch.Id);
+                    /*var importedBranch = await _branchService.GetBranchById(branch.Id);
                     var importHistory = new ImportHistory()
                     {
                         UserId = managerId,
@@ -886,7 +886,7 @@ namespace _2Sport_BE.Controllers
                         SupplierId = supplier.Id,
                         LotCode = lotCodeValue,
                     };
-                    await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
+                    await _importHistoryService.CreateANewImportHistoryAsync(importHistory);*/
 
                     rowIndex++;
                 }

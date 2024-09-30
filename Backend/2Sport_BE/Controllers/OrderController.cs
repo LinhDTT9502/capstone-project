@@ -183,12 +183,12 @@ namespace _2Sport_BE.Controllers
                 return BadRequest("Invalid request data.");
             }
             var userId = GetCurrentUserIdFromToken();
-            if(userId != orderCM.userID)
+            if(userId != orderCM.UserID)
             {
                 return Unauthorized();
             }
 
-            var cart = await _cartService.GetCartByUserId(orderCM.userID);
+            var cart = await _cartService.GetCartByUserId(orderCM.UserID);
             if (cart == null || !cart.CartItems.Any())
             {
                 return NotFound("Your Cart is empty");

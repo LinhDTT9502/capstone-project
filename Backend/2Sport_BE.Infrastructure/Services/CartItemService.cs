@@ -19,7 +19,7 @@ namespace _2Sport_BE.Service.Services
         Task DeleteCartItem(int cartItemId);
         Task ReduceCartItem(int cartItemId);
         Task UpdateQuantityOfCartItem(int cartItemId, int quantity);
-        Task<bool> DeleteCartItem(Cart cart, int orderId);
+        //Task<bool> DeleteCartItem(Cart cart, int orderId);
 	}
 	public class CartItemService : ICartItemService
     {
@@ -179,7 +179,7 @@ namespace _2Sport_BE.Service.Services
 			}
 		}
 
-        public async Task<bool> DeleteCartItem(Cart cart, int orderId)
+        /*public async Task<bool> DeleteCartItem(Cart cart, int orderId, Warehouse warehouse)
         {
             var order = (await _unitOfWork.OrderRepository.GetAsync(_ => _.Id == orderId, "OrderDetails")).FirstOrDefault();
             var orderDetails = order.OrderDetails;
@@ -188,14 +188,12 @@ namespace _2Sport_BE.Service.Services
                 return false;
             }
 
-            if (cart != null && cart.CartItems.Any())
+            if (cart.CartItems.Count() > 0)
             {
                 bool allItemsDeleted = true;
                 foreach (var orderDetail in orderDetails)
                 {
-                    var warehouses = await _warehouseService.GetWarehouseByProductId(orderDetail.ProductId);
-                    Warehouse wareHouse = warehouses.FirstOrDefault();
-                    if (wareHouse != null && wareHouse.Quantity >= orderDetail.Quantity)
+                    if (warehouse != null && warehouse.Quantity >= orderDetail.Quantity)
                     {
                         var cartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == orderDetail.ProductId && ci.Status == true);
                         if (cartItem != null)
@@ -222,6 +220,6 @@ namespace _2Sport_BE.Service.Services
                 }
             }
             return false;
-        }
+        }*/
     }
 }
