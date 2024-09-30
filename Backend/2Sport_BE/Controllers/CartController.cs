@@ -1,4 +1,4 @@
-﻿using _2Sport_BE.Helpers;
+using _2Sport_BE.Helpers;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
@@ -87,39 +87,39 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("add-to-cart")]
-        public async Task<IActionResult> AddToCart(CartItemCM cartItemCM)
-        {
-            try
-            {
-                var userId = GetCurrentUserIdFromToken();
+    //    [HttpPost]
+    //    [Route("add-to-cart")]
+    //    public async Task<IActionResult> AddToCart(CartItemCM cartItemCM)
+    //    {
+    //        try
+    //        {
+    //            var userId = GetCurrentUserIdFromToken();
 
-                if (userId == 0)
-                {
-                    return Unauthorized();
-                }
+    //            if (userId == 0)
+    //            {
+    //                return Unauthorized();
+    //            }
 
-				var newCartItem = _mapper.Map<CartItemCM, CartItem>(cartItemCM);
-				var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(cartItemCM.ProductId))
-										.FirstOrDefault().Quantity;
-				if (cartItemCM.Quantity > quantityOfProduct)
-				{
-					return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
-				}
-                var addedCartItem = await _cartItemService.AddCartItem(userId, newCartItem);
-                if (addedCartItem != null)
-                {
-                    return Ok(addedCartItem);
-                } else
-                {
-                    return BadRequest("Add to cart failed");
-                }
-            } catch (Exception ex)
-            {
-                return BadRequest(ex);
-            }
-        }
+				//var newCartItem = _mapper.Map<CartItemCM, CartItem>(cartItemCM);
+				//var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(cartItemCM.ProductId))
+				//						.FirstOrDefault().Quantity;
+				//if (cartItemCM.Quantity > quantityOfProduct)
+				//{
+				//	return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
+				//}
+    //            //var addedCartItem = await _cartItemService.AddCartItem(userId, newCartItem);
+    //            //if (addedCartItem != null)
+    //            //{
+    //            //    return Ok(addedCartItem);
+    //            //} else
+    //            //{
+    //            //    return BadRequest("Add to cart failed");
+    //            //}
+    //        } catch (Exception ex)
+    //        {
+    //            return BadRequest(ex);
+    //        }
+    //    }
 
 		[HttpPut]
 		[Route("reduce-cart/{cartItemId}")]
@@ -134,7 +134,7 @@ namespace _2Sport_BE.Controllers
 					return Unauthorized();
 				}
 
-                await _cartItemService.ReduceCartItem(cartItemId);
+                //await _cartItemService.ReduceCartItem(cartItemId);
                 _unitOfWork.Save();
                 return Ok($"Reduce cart item with id: {cartItemId}");
 			}
@@ -146,32 +146,32 @@ namespace _2Sport_BE.Controllers
 
 		[HttpPut]
 		[Route("update-quantity-cart-item/{cartItemId}")]
-		public async Task<IActionResult> UpdateQuantityOfCart(int cartItemId, [FromQuery] int quantity)
-		{
-			try
-			{
-				var userId = GetCurrentUserIdFromToken();
+		//public async Task<IActionResult> UpdateQuantityOfCart(int cartItemId, [FromQuery] int quantity)
+		//{
+		//	try
+		//	{
+		//		var userId = GetCurrentUserIdFromToken();
 
-				if (userId == 0)
-				{
-					return Unauthorized();
-				}
-				var cartItem = await _cartItemService.GetCartItemById(cartItemId);
-                var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(cartItem.ProductId))
-                        .FirstOrDefault().Quantity;
-                if (quantity > quantityOfProduct)
-                {
-                    return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
-                }
-                await _cartItemService.UpdateQuantityOfCartItem(cartItemId, quantity);
-				_unitOfWork.Save();
-				return Ok($"Update quantity cart item with id: {cartItemId}");
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(ex);
-			}
-		}
+		//		if (userId == 0)
+		//		{
+		//			return Unauthorized();
+		//		}
+		//		var cartItem = await _cartItemService.GetCartItemById(cartItemId);
+  //              var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(cartItem.ProductId))
+  //                      .FirstOrDefault().Quantity;
+  //              if (quantity > quantityOfProduct)
+  //              {
+  //                  return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
+  //              }
+  //              await _cartItemService.UpdateQuantityOfCartItem(cartItemId, quantity);
+		//		_unitOfWork.Save();
+		//		return Ok($"Update quantity cart item with id: {cartItemId}");
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		return BadRequest(ex);
+		//	}
+		//}
 
 		[HttpDelete]
 		[Route("delete-cart-item/{cartItemId}")]
