@@ -71,13 +71,15 @@ export const updateUser = async (userId, updatedData) => {
 
 // Get user details 
 export const getUserDetails = (userId) => {
-    return axiosInstance.get(`${API_ADMIN_BASE_URL}/get-user-detail`, {
-      params: { id: userId }, // Passing the userId as a query parameter 'id'
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  };
+  return axiosInstance.get(`${API_ADMIN_BASE_URL}/get-user-detail`, {
+    params: { id: userId }, // Passing the userId as a query parameter 'id'
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`, 
+    },
+  });
+};
+
 // Update Admin User
 export const updateAdminUser = (userId, updatedData) => {
   return axios.put(`${API_ADMIN_BASE_URL}/update-user/${userId}`, updatedData, {
