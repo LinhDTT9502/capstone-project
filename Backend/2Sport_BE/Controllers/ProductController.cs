@@ -35,6 +35,7 @@ namespace _2Sport_BE.Controllers
         private readonly IWarehouseService _warehouseService;
         private readonly IImageVideosService _imageVideosService;
         private readonly IImportHistoryService _importHistoryService;
+        private readonly IEmployeeDetailService _employeeDetailService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
@@ -51,6 +52,7 @@ namespace _2Sport_BE.Controllers
                                 IImageService imageService,
                                 IImageVideosService imageVideosService,
                                 IImportHistoryService importHistoryService,
+                                IEmployeeDetailService employeeDetailService,
                                 IMapper mapper)
         {
             _productService = productService;
@@ -67,6 +69,7 @@ namespace _2Sport_BE.Controllers
             _imageService = imageService;
             _imageVideosService = imageVideosService;
             _importHistoryService = importHistoryService;
+            _employeeDetailService = employeeDetailService;
         }
 
         [HttpGet]
@@ -295,6 +298,9 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
 
+                var employeeDetail = await _employeeDetailService.GetEmployeeDetailByEmployeeId(userId);
+
+
                 if (existedProduct == null)
                 {
                     if (productCM.MainImage != null)
@@ -343,10 +349,9 @@ namespace _2Sport_BE.Controllers
                     }
 
                     //Import product into warehouse
-                    //var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
                     var warehouse = new Warehouse()
                     {
-                        BranchId = 1,
+                        BranchId = employeeDetail.BranchId,
                         ProductId = product.Id,
                         Quantity = productCM.Quantity,
                     };
@@ -375,9 +380,10 @@ namespace _2Sport_BE.Controllers
                     }
                     else
                     {
+                        
                         var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(
                                                                                 existedProductWithSizeColorCodition.Id,
-                                                                                productCM.BranchId))
+                                                                                employeeDetail.BranchId))
                                                                                 .FirstOrDefault();
                         if (existedWarehouse != null)
                         {
@@ -386,10 +392,9 @@ namespace _2Sport_BE.Controllers
                         }
                         else
                         {
-                            //var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
                             var warehouse = new Warehouse()
                             {
-                                BranchId = 1,
+                                BranchId = employeeDetail.BranchId,
                                 ProductId = existedProductWithSizeColorCodition.Id,
                                 Quantity = productCM.Quantity,
                             };
@@ -400,7 +405,7 @@ namespace _2Sport_BE.Controllers
                 }
 
                 //Save import history
-                var importedBranch = await _branchService.GetBranchById(productCM.BranchId);
+                var importedBranch = await _branchService.GetBranchById(employeeDetail.BranchId);
                 var importHistory = new ImportHistory()
                 {
                     UserId = userId,
@@ -445,6 +450,9 @@ namespace _2Sport_BE.Controllers
                         {
                             return Unauthorized();
                         }
+
+                        var employeeDetail = await _employeeDetailService.GetEmployeeDetailByEmployeeId(userId);
+
 
                         if (existedProduct == null)
                         {
@@ -494,10 +502,9 @@ namespace _2Sport_BE.Controllers
                             }
 
                             //Import product into warehouse
-                            //var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
                             var warehouse = new Warehouse()
                             {
-                                BranchId = 1,
+                                BranchId = employeeDetail.BranchId,
                                 ProductId = product.Id,
                                 Quantity = productCM.Quantity,
                             };
@@ -528,7 +535,7 @@ namespace _2Sport_BE.Controllers
                             {
                                 var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(
                                                                                         existedProductWithSizeColorCodition.Id,
-                                                                                        productCM.BranchId))
+                                                                                        employeeDetail.BranchId))
                                                                                         .FirstOrDefault();
                                 if (existedWarehouse != null)
                                 {
@@ -540,7 +547,7 @@ namespace _2Sport_BE.Controllers
                                     //var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
                                     var warehouse = new Warehouse()
                                     {
-                                        BranchId = 1,
+                                        BranchId = employeeDetail.BranchId,
                                         ProductId = existedProductWithSizeColorCodition.Id,
                                         Quantity = productCM.Quantity,
                                     };
@@ -551,7 +558,7 @@ namespace _2Sport_BE.Controllers
                         }
 
                         //Save import history
-                        var importedBranch = await _branchService.GetBranchById(productCM.BranchId);
+                        var importedBranch = await _branchService.GetBranchById(employeeDetail.BranchId);
                         var importHistory = new ImportHistory()
                         {
                             UserId = userId,
@@ -875,7 +882,8 @@ namespace _2Sport_BE.Controllers
 
 
                     //Save import history
-                    var importedBranch = await _branchService.GetBranchById(branch.Id);
+                    var employee = await _employeeDetailService.GetEmployeeDetailByEmployeeId(managerId);
+                    var importedBranch = await _branchService.GetBranchById(employee.BranchId);
                     var importHistory = new ImportHistory()
                     {
                         UserId = managerId,
