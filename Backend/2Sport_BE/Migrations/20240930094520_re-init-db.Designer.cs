@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
 #nullable disable
 
-namespace _2Sport_BE.Repository.Migrations
+namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240930094520_re-init-db")]
+    partial class reinitdb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -519,6 +522,12 @@ namespace _2Sport_BE.Repository.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("Content");
+
                     b.Property<DateTime?>("ImportDate")
                         .HasColumnType("datetime2");
 
@@ -714,6 +723,10 @@ namespace _2Sport_BE.Repository.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar")
                         .HasColumnName("Color");
+
+                    b.Property<int?>("Condition")
+                        .HasColumnType("int")
+                        .HasColumnName("Condition");
 
                     b.Property<DateTime?>("CreateAt")
                         .HasColumnType("datetime2");
