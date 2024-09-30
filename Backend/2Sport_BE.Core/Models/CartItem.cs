@@ -12,6 +12,9 @@ public class CartItem
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
+    [Column("CartId")]
+    public int CartId { get; set; }
+
     [Column("ProductId")]
     public int ProductId { get; set; }
 
@@ -20,12 +23,12 @@ public class CartItem
     [Column("TotalPrice", TypeName = "decimal")]
     public decimal? TotalPrice { get; set; }
 
-    [Column("CartId")]
-    public int? CartId { get; set; }
+    [Column("WarehouseId")]
+    public int? WarehouseId { get; set; }
 
     public bool? Status { get; set; }
 
     public virtual Cart Cart { get; set; }
 
-    public virtual Product Product { get; set; }
+    public virtual Warehouse Warehouse { get; set; }
 }

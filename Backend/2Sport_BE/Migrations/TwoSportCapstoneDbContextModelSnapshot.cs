@@ -52,7 +52,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Blogs");
+                    b.ToTable("Blogs", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Branch", b =>
@@ -93,20 +93,12 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar")
                         .HasColumnName("Location");
 
-                    b.Property<int>("ManagerId")
-                        .HasColumnType("int");
-
                     b.Property<bool?>("Status")
                         .HasColumnType("bit");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Branches");
+                    b.ToTable("Branches", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Brand", b =>
@@ -137,7 +129,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Brands");
+                    b.ToTable("Brands", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.BrandCategory", b =>
@@ -162,7 +154,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("BrandCategories");
+                    b.ToTable("BrandCategories", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Cart", b =>
@@ -182,7 +174,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Carts");
+                    b.ToTable("Carts", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.CartItem", b =>
@@ -217,7 +209,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItems", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
@@ -253,7 +245,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("SportId");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.CustomerDetail", b =>
@@ -284,7 +276,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CustomerDetails");
+                    b.ToTable("CustomerDetails", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.EmployeeDetail", b =>
@@ -318,7 +310,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("StaffId");
 
-                    b.ToTable("EmployeeDetails");
+                    b.ToTable("EmployeeDetails", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ImagesVideo", b =>
@@ -356,7 +348,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ImagesVideos");
+                    b.ToTable("ImagesVideos", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ImportHistory", b =>
@@ -436,7 +428,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Likes");
+                    b.ToTable("Likes", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Order", b =>
@@ -494,7 +486,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.OrderDetail", b =>
@@ -526,7 +518,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderDetails");
+                    b.ToTable("OrderDetails", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.PaymentMethod", b =>
@@ -545,7 +537,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PaymentMethods");
+                    b.ToTable("PaymentMethods", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Product", b =>
@@ -639,7 +631,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("SportId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.RefreshToken", b =>
@@ -677,7 +669,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Review", b =>
@@ -714,7 +706,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Role", b =>
@@ -742,7 +734,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.SalaryHistory", b =>
@@ -768,7 +760,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("SalaryHistories");
+                    b.ToTable("SalaryHistories", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ShipmentDetail", b =>
@@ -805,7 +797,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ShipmentDetails");
+                    b.ToTable("ShipmentDetails", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Sport", b =>
@@ -824,7 +816,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sports");
+                    b.ToTable("Sports", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Supplier", b =>
@@ -849,7 +841,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.User", b =>
@@ -918,7 +910,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Warehouse", b =>
@@ -946,21 +938,10 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Warehouses");
+                    b.ToTable("Warehouses", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Blog", b =>
-                {
-                    b.HasOne("_2Sport_BE.Repository.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.Branch", b =>
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.User", "User")
                         .WithMany()
