@@ -1,4 +1,4 @@
-﻿using _2Sport_BE.Repository.Models;
+﻿/*using _2Sport_BE.Repository.Models;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
@@ -70,3 +70,4 @@ namespace _2Sport_BE.ViewModels
         public string NewPassword { get; set; }
     }
 }
+*/

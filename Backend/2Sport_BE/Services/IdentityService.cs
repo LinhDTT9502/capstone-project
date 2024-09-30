@@ -1,21 +1,18 @@
-﻿using _2Sport_BE.DataContent;
+﻿/*using _2Sport_BE.DataContent;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
+using _2Sport_BE.Service.DTOs;
 using _2Sport_BE.Service.Enums;
+using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
-using _2Sport_BE.ViewModels;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Org.BouncyCastle.Asn1.Ocsp;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace _2Sport_BE.API.Services
 {
@@ -25,7 +22,7 @@ namespace _2Sport_BE.API.Services
         Task<ResponseModel<TokenModel>> HandleLoginGoogle(ClaimsPrincipal principal);
         Task<TokenModel> LoginGoogleAsync(User login);
         Task<ResponseModel<TokenModel>> RefreshTokenAsync(TokenModel request);
-        Task<ResponseModel<string>> SignUpAsync(UserCM userCM);
+        Task<ResponseModel<string>> SignUpAsync(RegisterModel registerModel);
         Task<ResponseModel<string>> HandleResetPassword(ResetPasswordRequest resetPasswordRequest);
     }
 
@@ -36,10 +33,9 @@ namespace _2Sport_BE.API.Services
         private readonly IConfiguration _configuration;
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMailService _mailService;
+        
 
         public IdentityService(TwoSportCapstoneDbContext context,
-            IOptions<ServiceConfiguration> settings,
             IUserService userService,
             IConfiguration configuration,
             TokenValidationParameters tokenValidationParameters,
@@ -52,7 +48,6 @@ namespace _2Sport_BE.API.Services
             _configuration = configuration;
             _tokenValidationParameters = tokenValidationParameters;
             _unitOfWork = unitOfWork;
-            _mailService = mailService;
         }
         public string HashPassword(string password)
         {
@@ -170,7 +165,10 @@ namespace _2Sport_BE.API.Services
                     exist.ExpireDate = refreshToken.ExpireDate;
                     await _unitOfWork.RefreshTokenRepository.UpdateAsync(exist);
                 }
+                else
+                {
                 await _unitOfWork.RefreshTokenRepository.InsertAsync(refreshToken);
+                }
                 await _unitOfWork.SaveChanges();
                 //return
                 authenticationResult.RefreshToken = refreshToken.Token;
@@ -361,25 +359,28 @@ namespace _2Sport_BE.API.Services
 
             return tokenModelResult;
         }
-        public async Task<ResponseModel<string>> SignUpAsync(UserCM userCM)
+        public async Task<ResponseModel<string>> SignUpAsync(RegisterModel registerModel)
         {
             var response = new ResponseModel<string>();
 
-
-            if (await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Email.ToLower() == userCM.Email.ToLower()) != null)
+            var checkExist = await _unitOfWork.UserRepository
+                .GetObjectAsync(_ =>
+                _.Email.ToLower().Equals(registerModel.Email.ToLower()) ||
+                _.UserName.Equals(registerModel.Username));
+            if (checkExist != null)
             {
                 response.IsSuccess = false;
                 response.Message = "Already have an account!";
-                response.Data = "User is duplicated";
+                response.Data = "UserName or Email is duplicated";
                 return response;
             }
 
-            var user = new User()
+            checkExist = new User()
             {
-                UserName = userCM.Username,
-                Password = HashPassword(userCM.Password),
-                Email = userCM.Email,
-                FullName = userCM.FullName,
+                UserName = registerModel.Username,
+                Password = HashPassword(registerModel.Password),
+                Email = registerModel.Email,
+                FullName = registerModel.FullName,
                 EmailConfirmed = false,
                 RoleId = (int)UserRole.Customer,
                 IsActive = true,
@@ -388,25 +389,24 @@ namespace _2Sport_BE.API.Services
 
             try
             {
-                await _unitOfWork.UserRepository.InsertAsync(user);
-
-                int userId = user.Id;
-                await EnsureCartExistsForUser(userId);
+                await _unitOfWork.UserRepository.InsertAsync(checkExist);
+                await EnsureCartExistsForUser(checkExist.Id);
                 _unitOfWork.Save();
 
                 response.IsSuccess = true;
-                response.Message = "Success";
-                response.Data = user.Id.ToString();
+                response.Message = "Sign Up Successfully";
+                response.Data = checkExist.Id.ToString();
             }
             catch (DbUpdateException)
             {
                 response.IsSuccess = false;
-                response.Message = "User is duplicated";
+                response.Message = "Db exception";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
                 response.Message = ex.Message;
+                throw ex;
             }
 
             return response;
@@ -443,11 +443,11 @@ namespace _2Sport_BE.API.Services
 
             user.Password = HashPassword(resetPasswordRequest.NewPassword);
             user.PasswordResetToken = null;
-            await _userService.UpdateAsync(user);
+            await _userService.UpdateUserAsync(user.Id, user);
 
             response.IsSuccess = true;
             response.Message = "Password reset successful.";
             return response;
         }
     }
-}
+}*/

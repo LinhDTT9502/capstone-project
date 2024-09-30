@@ -7,23 +7,25 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using MailKit;
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
 using _2Sport_BE.Service.Services;
+using Google.Apis.Auth.OAuth2;
+using FirebaseAdmin;
 using System.Configuration;
-using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+//Setting Mail
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("AppSettings:MailSettings"));
+//Setting PayOs
+builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOSSettings"));
 
 builder.Services.Register();
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(x =>
    x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
-//Setting PayOs
-builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOSSettings"));
 //JWT services
 var appsettingSection = builder.Configuration.GetSection("ServiceConfiguration");
 builder.Services.Configure<ServiceConfiguration>(appsettingSection);
@@ -75,7 +77,12 @@ builder.Services.AddAuthentication(options =>
        facebookOptions.Fields.Add("email"); // Email
 
    });
-
+//Configure Firebase
+/*var firebaseConfig = builder.Configuration.GetSection("FirebaseSettings").Get<FirebaseConfig>();
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromJson(JsonConvert.SerializeObject(firebaseConfig))
+});*/
 
 builder.Services.AddSwaggerGen(c =>
 {

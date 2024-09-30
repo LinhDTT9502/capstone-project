@@ -50,7 +50,7 @@ namespace _2Sport_BE.Controllers
 				{
 					return Unauthorized();
 				}
-				var user = await _userService.FindAsync(userId);
+				var user = await _userService.GetUserById(userId);
 				var product = await _productService.GetProductById(productId);
 				var addedLike = new Like
 				{

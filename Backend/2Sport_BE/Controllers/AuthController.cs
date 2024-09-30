@@ -1,27 +1,15 @@
-﻿using _2Sport_BE.API.Services;
-using _2Sport_BE.DataContent;
-using _2Sport_BE.Infrastructure.Services;
+﻿using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Service.Services;
-using _2Sport_BE.ViewModels;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Linq;
-using _2Sport_BE.Repository.Models;
-using Microsoft.EntityFrameworkCore;
 using AutoMapper;
-using System.Text;
-using System.Security.Cryptography;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using _2Sport_BE.Services;
-using _2Sport_BE.Service.Enums;
 using Microsoft.AspNetCore.Authentication.Facebook;
-using System.Text.RegularExpressions;
-using Org.BouncyCastle.Asn1.Ocsp;
+using _2Sport_BE.Service.DTOs;
 
 namespace _2Sport_BE.Controllers
 {
@@ -30,7 +18,7 @@ namespace _2Sport_BE.Controllers
     public class AuthController : ControllerBase
     {
         public readonly IUserService _userService;
-        private readonly IIdentityService _identityService;
+        private readonly IAuthService _identityService;
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -39,7 +27,7 @@ namespace _2Sport_BE.Controllers
 
         public AuthController(
             IUserService userService,
-            IIdentityService identityService,
+            IAuthService identityService,
             IRefreshTokenService refreshTokenService,
             IUnitOfWork unitOfWork,
             IMapper mapper,
@@ -93,14 +81,19 @@ namespace _2Sport_BE.Controllers
 
         [Route("sign-up")]
         [HttpPost]
-        public async Task<IActionResult> SignUp([FromBody] UserCM userCM)
+        public async Task<IActionResult> SignUp([FromBody] RegisterModel registerModel)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var result = await _identityService.SignUpAsync(userCM);
+            if (!_mailService.IsValidEmail(registerModel.Email))
+            {
+                return BadRequest("Email is invalid!");
+            }
+
+            var result = await _identityService.SignUpAsync(registerModel);
 
             if (result.IsSuccess)
             {
@@ -184,7 +177,7 @@ namespace _2Sport_BE.Controllers
             });
         }
 
-        [HttpPost("forgot-password")]
+        [HttpPost("forgot-password-request")]
         public async Task<IActionResult> SendResetPasswordEmail([FromBody] SendEmailRequest request)
         {
             if (string.IsNullOrEmpty(request.Email))
@@ -196,14 +189,14 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest("Email is invalid!");
             }
-            var user = (await _userService.GetAsync(_ => _.Email.Equals(request.Email))).FirstOrDefault();
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(request.Email))).FirstOrDefault();
             if (user is null)
             {
                 return BadRequest("Email is not found!");
             }
             var token = await _mailService.GenerateEmailVerificationTokenAsync(request.Email);
             user.PasswordResetToken = token;
-            await _userService.UpdateAsync(user);
+            await _userService.UpdateUserAsync(user.Id, user);
             var resetLink = Url.Action("ValidateResetToken", "Auth", new { token = token, email = user.Email }, Request.Scheme);
 
             var result = await _mailService.SendForgotPasswordEmailAsync(resetLink, user.Email);
@@ -217,7 +210,7 @@ namespace _2Sport_BE.Controllers
         [HttpGet("validate-reset-token")]
         public async Task<IActionResult> ValidateResetToken(string token, string email)
         {
-            var user = (await _userService.GetAsync(_ => _.Email.Equals(email) && _.PasswordResetToken.Equals(token))).FirstOrDefault();
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(email) && _.PasswordResetToken.Equals(token))).FirstOrDefault();
             if (user is null)
             {
                 return BadRequest("Invalid or expired token.");

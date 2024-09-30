@@ -366,6 +366,8 @@ namespace _2Sport_BE.Controllers
                         newProduct.Size = productCM.Size;
                         newProduct.Color = productCM.Color;
                         newProduct.Condition = productCM.Condition;
+                        newProduct.ListedPrice = productCM.ListedPrice;
+                        newProduct.Price = productCM.Price;
                         await _productService.AddProduct(newProduct);
                     } else
                     {
@@ -514,6 +516,8 @@ namespace _2Sport_BE.Controllers
                                 newProduct.Size = productCM.Size;
                                 newProduct.Color = productCM.Color;
                                 newProduct.Condition = productCM.Condition;
+                                newProduct.ListedPrice = productCM.ListedPrice;
+                                newProduct.Price = productCM.Price;
                                 await _productService.AddProduct(newProduct);
                             }
                             else

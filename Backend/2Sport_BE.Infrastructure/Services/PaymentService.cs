@@ -58,7 +58,7 @@ namespace _2Sport_BE.Service.Services
                 List<ItemData> orders = new List<ItemData>();
                 var listOrderDetail = order.OrderDetails.ToList();
                 var userId = order.UserId;
-                var user = await _userService.FindAsync((int)userId);
+                var user = await _userService.GetUserById((int)userId);
                 for(int i = 0; i < listOrderDetail.Count; i++)
                 {   var product = await _productService.GetProductById((int)listOrderDetail[i].ProductId);
                     var name = product.ProductName;

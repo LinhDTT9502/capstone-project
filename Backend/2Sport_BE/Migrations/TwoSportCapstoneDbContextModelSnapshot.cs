@@ -405,7 +405,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ImportHistories");
+                    b.ToTable("ImportHistories", (string)null);
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Like", b =>
