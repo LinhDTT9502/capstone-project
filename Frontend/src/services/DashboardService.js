@@ -20,6 +20,7 @@ export const fetchOrdersbyStatus = async () => {
   } catch (error) {
     console.error('Error fetching orders:', error);
     toast.error("Error fetching orders: " + error.message);
+    toast.error("Error fetching orders: " + error.message);
     throw error;
   }
 };

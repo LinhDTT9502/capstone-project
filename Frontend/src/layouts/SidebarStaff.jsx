@@ -19,7 +19,12 @@ export default function SidebarStaff() {
           
         <FontAwesomeIcon icon={faFileArrowDown} className="pr-3" /> {t("sidebar_staff.import")}
         </ListItem> */}
-      
+      <Link to="/admin/manage-user" >
+        <ListItem>
+        <FontAwesomeIcon icon={faGauge} className="pr-3" /> 
+       {t("sidebar_staff.customer_account")}
+        </ListItem>
+        </Link>
       </List>
       
      

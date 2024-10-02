@@ -16,7 +16,7 @@ export default function FeatureProductSlide() {
   useEffect(() => {
     const getFeature = async () => {
       try {
-        const productFeatured = await axios.get('https://twosportapiv2.azurewebsites.net/api/Product/list-products',{sortBy, isAscending}, {
+        const productFeatured = await axios.get('https://twosportapi-295683427295.asia-southeast2.run.app/api/Product/list-products',{sortBy, isAscending}, {
           headers: {
             'accept': '*/*'
           }
