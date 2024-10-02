@@ -408,7 +408,7 @@ namespace _2Sport_BE.Controllers
                 var importedBranch = await _branchService.GetBranchById(employeeDetail.BranchId);
                 var importHistory = new ImportHistory()
                 {
-                    UserId = userId,
+                    EmployeeId = userId,
                     ProductId = product.Id,
                     Content = $@"{importedBranch.BranchName}: Import {productCM.Quantity} {productCM.ProductName} ({productCM.ProductCode})",
                     ImportDate = DateTime.Now,
@@ -561,7 +561,7 @@ namespace _2Sport_BE.Controllers
                         var importedBranch = await _branchService.GetBranchById(employeeDetail.BranchId);
                         var importHistory = new ImportHistory()
                         {
-                            UserId = userId,
+                            EmployeeId = userId,
                             ProductId = product.Id,
                             Content = $@"{importedBranch.BranchName}: Import {productCM.Quantity} {productCM.ProductName} ({productCM.ProductCode})",
                             ImportDate = DateTime.Now,
@@ -886,7 +886,7 @@ namespace _2Sport_BE.Controllers
                     var importedBranch = await _branchService.GetBranchById(employee.BranchId);
                     var importHistory = new ImportHistory()
                     {
-                        UserId = managerId,
+                        EmployeeId = managerId,
                         ProductId = product.Id,
                         Content = $@"{importedBranch.BranchName}: Import {int.Parse(quantityValue)} {productNameValue} ({productCodeValue})",
                         ImportDate = DateTime.Now,
@@ -998,7 +998,7 @@ namespace _2Sport_BE.Controllers
                     var importedBranch = await _branchService.GetBranchById(productUM.BranchId);
                     var importHistory = new ImportHistory()
                     {
-                        UserId = userId,
+                        EmployeeId = userId,
                         ProductId = updatedProduct.Id,
                         Content = $@"{importedBranch.BranchName}: Updated {productUM.ProductName} ({productUM.ProductCode})",
                         ImportDate = DateTime.Now,
