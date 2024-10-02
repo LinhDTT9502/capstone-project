@@ -14,8 +14,8 @@ public class ImportHistory
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    [Column("UserId")]
-    public int UserId { get; set; }
+    [Column("EmployeeId")]
+    public int EmployeeId { get; set; }
 
     [Column("ProductId")]
     public int ProductId { get; set; }
@@ -37,6 +37,6 @@ public class ImportHistory
     public string LotCode { get; set; }
 
     public virtual Product Product { get; set; }
-    public virtual User User { get; set; }
+    public virtual Employee Employee { get; set; }
     public virtual Supplier Supplier { get; set; }
 }

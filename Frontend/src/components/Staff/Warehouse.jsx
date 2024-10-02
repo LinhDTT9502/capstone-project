@@ -5,6 +5,7 @@ import {
   CardBody,
   Typography,
   Checkbox,
+  Button, // Import Button from Material Tailwind or any other UI library you are using
 } from "@material-tailwind/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
@@ -12,9 +13,11 @@ import { useTranslation } from "react-i18next";
 import { fetchWarehouse } from "../../services/warehouseService";
 import { fetchImport } from "../../services/ImportService";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 export default function Warehouse() {
   const { t } = useTranslation();
+  const navigate = useNavigate(); // Initialize useNavigate
   const [imports, setImports] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,11 +70,15 @@ export default function Warehouse() {
         importItem.id === item.id ? { ...importItem, quantity: newQuantity } : importItem
       );
       setImports(updatedImports);
-      toast.success("import successful");
+      toast.success("Import successful");
       console.log("Quantity updated successfully:", response);
     } catch (error) {
       console.error("Error updating quantity:", error);
     }
+  };
+
+  const handleAddProductClick = () => {
+    navigate("/productform"); // Route to ProductForm page
   };
 
   return (
@@ -84,6 +91,13 @@ export default function Warehouse() {
           </a>
           <a href="#">{t("sidebar_staff.import")}</a>
         </Breadcrumbs>
+        <Button
+          color="orange"
+          onClick={handleAddProductClick}
+          className="rounded-full"
+        >
+          {t("Import.AddProduct")}
+        </Button>
       </div>
 
       <Card className="h-full w-[95.7%] mx-10 my-10">

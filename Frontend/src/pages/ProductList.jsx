@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import { addCart } from '../redux/slices/cartSlice';
 import { Rating } from "@material-tailwind/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight, faCartShopping } from '@fortawesome/free-solid-svg-icons';
 
 import { useTranslation } from "react-i18next";
 const perPage = 15;
@@ -21,7 +21,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
   const [currentPage, setCurrentPage] = useState(1);
   const [warehouseTotal, setWarehouseTotal] = useState(null);
   const totalPages = Math.ceil(warehouseTotal / perPage);
-  
+
   useEffect(() => {
     const getProducts = async () => {
       try {
@@ -58,7 +58,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
         }
       });
       const data = await response.json();
-      return  { total: data.total, products: data.data.$values };
+      return { total: data.total, products: data.data.$values };
     };
 
     const checkWarehouseQuantities = async (products) => {
@@ -113,7 +113,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
             <div className="relative">
               <Link to={`/product/${product.id}`}>
                 <div className="bg-white">
-                  <img src={product.mainImagePath} alt={product.mainImageName} className="object-scale-down h-48 w-96 mb-4" />
+                  <img src={product.imgAvatarPath} alt={product.mainImageName} className="object-scale-down h-48 w-96 mb-4" />
                 </div>
               </Link>
               {product.quantity === 0 ? (
@@ -121,7 +121,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
                   className="absolute bottom-0 left-0 right-0 flex items-center justify-center bg-gray-400 bg-opacity-75 text-white opacity-100 transition-opacity duration-300 py-4"
                   disabled
                 >
-                 SOLD OUT
+                  SOLD OUT
                 </button>
               ) : (
                 <button
@@ -132,6 +132,21 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
                 </button>
               )}
             </div>
+            <div className='flex justify-between space-x-4'>
+              <button
+                className="p-3 bg-blue-300 rounded-xl items-center justify-center bg-opacity-75 text-black opacity-100 hover:bg-blue-500 transition duration-300 py-4 hover:shadow-lg"
+                onClick={() => handleAddToCart(product)}
+              >
+                Mua ngay
+              </button>
+              <button
+                className="p-3 bg-orange-300 rounded-xl  items-center justify-center bg-opacity-75 text-black opacity-100 hover:bg-orange-500 transition duration-300 py-4 hover:shadow-lg"
+                onClick={() => handleAddToCart(product)}
+              >
+                Thuê
+              </button>
+            </div>
+
             <Link to={`/product/${product.id}`}>
               <p className="text-orange-500 mb-2 ">{product.categoryName} - {product.brandName}</p>
               <h2 className="text-xl font-semibold ">{product.productName}</h2>
@@ -141,8 +156,8 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
         ))}
       </div>
       <button
-      disabled={currentPage === 1}
-      onClick={handlePrevPage}
+        disabled={currentPage === 1}
+        onClick={handlePrevPage}
       >
         <FontAwesomeIcon icon={faChevronLeft} />
       </button>
@@ -151,7 +166,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
         disabled={currentPage === totalPages}
         onClick={handleNextPage}
       >
-      <FontAwesomeIcon icon={faChevronRight} />
+        <FontAwesomeIcon icon={faChevronRight} />
       </button>
     </div>
   );

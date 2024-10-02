@@ -1,4 +1,4 @@
-﻿using _2Sport_BE.Helpers;
+using _2Sport_BE.Helpers;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
@@ -17,14 +17,18 @@ namespace _2Sport_BE.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICartItemService _cartItemService;
-		private readonly IWarehouseService _warehouseService;
+        private readonly ICartService _cartService;
+        private readonly IWarehouseService _warehouseService;
         private readonly IMapper _mapper;
 
-        public CartController(IUnitOfWork unitOfWork, ICartItemService cartItemService,
+        public CartController(IUnitOfWork unitOfWork, 
+							  ICartService cartService,
+							  ICartItemService cartItemService,
                               IWarehouseService warehouse,
                               IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _cartService = cartService;
             _cartItemService = cartItemService;
             _warehouseService = warehouse;
             _mapper = mapper;
@@ -49,12 +53,15 @@ namespace _2Sport_BE.Controllers
 					var cartItems = query.Select(_ => _mapper.Map<CartItem, CartItemVM>(_)).ToList();
 					if (cartItems != null)
 					{
-						foreach (var carItem in cartItems)
+						foreach (var cartItem in cartItems)
 						{
-							var product = await _unitOfWork.ProductRepository.FindAsync(carItem.ProductId);
-							carItem.ProductName = product.ProductName;
-							carItem.MainImageName = product.ImgAvatarName;
-							carItem.MainImagePath = product.ImgAvatarPath;
+							var warehouse = (await _warehouseService.GetWarehouseById(cartItem.WarehouseId)).FirstOrDefault();
+							var product = await _unitOfWork.ProductRepository.FindAsync(warehouse.ProductId);
+							var branch = await _unitOfWork.BranchRepository.FindAsync(warehouse.BranchId);
+                            cartItem.ProductName = product.ProductName;
+                            cartItem.MainImageName = product.ImgAvatarName;
+                            cartItem.MainImagePath = product.ImgAvatarPath;
+							cartItem.BranchName = branch.BranchName;
 						}
 						return Ok(new { total = cartItems.Count(), data = cartItems });
 					}
@@ -87,39 +94,48 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("add-to-cart")]
-        public async Task<IActionResult> AddToCart(CartItemCM cartItemCM)
-        {
-            try
-            {
-                var userId = GetCurrentUserIdFromToken();
+		[HttpPost]
+		[Route("add-to-cart")]
+		public async Task<IActionResult> AddToCart(CartItemCM cartItemCM)
+		{
+			try
+			{
+				var userId = GetCurrentUserIdFromToken();
 
-                if (userId == 0)
-                {
-                    return Unauthorized();
-                }
+				if (userId == 0)
+				{
+					return Unauthorized();
+				}
 
 				var newCartItem = _mapper.Map<CartItemCM, CartItem>(cartItemCM);
-				var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(cartItemCM.ProductId))
-										.FirstOrDefault().Quantity;
+				var warehouse = (await _warehouseService.GetWarehouseById(cartItemCM.WarehouseId))
+										.FirstOrDefault();
+				if (warehouse == null)
+				{
+					return BadRequest("Xin lỗi! Chúng tôi không có sản phẩm này!");
+				}
+
+                var quantityOfProduct = warehouse.Quantity;
 				if (cartItemCM.Quantity > quantityOfProduct)
 				{
 					return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
 				}
-                var addedCartItem = await _cartItemService.AddCartItem(userId, newCartItem);
-                if (addedCartItem != null)
-                {
-                    return Ok(addedCartItem);
-                } else
-                {
-                    return BadRequest("Add to cart failed");
-                }
-            } catch (Exception ex)
-            {
-                return BadRequest(ex);
-            }
-        }
+
+				var addedCartItem = await _cartItemService.AddCartItem(userId, newCartItem);
+				if (addedCartItem != null)
+				{
+					return Ok(addedCartItem);
+				}
+				else
+				{
+					return BadRequest("Add to cart failed");
+				}
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex);
+			}
+		}
 
 		[HttpPut]
 		[Route("reduce-cart/{cartItemId}")]
@@ -134,8 +150,8 @@ namespace _2Sport_BE.Controllers
 					return Unauthorized();
 				}
 
-                await _cartItemService.ReduceCartItem(cartItemId);
-                _unitOfWork.Save();
+				await _cartItemService.ReduceCartItem(cartItemId);
+				_unitOfWork.Save();
                 return Ok($"Reduce cart item with id: {cartItemId}");
 			}
 			catch (Exception ex)
@@ -157,13 +173,13 @@ namespace _2Sport_BE.Controllers
 					return Unauthorized();
 				}
 				var cartItem = await _cartItemService.GetCartItemById(cartItemId);
-                var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(cartItem.ProductId))
-                        .FirstOrDefault().Quantity;
-                if (quantity > quantityOfProduct)
-                {
-                    return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
-                }
-                await _cartItemService.UpdateQuantityOfCartItem(cartItemId, quantity);
+				var quantityOfProduct = (await _warehouseService.GetWarehouseById(cartItem.WarehouseId))
+						.FirstOrDefault().Quantity;
+				if (quantity > quantityOfProduct)
+				{
+					return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
+				}
+				await _cartItemService.UpdateQuantityOfCartItem(cartItemId, quantity);
 				_unitOfWork.Save();
 				return Ok($"Update quantity cart item with id: {cartItemId}");
 			}

@@ -1,4 +1,4 @@
-﻿using _2Sport_BE.DataContent;
+using _2Sport_BE.DataContent;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
@@ -81,11 +81,11 @@ namespace _2Sport_BE.Controllers
                     return StatusCode(500, "Order creation failed.");
                 }
 
-                var check = await DeleteCartItem(cart, orderCM.OrderDetails);
-                if (!check)
-                {
-                    return StatusCode(500, "Failed to delete cart items.");
-                }
+                //var check = await DeleteCartItem(cart, orderCM.OrderDetails);
+                //if (!check)
+                //{
+                //    return StatusCode(500, "Failed to delete cart items.");
+                //}  //COMMENT TẠM
 
                 var paymentLink = orderMethodId == (int)OrderMethods.PayOS
                                   ? await _paymentService.PaymentWithPayOs(order.Id)
@@ -334,49 +334,49 @@ namespace _2Sport_BE.Controllers
 
             return order;
         }
-        [NonAction]
-        protected async Task<bool> DeleteCartItem(Cart cart, List<OrderDetailRequest> orderDetails)
-        {
-            if (orderDetails == null || !orderDetails.Any())
-            {
-                return false;
-            }
+        //[NonAction]
+        //protected async Task<bool> DeleteCartItem(Cart cart, List<OrderDetailRequest> orderDetails)
+        //{
+        //    if (orderDetails == null || !orderDetails.Any())
+        //    {
+        //        return false;
+        //    }
 
-            if (cart != null && cart.CartItems.Any())
-            {
-                bool allItemsDeleted = true;
-                foreach (var orderDetail in orderDetails)
-                {
-                    var warehouses = await _warehouseService.GetWarehouseByProductId(orderDetail.ProductId);
-                    Warehouse wareHouse = warehouses.FirstOrDefault();
-                    if (wareHouse != null && wareHouse.Quantity >= orderDetail.Quantity)
-                    {
-                        var cartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == orderDetail.ProductId && ci.Status == true);
-                        if (cartItem != null)
-                        {
-                            await _cartItemService.DeleteCartItem(cartItem.Id);
-                            /*wareHouse.Quantity -= orderDetail.Quantity;
-                            await _warehouseService.UpdateWarehouseAsync(wareHouse);*/
-                        }
-                        else
-                        {
-                            allItemsDeleted = false;
-                        }
-                    }
-                    else
-                    {
-                        allItemsDeleted = false;
-                    }
-                }
+        //    if (cart != null && cart.CartItems.Any())
+        //    {
+        //        bool allItemsDeleted = true;
+        //        foreach (var orderDetail in orderDetails)
+        //        {
+        //            var warehouses = await _warehouseService.GetWarehouseByProductId(orderDetail.ProductId);
+        //            Warehouse wareHouse = warehouses.FirstOrDefault();
+        //            if (wareHouse != null && wareHouse.Quantity >= orderDetail.Quantity)
+        //            {
+        //                var cartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == orderDetail.ProductId && ci.Status == true);
+        //                if (cartItem != null)
+        //                {
+        //                    await _cartItemService.DeleteCartItem(cartItem.Id);
+        //                    /*wareHouse.Quantity -= orderDetail.Quantity;
+        //                    await _warehouseService.UpdateWarehouseAsync(wareHouse);*/
+        //                }
+        //                else
+        //                {
+        //                    allItemsDeleted = false;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                allItemsDeleted = false;
+        //            }
+        //        }
 
-                if (allItemsDeleted)
-                {
-                    _unitOfWork.Save();
-                    return true;
-                }
-            }
-            return false;
-        }
+        //        if (allItemsDeleted)
+        //        {
+        //            _unitOfWork.Save();
+        //            return true;
+        //        }
+        //    }
+        //    return false;
+        //}
         [NonAction]
         public bool AreAnyStringsNullOrEmpty(PaymentResponse response)
         {
