@@ -911,6 +911,7 @@ namespace _2Sport_BE.Controllers
             return 1;
         }
 
+        [NonAction]
         public IFormFile ConvertToIFormFile(string filePath)
         {
             var fileInfo = new FileInfo(filePath);
