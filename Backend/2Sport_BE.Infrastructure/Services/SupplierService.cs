@@ -1,3 +1,4 @@
+using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.EntityFrameworkCore;
@@ -24,8 +25,8 @@ namespace _2Sport_BE.Infrastructure.Services
     public class SupplierService : ISupplierService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly TwoSportDBContext _dBContext;
-        public SupplierService(IUnitOfWork unitOfWork, TwoSportDBContext dBContext)
+        private readonly TwoSportCapstoneDbContext _dBContext;
+        public SupplierService(IUnitOfWork unitOfWork, TwoSportCapstoneDbContext dBContext)
         {
             _unitOfWork = unitOfWork;
             _dBContext = dBContext;
@@ -53,7 +54,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
         public async Task<IQueryable<Supplier>> GetSuppliersAsync(string supplierName)
         {
-            IEnumerable<Supplier> filter = await _unitOfWork.SupplierRepository.GetAsync(_ => _.SupplierName.ToUpper().Contains(supplierName.ToUpper()));
+            IEnumerable<Supplier> filter = await _unitOfWork.SupplierRepository.GetAsync(_ => _.SupplierName.ToUpper().Equals(supplierName.ToUpper()));
             return filter.AsQueryable();
         }
 

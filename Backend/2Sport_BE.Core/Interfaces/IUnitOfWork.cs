@@ -6,6 +6,7 @@ namespace _2Sport_BE.Repository.Interfaces
     {
         IGenericRepository<Blog> BlogRepository { get; }
         IGenericRepository<Brand> BrandRepository { get; }
+        IGenericRepository<Branch> BranchRepository { get; }
         IGenericRepository<Cart> CartRepository { get; }
         IGenericRepository<CartItem> CartItemRepository { get; }
         IGenericRepository<Category> CategoryRepository { get; }
@@ -16,7 +17,6 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<OrderDetail> OrderDetailRepository { get; }
         IGenericRepository<PaymentMethod> PaymentMethodRepository { get; }
         IGenericRepository<Product> ProductRepository { get; }
-        IGenericRepository<Classification> ClassificationRepository { get; }
         IGenericRepository<Review> ReviewRepository { get; }
         IGenericRepository<Role> RoleRepository { get; }
         IGenericRepository<ShipmentDetail> ShipmentDetailRepository { get; }
@@ -25,6 +25,11 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<Warehouse> WarehouseRepository { get; }
         IGenericRepository<RefreshToken> RefreshTokenRepository { get; }
         IGenericRepository<Sport> SportRepository { get; }
+        IGenericRepository<CustomerDetail> CustomerDetailRepository { get; }
+        IGenericRepository<Employee> EmployeeRepository { get; }
+        IGenericRepository<EmployeeDetail> EmployeeDetailRepository { get; }
+        IGenericRepository<ErrorLog> ErrorLogRepository { get; }
+        IGenericRepository<Attendance> AttendanceRepository { get; }
         void Save();
         Task<bool> SaveChanges();
     }

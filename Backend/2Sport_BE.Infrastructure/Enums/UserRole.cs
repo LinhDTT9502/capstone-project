@@ -11,6 +11,8 @@ namespace _2Sport_BE.Service.Enums
         Admin = 1,
         Manager = 2,
         Employee = 3,
-        Customer = 4
+        Customer = 4,
+        Owner = 5,
+
     }
 }

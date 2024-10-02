@@ -1,4 +1,5 @@
-﻿using _2Sport_BE.Repository.Interfaces;
+﻿using _2Sport_BE.Repository.Data;
+using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -7,9 +8,9 @@ namespace _2Sport_BE.Repository.Implements
 {
     internal class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private readonly TwoSportDBContext _dbContext;
+        private readonly TwoSportCapstoneDbContext _dbContext;
         private readonly DbSet<T> _dbSet;
-        public GenericRepository(TwoSportDBContext context)
+        public GenericRepository(TwoSportCapstoneDbContext context)
         {
             _dbContext = context;
             _dbSet = _dbContext.Set<T>();
@@ -32,15 +33,38 @@ namespace _2Sport_BE.Repository.Implements
             {
                 await DeleteAsync(entityToDelete);
             }
+
         }
 
         public async Task DeleteAsync(T entityToDelete)
         {
-            if (_dbContext.Entry(entityToDelete).State == EntityState.Detached)
+            try
             {
-                _dbSet.Attach(entityToDelete);
+                if (_dbContext.Entry(entityToDelete).State == EntityState.Detached)
+                {
+                    _dbSet.Attach(entityToDelete);
+                }
+                _dbSet.Remove(entityToDelete);
+                await _dbContext.SaveChangesAsync();
+            } catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
-            _dbSet.Remove(entityToDelete);
+
+        }
+
+        public async Task DeleteRangeAsync(IEnumerable<T> entities)
+        {
+            foreach (var entity in entities)
+            {
+                if (_dbContext.Entry(entity).State == EntityState.Detached)
+                {
+                    _dbSet.Attach(entity);
+                }
+            }
+
+            _dbSet.RemoveRange(entities);
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<T> FindAsync(int? id)

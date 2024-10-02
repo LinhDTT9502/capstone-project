@@ -1,3 +1,4 @@
+using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.EntityFrameworkCore;
@@ -19,12 +20,14 @@ namespace _2Sport_BE.Infrastructure.Services
         Task CreateANewWarehouseAsync(Warehouse warehouse);
         Task UpdateWarehouseAsync(Warehouse warehouse);
         Task DeleteWarehouseAsync(int id);
+        Task DeleteWarehouseAsync(List<Warehouse> warehouses);
+        Task<IQueryable<Warehouse>> GetWarehouseByProductIdAndBranchId(int productId, int? branchId);
     }
     public class WarehouseService : IWarehouseService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly TwoSportDBContext _dBContext;
-        public WarehouseService(IUnitOfWork unitOfWork, TwoSportDBContext dBContext)
+        private readonly TwoSportCapstoneDbContext _dBContext;
+        public WarehouseService(IUnitOfWork unitOfWork, TwoSportCapstoneDbContext dBContext)
         {
             _unitOfWork = unitOfWork;
             _dBContext = dBContext;
@@ -44,6 +47,11 @@ namespace _2Sport_BE.Infrastructure.Services
             }
         }
 
+        public async Task DeleteWarehouseAsync(List<Warehouse> warehouses)
+        {
+            await _unitOfWork.WarehouseRepository.DeleteRangeAsync(warehouses);
+        }
+
         public async Task<IQueryable<Warehouse>> GetWarehouse(Expression<Func<Warehouse, bool>> filter = null)
         {
             var query = await _unitOfWork.WarehouseRepository.GetAsync(filter);
@@ -59,6 +67,13 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task<IQueryable<Warehouse>> GetWarehouseByProductId(int? productId)
         {
             IEnumerable<Warehouse> filter = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.ProductId == productId);
+            return filter.AsQueryable();
+        }
+
+        public async Task<IQueryable<Warehouse>> GetWarehouseByProductIdAndBranchId(int productId, int? branchId)
+        {
+            IEnumerable<Warehouse> filter = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.ProductId == productId
+                                                                                            && _.BranchId == branchId);
             return filter.AsQueryable();
         }
 

@@ -4,7 +4,7 @@ namespace _2Sport_BE.ViewModels
 {
     public class CartItemDTO
     {
-        public int? ProductId { get; set; }
+        public int? WarehouseId { get; set; }
         public int? Quantity { get; set; }
     }
     public class CartItemVM : CartItemDTO
@@ -13,8 +13,9 @@ namespace _2Sport_BE.ViewModels
         public string ProductName { get; set; }
         public decimal TotalPrice { get; set; }
         public string MainImageName { get; set; }
-        public string MainImagePath{ get; set; }
-	}
+        public string MainImagePath { get; set; }
+        public string BranchName { get; set; }
+    }
 
 	public class CartItemCM : CartItemDTO
     {

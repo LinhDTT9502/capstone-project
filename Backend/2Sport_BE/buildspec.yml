@@ -1,0 +1,33 @@
+# AWS CodeBuild spec to build an Elastic Beanstalk artifact for AWS CodePipeline to deploy
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      dotnet: 8.0
+
+  pre_build:
+    commands:
+      - echo Restore started on `date`
+      - echo "CURRENT DIR `pwd`"
+      - dotnet restore Backend/2Sport_BE/2Sport_BE.csproj
+      - dotnet restore Backend/2Sport_BE.Core/2Sport_BE.Core.csproj
+      - dotnet restore Backend/2Sport_BE.Infrastructure/2Sport_BE.Infrastructure.csproj
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - dotnet build Backend/2Sport_BE/2Sport_BE.csproj
+      - dotnet build Backend/2Sport_BE.Core/2Sport_BE.Core.csproj
+      - dotnet build Backend/2Sport_BE.Infrastructure/2Sport_BE.Infrastructure.csproj
+
+  post_build:
+    commands:
+      - echo Publish started on `date`
+      - dotnet publish -c Release -o ./build-output Backend/2Sport_BE/2Sport_BE.csproj
+
+artifacts:
+  name: 2SPORT_API_Build_#$CODEBUILD_BUILD_NUMBER
+  base-directory: './build-output'
+  files:
+    - ./**/*

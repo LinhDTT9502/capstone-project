@@ -1,23 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace _2Sport_BE.Repository.Models
+namespace _2Sport_BE.Repository.Models;
+
+[Table("Brands")]
+public class Brand
 {
-    public partial class Brand
-    {
-        public Brand()
-        {
-            BrandCategories = new HashSet<BrandCategory>();
-            Products = new HashSet<Product>();
-        }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-        public int Id { get; set; }
-        public string BrandName { get; set; }
-        public string Logo { get; set; }
-        public int? Quantity { get; set; }
-        public bool? Status { get; set; }
+    [Column("BrandName", TypeName = "varchar")]
+    [MaxLength(50)]
+    public string BrandName { get; set; }
 
-        public virtual ICollection<BrandCategory> BrandCategories { get; set; }
-        public virtual ICollection<Product> Products { get; set; }
-    }
+    [Column("Logo", TypeName = "varchar")]
+    [MaxLength(500)]
+    public string Logo { get; set; }
+
+    public int? Quantity { get; set; }
+
+    public bool? Status { get; set; }
+
+    public virtual ICollection<BrandCategory> BrandCategories { get; set; }
+
+    public virtual ICollection<Product> Products { get; set; }
 }

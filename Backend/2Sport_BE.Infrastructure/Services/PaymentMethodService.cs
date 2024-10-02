@@ -1,4 +1,5 @@
-﻿using _2Sport_BE.Repository.Models;
+﻿using _2Sport_BE.Repository.Data;
+using _2Sport_BE.Repository.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -18,9 +19,9 @@ namespace _2Sport_BE.Service.Services
     }
     public class PaymentMethodService : IPaymentMethodService
     {
-        private readonly TwoSportDBContext _context;
+        private readonly TwoSportCapstoneDbContext _context;
 
-        public PaymentMethodService(TwoSportDBContext context)
+        public PaymentMethodService(TwoSportCapstoneDbContext context)
         {
             _context = context;
         }

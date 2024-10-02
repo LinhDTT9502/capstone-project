@@ -1,85 +1,72 @@
 ﻿using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Infrastructure.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using _2Sport_BE.DataContent;
-using _2Sport_BE.ViewModels;
-using AutoMapper;
 using _2Sport_BE.Service.Services;
-using System.Text;
-using System.Security.Cryptography;
-using _2Sport_BE.Helpers;
+using _2Sport_BE.Services;
+using IMailService = _2Sport_BE.Services.IMailService;
+using _2Sport_BE.Service.DTOs;
 
 namespace _2Sport_BE.Controllers
 {
-    
+
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IMapper _mapper;
+
         private readonly IRefreshTokenService _refreshTokenService;
+        private readonly IMailService _mailService;
+        
         public UserController(
             IUserService userService,
-            IMapper mapper,
-            IRefreshTokenService refreshTokenService
+            IRefreshTokenService refreshTokenService,
+            IMailService mailService
             )
         {
             _userService = userService;
-            _mapper = mapper;
             _refreshTokenService = refreshTokenService;
+            _mailService = mailService;
         }
         [HttpGet]
         [Route("get-all-users")]
-        public async Task<IActionResult> GetAllUser(string? fullName, string? username)
+        //Role Admin
+        public async Task<IActionResult> GetAllUser()
         {
             try
             {
-                var query = await _userService.GetAllAsync();
-                if(!string.IsNullOrWhiteSpace(fullName))
-                {
-                    fullName = fullName.ToLower();
-                    query = query.Where(x => x.FullName.ToLower().Contains(fullName));
-                }
-                if (!string.IsNullOrWhiteSpace(username))
-                {
-                    username = username.ToLower();
-                    query = query.Where(x => x.UserName.ToLower().Contains(fullName));
-                }
-
-                var result = _mapper.Map<List<User>, List<UserVM>>(query.ToList());
-                return Ok(result);
+                var response = await _userService.GetAllUsers();
+                return Ok(response);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
-            } 
+            }
         }
         [HttpGet]
-        [Route("get-users-by-role")]
-        public async Task<IActionResult> GetUsesByRole(int roleId)
+        [Route("search")]
+        //Role Admin
+        public async Task<IActionResult> SearchUser(string? fullName, string? username)
         {
             try
             {
-                var query = await _userService.GetAsync(_ => _.RoleId == roleId);
-                var result = _mapper.Map<List<User>, List<UserVM>>(query.ToList());
-                return Ok(result);
+                var response = await _userService.SearchUsers(fullName, username);
+                return Ok(response);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
-
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetUserDetail(int userId)
+        [HttpGet]
+        [Route("get-users-detail")]
+        //Role User
+        public async Task<IActionResult> GetUserDetail([FromQuery] int userId)
         {
             try
             {
-                var user = await _userService.FindAsync(userId);
+                var user = await _userService.GetUserDetailsById(userId);
                 var tokenUser = await _refreshTokenService.GetTokenDetail(userId);
                 return Ok(new { User = user, Token = tokenUser });
             }
@@ -88,111 +75,166 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(e);
             }
         }
-        
+        [HttpGet]
+        [Route("get-profile")]
+        //Role User
+        public async Task<IActionResult> GetProfile([FromQuery] int userId)
+        {
+            try
+            {
+                var user = await _userService.GetUserDetailsById(userId);
+                return Ok(user);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
         [HttpPost]
+        [Route("create-user")]
         public async Task<IActionResult> CreateUser([FromBody] UserCM userCM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            try
+            var response = await _userService.AddUserAsync(userCM);
+
+            if (response.IsSuccess)
             {
-                var user = _mapper.Map<UserCM, User>(userCM);
-                user.Password = HashPassword(userCM.Password);
-                user.CreatedDate = DateTime.Now;
-                user.RoleId = 1;
-                user.IsActive = true;
-                await _userService.AddAsync(user);
-                _userService.Save();
-                return StatusCode(201, new { processStatus = "Success", userId = user.Id }); ;
-            }
-            catch (Exception ex)
-            {
-                //Duplicate
-                if (ex is DbUpdateException dbUpdateEx)
-                {
-                    return BadRequest(new { processStatus = "Duplicate" });
-                }
-                return BadRequest(ex);
+                return Ok(response);
             }
 
+            return BadRequest(response);
         }
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUM userUM)
+        [HttpPut]
+        [Route("update-user")]
+        //Role Admin
+        public async Task<IActionResult> UpdateUserAsync([FromQuery] int id, [FromBody] UserUM userUM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            try
+           var response = await _userService.UpdateUserAsync(id, userUM);
+            if (response.IsSuccess)
             {
-                var user = await _userService.FindAsync(id);
-                if (user == null)
-                {
-                    return BadRequest(new { processStatus = "NotExisted" });
-                }
-                user.FullName = userUM.FullName;
-                user.Salary = userUM.Salary;
-                user.Email = userUM.Email;
-                user.BirthDate = userUM.BirthDate;
-                user.Gender = userUM.Gender;
-                user.Phone = userUM.Phone;
-
-               await _userService.UpdateAsync(user);
-               return Ok(new { processStatus = "Success", data = user.Id });
+                return Ok(response);
             }
-            catch (Exception e)
+            return BadRequest(response);
+        }
+        [HttpPut]
+        [Route("update-profile")]
+        //Role Customer
+        public async Task<IActionResult> UpdateProfileAsync([FromQuery] int id, [FromBody] ProfileUM profileUM)
+        {
+            if (!ModelState.IsValid)
             {
-                //Duplicate
-                if (e is DbUpdateException dbUpdateEx)
-                {
-                    return BadRequest(new { processStatus = "Duplicate" });
-                }
-                return BadRequest(e);
+                return BadRequest(ModelState);
             }
 
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var response = await _userService.UpdateProfile(id, profileUM);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<User>> DeleteUser(int id)
+        [HttpPut]
+        [Route("update-password")]
+        //Role Customer
+        public async Task<IActionResult> UpdatePasswordAsync([FromQuery] int id, [FromBody] ChangePasswordVM changePasswordVM)
         {
-            var user = await _userService.FindAsync(id);
-            if(user == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return BadRequest(ModelState);
             }
-            await _userService.RemoveAsync(id);
-            return await Task.FromResult(user);
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var response = await _userService.UpdatePasswordAsync(id, changePasswordVM);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
         }
-        [HttpPut("change-status/{id}")]
-        public async Task<IActionResult> ChangeStatusUser(int id)
+
+        [HttpDelete]
+        [Route("delete-user")]
+        //Role Admin
+        public async Task<ActionResult<User>> DeleteUser([FromQuery] int id)
         {
-            try
+            var response = await _userService.RemoveUserAsync(id);
+            if (response.IsSuccess)
             {
-                var user = await _userService.FindAsync(id);
-                if (user == null)
-                {
-                    return BadRequest(new { processStatus = "Not Existed" });
-                }
-                user.IsActive = !user.IsActive;
-                await _userService.UpdateAsync(user);
-                _userService.Save();
-                return Ok(new { processStatus = "Success", data = id });
+                return Ok(response);
             }
-            catch (Exception e)
-            {
-                return BadRequest(e);
-            }
+            return BadRequest(response);
         }
-        [Route("getCurrentUser")]
-        [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> GetCurrentUser()
+        [HttpPost("send-verification-email")]
+        public async Task<IActionResult> SendVerificationEmail([FromBody] SendEmailRequest request)
         {
-            var UserId = GetCurrentUserIdFromToken();
-            var result = await _userService.GetAsync(_ => _.Id == UserId);
-            return Ok(result);
+            if (string.IsNullOrEmpty(request.Email))
+            {
+                return BadRequest("Email are required.");
+            }
+
+            if (!_mailService.IsValidEmail(request.Email))
+            {
+                return BadRequest("Email is invalid!");
+            }
+
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(request.Email))).FirstOrDefault();
+                
+            if (user is null)
+            {
+                return BadRequest("Email is not found!");
+            }
+
+            var token = await _mailService.GenerateEmailVerificationTokenAsync(request.Email);
+            user.Token = token;
+            await _userService.UpdateUserAsync(user.Id, user);
+
+            var verificationLink = Url.Action("VerifyEmail", "User", new { token = token, email = user.Email }, Request.Scheme);
+
+            var result = await _mailService.SendVerifyEmailAsync(verificationLink, user.Email);
+            if (result)
+            {
+                return Ok(new { Message = "Verification email sent." });
+            }
+            return BadRequest("Can not create mail");
+        }
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail(string token, string email)
+        {
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(email) && _.Token.Equals(token))).FirstOrDefault();
+            if (user is null)
+            {
+                return BadRequest("Email or Token are invalid!");
+            }
+            if (user.EmailConfirmed)
+            {
+                return Ok("Your email verified!");
+            }
+            user.EmailConfirmed = true;
+            user.Token = null;
+            await _userService.UpdateUserAsync(user.Id, user);
+            return Ok(new { Message = "Email verified successfully." });
+        }
+        [HttpGet("verify-phone-number")]
+        public async Task<IActionResult> VerifyPhoneNumber(string from, string to)
+        {
+            var response = await _userService.VerifyPhoneNumber(from, to);
+
+            return Ok(response);
         }
         [NonAction]
         protected int GetCurrentUserIdFromToken()
@@ -218,21 +260,5 @@ namespace _2Sport_BE.Controllers
                 return UserId;
             }
         }
-        [NonAction]
-        public string HashPassword(string password)
-        {
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
-
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-                return builder.ToString();
-            }
-        }
-
     }
 }

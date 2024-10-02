@@ -1,4 +1,5 @@
-﻿using _2Sport_BE.Repository.Interfaces;
+﻿using _2Sport_BE.Repository.Data;
+using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using System;
 using System.Collections.Generic;
@@ -18,9 +19,9 @@ namespace _2Sport_BE.Service.Services
 	public class LikeService : ILikeService
 	{
 		private readonly IUnitOfWork _unitOfWork;
-		private readonly TwoSportDBContext _context;
+		private readonly TwoSportCapstoneDbContext _context;
 
-		public LikeService(IUnitOfWork unitOfWork, TwoSportDBContext context)
+		public LikeService(IUnitOfWork unitOfWork, TwoSportCapstoneDbContext context)
 		{
 			_unitOfWork = unitOfWork;
 			_context = context;

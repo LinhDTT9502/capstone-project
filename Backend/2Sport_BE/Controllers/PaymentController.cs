@@ -1,4 +1,4 @@
-﻿using _2Sport_BE.DataContent;
+using _2Sport_BE.DataContent;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
@@ -81,11 +81,11 @@ namespace _2Sport_BE.Controllers
                     return StatusCode(500, "Order creation failed.");
                 }
 
-                var check = await DeleteCartItem(cart, orderCM.OrderDetails);
-                if (!check)
-                {
-                    return StatusCode(500, "Failed to delete cart items.");
-                }
+                //var check = await DeleteCartItem(cart, orderCM.OrderDetails);
+                //if (!check)
+                //{
+                //    return StatusCode(500, "Failed to delete cart items.");
+                //}  //COMMENT TẠM
 
                 var paymentLink = orderMethodId == (int)OrderMethods.PayOS
                                   ? await _paymentService.PaymentWithPayOs(order.Id)
@@ -97,7 +97,7 @@ namespace _2Sport_BE.Controllers
                     ShipmentDetailId = orderCM.ShipmentDetailId,
                     PaymentMethod = order.PaymentMethod.PaymentMethodName,
                     ReceivedDate = order.ReceivedDate,
-                    TransportFee = order.TransportFee,
+                    TransportFee = order.TranSportFee,
                     IntoMoney = order.IntoMoney,
                     Status = order.Status,
                     PaymentLink = paymentLink,
@@ -145,10 +145,11 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var checkOrderExist = await _orderService.GetOrderByIdFromUserAsync(request.OrderId, GetCurrentUserIdFromToken());
-                if (checkOrderExist == null){
+                if (checkOrderExist == null)
+                {
                     return BadRequest("You don't have permission in this function");
                 }
-                checkOrderExist.Status = (int) OrderStatus.CANCELLED;
+                checkOrderExist.Status = (int)OrderStatus.CANCELLED;
                 var cancelledPaymentLinkInfo = await _paymentService.CancelPaymentLink(request.OrderId, request.Reason);
                 return Ok(cancelledPaymentLinkInfo);
             }
@@ -227,12 +228,12 @@ namespace _2Sport_BE.Controllers
                     Data = null
                 });
             }
-            foreach(var item in order.OrderDetails)
+            foreach (var item in order.OrderDetails)
             {
-                if(item!= null)
+                if (item != null)
                 {
-                  var productInWare = (await _warehouseService.GetWarehouseByProductId(item.ProductId)).FirstOrDefault();
-                    productInWare.Quantity = productInWare.Quantity - item.Quantity;  
+                    var productInWare = (await _warehouseService.GetWarehouseByProductId(item.ProductId)).FirstOrDefault();
+                    productInWare.Quantity = productInWare.Quantity - item.Quantity;
                 }
             }
             _unitOfWork.Save();
@@ -274,7 +275,7 @@ namespace _2Sport_BE.Controllers
         [NonAction]
         private async Task<User> GetUserFromToken()
         {
-            var user = await _userService.GetAsync(_ => _.Id == GetCurrentUserIdFromToken());
+            var user = await _userService.GetUserWithConditionAsync(_ => _.Id == GetCurrentUserIdFromToken());
             return user.FirstOrDefault();
         }
         [NonAction]
@@ -294,7 +295,7 @@ namespace _2Sport_BE.Controllers
             {
                 OrderCode = GenerateOrderCode(),
                 Status = paymentMethodId == 1 ? (int?)OrderStatus.PROCESSING : (int?)OrderStatus.PENDING,
-                TransportFee = orderCM.TransportFee,
+                TranSportFee = orderCM.TransportFee,
                 PaymentMethodId = paymentMethodId,
                 PaymentMethod = paymentMethod,
                 ShipmentDetailId = (int)orderCM.ShipmentDetailId,
@@ -314,12 +315,12 @@ namespace _2Sport_BE.Controllers
                     {
                         ProductId = product.Id,
                         Product = product,
-                        Quantity = (int) item.Quantity,
-                        Price = (int) item.Price,
+                        Quantity = (int)item.Quantity,
+                        Price = (int)item.Price,
                     };
 
                     order.OrderDetails.Add(orderDetail);
-                    totalPrice += (decimal) (item.Price * item.Quantity);
+                    totalPrice += (decimal)(item.Price * item.Quantity);
                 }
                 else
                 {
@@ -328,54 +329,54 @@ namespace _2Sport_BE.Controllers
             }
 
             order.TotalPrice = totalPrice;
-            order.IntoMoney = totalPrice + orderCM.TransportFee;
+            order.IntoMoney = (decimal)(totalPrice + orderCM.TransportFee);
             await _orderService.AddOrderAsync(order);
 
             return order;
         }
-        [NonAction]
-        protected async Task<bool> DeleteCartItem(Cart cart, List<OrderDetailRequest> orderDetails)
-        {
-            if (orderDetails == null || !orderDetails.Any())
-            {
-                return false;
-            }
+        //[NonAction]
+        //protected async Task<bool> DeleteCartItem(Cart cart, List<OrderDetailRequest> orderDetails)
+        //{
+        //    if (orderDetails == null || !orderDetails.Any())
+        //    {
+        //        return false;
+        //    }
 
-            if (cart != null && cart.CartItems.Any())
-            {
-                bool allItemsDeleted = true;
-                foreach (var orderDetail in orderDetails)
-                {
-                    var warehouses = await _warehouseService.GetWarehouseByProductId(orderDetail.ProductId);
-                    Warehouse wareHouse = warehouses.FirstOrDefault();
-                    if (wareHouse != null && wareHouse.Quantity >= orderDetail.Quantity)
-                    {
-                        var cartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == orderDetail.ProductId && ci.Status == true);
-                        if (cartItem != null)
-                        {
-                            await _cartItemService.DeleteCartItem(cartItem.Id);
-                            /*wareHouse.Quantity -= orderDetail.Quantity;
-                            await _warehouseService.UpdateWarehouseAsync(wareHouse);*/
-                        }
-                        else
-                        {
-                            allItemsDeleted = false;
-                        }
-                    }
-                    else
-                    {
-                        allItemsDeleted = false;
-                    }
-                }
+        //    if (cart != null && cart.CartItems.Any())
+        //    {
+        //        bool allItemsDeleted = true;
+        //        foreach (var orderDetail in orderDetails)
+        //        {
+        //            var warehouses = await _warehouseService.GetWarehouseByProductId(orderDetail.ProductId);
+        //            Warehouse wareHouse = warehouses.FirstOrDefault();
+        //            if (wareHouse != null && wareHouse.Quantity >= orderDetail.Quantity)
+        //            {
+        //                var cartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == orderDetail.ProductId && ci.Status == true);
+        //                if (cartItem != null)
+        //                {
+        //                    await _cartItemService.DeleteCartItem(cartItem.Id);
+        //                    /*wareHouse.Quantity -= orderDetail.Quantity;
+        //                    await _warehouseService.UpdateWarehouseAsync(wareHouse);*/
+        //                }
+        //                else
+        //                {
+        //                    allItemsDeleted = false;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                allItemsDeleted = false;
+        //            }
+        //        }
 
-                if (allItemsDeleted)
-                {
-                    _unitOfWork.Save();
-                    return true;
-                }
-            }
-            return false;
-        }
+        //        if (allItemsDeleted)
+        //        {
+        //            _unitOfWork.Save();
+        //            return true;
+        //        }
+        //    }
+        //    return false;
+        //}
         [NonAction]
         public bool AreAnyStringsNullOrEmpty(PaymentResponse response)
         {

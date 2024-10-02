@@ -58,25 +58,25 @@ namespace _2Sport_BE.Service.Services
                 List<ItemData> orders = new List<ItemData>();
                 var listOrderDetail = order.OrderDetails.ToList();
                 var userId = order.UserId;
-                var user = await _userService.FindAsync((int)userId);
+                var user = await _userService.GetUserById((int)userId);
                 for(int i = 0; i < listOrderDetail.Count; i++)
                 {   var product = await _productService.GetProductById((int)listOrderDetail[i].ProductId);
                     var name = product.ProductName;
                     var soluong = listOrderDetail[i].Quantity;
                     var thanhtien = Convert.ToInt32(listOrderDetail[i].Price.ToString());
-                    ItemData item = new ItemData(name, soluong, thanhtien);
+                    ItemData item = new ItemData(name, (int)soluong, thanhtien);
                     orders.Add(item);
                 }
-                if (order.TransportFee > 0)
+                if (order.TranSportFee > 0)
                 {
-                    ItemData item = new ItemData("Chi phi van chuyen", 1,(int) order.TransportFee);
+                    ItemData item = new ItemData("Chi phi van chuyen", 1,(int) order.TranSportFee);
                     orders.Add(item);
                 }
                 string content = $"Thanh toan hoa don {order.OrderCode}";
                 int expiredAt = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (60 * 5));
                 PaymentData data = new PaymentData(Int32.Parse(order.OrderCode), Int32.Parse(order.IntoMoney.ToString()), content, orders,
                     "https://twosportapiv2.azurewebsites.net/api/Payment/cancel", "https://twosportapiv2.azurewebsites.net/api/Payment/return",
-                    null, user.FullName, user.Email, user.Phone, user.Address, expiredAt);
+                    null, user.FullName, user.Email, user.Phone, "", expiredAt);
                 var createPayment = await _payOs.createPaymentLink(data);
                 return createPayment.checkoutUrl;
             }

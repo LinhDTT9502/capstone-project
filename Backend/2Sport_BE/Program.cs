@@ -7,23 +7,25 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using MailKit;
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
 using _2Sport_BE.Service.Services;
+using Google.Apis.Auth.OAuth2;
+using FirebaseAdmin;
 using System.Configuration;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+//Setting Mail
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("AppSettings:MailSettings"));
-builder.Services.AddTransient<ISendMailService, _2Sport_BE.Services.MailService>();
+//Setting PayOs
+builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOSSettings"));
 
 builder.Services.Register();
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(x =>
    x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
-//Setting PayOs
-builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOSSettings"));
 //JWT services
 var appsettingSection = builder.Configuration.GetSection("ServiceConfiguration");
 builder.Services.Configure<ServiceConfiguration>(appsettingSection);
@@ -48,9 +50,9 @@ builder.Services.AddAuthentication(options =>
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = tokenValidationParameters;
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = tokenValidationParameters;
     })
    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
    .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
@@ -61,7 +63,27 @@ builder.Services.AddAuthentication(options =>
        options.Scope.Add(builder.Configuration["Auth0:EmailAccess"]);
        options.Scope.Add(builder.Configuration["Auth0:BirthDayAccess"]);
        options.Scope.Add(builder.Configuration["Auth0:PhoneAccess"]);
+       
+   })
+   .AddFacebook(facebookOptions =>
+   {
+       facebookOptions.AppId = builder.Configuration["Facebook:AppId"];
+       facebookOptions.AppSecret = builder.Configuration["Facebook:AppSecret"];
+       facebookOptions.CallbackPath = "/signin-facebook";
+       // Yêu cầu quyền truy cập email
+       facebookOptions.Scope.Add("email");
+
+       // Lấy thông tin từ Facebook
+       facebookOptions.Fields.Add("email"); // Email
+
    });
+//Configure Firebase
+/*var firebaseConfig = builder.Configuration.GetSection("FirebaseSettings").Get<FirebaseConfig>();
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromJson(JsonConvert.SerializeObject(firebaseConfig))
+});*/
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
@@ -94,15 +116,15 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
-    builder.WithOrigins("https://twosport.vercel.app", "http://localhost:5173")
+    builder.WithOrigins("https://twosport.vercel.app", "http://localhost:5173", "http://demo-api.ap-southeast-2.elasticbeanstalk.com")
            .AllowAnyMethod()
            .AllowAnyHeader()
     );
 });
-builder.Services.AddHttpsRedirection(options =>
-{
-    options.HttpsPort = 443;
-});
+//builder.Services.AddHttpsRedirection(options =>
+//{
+//    options.HttpsPort = 443;
+//});
 
 //Mapping services
 var mappingConfig = new MapperConfiguration(mc =>
@@ -121,8 +143,10 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
-app.UseSwagger();
-app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
+
 
 app.UseHttpsRedirection();
 app.UseRouting();
@@ -134,5 +158,7 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
 });
+
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();

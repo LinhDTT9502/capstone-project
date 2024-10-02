@@ -1,4 +1,4 @@
-﻿using _2Sport_BE.Repository.Models;
+﻿/*using _2Sport_BE.Repository.Models;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
@@ -63,4 +63,11 @@ namespace _2Sport_BE.ViewModels
         [JsonProperty("newPassword")]
         public string NewPassword { get; set; }
     }
+    public class ResetPasswordRequest
+    {
+        public string Token { get; set; }
+        public string Email { get; set; }
+        public string NewPassword { get; set; }
+    }
 }
+*/

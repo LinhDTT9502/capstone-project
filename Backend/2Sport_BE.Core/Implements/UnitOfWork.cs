@@ -1,17 +1,19 @@
-﻿using _2Sport_BE.Repository.Interfaces;
+﻿using _2Sport_BE.Repository.Data;
+using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 
 namespace _2Sport_BE.Repository.Implements
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly TwoSportDBContext _dbContext;
-        public UnitOfWork(TwoSportDBContext dbContext)
+        private readonly TwoSportCapstoneDbContext _dbContext;
+        public UnitOfWork(TwoSportCapstoneDbContext dbContext)
         {
             _dbContext = dbContext;
         }
         private IGenericRepository<Blog> _blogRepository;
         private IGenericRepository<Brand> _brandRepository;
+        private IGenericRepository<Branch> _branchRepository;
         private IGenericRepository<Cart> _cartRepository;
         private IGenericRepository<CartItem> _cartItemRepository;
         private IGenericRepository<Category> _categoryRepository;
@@ -22,7 +24,6 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<OrderDetail> _orderDetailRepository;
         private IGenericRepository<PaymentMethod> _paymentMethodRepository;
         private IGenericRepository<Product> _productRepository;
-        private IGenericRepository<Classification> _classificationRepository;
         private IGenericRepository<Review> _reviewRepository;
         private IGenericRepository<Role> _roleRepository;
         private IGenericRepository<ShipmentDetail> _shipmentDetailRepository;
@@ -31,7 +32,33 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<Warehouse> _warehouseRepository;
         private IGenericRepository<RefreshToken> _refreshTokenRepository;
         private IGenericRepository<Sport> _sportRepository;
-
+        private IGenericRepository<Employee> _employeeRepository;
+        private IGenericRepository<EmployeeDetail> _employeeDetailRepository;
+        private IGenericRepository<CustomerDetail> _customerDetailRepository;
+        private IGenericRepository<ErrorLog> _errorLogRepository;
+        private IGenericRepository<Attendance> _attendanceRepository;
+        public IGenericRepository<Attendance> AttendanceRepository
+        {
+            get
+            {
+                if (_attendanceRepository == null)
+                {
+                    _attendanceRepository = new GenericRepository<Attendance>(_dbContext);
+                }
+                return _attendanceRepository;
+            }
+        }
+        public IGenericRepository<ErrorLog> ErrorLogRepository
+        {
+            get
+            {
+                if (_errorLogRepository == null)
+                {
+                    _errorLogRepository = new GenericRepository<ErrorLog>(_dbContext);
+                }
+                return _errorLogRepository;
+            }
+        }
         public IGenericRepository<Blog> BlogRepository
         {
             get
@@ -53,6 +80,18 @@ namespace _2Sport_BE.Repository.Implements
                     _brandRepository = new GenericRepository<Brand>(_dbContext);
                 }
                 return _brandRepository;
+            }
+        }
+
+        public IGenericRepository<Branch> BranchRepository
+        {
+            get
+            {
+                if (_branchRepository == null)
+                {
+                    _branchRepository = new GenericRepository<Branch>(_dbContext);
+                }
+                return _branchRepository;
             }
         }
 
@@ -175,18 +214,6 @@ namespace _2Sport_BE.Repository.Implements
             }
         }
 
-        public IGenericRepository<Classification> ClassificationRepository
-        {
-            get
-            {
-                if (_classificationRepository == null)
-                {
-                    _classificationRepository = new GenericRepository<Classification>(_dbContext);
-                }
-                return _classificationRepository;
-            }
-        }
-
         public IGenericRepository<Review> ReviewRepository
         {
             get
@@ -279,6 +306,42 @@ namespace _2Sport_BE.Repository.Implements
                     _sportRepository = new GenericRepository<Sport>(_dbContext);
                 }
                 return _sportRepository;
+            }
+        }
+
+        public IGenericRepository<CustomerDetail> CustomerDetailRepository
+        {
+            get
+            {
+                if (_customerDetailRepository == null)
+                {
+                    _customerDetailRepository = new GenericRepository<CustomerDetail>(_dbContext);
+                }
+                return _customerDetailRepository;
+            }
+        }
+
+        public IGenericRepository<Employee> EmployeeRepository
+        {
+            get
+            {
+                if (_employeeRepository == null)
+                {
+                    _employeeRepository = new GenericRepository<Employee>(_dbContext);
+                }
+                return _employeeRepository;
+            }
+        }
+
+        public IGenericRepository<EmployeeDetail> EmployeeDetailRepository
+        {
+            get
+            {
+                if (_employeeDetailRepository == null)
+                {
+                    _employeeDetailRepository = new GenericRepository<EmployeeDetail>(_dbContext);
+                }
+                return _employeeDetailRepository;
             }
         }
 

@@ -25,9 +25,12 @@ namespace _2Sport_BE.Service.Services
                                   int? pageSize = null);
 
         Task<Product> GetProductById(int id);
+        Task<Product> GetProductByProductCode(string productCode);
+        Task<Product> AddProduct(Product product);
         Task AddProducts(IEnumerable<Product> products);
         Task DeleteProductById(int id);
         Task UpdateProduct(Product newProduct);
+        Task<IQueryable<Product>> GetProductByProductCodeSizeColorCondition(string productCode, string size, string color, int condition);
     }
     public class ProductService : IProductService
     {
@@ -36,6 +39,12 @@ namespace _2Sport_BE.Service.Services
         public ProductService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+        }
+
+        public async Task<Product> AddProduct(Product product)
+        {
+            await _unitOfWork.ProductRepository.InsertAsync(product);
+            return product;
         }
 
         public async Task AddProducts(IEnumerable<Product> products)
@@ -57,6 +66,22 @@ namespace _2Sport_BE.Service.Services
         public async Task<Product> GetProductById(int id)
         {
             return await _unitOfWork.ProductRepository.FindAsync(id);
+        }
+
+        public async Task<Product> GetProductByProductCode(string productCode)
+        {
+            return (await _unitOfWork.ProductRepository.GetAsync(_ => _.ProductCode
+                                                       .ToLower().Equals(productCode.ToLower()))).FirstOrDefault();
+        }
+
+        public async Task<IQueryable<Product>> GetProductByProductCodeSizeColorCondition(string productCode, string size, string color, int condition)
+        {
+            var product = await _unitOfWork.ProductRepository.GetAsync(_ => _.ProductCode.ToLower()
+                                                                        .Equals(productCode.ToLower()) &&
+                                                                        _.Size.ToLower().Equals(size.ToLower()) &&
+                                                                        _.Color.ToLower().Equals(color.ToLower()) &&
+                                                                        _.Condition == condition);
+            return product.AsQueryable();
         }
 
         public async Task<IQueryable<Product>> GetProducts(Expression<Func<Product, bool>> filter = null)

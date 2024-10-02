@@ -1,19 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace _2Sport_BE.Repository.Models
+namespace _2Sport_BE.Repository.Models;
+
+[Table("ImagesVideos")]
+public class ImagesVideo
 {
-    public partial class ImagesVideo
-    {
-        public int Id { get; set; }
-        public string ImageName { get; set; }
-        public string ImagePath { get; set; }
-        public string VideoName { get; set; }
-        public string VideoPath { get; set; }
-        public int? BlogId { get; set; }
-        public int? ProductId { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-        public virtual Blog Blog { get; set; }
-        public virtual Product Product { get; set; }
-    }
+    [Column("ImageUrl", TypeName = "varchar")]
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
+
+    [Column("VideoUrl", TypeName = "varchar")]
+    [MaxLength(500)]
+    public string? VideoUrl { get; set; }
+
+    [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+    [DataType(DataType.DateTime)]
+    public DateTime? CreateAt { get; set; }
+
+    [Column("BlogId")]
+    public int? BlogId { get; set; }
+
+
+    [Column("ProductId")]
+    public int? ProductId { get; set; }
+
+    public virtual Product Product { get; set; }
+    public virtual Blog Blog { get; set; }
 }

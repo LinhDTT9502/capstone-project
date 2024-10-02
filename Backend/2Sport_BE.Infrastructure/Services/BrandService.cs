@@ -1,3 +1,4 @@
+using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.EntityFrameworkCore;
@@ -24,8 +25,8 @@ namespace _2Sport_BE.Infrastructure.Services
     public class BrandService : IBrandService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly TwoSportDBContext _dBContext;
-        public BrandService(IUnitOfWork unitOfWork, TwoSportDBContext dBContext)
+        private readonly TwoSportCapstoneDbContext _dBContext;
+        public BrandService(IUnitOfWork unitOfWork, TwoSportCapstoneDbContext dBContext)
         {
             _unitOfWork = unitOfWork;
             _dBContext = dBContext;
@@ -33,6 +34,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
         public async Task CreateANewBrandAsync(Brand brand)
         {
+            brand.Status = true;
             await _unitOfWork.BrandRepository.InsertAsync(brand);
         }
 
@@ -53,7 +55,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
         public async Task<IQueryable<Brand>> GetBrandsAsync(string brandName)
         {
-            IEnumerable<Brand> filter = await _unitOfWork.BrandRepository.GetAsync(_ => _.BrandName.ToUpper().Contains(brandName.ToUpper()));
+            IEnumerable<Brand> filter = await _unitOfWork.BrandRepository.GetAsync(_ => _.BrandName.ToUpper().Equals(brandName.ToUpper()));
             return filter.AsQueryable();
         }
 
