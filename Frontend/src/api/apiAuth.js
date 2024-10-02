@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://twosportapiv2.azurewebsites.net/api/Auth';
+const API_BASE_URL = 'https://twosportapi-295683427295.asia-southeast2.run.app/api/Auth';
 
 export const signIn = (userName, password) => {
   return axios.post(`${API_BASE_URL}/sign-in`, {

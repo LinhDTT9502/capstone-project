@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { Router, Route, Routes } from "react-router-dom";
-import './App.css'
-import Header from './layouts/Header'
+import { useState } from 'react';
+import { Route, Routes } from "react-router-dom";
+import './App.css';
+import Header from './layouts/Header';
 import LandingPage from './pages/LandingPage';
 import ProductPage from './pages/ProductPage';
 import Productv2Page from './pages/Productv2Page';
@@ -25,40 +25,39 @@ import AboutUs from './pages/AboutUs';
 import OrderSuccess from './components/Payment/OrderSuccess';
 import OrderCancel from './components/Payment/OrderCancel';
 import SidebarStaff from './layouts/SidebarStaff';
-import Warehouse from './components/Staff/Warehouse'
+import Warehouse from './components/Staff/Warehouse';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoutes from './routes/AdminRoutes';
-
+// import ProductForm from './components/Staff/ImportForm';
+// import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 
 
 function App() {
-  const user = useSelector(selectUser)
+  const user = useSelector(selectUser);
   const isStaffOrAdmin = user && (user.role === 'staff' || user.role === 'Admin');
+  
   return (
     <>
       {!isStaffOrAdmin && <div><Header />
-      {/* <BreadcrumbsDefault/> */}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/manage-account/*" element={<UserRoutes />} />
-        {/* <Route path="/productv2" element={<Productv2Page />} /> */}
         <Route path="/product/*" element={<ProductRoutes />} />
+        {/* <Route path="/productform" element={<ProductForm />} /> */}
         <Route path="/cart" element={<UserCart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/shipment" element={<UserShipment />} />
-
-        {/* <Route path="/dashboard" element={<Dashboard />} /> */}
         <Route path="/manage-user" element={<ManageUser />} />
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/order_success" element={<OrderSuccess />} />
         <Route path="/order_cancel" element={<OrderCancel />} />
         <Route path="/employee/warehouse" element={<Warehouse />} />
+        {/* <Route path="/privacy-policy" element={<PrivacyPolicyPage />} /> */}
         <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-        <Footer />
-        </div>
-      }
+      </Routes>
+      <Footer />
+      </div>}
       <Routes>
         <Route
           path='/admin/*'
@@ -70,7 +69,7 @@ function App() {
         />
       </Routes>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
