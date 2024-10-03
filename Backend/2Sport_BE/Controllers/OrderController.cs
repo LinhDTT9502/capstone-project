@@ -21,10 +21,17 @@ namespace _2Sport_BE.Controllers
 
         private readonly IOrderService _orderService;
         private readonly ICartService _cartService;
-        public OrderController(IOrderService orderService, ICartService cartService)
+        private readonly ICartItemService _cartItemService;
+        private readonly IPaymentService _paymentService;
+        public OrderController( IOrderService orderService,
+                                ICartService cartService,
+                                ICartItemService cartItemService,
+                                IPaymentService paymentService)
         {
             _orderService = orderService;
             _cartService = cartService;
+            _cartItemService = cartItemService;
+            _paymentService = paymentService;
         }
         [HttpGet]
         [Route("get-all-orders")]
@@ -175,7 +182,7 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(response);
             }
         }
-        [HttpPost("checkout-for-customer")]
+        [HttpPost("checkout-sale-for-customer")]
         public async Task<IActionResult> HandleCheckoutForCustomer([FromBody] OrderCM orderCM, [FromQuery] int paymentMethodId)
         {
             if (!ModelState.IsValid)
@@ -189,40 +196,102 @@ namespace _2Sport_BE.Controllers
             }
 
             var cart = await _cartService.GetCartByUserId(orderCM.UserID);
-            if (cart == null || !cart.CartItems.Any())
+            if (cart == null || cart.CartItems.Count == 0)
             {
                 return NotFound("Your Cart is empty");
             }
 
-            var response = await _orderService.ProcessCheckoutOrder(orderCM);
-            if (response.IsSuccess)
+            //Tao order
+            var response = await _orderService.ProcessCreatetOrder(orderCM);
+            if (!response.IsSuccess)
             {
-
-                return Ok(response);
+                return StatusCode(500, response);
             }
-            return BadRequest(response);
-        }
-        /* [HttpPost("create-order")]
-         public async Task<IActionResult> PostOrder([FromBody] OrderCM orderCM)
-         {
-             if (orderCM == null)
-             {
-                 return BadRequest();
-             }
-             int userId =  GetCurrentUserIdFromToken();
-             User user = await _userService.GetUserById(userId);
-             var order = _mapper.Map<OrderCM, Order>(orderCM);
-             order.UserId = userId;
-             order.User = user;
-             var result = await _orderService.AddOrderAsync(order);
 
-             if (result == null)
-             {
-                 return NotFound();
-             }
-             var orderVm = _mapper.Map<Order, OrderVM>(result);
-             return Ok(orderVm);
-         }*/
+            //Xoa cart
+            var isDeleteCartItem = await _cartItemService.DeleteCartItem(cart, orderCM.orderDetailCMs);
+            if (!isDeleteCartItem)
+            {
+                return StatusCode(500, "Deleting cart item fail");
+            }
+
+            //Tao link payment
+            var paymentLink = orderCM.PaymentMethodID == (int)OrderMethods.PayOS
+                                  ? await _paymentService.PaymentWithPayOs(response.Data.OrderID)
+                                  : "";
+            if(paymentLink.Length == 0)
+            {
+                return BadRequest("Cannot create payment link");
+            }
+            response.Data.PaymentLink = paymentLink;
+            return Ok(response);
+        }
+        [HttpPost("checkout-sale-for-guest")]
+        public async Task<IActionResult> HandleCheckoutForGuest([FromBody] GuestOrderCM guestOrderCM, [FromQuery] int paymentMethodId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            //Tao order
+            var response = await _orderService.ProcessCreatetOrderForGuest(guestOrderCM);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            //Tao link payment
+            var paymentLink = guestOrderCM.PaymentMethodID == (int)OrderMethods.PayOS
+                                  ? await _paymentService.PaymentWithPayOs(response.Data.OrderID)
+                                  : "";
+            if (paymentLink.Length == 0)
+            {
+                return BadRequest("Cannot create payment link");
+            }
+            response.Data.PaymentLink = paymentLink;
+            return Ok(response);
+        }
+        [HttpGet("cancel")]
+        public async Task<IActionResult> HandleOrderCancel([FromQuery] PaymentResponse paymentResponse)
+        {
+            if (!ModelState.IsValid || AreAnyStringsNullOrEmpty(paymentResponse))
+            {
+                return BadRequest(new ResponseModel<object>
+                {
+                    IsSuccess = false,
+                    Message = "Invalid request data.",
+                    Data = null
+                });
+            }
+
+            var result = await _orderService.ProcessCancelledOrder(paymentResponse);
+            if (result.IsSuccess)
+            {
+                var redirectUrl = "https://twosport.vercel.app/order_cancel";
+                return Redirect(redirectUrl);
+            }
+           return BadRequest(result);
+        }
+        [HttpGet("return")]
+        public async Task<IActionResult> HandleOrderReturn([FromQuery] PaymentResponse paymentResponse)
+        {
+            if (!ModelState.IsValid || AreAnyStringsNullOrEmpty(paymentResponse))
+            {
+                return BadRequest(new ResponseModel<object>
+                {
+                    IsSuccess = false,
+                    Message = "Invalid request data.",
+                    Data = null
+                });
+            }
+
+            var result = await _orderService.ProcessCompletedOrder(paymentResponse);
+            if (result.IsSuccess)
+            {
+                var redirectUrl = "https://twosport.vercel.app/order_success";
+                return Redirect(redirectUrl);
+            }
+            return BadRequest(result);
+        }
         /*        [HttpGet]
             [Route("get-orders-sales")]
             public async Task<IActionResult> GetSalesOrders(int month)
@@ -264,7 +333,22 @@ namespace _2Sport_BE.Controllers
                     return BadRequest(response);
                 }
             }*/
-
+        [HttpGet]
+        [Route("get-revenue")]
+        public async Task<IActionResult> GetRevenue(
+           [FromQuery] int? branchId,
+           [FromQuery] int? orderType,
+           [FromQuery] DateTime? dateFrom,
+           [FromQuery] DateTime? dateTo,
+           [FromQuery] int? status)
+        {
+            var response = await _orderService.GetOrdersRevenue(branchId, orderType, dateFrom, dateTo, status);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
         [NonAction]
         private double PercentageChange(int current, int previous, out bool isIncrease)
         {
@@ -301,6 +385,14 @@ namespace _2Sport_BE.Controllers
             {
                 return UserId;
             }
+        }
+        [NonAction]
+        public bool AreAnyStringsNullOrEmpty(PaymentResponse response)
+        {
+            return string.IsNullOrEmpty(response.Status) ||
+                   string.IsNullOrEmpty(response.Code) ||
+                   string.IsNullOrEmpty(response.Id) ||
+                   string.IsNullOrEmpty(response.OrderCode);
         }
     }
 }

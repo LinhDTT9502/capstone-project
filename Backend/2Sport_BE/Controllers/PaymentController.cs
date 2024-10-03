@@ -1,4 +1,4 @@
-﻿/*using _2Sport_BE.DataContent;
+﻿using _2Sport_BE.DataContent;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
@@ -54,73 +54,73 @@ namespace _2Sport_BE.Controllers
             _unitOfWork = unitOfWork;
         }
         [HttpPost("checkout-orders")]
-        public async Task<IActionResult> CreatePayOsLink([FromBody] OrderCM orderCM, int orderMethodId)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Invalid request data.");
-            }
+        //public async Task<IActionResult> CreatePayOsLink([FromBody] OrderCM orderCM, int orderMethodId)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest("Invalid request data.");
+        //    }
 
-            var user = await GetUserFromToken();
-            if (user is null)
-            {
-                return Unauthorized("Invalid user!");
-            }
+        //    var user = await GetUserFromToken();
+        //    if (user is null)
+        //    {
+        //        return Unauthorized("Invalid user!");
+        //    }
 
-            var cart = await _cartService.GetCartByUserId(user.Id);
-            if (cart == null || !cart.CartItems.Any())
-            {
-                return NotFound("Your Cart is empty");
-            }
+        //    var cart = await _cartService.GetCartByUserId(user.Id);
+        //    if (cart == null || !cart.CartItems.Any())
+        //    {
+        //        return NotFound("Your Cart is empty");
+        //    }
 
-            Order order = null;
-            if (orderMethodId == (int)OrderMethods.PayOS || orderMethodId == (int)OrderMethods.COD)
-            {
-                order = await CreateOrder(orderCM, orderMethodId);
-                if (order == null)
-                {
-                    return StatusCode(500, "Order creation failed.");
-                }
+        //    Order order = null;
+        //    if (orderMethodId == (int)OrderMethods.PayOS || orderMethodId == (int)OrderMethods.COD)
+        //    {
+        //        order = await CreateOrder(orderCM, orderMethodId);
+        //        if (order == null)
+        //        {
+        //            return StatusCode(500, "Order creation failed.");
+        //        }
 
-                var check = await DeleteCartItem(cart, orderCM.OrderDetails);
-                if (!check)
-                {
-                    return StatusCode(500, "Failed to delete cart items.");
-                }
+        //        var check = await DeleteCartItem(cart, orderCM.OrderDetails);
+        //        if (!check)
+        //        {
+        //            return StatusCode(500, "Failed to delete cart items.");
+        //        }
 
-                var paymentLink = orderMethodId == (int)OrderMethods.PayOS
-                                  ? await _paymentService.PaymentWithPayOs(order.Id)
-                                  : null;
+        //        var paymentLink = orderMethodId == (int)OrderMethods.PayOS
+        //                          ? await _paymentService.PaymentWithPayOs(order.Id)
+        //                          : null;
 
-                var orderVM = new OrderVM()
-                {
-                    id = order.Id,
-                    ShipmentDetailId = orderCM.ShipmentDetailId,
-                    PaymentMethod = order.PaymentMethod.PaymentMethodName,
-                    ReceivedDate = order.ReceivedDate,
-                    TransportFee = order.TranSportFee,
-                    IntoMoney = order.IntoMoney,
-                    Status = order.Status,
-                    PaymentLink = paymentLink,
-                    OrderDetails = order.OrderDetails.Select(item => new OrderDetailRequest
-                    {
-                        ProductId = item.ProductId,
-                        Price = (decimal)item.Price,
-                        Quantity = item.Quantity
-                    }).ToList()
-                };
+        //        var orderVM = new OrderVM()
+        //        {
+        //            id = order.Id,
+        //            ShipmentDetailId = orderCM.ShipmentDetailId,
+        //            PaymentMethod = order.PaymentMethod.PaymentMethodName,
+        //            ReceivedDate = order.ReceivedDate,
+        //            TransportFee = order.TranSportFee,
+        //            IntoMoney = order.IntoMoney,
+        //            Status = order.Status,
+        //            PaymentLink = paymentLink,
+        //            OrderDetails = order.OrderDetails.Select(item => new OrderDetailRequest
+        //            {
+        //                ProductId = item.ProductId,
+        //                Price = (decimal)item.Price,
+        //                Quantity = item.Quantity
+        //            }).ToList()
+        //        };
 
-                var responseModel = new ResponseModel<OrderVM>
-                {
-                    IsSuccess = true,
-                    Message = "Query successfully!",
-                    Data = orderVM
-                };
-                return Ok(responseModel);
-            }
+        //        var responseModel = new ResponseModel<OrderVM>
+        //        {
+        //            IsSuccess = true,
+        //            Message = "Query successfully!",
+        //            Data = orderVM
+        //        };
+        //        return Ok(responseModel);
+        //    }
 
-            return BadRequest("Invalid order method.");
-        }
+        //    return BadRequest("Invalid order method.");
+        //}
 
         [HttpGet("GetPaymentLinkInformation/{orderId}")]
         public async Task<IActionResult> GetPaymentLinkInformation(int orderId)
@@ -159,7 +159,7 @@ namespace _2Sport_BE.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpGet("cancel")]
+/*        [HttpGet("cancel")]
         public async Task<IActionResult> HandleCancel([FromQuery] PaymentResponse paymentResponse)
         {
             if (!ModelState.IsValid || AreAnyStringsNullOrEmpty(paymentResponse))
@@ -240,8 +240,7 @@ namespace _2Sport_BE.Controllers
             _unitOfWork.Save();
             var redirectUrl = "https://twosport.vercel.app/order_success";
             return Redirect(redirectUrl);
-        }
-
+        }*/
         [NonAction]
         public string GenerateOrderCode()
         {
@@ -279,8 +278,10 @@ namespace _2Sport_BE.Controllers
             var user = await _userService.GetUserWithConditionAsync(_ => _.Id == GetCurrentUserIdFromToken());
             return user.FirstOrDefault();
         }
-        [NonAction]
-        protected async Task<Order> CreateOrder(OrderCM orderCM, int paymentMethodId)
+
+        /*
+         [NonAction]
+         protected async Task<Order> CreateOrder(OrderCM orderCM, int paymentMethodId)
         {
             var user = await GetUserFromToken();
             if (user == null)
@@ -334,7 +335,7 @@ namespace _2Sport_BE.Controllers
             await _orderService.AddOrderAsync(order);
 
             return order;
-        }
+        }*/
         [NonAction]
         protected async Task<bool> DeleteCartItem(Cart cart, List<OrderDetailRequest> orderDetails)
         {
@@ -387,4 +388,4 @@ namespace _2Sport_BE.Controllers
                    string.IsNullOrEmpty(response.OrderCode);
         }
     }
-}*/
+}

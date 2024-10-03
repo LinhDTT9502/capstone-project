@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240930122708_modify_OrderTable_OrderDetailTable_BranchTable_and_AddGuestTable")]
+    partial class modify_OrderTable_OrderDetailTable_BranchTable_and_AddGuestTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -473,39 +476,6 @@ namespace _2Sport_BE.Migrations
                     b.ToTable("ErrorLogs");
                 });
 
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.Guest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("Address");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("Email");
-
-                    b.Property<string>("FullName")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("FullName");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("PhoneNumber");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Guests");
-                });
-
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ImagesVideo", b =>
                 {
                     b.Property<int>("Id")
@@ -639,9 +609,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<DateTime?>("CreateAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("GuestId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("IntoMoney")
                         .HasColumnType("decimal")
                         .HasColumnName("IntoMoney");
@@ -655,10 +622,6 @@ namespace _2Sport_BE.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar")
                         .HasColumnName("OrderCode");
-
-                    b.Property<int?>("OrderType")
-                        .HasColumnType("int")
-                        .HasColumnName("OrderType");
 
                     b.Property<int?>("PaymentMethodId")
                         .HasColumnType("int")
@@ -683,15 +646,13 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("decimal")
                         .HasColumnName("TranSportFee");
 
-                    b.Property<int?>("UserId")
+                    b.Property<int>("UserId")
                         .HasColumnType("int")
                         .HasColumnName("UserId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BranchId");
-
-                    b.HasIndex("GuestId");
 
                     b.HasIndex("PaymentMethodId");
 
@@ -1346,10 +1307,6 @@ namespace _2Sport_BE.Migrations
                         .WithMany("Orders")
                         .HasForeignKey("BranchId");
 
-                    b.HasOne("_2Sport_BE.Repository.Models.Guest", "Guest")
-                        .WithMany()
-                        .HasForeignKey("GuestId");
-
                     b.HasOne("_2Sport_BE.Repository.Models.PaymentMethod", "PaymentMethod")
                         .WithMany("Orders")
                         .HasForeignKey("PaymentMethodId");
@@ -1360,11 +1317,11 @@ namespace _2Sport_BE.Migrations
 
                     b.HasOne("_2Sport_BE.Repository.Models.User", "User")
                         .WithMany("Orders")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Branch");
-
-                    b.Navigation("Guest");
 
                     b.Navigation("PaymentMethod");
 
