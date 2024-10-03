@@ -1,6 +1,7 @@
 ﻿using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
+using _2Sport_BE.Service.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace _2Sport_BE.Service.Services
         Task DeleteCartItem(int cartItemId);
         Task ReduceCartItem(int cartItemId);
         Task UpdateQuantityOfCartItem(int cartItemId, int quantity);
-        //Task<bool> DeleteCartItem(Cart cart, int orderId);
+        Task<bool> DeleteCartItem(Cart cart, List<OrderDetailCM> orderDetailCMs);
 	}
 	public class CartItemService : ICartItemService
     {
@@ -188,7 +189,7 @@ namespace _2Sport_BE.Service.Services
                 return false;
             }
 
-            if (cart.CartItems.Count() > 0)
+            if (cart.CartItems.Count > 0)
             {
                 bool allItemsDeleted = true;
                 foreach (var orderDetail in orderDetails)
@@ -221,5 +222,39 @@ namespace _2Sport_BE.Service.Services
             }
             return false;
         }*/
+
+        public async Task<bool> DeleteCartItem(Cart cart, List<OrderDetailCM> orderDetailCMs)
+        {
+            if (orderDetailCMs == null || orderDetailCMs.Count < 1)
+            {
+                return false;
+            }
+
+            HashSet<int?> productIdsToDelete = new HashSet<int?>(orderDetailCMs.Select(od => od.ProductID));
+
+            bool flag = false;
+            List<CartItem> cartItems = cart.CartItems.ToList();
+  
+            List<CartItem> itemsToDelete = new List<CartItem>();
+
+            foreach (var cartItem in cartItems)
+            {
+                if (productIdsToDelete.Contains(cartItem.ProductId))
+                {
+                    itemsToDelete.Add(cartItem);
+                    flag = true;
+                }
+            }
+
+            if (itemsToDelete.Count > 0)
+            {
+                foreach (var item in itemsToDelete)
+                {
+                    await _unitOfWork.CartItemRepository.DeleteAsync(item);
+                }
+            }
+
+            return flag;
+        }
     }
 }
