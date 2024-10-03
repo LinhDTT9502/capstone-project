@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://twosportapiv2.azurewebsites.net/api/Import';
+const API_BASE_URL = 'https://twosportapi-295683427295.asia-southeast2.run.app/api/Import';
 
 export const importAPI = async (quantity, productId, supplierId) => {
   const url = `${API_BASE_URL}/import-product`;

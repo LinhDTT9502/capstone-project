@@ -8,10 +8,9 @@ namespace _2Sport_BE.Service.DTOs
 {
     public class OrderDetailDTO
     {
-        public int? ProductID { get; set; }
+        public int? WarehouseId { get; set; }
         public int? Quantity { get; set; }
         public decimal Price { get; set; }
-        public int? BranchId { get; set; }
     }
     public class OrderDetailCM : OrderDetailDTO
     {

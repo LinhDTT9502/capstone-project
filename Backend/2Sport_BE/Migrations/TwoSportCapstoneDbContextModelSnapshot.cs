@@ -230,13 +230,9 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CartId")
+                    b.Property<int>("CartId")
                         .HasColumnType("int")
                         .HasColumnName("CartId");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int")
-                        .HasColumnName("ProductId");
 
                     b.Property<int?>("Quantity")
                         .HasColumnType("int");
@@ -248,11 +244,15 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("decimal")
                         .HasColumnName("TotalPrice");
 
+                    b.Property<int?>("WarehouseId")
+                        .HasColumnType("int")
+                        .HasColumnName("WarehouseId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CartId");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("WarehouseId");
 
                     b.ToTable("CartItems");
                 });
@@ -558,6 +558,10 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar")
                         .HasColumnName("Content");
 
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int")
+                        .HasColumnName("EmployeeId");
+
                     b.Property<DateTime?>("ImportDate")
                         .HasColumnType("datetime2");
 
@@ -578,17 +582,13 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("int")
                         .HasColumnName("SupplierId");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("UserId");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
 
                     b.HasIndex("ProductId");
 
                     b.HasIndex("SupplierId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("ImportHistories");
                 });
@@ -1218,17 +1218,17 @@ namespace _2Sport_BE.Migrations
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.Cart", "Cart")
                         .WithMany("CartItems")
-                        .HasForeignKey("CartId");
-
-                    b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
-                        .WithMany("CartItems")
-                        .HasForeignKey("ProductId")
+                        .HasForeignKey("CartId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("_2Sport_BE.Repository.Models.Warehouse", "Warehouse")
+                        .WithMany("CartItems")
+                        .HasForeignKey("WarehouseId");
+
                     b.Navigation("Cart");
 
-                    b.Navigation("Product");
+                    b.Navigation("Warehouse");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
@@ -1296,6 +1296,12 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ImportHistory", b =>
                 {
+                    b.HasOne("_2Sport_BE.Repository.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
                         .WithMany("ImportHistories")
                         .HasForeignKey("ProductId")
@@ -1306,17 +1312,11 @@ namespace _2Sport_BE.Migrations
                         .WithMany("ImportHistories")
                         .HasForeignKey("SupplierId");
 
-                    b.HasOne("_2Sport_BE.Repository.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Employee");
 
                     b.Navigation("Product");
 
                     b.Navigation("Supplier");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Like", b =>
@@ -1532,8 +1532,6 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Product", b =>
                 {
-                    b.Navigation("CartItems");
-
                     b.Navigation("ImagesVideos");
 
                     b.Navigation("ImportHistories");
@@ -1580,6 +1578,11 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Reviews");
 
                     b.Navigation("ShipmentDetails");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Warehouse", b =>
+                {
+                    b.Navigation("CartItems");
                 });
 #pragma warning restore 612, 618
         }

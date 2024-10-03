@@ -1,6 +1,6 @@
 import axiosInstance from './axiosInstance';
 
-const API_BASE_URL = 'https://twosportapiv2.azurewebsites.net';
+const API_BASE_URL = 'http://demo-api.ap-southeast-2.elasticbeanstalk.com';
 
 export const getShipmentDetails = ( token) => {
 

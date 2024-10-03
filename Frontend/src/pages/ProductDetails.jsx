@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchProductById } from "../services/productService";
-// import { Rating } from "@material-tailwind/react";
 import AddToCart from "../components/Product/AddToCart";
 import { Rating } from "@material-tailwind/react";
 import { useTranslation } from "react-i18next";
@@ -41,45 +40,47 @@ const ProductDetails = () => {
       {product && (
         <div className="flex flex-col justify-center items-center md:flex-row gap-1">
           <div className="md:w-1/2">
-            <h4 className="text-lg text-orange-500">{product.brandName}</h4>
+            <h4 className="text-lg text-orange-500">Shoes</h4>
             <h2 className="text-3xl font-bold text-black mt-2">
               {product.productName}
             </h2>
-            {product.reviews?.$values.map(review => (
-                <div>
-                  <Rating unratedColor="amber" ratedColor="amber" key={review.id} className="pt-5" value={review.star} readonly />
-                </div>
-              ))}
-               <h4 className="text-lg font-bold text-black mb-2">{t("product_details.price")}</h4>
-                <span className="text-2xl font-semibold text-orange-500 mt-10">
-                  {product.price} {t("product_details.vnd")}
-                </span>
-                <AddToCart />
-            {/* <div className="flex items-center mt-4">
-              <Rating value={product.rating} readOnly />
+            <div className="flex items-center mt-4">
+              <Rating unratedColor="amber" ratedColor="amber" className="pt-5" value={5} readonly />
               <span className="text-gray-600 ml-2">(15)</span>
-            </div> */}
-            <p className="text-gray-600 my-4">{product.description}</p>
-            <div className="flex justify-center items-center mt-6 space-x-20">
-              {/* <div className="space-y-2">
+            </div>
+            <p className="text-gray-600 my-4">Describe product's details. Lorem Ipsum...</p>
+            <div className="flex  items-center mt-6 space-x-20">
+              <div>
                 <h4 className="text-lg font-bold text-black">Size</h4>
                 <select className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
                   <option>{product.size}</option>
                 </select>
-              </div> */}
-              {/* <div className="text-left">
-                <h4 className="text-lg font-bold text-black mb-2">Price</h4>
-                <span className="text-2xl font-semibold text-orange-500 mt-10">
-                  {product.price} VND
-                </span>
+              </div>
+              {/* <div>
+                <h4 className="text-lg font-bold text-black">Stock</h4>
+                <span className="text-black">15 Available</span>
               </div> */}
             </div>
-            
+            <div className="flex  items-center space-x-5 mt-4">
+              <div className="flex items-center">
+                <button className="text-xl p-2 bg-gray-200 rounded-md">-</button>
+                <span className="text-xl mx-4">1</span>
+                <button className="text-xl p-2 bg-gray-200 rounded-md">+</button>
+              </div>
+            </div>
+            <div className="flex items-center mt-4 space-x-4">
+              <button className="bg-black text-white px-6 py-2 text-lg font-semibold rounded-md">
+                Add to Cart
+              </button>
+              <button className="bg-blue-500 text-white px-6 py-2 text-lg font-semibold rounded-md">
+                Rent
+              </button>
+            </div>
           </div>
           <div className="md:w-1/2 flex justify-center items-center">
             <img
-              src={product.mainImagePath}
-              alt={product.mainImageName}
+              src={product.imgAvatarPath}
+              alt={product.imgAvatarName}
               className="w-1/2 h-auto object-cover rounded-lg"
             />
           </div>

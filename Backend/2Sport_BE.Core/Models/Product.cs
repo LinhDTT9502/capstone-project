@@ -72,9 +72,6 @@ public class Product
 
     public virtual Sport? Sport { get; set; }
     public virtual Brand? Brand { get; set; }
-
-    public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
-
     public virtual Category? Category { get; set; }
 
     public virtual ICollection<ImagesVideo> ImagesVideos { get; set; } = new List<ImagesVideo>();

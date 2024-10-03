@@ -2,7 +2,6 @@ import { faFacebook, faInstagram } from "@fortawesome/free-brands-svg-icons";
 import {
   faEnvelope,
   faLocationDot,
-  faMapLocationDot,
   faPhone,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -50,45 +49,15 @@ function Footer() {
               </button>
             </div>
           </div>
+          <div className="mt-4">
+            <Link to="/privacy-policy" className="text-white underline">
+              Privacy Policy
+            </Link>
+          </div>
         </div>
+
         {/* right side */}
         <div className="w-1/2">
-          {/* <div className="grid grid-cols-1 md:grid-cols-3">
-            <div className="space-y-2 text-white">
-              <Typography className="text-white mb-4 font-alfa">
-                Company
-              </Typography>
-              <Typography className=" ">Liên hệ</Typography>
-              <Typography className=" ">Testimonials</Typography>
-              <Typography className="">FAQS</Typography>
-              <Typography className="">Terms & Condition</Typography>
-              <Typography className=" ">Latest Update</Typography>
-            </div>
-
-            <div className="space-y-2 text-white ">
-              <Typography className="text-white font-alfa">
-                Products
-              </Typography>
-              <Typography className=" ">Men's Section</Typography>
-              <Typography className=" ">Women's Section</Typography>
-              <Typography className="">Kid's Section</Typography>
-              <Typography className=" ">Shoes</Typography>
-              <Typography className="">Apparel</Typography>
-              <Typography className=" ">Equipments</Typography>
-            </div>
-
-            <div className="space-y-2 text-white ">
-              <Typography className="text-white font-alfa">
-                Support
-              </Typography>
-              <Typography className=" ">Order Tracking</Typography>
-              <Typography className=" ">Payment Guide</Typography>
-              <Typography className="">Help Centre</Typography>
-              <Typography className="">Privacy Policy</Typography>
-              <Typography className="">Return Policy</Typography>
-              <Typography className="">Promo Codes</Typography>
-            </div>
-          </div> */}
           <div className="grid grid-cols-3 pt-6">
             <div className="space-y-2 col-span-2 text-white">
               <Typography className="">

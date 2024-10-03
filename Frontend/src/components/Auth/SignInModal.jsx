@@ -39,7 +39,7 @@ export default function SignInModal() {
   const onSubmit = async (data) => {
     try {
       const decoded = await authenticateUser(dispatch, data);
-      // console.log(decoded);
+      console.log(decoded);
       // const currentTime = Date.now() / 1000;
       // console.log(currentTime);
       setIsSignInOpen(false);

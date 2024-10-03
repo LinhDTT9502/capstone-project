@@ -1,4 +1,5 @@
-﻿using _2Sport_BE.Repository.Data;
+﻿using _2Sport_BE.Infrastructure.Services;
+using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.DTOs;
@@ -48,11 +49,12 @@ namespace _2Sport_BE.Service.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICustomerDetailService _customerDetailService;
-
-        public OrderService(IUnitOfWork unitOfWork, ICustomerDetailService customerDetailService)
+        private readonly IWarehouseService _warehouseService;
+        public OrderService(IUnitOfWork unitOfWork, ICustomerDetailService customerDetailService, IWarehouseService warehouseService)
         {
             _unitOfWork = unitOfWork;
             _customerDetailService = customerDetailService;
+            _warehouseService = warehouseService;   
         }
         public string GenerateOrderCode()
         {
@@ -91,11 +93,11 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(_ => new OrderDetailCM()
+                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
                         {
                             Price = (decimal)_.Price,
-                            ProductID = _.ProductId,
-                            Quantity = _.Quantity
+                            Quantity = _.Quantity,
+                            WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id
                         })
                     };
                     result.Add(orderVM);
@@ -137,11 +139,11 @@ namespace _2Sport_BE.Service.Services
                     TotalPrice = item.TotalPrice.ToString(),
                     PaymentMethodId = item.PaymentMethodId,
                     ShipmentDetailId = item.ShipmentDetailId,
-                    orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(_ => new OrderDetailCM()
+                    orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
                     {
                         Price = (decimal)_.Price,
-                        ProductID = _.ProductId,
-                        Quantity = _.Quantity
+                        Quantity = _.Quantity,
+                        WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id,
                     })
                 };
 
@@ -184,10 +186,10 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(_ => new OrderDetailCM()
+                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
                         {
                             Price = (decimal)_.Price,
-                            ProductID = _.ProductId,
+                            WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id,
                             Quantity = _.Quantity
                         })
                     };
@@ -233,10 +235,10 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(_ => new OrderDetailCM()
+                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
                         {
                             Price = (decimal)_.Price,
-                            ProductID = _.ProductId,
+                            WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id,
                             Quantity = _.Quantity
                         })
                     };
@@ -281,10 +283,10 @@ namespace _2Sport_BE.Service.Services
                     TotalPrice = item.TotalPrice.ToString(),
                     PaymentMethodId = item.PaymentMethodId,
                     ShipmentDetailId = item.ShipmentDetailId,
-                    orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(_ => new OrderDetailCM()
+                    orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
                     {
                         Price = (decimal)_.Price,
-                        ProductID = _.ProductId,
+                        WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id,
                         Quantity = _.Quantity
                     })
                 };
@@ -331,10 +333,10 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(_ => new OrderDetailCM()
+                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
                         {
                             Price = (decimal)_.Price,
-                            ProductID = _.ProductId,
+                            WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id,
                             Quantity = _.Quantity
                         })
                     };
@@ -385,10 +387,10 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(_ => new OrderDetailCM()
+                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
                         {
                             Price = (decimal)_.Price,
-                            ProductID = _.ProductId,
+                            WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id,
                             Quantity = _.Quantity
                         })
                     };
@@ -504,13 +506,12 @@ namespace _2Sport_BE.Service.Services
                 foreach (var item in orderCM.orderDetailCMs)
                 {
                     var productInWarehouse = await _unitOfWork.WarehouseRepository
-                                            .GetObjectAsync(p => p.ProductId == item.ProductID 
-                                                         && p.BranchId == item.BranchId);
+                                            .GetObjectAsync(p => p.Id == item.WarehouseId);
 
                     if (productInWarehouse == null || productInWarehouse.Quantity < item.Quantity)
                     {
                         response.IsSuccess = false;
-                        response.Message = $"Not enough stock for product {item.ProductID} at branch {branch.Id}";
+                        response.Message = $"Not enough stock for product {item.WarehouseId} at branch {branch.Id}";
                         return response;
                     }
                     productInWarehouse.Quantity -= item.Quantity;
@@ -536,13 +537,14 @@ namespace _2Sport_BE.Service.Services
                 decimal totalPrice = 0;
                 foreach (var item in orderCM.orderDetailCMs)
                 {
-                   
+                    var productInWarehouse = await _unitOfWork.WarehouseRepository
+                                            .GetObjectAsync(p => p.Id == item.WarehouseId);
                     var orderDetail = new OrderDetail
                     {
-                        ProductId = item.ProductID,
+                        ProductId = productInWarehouse.ProductId,
                         Quantity = item.Quantity,
                         Price = (int)item.Price,
-                        OrderId = order.Id
+                        OrderId = productInWarehouse.BranchId
                     };
 
                     await _unitOfWork.OrderDetailRepository.InsertAsync(orderDetail);
@@ -607,13 +609,12 @@ namespace _2Sport_BE.Service.Services
                 foreach (var item in guestOrderCM.orderDetailCMs)
                 {
                     var productInWarehouse = await _unitOfWork.WarehouseRepository
-                                            .GetObjectAsync(p => p.ProductId == item.ProductID
-                                                         && p.BranchId == item.BranchId);
+                        .GetObjectAsync(p => p.Id == item.WarehouseId);
 
                     if (productInWarehouse == null || productInWarehouse.Quantity < item.Quantity)
                     {
                         response.IsSuccess = false;
-                        response.Message = $"Not enough stock for product {item.ProductID} at branch {branch.Id}";
+                        response.Message = $"Not enough stock for product {item.WarehouseId} at branch {branch.Id}";
                         return response;
                     }
                     productInWarehouse.Quantity -= item.Quantity;
@@ -641,13 +642,16 @@ namespace _2Sport_BE.Service.Services
                 decimal totalPrice = 0;
                 foreach (var item in guestOrderCM.orderDetailCMs)
                 {
+                    var productInWarehouse = await _unitOfWork.WarehouseRepository
+                        .GetObjectAsync(p => p.Id == item.WarehouseId);
 
                     var orderDetail = new OrderDetail
                     {
-                        ProductId = item.ProductID,
+                        ProductId = productInWarehouse.ProductId,
                         Quantity = item.Quantity,
                         Price = (int)item.Price,
-                        OrderId = order.Id
+                        OrderId = order.Id,
+                        BranchId = productInWarehouse.BranchId,
                     };
 
                     await _unitOfWork.OrderDetailRepository.InsertAsync(orderDetail);
