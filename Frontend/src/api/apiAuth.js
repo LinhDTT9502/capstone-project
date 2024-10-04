@@ -8,7 +8,8 @@ export const signIn = (userName, password) => {
     password,
   }, {
     headers: {
-      'accept': '*/*'
+      'accept': '*/*',
+      'Content-Type': 'application/json',
     }
   });
 };
