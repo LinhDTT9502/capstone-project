@@ -6,22 +6,22 @@
         public DateTime? ReceivedDate { get; set; }
         public List<OrderDetailRequest> OrderDetails { get; set; }
     }
-    public class OrderCM : OrderDTO
-    {
-        public int? ShipmentDetailId { get; set; }
-    }
-    public class OrderUM : OrderDTO
-    {
-    }
-    public class OrderVM : OrderDTO
-    {
-        public int? id { get; set; }
-        public int? Status { get; set; }
-        public decimal? IntoMoney { get; set; }
-        public string? PaymentMethod { get; set; }
-        public int? ShipmentDetailId { get; set; }
-        public string? PaymentLink { get; set; }
-    }
+    //public class OrderCM : OrderDTO
+    //{
+    //    public int? ShipmentDetailId { get; set; }
+    //}
+    //public class OrderUM : OrderDTO
+    //{
+    //}
+    //public class OrderVM : OrderDTO
+    //{
+    //    public int? id { get; set; }
+    //    public int? Status { get; set; }
+    //    public decimal? IntoMoney { get; set; }
+    //    public string? PaymentMethod { get; set; }
+    //    public int? ShipmentDetailId { get; set; }
+    //    public string? PaymentLink { get; set; }
+    //}
     public class OrderDetailRequest
     {
         public int? ProductId { get; set; }

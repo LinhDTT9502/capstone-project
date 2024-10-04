@@ -10,9 +10,11 @@ namespace _2Sport_BE.Service.Enums
     {
         CANCELLED = 0,
         PENDING = 1,
-        PROCESSING = 2,
+        CONFIRMED = 2,
         PAID = 3,
-        DELIVERED = 4,
-        DELAYED = 5
+        PROCESSING = 4,
+        SHIPPED = 5,
+        DELAYED = 6,
+        COMPLETED = 7,
     }
 }

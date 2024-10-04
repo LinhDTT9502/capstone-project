@@ -72,6 +72,8 @@ namespace _2Sport_BE.ViewModels
         public string ImgAvatarName { get; set; }
         [Required]
         public string LotCode { get; set; }
+        [Required]
+        public int? BranchId { get; set; }
     }
 
     public class ProductUM : ProductDTO

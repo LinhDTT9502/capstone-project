@@ -37,6 +37,18 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<CustomerDetail> _customerDetailRepository;
         private IGenericRepository<ErrorLog> _errorLogRepository;
         private IGenericRepository<Attendance> _attendanceRepository;
+        private IGenericRepository<Guest> _guestRepository;
+        public IGenericRepository<Guest> GuestRepository
+        {
+            get
+            {
+                if (_guestRepository == null)
+                {
+                    _guestRepository = new GenericRepository<Guest>(_dbContext);
+                }
+                return _guestRepository;
+            }
+        }
         public IGenericRepository<Attendance> AttendanceRepository
         {
             get

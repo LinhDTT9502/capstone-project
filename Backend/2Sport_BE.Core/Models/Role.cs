@@ -25,4 +25,32 @@ public class Role
     public DateTime? CreateAt { get; set; }
 
     public virtual ICollection<User> Users { get; set; }
+
+    //Create Indexer
+    public object this[string name]
+    {
+        get
+        {
+            if (name.ToUpper() == "ID")
+                return Id;
+            else if (name.ToUpper() == "ROLENAME")
+                return RoleName;
+            else if (name.ToUpper() == "DESCRIPTION")
+                return Description;
+            else if (name.ToUpper() == "CREATEDAT")
+                return CreateAt;
+            else return null;
+        }
+        set
+        {
+            if (name.ToUpper() == "ID")
+                Id = Convert.ToInt32(value);
+            else if (name.ToUpper() == "ROLENAME")
+                RoleName = value.ToString();
+            else if (name.ToUpper() == "DESCRIPTION")
+                Description = value.ToString();
+            else if (name.ToUpper() == "CREATEDAT")
+                CreateAt = DateTime.Parse(value.ToString());
+        }
+    }
 }

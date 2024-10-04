@@ -15,11 +15,23 @@ namespace _2Sport_BE.Controllers
             _roleService = roleService;
         }
         [HttpGet]
+        [Route("get-all-roles")]
+        public async Task<IActionResult> GetAllRoles()
+        {
+            var response = await _roleService.GetAllRoles();
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpGet]
         [Route("get-role-detail")]
         public async Task<IActionResult> GetRoleDetail([FromQuery] int roleId)
         {
             var role = _roleService.GetRoleById(roleId);
             return Ok(role);
         }
+        
     }
 }

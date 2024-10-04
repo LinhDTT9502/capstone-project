@@ -34,17 +34,20 @@ const Logout = () => {
         // console.log('RefreshToken:', refreshToken);
 
         // // Ensure tokens are not null
-        const token = window.localStorage.getItem('token');
-        const refreshToken = window.localStorage.getItem('refreshToken');
-        if (!token || !refreshToken) {
-            console.error('Token or RefreshToken is missing!');
-            return;
-        }
 
-        const data = {
-            token: token,
-            refreshToken: refreshToken
-        };
+        // COMMENT TẠM THỜI
+        // const token = window.localStorage.getItem('token');
+        // const refreshToken = window.localStorage.getItem('refreshToken');
+        // if (!token || !refreshToken) {
+        //     console.error('Token or RefreshToken is missing!');
+        //     return;
+        // }
+
+        // const data = {
+        //     token: token,
+        //     refreshToken: refreshToken
+        // };
+        // COMMENT TẠM THỜI
 
         // console.log('Request Payload:', JSON.stringify(data));
 

@@ -46,6 +46,7 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<IAttendanceService, AttendanceService>();
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IEmployeeDetailService, EmployeeDetailService>();
+            services.AddScoped<ICustomerDetailService, CustomerDetailService>();
         }
 
         private static string GetConnectionStrings()

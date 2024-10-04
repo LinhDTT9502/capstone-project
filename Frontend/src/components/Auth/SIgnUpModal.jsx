@@ -45,7 +45,7 @@ export default function SignUpModal({ isOpen, closeModal, openSignInModal }) {
   };
 
   const handleSignInClick = () => {
-    closeModal();
+    closeModal();z
     openSignInModal();
   };
 

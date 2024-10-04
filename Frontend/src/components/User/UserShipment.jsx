@@ -65,7 +65,7 @@ const UserShipment = () => {
   };
 
   return (
-    <div className="container mx-auto px-20 py-5">
+    <div className="container mx-auto px-20 py-5 bg-white blur-none shadow-xl rounded-lg">
       {shipments.length === 0 ? (
         <p>{t("user_shipment.empty")}</p>
       ) : (

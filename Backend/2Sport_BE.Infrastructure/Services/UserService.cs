@@ -11,6 +11,7 @@ using Vonage;
 using Vonage.Request;
 using Vonage.Messaging;
 using Nexmo.Api;
+using static System.Net.Mime.MediaTypeNames;
 namespace _2Sport_BE.Infrastructure.Services
 {
     public interface IUserService
@@ -356,17 +357,17 @@ namespace _2Sport_BE.Infrastructure.Services
         }
         public async Task<string> VerifyPhoneNumber(string from, string to)
         {
-            /*var credentials = Credentials.FromApiKeyAndSecret("a985b2e1", "45WqlXONkSho55Yf");
+            var credentials = Credentials.FromApiKeyAndSecret("a985b2e1", "45WqlXONkSho55Yf");
 
-            var vonageClient = new VonageClient(credentials);*/
+            var vonageClient = new VonageClient(credentials);
 
-            /*var request = new Vonage.Messages.Sms.SmsRequest
+            var response = await vonageClient.SmsClient.SendAnSmsAsync(new Vonage.Messaging.SendSmsRequest()
             {
-                To = to,
-                From = "0366819078",
-                Text = "Xin chao 2sport"
-            };*/
-            var credentials = new Nexmo.Api.Request.Credentials()
+                To = "+84384394372",
+                From = "+84366819078",
+                Text = "A text message sent using the Vonage SMS API"
+            }); 
+            /*var credentials = new Nexmo.Api.Request.Credentials()
             {
                 ApiKey = "a985b2e1",
                 ApiSecret = "45WqlXONkSho55Yf"
@@ -377,7 +378,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 from = from,
                 to = to,
                 text = "2sport v3"
-            }, credentials);
+            }, credentials);*/
 
 
             /* var VONAGE_API_KEY = "a985b2e1";
@@ -389,7 +390,7 @@ namespace _2Sport_BE.Infrastructure.Services
              response.Messages[0].MessageId.ToString();
              */
 
-            return results.messages[0].message_id;
+            return response.Messages.ToString();
         }
     }
 }
