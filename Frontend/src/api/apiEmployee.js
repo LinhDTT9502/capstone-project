@@ -7,7 +7,7 @@ export const employeeLogin = async (userName, password) => {
   try {
     const response = await axiosInstance.post(`${API_BASE_URL}/log-in`, {
       userName,
-      password,
+      password 
     }, {
       headers: {
         'accept': '*/*',

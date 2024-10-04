@@ -10,7 +10,7 @@ import UserDropdown from "../User/userDropdown";
 import SignUpModal from "./SIgnUpModal";
 import LoginGoogle from "./LoginGoogle";
 import ForgotPasswordModal from "./ForgotPasswordModal";
-import EmployeeLoginModal from "../Auth/SignInEmployeeModal"; // Import employee login modal
+import EmployeeLoginModal from "../Auth/SignInEmployeeModal"; 
 import { authenticateUser } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 

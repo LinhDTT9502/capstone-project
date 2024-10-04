@@ -7,43 +7,33 @@ import { employeeLogin } from '../api/apiEmployee';
 export const authenticateUser = async (dispatch, data, isEmployee = false) => {
   try {
     let response;
-
     if (isEmployee) {
       response = await employeeLogin(data.userName, data.password);
-      console.log("Employee Login API Response:", response);
     } else {
       response = await signIn(data.userName, data.password);
-      console.log("User Login API Response:", response);
+    }
+    
+    console.log("Full API Response:", response); // Kiểm tra xem có 'token' và 'refreshToken' hay không
+
+    if (!response || !response.data || !response.data.data || !response.data.data.token) {
+      throw new Error("Invalid API response");
     }
 
-    // Check if the API returned a successful response
-    if (!response.data.isSuccess) {
-      throw new Error(response.data.message || "Invalid API response");
-    }
-
-    // Check if the response contains the token and refresh token
     const token = response.data.data.token;
     const refreshToken = response.data.data.refreshToken;
-
-    if (!token || !refreshToken) {
-      throw new Error("Missing token in API response");
-    }
-
-    // Store the tokens
+    
     localStorage.setItem('token', token);
     localStorage.setItem('refreshToken', refreshToken);
 
-    // Decode the token to extract user details
     const decoded = jwtDecode(token);
     dispatch(login(decoded));
 
     return decoded;
   } catch (error) {
-    console.error('Login failed:', error);
+    console.error('Login failed', error);
     throw error;
   }
 };
-
 
 export const signUpUser = async (userData) => {
   try {
