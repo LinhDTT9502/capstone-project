@@ -4,17 +4,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { login, selectUser } from "../../redux/slices/authSlice";
 import UserDropdown from "../User/userDropdown";
 import SignUpModal from "./SIgnUpModal";
-import { jwtDecode } from "jwt-decode";
 import LoginGoogle from "./LoginGoogle";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { authenticateUser } from "../../services/authService";
 import ForgotPasswordModal from "./ForgotPasswordModal";
+import EmployeeLoginModal from "../Auth/SignInEmployeeModal"; // Import employee login modal
+import { authenticateUser } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 
 export default function SignInModal() {
@@ -31,6 +28,7 @@ export default function SignInModal() {
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [isEmployeeLoginOpen, setIsEmployeeLoginOpen] = useState(false); // Employee login state
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -39,43 +37,26 @@ export default function SignInModal() {
   const onSubmit = async (data) => {
     try {
       const decoded = await authenticateUser(dispatch, data);
-      console.log(decoded);
-      // const currentTime = Date.now() / 1000;
-      // console.log(currentTime);
       setIsSignInOpen(false);
       if (decoded.role === "Admin") {
-        navigate('/admin/dashboard');
+        navigate("/admin/dashboard");
       } else if (decoded.role === "Employee") {
-        navigate('/employee/warehouse');
+        navigate("/employee/warehouse");
       }
     } catch (error) {
       // Handle error inside authenticateUser
+      console.error("User login failed:", error);
     }
   };
 
-  function closeSignInModal() {
-    setIsSignInOpen(false);
-  }
+  const openEmployeeLoginModal = () => {
+    setIsEmployeeLoginOpen(true);
+    setIsSignInOpen(false); // Close sign-in modal when employee login modal opens
+  };
 
-  function openSignInModal() {
-    setIsSignInOpen(true);
-  }
-
-  function closeSignUpModal() {
-    setIsSignUpOpen(false);
-  }
-
-  function openSignUpModal() {
-    setIsSignUpOpen(true);
-  }
-
-  function closeForgotPasswordModal() {
-    setIsForgotPasswordOpen(false);
-  }
-
-  function openForgotPasswordModal() {
-    setIsForgotPasswordOpen(true);
-  }
+  const closeEmployeeLoginModal = () => {
+    setIsEmployeeLoginOpen(false);
+  };
 
   return (
     <>
@@ -85,7 +66,7 @@ export default function SignInModal() {
         ) : (
           <button
             type="button"
-            onClick={openSignInModal}
+            onClick={() => setIsSignInOpen(true)}
             className="border-r-2 pr-4"
           >
             <FontAwesomeIcon icon={faUser} className="pr-1" />{" "}
@@ -94,8 +75,9 @@ export default function SignInModal() {
         )}
       </div>
 
+      {/* Sign In Modal */}
       <Transition appear show={isSignInOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={closeSignInModal}>
+        <Dialog as="div" className="relative z-10" onClose={() => setIsSignInOpen(false)}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -130,8 +112,8 @@ export default function SignInModal() {
                     <button
                       className="flex font-poppins bg-gradient-to-r from-zinc-500 to-zinc-600 w-fit p-3 shadow-zinc-800 shadow-md rounded-md"
                       onClick={() => {
-                        closeSignInModal();
-                        openSignUpModal();
+                        setIsSignInOpen(false);
+                        setIsSignUpOpen(true);
                       }}
                     >
                       {t("signin.no_account")}
@@ -139,15 +121,19 @@ export default function SignInModal() {
                         {t("signin.signup")}
                       </p>
                     </button>
+                    <button
+                      className="flex font-poppins bg-gradient-to-r from-zinc-500 to-zinc-600 w-fit p-3 shadow-zinc-800 shadow-md rounded-md mt-3"
+                      onClick={openEmployeeLoginModal} // Open employee login modal
+                    >
+                      {t("signin.signin_employee")}
+                    </button>
                   </div>
                   <div className="bg-white w-1/2 px-20 text-black flex-col flex font-poppins justify-center">
                     <form
                       onSubmit={handleSubmit(onSubmit)}
-                      className=" text-black flex-col flex font-poppins justify-center pb-5"
+                      className="text-black flex-col flex font-poppins justify-center pb-5"
                     >
-                      <label className="font-alfa text-xl items-center text-center mb-2">
-                        {t("signin.signin")}
-                      </label>
+                      {/* Username Input */}
                       <label className="">{t("signin.username")}</label>
                       <input
                         type="text"
@@ -159,23 +145,13 @@ export default function SignInModal() {
                           pattern: /^[a-zA-Z0-9_]+$/,
                         })}
                       />
-                      {errors.userName &&
-                        errors.userName.type === "required" && (
-                          <p className="text-red-400 text-sm italic">
-                            {t("signin.required")}
-                          </p>
-                        )}
-                      {errors.userName &&
-                        errors.userName.type === "maxLength" && (
-                          <p>{t("signin.username_length")}</p>
-                        )}
-                      {errors.userName &&
-                        errors.userName.type === "pattern" && (
-                          <p className="text-red-400 text-sm italic">
-                            {t("signin.username_pattern")}
-                          </p>
-                        )}
+                      {errors.userName && (
+                        <p className="text-red-400 text-sm italic">
+                          {t("signin.required")}
+                        </p>
+                      )}
 
+                      {/* Password Input */}
                       <label className="">{t("signin.password")}</label>
                       <div className="relative">
                         <input
@@ -197,20 +173,23 @@ export default function SignInModal() {
                           {t("signin.password_required")}
                         </p>
                       )}
+
+                      {/* Forgot Password */}
                       <label
-                        className="text-left pb-3 text-blue-500 underline"
+                        className="text-left pb-3 text-blue-500 underline cursor-pointer"
                         onClick={() => {
-                          closeSignInModal();
-                          openForgotPasswordModal();
+                          setIsSignInOpen(false);
+                          setIsForgotPasswordOpen(true);
                         }}
                       >
                         {t("signin.forgot_password")}
                       </label>
 
+                      {/* Submit Button */}
                       <button
                         type="submit"
                         className="bg-orange-500 font-alfa text-white rounded-lg px-10 py-2 w-full"
-                        onClick={closeSignInModal}
+                        onClick={() => setIsSignInOpen(false)}
                       >
                         {t("signin.signin")}
                       </button>
@@ -224,15 +203,25 @@ export default function SignInModal() {
           </div>
         </Dialog>
       </Transition>
-      <ForgotPasswordModal
-        isOpen={isForgotPasswordOpen}
-        closeModal={closeForgotPasswordModal}
-      />
 
+      {/* Sign Up Modal */}
       <SignUpModal
         isOpen={isSignUpOpen}
-        closeModal={closeSignUpModal}
-        openSignInModal={openSignInModal}
+        closeModal={() => setIsSignUpOpen(false)}
+        openSignInModal={() => setIsSignInOpen(true)}
+      />
+
+      {/* Employee Login Modal */}
+      <EmployeeLoginModal
+        isOpen={isEmployeeLoginOpen}
+        closeModal={closeEmployeeLoginModal}
+        openSignInModal={() => setIsSignInOpen(true)} // Add this to pass the method for back navigation
+      />
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        closeModal={() => setIsForgotPasswordOpen(false)}
       />
     </>
   );
