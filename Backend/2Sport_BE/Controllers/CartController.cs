@@ -107,6 +107,7 @@ namespace _2Sport_BE.Controllers
 					return Unauthorized();
 				}
 
+				var oldCartItem = await _cartItemService.GetCartItemByWareHouseId(cartItemCM.WarehouseId);
 				var newCartItem = _mapper.Map<CartItemCM, CartItem>(cartItemCM);
 				var warehouse = (await _warehouseService.GetWarehouseById(cartItemCM.WarehouseId))
 										.FirstOrDefault();
@@ -116,7 +117,7 @@ namespace _2Sport_BE.Controllers
 				}
 
                 var quantityOfProduct = warehouse.Quantity;
-				if (cartItemCM.Quantity > quantityOfProduct)
+				if ((cartItemCM.Quantity + oldCartItem.Quantity) > quantityOfProduct)
 				{
 					return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
 				}
@@ -172,16 +173,17 @@ namespace _2Sport_BE.Controllers
 				{
 					return Unauthorized();
 				}
-				var cartItem = await _cartItemService.GetCartItemById(cartItemId);
+                var oldCartItem = await _cartItemService.GetCartItemById(cartItemId);
+                var cartItem = await _cartItemService.GetCartItemById(cartItemId);
 				var quantityOfProduct = (await _warehouseService.GetWarehouseById(cartItem.WarehouseId))
 						.FirstOrDefault().Quantity;
-				if (quantity > quantityOfProduct)
+				if ((quantity + oldCartItem.Quantity) > quantityOfProduct)
 				{
 					return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
 				}
 				await _cartItemService.UpdateQuantityOfCartItem(cartItemId, quantity);
 				_unitOfWork.Save();
-				return Ok($"Update quantity cart item with id: {cartItemId}");
+				return Ok($"Đã cập nhật số lượng sản phẩm với id là: {cartItemId}");
 			}
 			catch (Exception ex)
 			{

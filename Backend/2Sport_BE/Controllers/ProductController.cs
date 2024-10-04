@@ -371,12 +371,21 @@ namespace _2Sport_BE.Controllers
                     if (existedProductWithSizeColorCodition == null)
                     {
                         var newProduct = existedProduct;
+                        newProduct.Id = 0;
                         newProduct.Size = productCM.Size;
                         newProduct.Color = productCM.Color;
                         newProduct.Condition = productCM.Condition;
                         newProduct.ListedPrice = productCM.ListedPrice;
                         newProduct.Price = productCM.Price;
                         await _productService.AddProduct(newProduct);
+
+                        var warehouse = new Warehouse()
+                        {
+                            BranchId = employeeDetail.BranchId,
+                            ProductId = newProduct.Id,
+                            Quantity = productCM.Quantity,
+                        };
+                        await _warehouseService.CreateANewWarehouseAsync(warehouse);
                     }
                     else
                     {
@@ -385,23 +394,16 @@ namespace _2Sport_BE.Controllers
                                                                                 existedProductWithSizeColorCodition.Id,
                                                                                 employeeDetail.BranchId))
                                                                                 .FirstOrDefault();
-                        if (existedWarehouse != null)
-                        {
-                            existedWarehouse.Quantity += productCM.Quantity;
-                            await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
-                        }
-                        else
-                        {
-                            var warehouse = new Warehouse()
-                            {
-                                BranchId = employeeDetail.BranchId,
-                                ProductId = existedProductWithSizeColorCodition.Id,
-                                Quantity = productCM.Quantity,
-                            };
-                            await _warehouseService.CreateANewWarehouseAsync(warehouse);
-                        }
+                        
+                        existedWarehouse.Quantity += productCM.Quantity;
+                        await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
                     }
 
+                }
+
+                if (existedProduct != null)
+                {
+                    product = existedProduct;
                 }
 
                 //Save import history

@@ -19,8 +19,9 @@ namespace _2Sport_BE.Service.Services
         Task DeleteCartItem(int cartItemId);
         Task ReduceCartItem(int cartItemId);
         Task UpdateQuantityOfCartItem(int cartItemId, int quantity);
-	}
-	public class CartItemService : ICartItemService
+        Task<CartItem> GetCartItemByWareHouseId(int? warehouseId);
+    }
+    public class CartItemService : ICartItemService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly TwoSportCapstoneDbContext _dbContext;
@@ -196,5 +197,12 @@ namespace _2Sport_BE.Service.Services
 				}
 			}
 		}
-	}
+
+        public async Task<CartItem> GetCartItemByWareHouseId(int? warehouseId)
+        {
+            var queryCart = (await _cartItemRepository.GetAsync(_ => _.Status == true && _.WarehouseId == warehouseId))
+                                                      .FirstOrDefault();
+            return queryCart;
+        }
+    }
 }
