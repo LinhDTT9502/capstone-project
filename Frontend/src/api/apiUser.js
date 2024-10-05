@@ -1,7 +1,8 @@
-import axios from 'axios';
-import axiosInstance from './axiosInstance';
+import axios from "axios";
+import axiosInstance from "./axiosInstance";
 
-const API_BASE_URL = 'https://twosportapi-295683427295.asia-southeast2.run.app/api/User';
+const API_BASE_URL =
+  "https://twosportapi-295683427295.asia-southeast2.run.app/api/User";
 
 // GET all users
 export const getAllUsers = () => {
@@ -18,24 +19,22 @@ export const searchUsers = (fullName, username) => {
   });
 };
 
-
-
 // GET user profile
 export const getUserProfile = (userId) => {
   return axios.get(`${API_BASE_URL}/get-profile/${userId}`);
 };
 
-
-
-
-
 // PUT update user profile
 export const updateProfile = (userId, profileData) => {
-  return axiosInstance.put(`${API_BASE_URL}/update-profile?id=${userId}`, profileData, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  return axiosInstance.put(
+    `${API_BASE_URL}/update-profile?id=${userId}`,
+    profileData,
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 };
 
 // DELETE user
@@ -43,15 +42,17 @@ export const deleteUser = (userId) => {
   return axios.delete(`${API_BASE_URL}/delete-user/${userId}`);
 };
 
-
-
 // POST send verification email
 export const sendVerificationEmail = (email) => {
-  return axios.post(`${API_BASE_URL}/send-verification-email`, { email }, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  return axios.post(
+    `${API_BASE_URL}/send-verification-email`,
+    { email },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 };
 
 // GET verify email

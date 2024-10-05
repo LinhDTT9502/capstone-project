@@ -1,17 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect  } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Button } from "@material-tailwind/react";
 import { selectUser, updateUser } from "../../redux/slices/authSlice";
 import { useTranslation } from "react-i18next";
-import { updateProfile } from "../../api/apiUser";
+import { updateProfile, sendVerificationEmail, verifyEmail } from "../../api/apiUser";
 import { toast, ToastContainer } from 'react-toastify';  
 import 'react-toastify/dist/ReactToastify.css';  
 import { refreshTokenAPI } from "../../api/apiAuth";
+import { useLocation } from "react-router-dom";
 
 const UserProfile = () => {
   const user = useSelector(selectUser);
-  const dispatch = useDispatch(); // Get the dispatch function
+  const dispatch = useDispatch(); 
   const { t } = useTranslation();
+  const location = useLocation();
+  const [isEmailVerified, setIsEmailVerified] = useState(user.IsEmailVerified || false);
+  
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     UserName: user.UserName,
@@ -92,6 +96,35 @@ const UserProfile = () => {
     }
   };
 
+  const handleVerifyEmail = () => {
+    sendVerificationEmail(formData.Email)
+      .then(() => {
+        toast.success(t("user_profile.email_verification_sent"));
+      })
+      .catch((err) => {
+        console.error("Error sending verification email:", err);
+        toast.error(t("user_profile.email_verification_failed"));
+      });
+  };
+
+// Capture the token from the query parameters and verify the email
+useEffect(() => {
+  const urlParams = new URLSearchParams(location.search);
+  const emailVerifiedToken = urlParams.get("token");
+
+  if (emailVerifiedToken) {
+    verifyEmail(emailVerifiedToken)
+      .then(() => {
+        setIsEmailVerified(true);
+        toast.success(t("user_profile.email_verified"));
+      })
+      .catch((err) => {
+        console.error("Error verifying email:", err);
+        toast.error(t("user_profile.email_verification_failed"));
+      });
+  }
+}, [location.search]);
+
   return (
     <>
       <ToastContainer />
@@ -134,20 +167,32 @@ const UserProfile = () => {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
-              {t("user_profile.email")}:
-            </label>
-            <input
-              type="email"
-              name="Email"
-              className={`w-full p-2 ${
-                isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
-              }`}
-              value={formData.Email}
-              onChange={handleChange}
-              readOnly
-            />
-          </div>
+    <label className="block text-gray-700 font-semibold mb-2">
+      {t("user_profile.email")}:
+    </label>
+    <div className="flex items-center">
+      <input
+        type="email"
+        name="Email"
+        className={`w-full p-2 ${
+          isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
+        }`}
+        value={formData.Email}
+        readOnly
+      />
+      <Button
+        color="orange"
+        variant="filled"
+        onClick={handleVerifyEmail}
+        className="ml-2"
+      >
+        {isEmailVerified ? t("user_profile.email_verified") : t("user_profile.verify_email")}
+      </Button>
+    </div>
+    {!isEmailVerified && (
+      <p className="text-red-500 mt-1">{t("user_profile.verify_email_warning")}</p>
+    )}
+  </div>
 
           <div>
             <label className="block text-gray-700 font-semibold mb-2">

@@ -99,6 +99,10 @@
 "user_profile.gender_female":"Nữ",
 "user_profile.gender_other":"Khác",
 "user_profile.update_success":"Cập nhật thành công",
+"user_profile.verify_email": "Xác thực",
+"user_profile.email_verification_sent": "Email xác thực đã được gửi thành công",
+"user_profile.email_verification_failed": "Xác thực email thất bại",
+"user_profile.verify_email_warning": "Chưa xác thực",
 
     "not_found.page_not_found":"Trang không tồn tại",
     "not_found.oops":"Rất tiếc! Có vẻ như bạn đã truy cập vào một liên kết xấu. Nếu bạn cho rằng đây là vấn đề với chúng tôi, vui lòng cho chúng tôi biết.",
