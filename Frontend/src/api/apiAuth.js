@@ -49,6 +49,10 @@ export const changePassword = (data) => {
   });
 };
 
+export const forgotPasswordRequest = (email) => {
+  return axios.post(`${API_BASE_URL}/forgot-password-request`, { email });
+};
+
 export const resetPassword = (data) => {
   return axios.post(`${API_BASE_URL}/reset-password`, data, {
     headers: {
@@ -56,6 +60,7 @@ export const resetPassword = (data) => {
     }
   });
 };
+
 // const axiosInstance = axios.create();
 
 // axiosInstance.interceptors.request.use(async (config) => {

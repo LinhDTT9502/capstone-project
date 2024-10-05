@@ -14,7 +14,7 @@ const UserProfile = () => {
   const dispatch = useDispatch(); 
   const { t } = useTranslation();
   const location = useLocation();
-  const [isEmailVerified, setIsEmailVerified] = useState(user.IsEmailVerified || false);
+  const [emailConfirmed, setemailConfirmed] = useState(user.emailConfirmed || false);
   
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -115,7 +115,7 @@ useEffect(() => {
   if (emailVerifiedToken) {
     verifyEmail(emailVerifiedToken)
       .then(() => {
-        setIsEmailVerified(true);
+        setemailConfirmed(true);
         toast.success(t("user_profile.email_verified"));
       })
       .catch((err) => {
@@ -167,32 +167,37 @@ useEffect(() => {
           </div>
 
           <div>
-    <label className="block text-gray-700 font-semibold mb-2">
-      {t("user_profile.email")}:
-    </label>
-    <div className="flex items-center">
-      <input
-        type="email"
-        name="Email"
-        className={`w-full p-2 ${
-          isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
-        }`}
-        value={formData.Email}
-        readOnly
-      />
-      <Button
-        color="orange"
-        variant="filled"
-        onClick={handleVerifyEmail}
-        className="ml-2"
-      >
-        {isEmailVerified ? t("user_profile.email_verified") : t("user_profile.verify_email")}
-      </Button>
-    </div>
-    {!isEmailVerified && (
-      <p className="text-red-500 mt-1">{t("user_profile.verify_email_warning")}</p>
-    )}
-  </div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              {t("user_profile.email")}:
+            </label>
+            <div className="flex items-center">
+              <input
+                type="email"
+                name="Email"
+                className={`w-full p-2 ${
+                  isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 pointer-events-none'
+                }`}
+                value={formData.Email}
+                readOnly
+              />
+              {!emailConfirmed && (
+                <Button
+                  color="orange"
+                  variant="filled"
+                  onClick={handleVerifyEmail}
+                  className="ml-2"
+                >
+                  {t("user_profile.verify_email")}
+                </Button>
+              )}
+            </div>
+            {!emailConfirmed && (
+              <p className="text-red-500 mt-1">{t("user_profile.verify_email_warning")}</p>
+            )}
+            {emailConfirmed && (
+              <p className="text-green-500 mt-1">{t("user_profile.email_verified")}</p>
+            )}
+          </div>
 
           <div>
             <label className="block text-gray-700 font-semibold mb-2">
