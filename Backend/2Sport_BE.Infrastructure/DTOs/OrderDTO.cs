@@ -9,7 +9,7 @@ namespace _2Sport_BE.Service.DTOs
 {
     public class OrderDTO
     {
-        public List<OrderDetailCM> orderDetailCMs;
+        public List<OrderDetailCM> orderDetailCMs { get; set; }
     }
     //SaleOrder, RentalOrder
     public class OrderCM : OrderDTO
@@ -21,6 +21,7 @@ namespace _2Sport_BE.Service.DTOs
         public string? DiscountCode { get; set; } // Option
         public int BranchId { get; set; } //Branch nao nhan order
         public string? Note { get; set; }
+
     }
     public class GuestOrderCM : OrderDTO
     {
@@ -42,13 +43,14 @@ namespace _2Sport_BE.Service.DTOs
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
-        public DateTime? CreateDate { get; set; }
         public string? Status { get; set; }
-        public string? IntoMoney { get; set; }
         public string? TotalPrice { get; set; }
+        public string? TransportFee { get; set; }
+        public string? IntoMoney { get; set; }
         public int? PaymentMethodId { get; set; }
         public string? PaymentLink { get; set; }
         public string? Note { get; set; }
+        public DateTime? CreateDate { get; set; }
     }
     public class OrderUM : OrderDTO
     {
@@ -58,14 +60,15 @@ namespace _2Sport_BE.Service.DTOs
     {
         public int OrderID { get; set; }
         public string? OrderCode { get; set; }
-        public DateTime? CreateDate { get; set; }
-        public string? CustomerName { get; set; }
-        public string? Status { get; set; }
-        public string? IntoMoney { get; set; }
-        public string? TotalPrice { get; set; }
-        public int? PaymentMethodId { get; set; }
+        public int? UserID { get; set; }
         public int? ShipmentDetailId { get; set; }
+        public int? PaymentMethodId { get; set; }
+        public string? TransportFee { get; set; }
+        public string? TotalPrice { get; set; }
+        public string? IntoMoney { get; set; }
+        public string? Status { get; set; }
         public string? PaymentLink { get; set; }
+        public DateTime? CreateDate { get; set; }
     }
     public class RevenueVM
     {

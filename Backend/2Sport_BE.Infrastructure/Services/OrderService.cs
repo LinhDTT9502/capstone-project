@@ -4,6 +4,7 @@ using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.DTOs;
 using _2Sport_BE.Service.Enums;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -15,7 +16,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Vonage.Common.Monads;
 using Vonage.Users;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -58,12 +61,12 @@ namespace _2Sport_BE.Service.Services
         }
         public string GenerateOrderCode()
         {
-            string datePart = DateTime.UtcNow.ToString("yyyyMMdd");
+            string datePart = DateTime.UtcNow.ToString("yyMMdd");
 
             Random random = new Random();
-            string randomPart = random.Next(100000, 999999).ToString();
+            string randomPart = random.Next(1000, 9999).ToString();
 
-            string orderCode = $"{datePart}_{randomPart}";
+            string orderCode = $"{datePart}{randomPart}";
 
             return orderCode;
         }
@@ -72,7 +75,7 @@ namespace _2Sport_BE.Service.Services
             var response = new ResponseDTO<List<OrderVM>>();
             try
             {
-                var query = await _unitOfWork.OrderRepository.GetAllAsync("User", "OrderDetails");
+                var query = await _unitOfWork.OrderRepository.GetAllAsync(new string[] { "User", "OrderDetails" });
                 if (query == null || !query.Any())
                 {
                     response.IsSuccess = false;
@@ -80,12 +83,13 @@ namespace _2Sport_BE.Service.Services
                     return response;
                 }
                 var result = new List<OrderVM>();
+
                 foreach (var item in query)
                 {
                     var orderVM = new OrderVM()
                     {
                         CreateDate = item.CreateAt,
-                        CustomerName = item.User.FullName,
+                        UserID = item.UserId,
                         OrderCode = item.OrderCode,
                         OrderID = item.Id,
                         Status = Enum.GetName(typeof(OrderStatus), item.Status)?.Replace('_', ' '),
@@ -93,13 +97,20 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
-                        {
-                            Price = (decimal)_.Price,
-                            Quantity = _.Quantity,
-                            WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id
-                        })
+                        orderDetailCMs = new List<OrderDetailCM>()
                     };
+
+                    foreach (var detail in item.OrderDetails)
+                    {
+                        var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
+                        orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                        {
+                            Price = (decimal)detail.Price,
+                            Quantity = detail.Quantity,
+                            WarehouseId = warehouse?.Id ?? 0
+                        });
+                    }
+
                     result.Add(orderVM);
                 }
 
@@ -121,35 +132,42 @@ namespace _2Sport_BE.Service.Services
             var response = new ResponseDTO<OrderVM>();
             try
             {
-                var item = (await _unitOfWork.OrderRepository.GetAsync(_ => _.Id == id, "User, OrderDetails")).FirstOrDefault();
+                var item = (await _unitOfWork.OrderRepository.GetAsync(_ => _.Id == id,"User,OrderDetails")).FirstOrDefault();
                 if (item == null)
                 {
                     response.IsSuccess = false;
                     response.Message = $"Order with id = {id} is not found";
                     return response;
                 }
-                var result = new OrderVM()
-                {
-                    CreateDate = item.CreateAt,
-                    CustomerName = item.User.FullName,
-                    OrderCode = item.OrderCode,
-                    OrderID = item.Id,
-                    Status = Enum.GetName(typeof(OrderStatus), item.Status)?.Replace('_', ' '),
-                    IntoMoney = item.IntoMoney.ToString(),
-                    TotalPrice = item.TotalPrice.ToString(),
-                    PaymentMethodId = item.PaymentMethodId,
-                    ShipmentDetailId = item.ShipmentDetailId,
-                    orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
+
+                    var orderVM = new OrderVM()
                     {
-                        Price = (decimal)_.Price,
-                        Quantity = _.Quantity,
-                        WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id,
-                    })
-                };
+                        CreateDate = item.CreateAt,
+                        UserID = item.UserId,
+                        OrderCode = item.OrderCode,
+                        OrderID = item.Id,
+                        Status = Enum.GetName(typeof(OrderStatus), item.Status)?.Replace('_', ' '),
+                        IntoMoney = item.IntoMoney.ToString(),
+                        TotalPrice = item.TotalPrice.ToString(),
+                        PaymentMethodId = item.PaymentMethodId,
+                        ShipmentDetailId = item.ShipmentDetailId,
+                        orderDetailCMs = new List<OrderDetailCM>()
+                    };
+
+                    foreach (var detail in item.OrderDetails)
+                    {
+                        var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
+                        orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                        {
+                            Price = (decimal)detail.Price,
+                            Quantity = detail.Quantity,
+                            WarehouseId = warehouse?.Id ?? 0
+                        });
+                    }
 
                 response.IsSuccess = true;
                 response.Message = "Query successfully";
-                response.Data = result;
+                response.Data = orderVM;
                 return response;
 
             }
@@ -178,7 +196,7 @@ namespace _2Sport_BE.Service.Services
                     var orderVM = new OrderVM()
                     {
                         CreateDate = item.CreateAt,
-                        CustomerName = item.User.FullName,
+                        UserID = item.UserId,
                         OrderCode = item.OrderCode,
                         OrderID = item.Id,
                         Status = Enum.GetName(typeof(OrderStatus), item.Status)?.Replace('_', ' '),
@@ -186,13 +204,20 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
-                        {
-                            Price = (decimal)_.Price,
-                            WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id,
-                            Quantity = _.Quantity
-                        })
+                        orderDetailCMs = new List<OrderDetailCM>()
                     };
+
+                    foreach (var detail in item.OrderDetails)
+                    {
+                        var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
+                        orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                        {
+                            Price = (decimal)detail.Price,
+                            Quantity = detail.Quantity,
+                            WarehouseId = warehouse?.Id ?? 0
+                        });
+                    }
+
                     result.Add(orderVM);
                 }
 
@@ -227,7 +252,7 @@ namespace _2Sport_BE.Service.Services
                     var orderVM = new OrderVM()
                     {
                         CreateDate = item.CreateAt,
-                        CustomerName = item.User.FullName,
+                        UserID = item.UserId,
                         OrderCode = item.OrderCode,
                         OrderID = item.Id,
                         Status = Enum.GetName(typeof(OrderStatus), item.Status)?.Replace('_', ' '),
@@ -235,13 +260,20 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
-                        {
-                            Price = (decimal)_.Price,
-                            WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id,
-                            Quantity = _.Quantity
-                        })
+                        orderDetailCMs = new List<OrderDetailCM>()
                     };
+
+                    foreach (var detail in item.OrderDetails)
+                    {
+                        var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
+                        orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                        {
+                            Price = (decimal)detail.Price,
+                            Quantity = detail.Quantity,
+                            WarehouseId = warehouse?.Id ?? 0
+                        });
+                    }
+
                     result.Add(orderVM);
                 }
 
@@ -272,29 +304,34 @@ namespace _2Sport_BE.Service.Services
                 }
 
                 var item = query.FirstOrDefault();
-                var result = new OrderVM()
-                {
-                    CreateDate = item.CreateAt,
-                    CustomerName = item.User.FullName,
-                    OrderCode = item.OrderCode,
-                    OrderID = item.Id,
-                    Status = Enum.GetName(typeof(OrderStatus), item.Status)?.Replace('_', ' '),
-                    IntoMoney = item.IntoMoney.ToString(),
-                    TotalPrice = item.TotalPrice.ToString(),
-                    PaymentMethodId = item.PaymentMethodId,
-                    ShipmentDetailId = item.ShipmentDetailId,
-                    orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
+                    var orderVM = new OrderVM()
                     {
-                        Price = (decimal)_.Price,
-                        WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id,
-                        Quantity = _.Quantity
-                    })
-                };
+                        CreateDate = item.CreateAt,
+                        UserID = item.UserId,
+                        OrderCode = item.OrderCode,
+                        OrderID = item.Id,
+                        Status = Enum.GetName(typeof(OrderStatus), item.Status)?.Replace('_', ' '),
+                        IntoMoney = item.IntoMoney.ToString(),
+                        TotalPrice = item.TotalPrice.ToString(),
+                        PaymentMethodId = item.PaymentMethodId,
+                        ShipmentDetailId = item.ShipmentDetailId,
+                        orderDetailCMs = new List<OrderDetailCM>()
+                    };
 
+                    foreach (var detail in item.OrderDetails)
+                    {
+                        var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
+                        orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                        {
+                            Price = (decimal)detail.Price,
+                            Quantity = detail.Quantity,
+                            WarehouseId = warehouse?.Id ?? 0
+                        });
+                    }
 
                 response.IsSuccess = true;
                 response.Message = "Query successfully";
-                response.Data = result;
+                response.Data = orderVM;
                 return response;
 
             }
@@ -325,7 +362,7 @@ namespace _2Sport_BE.Service.Services
                     var orderVM = new OrderVM()
                     {
                         CreateDate = item.CreateAt,
-                        CustomerName = item.User.FullName,
+                        UserID = item.UserId,
                         OrderCode = item.OrderCode,
                         OrderID = item.Id,
                         Status = Enum.GetName(typeof(OrderStatus), item.Status)?.Replace('_', ' '),
@@ -333,13 +370,20 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
-                        {
-                            Price = (decimal)_.Price,
-                            WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id,
-                            Quantity = _.Quantity
-                        })
+                        orderDetailCMs = new List<OrderDetailCM>()
                     };
+
+                    foreach (var detail in item.OrderDetails)
+                    {
+                        var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
+                        orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                        {
+                            Price = (decimal)detail.Price,
+                            Quantity = detail.Quantity,
+                            WarehouseId = warehouse?.Id ?? 0
+                        });
+                    }
+
                     result.Add(orderVM);
                 }
 
@@ -379,7 +423,7 @@ namespace _2Sport_BE.Service.Services
                     var orderVM = new OrderVM()
                     {
                         CreateDate = item.CreateAt,
-                        CustomerName = item.User.FullName,
+                        UserID = item.UserId,
                         OrderCode = item.OrderCode,
                         OrderID = item.Id,
                         Status = Enum.GetName(typeof(OrderStatus), item.Status)?.Replace('_', ' '),
@@ -387,13 +431,20 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = (List<OrderDetailCM>)item.OrderDetails.Select(async _ => new OrderDetailCM()
-                        {
-                            Price = (decimal)_.Price,
-                            WarehouseId = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)_.ProductId, _.BranchId)).FirstOrDefault().Id,
-                            Quantity = _.Quantity
-                        })
+                        orderDetailCMs = new List<OrderDetailCM>()
                     };
+
+                    foreach (var detail in item.OrderDetails)
+                    {
+                        var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
+                        orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                        {
+                            Price = (decimal)detail.Price,
+                            Quantity = detail.Quantity,
+                            WarehouseId = warehouse?.Id ?? 0
+                        });
+                    }
+
                     result.Add(orderVM);
                 }
 
@@ -544,16 +595,18 @@ namespace _2Sport_BE.Service.Services
                         ProductId = productInWarehouse.ProductId,
                         Quantity = item.Quantity,
                         Price = (int)item.Price,
-                        OrderId = productInWarehouse.BranchId
+                        OrderId = order.Id,
+                        BranchId = productInWarehouse.BranchId,
+                        CreatedAt = DateTime.Now,
                     };
 
                     await _unitOfWork.OrderDetailRepository.InsertAsync(orderDetail);
                     order.OrderDetails.Add(orderDetail);
-                    totalPrice += (decimal)(item.Price * item.Quantity);
+                    totalPrice += (decimal)(item.Price);
                 }
                 order.TotalPrice = totalPrice;
-                order.IntoMoney = (decimal)(totalPrice); // if we have coupon, applying to IntoMoney
                 order.TranSportFee = 0;
+                order.IntoMoney = (decimal)(totalPrice + order.TranSportFee); // if we have coupon, applying to IntoMoney
                 await _unitOfWork.OrderRepository.UpdateAsync(order);
                 //Return
                 var result = new OrderVM()
@@ -561,13 +614,14 @@ namespace _2Sport_BE.Service.Services
                     OrderID = order.Id,
                     OrderCode = order.OrderCode,
                     CreateDate = order.CreateAt,
-                    CustomerName = order.User.FullName,
+                    UserID = order.UserId,
                     Status = Enum.GetName(typeof(OrderStatus), order.Status)?.Replace('_', ' '),
                     IntoMoney = order.IntoMoney.ToString(),
                     TotalPrice = order.TotalPrice.ToString(),
                     PaymentMethodId = order.PaymentMethodId,
                     ShipmentDetailId = order.ShipmentDetailId,
                     orderDetailCMs = orderCM.orderDetailCMs,
+                    TransportFee = order.TranSportFee.ToString(),
                     PaymentLink = ""
                 };
                 response.IsSuccess = true;
@@ -633,8 +687,7 @@ namespace _2Sport_BE.Service.Services
                     ReceivedDate = DateTime.UtcNow,
                     CreateAt = DateTime.UtcNow,
                     BranchId = branch.Id,
-                    Note = guestOrderCM.Note,
-                    
+                    Note = guestOrderCM.Note,                      
                 };
                 await _unitOfWork.OrderRepository.InsertAsync(order);
 
@@ -652,15 +705,16 @@ namespace _2Sport_BE.Service.Services
                         Price = (int)item.Price,
                         OrderId = order.Id,
                         BranchId = productInWarehouse.BranchId,
+                        CreatedAt = DateTime.UtcNow,
                     };
 
                     await _unitOfWork.OrderDetailRepository.InsertAsync(orderDetail);
                     order.OrderDetails.Add(orderDetail);
-                    totalPrice += (decimal)(item.Price * item.Quantity);
+                    totalPrice += (decimal)(item.Price);
                 }
                 order.TotalPrice = totalPrice;
-                order.IntoMoney = (decimal)(totalPrice); // if we have coupon, applying to IntoMoney
                 order.TranSportFee = 0;
+                order.IntoMoney = (decimal)(totalPrice + order.TranSportFee); // if we have coupon, applying to IntoMoney
                 await _unitOfWork.OrderRepository.UpdateAsync(order);
                 //Return
                 var result = new GuestOrderVM()
@@ -678,7 +732,8 @@ namespace _2Sport_BE.Service.Services
                     Address = guest.Address,
                     Email = guest.Email,
                     FullName = guest.FullName,
-                    Note = order.Note
+                    Note = order.Note,
+                    TransportFee = order.TranSportFee.ToString()
                 };
                 response.IsSuccess = true;
                 response.Message = $"Order processed successfully";

@@ -23,7 +23,7 @@ namespace _2Sport_BE.Controllers
         private readonly ICartService _cartService;
         private readonly ICartItemService _cartItemService;
         private readonly IPaymentService _paymentService;
-        public OrderController( IOrderService orderService,
+        public OrderController(IOrderService orderService,
                                 ICartService cartService,
                                 ICartItemService cartItemService,
                                 IPaymentService paymentService)
@@ -183,14 +183,14 @@ namespace _2Sport_BE.Controllers
             }
         }
         [HttpPost("checkout-sale-for-customer")]
-        public async Task<IActionResult> HandleCheckoutForCustomer([FromBody] OrderCM orderCM, [FromQuery] int paymentMethodId)
+        public async Task<IActionResult> HandleCheckoutForCustomer([FromBody] OrderCM orderCM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid request data.");
             }
             var userId = GetCurrentUserIdFromToken();
-            if(userId != orderCM.UserID)
+            if (userId != orderCM.UserID || userId == 0 || orderCM.UserID == 0)
             {
                 return Unauthorized();
             }
