@@ -17,7 +17,7 @@ namespace _2Sport_BE.ViewModels
 
     public class BrandCM : BrandDTO
     {
-        public IFormFile LogoImage { get; set; }
+        public IFormFile? LogoImage { get; set; }
     }
 
     public class BrandUM : BrandDTO

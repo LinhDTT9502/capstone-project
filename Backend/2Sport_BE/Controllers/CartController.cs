@@ -59,7 +59,6 @@ namespace _2Sport_BE.Controllers
 							var product = await _unitOfWork.ProductRepository.FindAsync(warehouse.ProductId);
 							var branch = await _unitOfWork.BranchRepository.FindAsync(warehouse.BranchId);
                             cartItem.ProductName = product.ProductName;
-                            cartItem.MainImageName = product.ImgAvatarName;
                             cartItem.MainImagePath = product.ImgAvatarPath;
 							cartItem.BranchName = branch.BranchName;
 						}

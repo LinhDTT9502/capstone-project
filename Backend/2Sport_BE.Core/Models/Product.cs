@@ -66,10 +66,6 @@ public class Product
     [MaxLength(500)]
     public string ImgAvatarPath { get; set; }
 
-    [Column("ImgAvatarName", TypeName = "varchar")]
-    [MaxLength(500)]
-    public string ImgAvatarName { get; set; }
-
     public virtual Sport? Sport { get; set; }
     public virtual Brand? Brand { get; set; }
     public virtual Category? Category { get; set; }
