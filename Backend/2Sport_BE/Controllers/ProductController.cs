@@ -374,7 +374,6 @@ namespace _2Sport_BE.Controllers
                         newProduct.Size = productCM.Size;
                         newProduct.Color = productCM.Color;
                         newProduct.Condition = productCM.Condition;
-                        newProduct.ListedPrice = productCM.ListedPrice;
                         newProduct.Price = productCM.Price;
                         await _productService.AddProduct(newProduct);
 
@@ -527,7 +526,6 @@ namespace _2Sport_BE.Controllers
                                 newProduct.Size = productCM.Size;
                                 newProduct.Color = productCM.Color;
                                 newProduct.Condition = productCM.Condition;
-                                newProduct.ListedPrice = productCM.ListedPrice;
                                 newProduct.Price = productCM.Price;
                                 await _productService.AddProduct(newProduct);
                             }
@@ -626,6 +624,10 @@ namespace _2Sport_BE.Controllers
                 {
                     return BadRequest("Category name seems wrong please check again");
                 }
+                if (importProductStatus == (int)ProductErrors.SportNameError)
+                {
+                    return BadRequest("Sport name seems wrong please check again");
+                }
                 if (importProductStatus == (int)ProductErrors.SupplierNameError)
                 {
                     return BadRequest("Supplier name seems wrong please check again");
@@ -706,64 +708,6 @@ namespace _2Sport_BE.Controllers
 
                     try
                     {
-                        //Check if brand is not exist, add new brand
-                        #region Add new brand
-                        var existedBrand = (await _brandService.GetBrandsAsync(brandValue)).FirstOrDefault();
-                        if (existedBrand == null)
-                        {
-                            var newBrand = new Brand()
-                            {
-                                BrandName = brandValue,
-                            };
-
-                            var brandImg = reader.GetValue(2)?.ToString();
-                            if (!string.IsNullOrEmpty(brandImg))
-                            {
-                                var brandImgFile = ConvertToIFormFile(brandImg);
-                                var uploadResult = await _imageService.UploadImageToCloudinaryAsync(brandImgFile);
-                                if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                                {
-
-                                    newBrand.Logo = uploadResult.SecureUrl.AbsoluteUri;
-                                    await _brandService.CreateANewBrandAsync(newBrand);
-                                }
-                                else
-                                {
-                                    return (int)ProductErrors.NotExcepted;
-                                }
-                            }
-                        }
-                        #endregion
-
-                        //Check if sport is not exist, add a new sport
-                        #region Add new sport
-                        var existedSport = (await _sportService.GetSportByName(sportValue)).FirstOrDefault();
-                        if (existedSport == null)
-                        {
-                            var newSport = new Sport()
-                            {
-                                Name = sportValue,
-                            };
-                            await _sportService.AddSport(newSport);
-                        }
-                        #endregion
-
-                        //Check if category is not exist, add a new category
-                        #region Add new category
-                        var existedCategory = (await _categoryService.GetCategoryByName(categoryValue)).FirstOrDefault();
-                        var sport = (await _sportService.GetSportByName(sportValue)).FirstOrDefault();
-                        if (existedCategory == null)
-                        {
-                            var newCategory = new Category()
-                            {
-                                CategoryName = categoryValue,
-                                SportId = sport.Id,
-                                Description = "",
-                            };
-                            await _categoryService.AddCategory(newCategory);
-                        }
-                        #endregion
-
                         //Check if supplier is not exist, add a new supplier
                         #region Add new supplier
                         var existedSupplier = (await _supplierService.GetSuppliersAsync(supplierValue)).FirstOrDefault();
@@ -784,6 +728,12 @@ namespace _2Sport_BE.Controllers
                         if (brand == null)
                         {
                             return (int)ProductErrors.BrandNameError;
+                        }
+
+                        var sport = (await _sportService.GetSportByName(sportValue)).FirstOrDefault();
+                        if (sport == null)
+                        {
+                            return (int)ProductErrors.SportNameError;
                         }
 
                         var category = (await _categoryService.GetCategoryByName(categoryValue)).FirstOrDefault();
@@ -807,7 +757,6 @@ namespace _2Sport_BE.Controllers
                             SportId = sport.Id,
                             ProductName = productNameValue,
                             ProductCode = productCodeValue,
-                            ListedPrice = decimal.TryParse(listedPriceValue, out var listedPrice) ? listedPrice : 0,
                             Price = decimal.TryParse(priceValue, out var price) ? price : 0,
                             Size = sizeValue,
                             Color = colorValue,
@@ -930,7 +879,6 @@ namespace _2Sport_BE.Controllers
                                 newProduct.Size = sizeValue;
                                 newProduct.Color = colorValue;
                                 newProduct.Condition = int.Parse(conditionValue);
-                                newProduct.ListedPrice = decimal.Parse(listedPriceValue);
                                 newProduct.Price = decimal.Parse(priceValue);
                                 await _productService.AddProduct(newProduct);
 
