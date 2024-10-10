@@ -28,16 +28,12 @@ namespace _2Sport_BE.Service.Services
     public class PaymentService : IPaymentService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IOrderService _orderService;
-        private PayOS _payOs;
         private readonly IConfiguration _configuration;
+        private PayOS _payOs;
         private PayOSSettings payOSSettings;
-        private readonly IProductService _productService;
-        private readonly IUserService _userService;
-        public PaymentService(IUnitOfWork unitOfWork, IOrderService orderService, IConfiguration configuration, IProductService productService, IUserService userService)
+        public PaymentService(IUnitOfWork unitOfWork, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
-            _orderService = orderService;
             _configuration = configuration;
             payOSSettings = new PayOSSettings()
             {
@@ -46,25 +42,26 @@ namespace _2Sport_BE.Service.Services
                 ChecksumKey = _configuration["PayOSSettings:ChecksumKey"]
             };
             _payOs = new PayOS(payOSSettings.ClientId, payOSSettings.ApiKey, payOSSettings.ChecksumKey);
-            _productService = productService;
-            _userService = userService;
         }
 
         public async Task<string> PaymentWithPayOs(int orderId)
         {
-            var order = await _orderService.GetOrderByIdAsync(orderId);
+            var order = (await _unitOfWork.OrderRepository
+                                .GetAsync(o => o.Id == orderId, "OrderDetails")).FirstOrDefault();
             if(order != null)
             {
                 List<ItemData> orders = new List<ItemData>();
                 var listOrderDetail = order.OrderDetails.ToList();
-                var userId = order.UserId;
-                var user = await _userService.GetUserById((int)userId);
+
+                var user = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == order.UserId);
+
                 for(int i = 0; i < listOrderDetail.Count; i++)
-                {   var product = await _productService.GetProductById((int)listOrderDetail[i].ProductId);
-                    var name = product.ProductName;
-                    var soluong = listOrderDetail[i].Quantity;
-                    var thanhtien = Convert.ToInt32(listOrderDetail[i].Price.ToString());
-                    ItemData item = new ItemData(name, (int)soluong, thanhtien);
+                {   var product = await _unitOfWork.ProductRepository
+                                        .GetObjectAsync(p => p.Id == listOrderDetail[i].ProductId);
+
+                    ItemData item = new ItemData(product.ProductName,
+                                                (int)(listOrderDetail[i].Quantity),
+                                                Convert.ToInt32(listOrderDetail[i].Price.ToString()));
                     orders.Add(item);
                 }
                 if (order.TranSportFee > 0)

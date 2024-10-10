@@ -10,10 +10,10 @@ export default function LoginGoogle({ setIsSignInOpen }) {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const handleSubmitButton = () => {
-    const newTab = window.open('https://twosportapiv2.azurewebsites.net/api/Auth/oauth-login', '_blank');
+    const newTab = window.open('https://twosportapi-295683427295.asia-southeast2.run.app/api/Auth/oauth-login', '_blank');
 
     window.addEventListener('message', (event) => {
-      if (event.origin === 'https://twosportapiv2.azurewebsites.net') {
+      if (event.origin === 'http://demo-api.ap-southeast-2.elasticbeanstalk.com') {
         const { token, refreshToken } = event.data;
         console.log(token, refreshToken);
         if (token && refreshToken) {

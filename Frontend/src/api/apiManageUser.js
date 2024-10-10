@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://twosportapiv2.azurewebsites.net/api/User';
+const API_BASE_URL = 'https://twosportapi-295683427295.asia-southeast2.run.app/api/User';
 
 export const fetchAllUsers = async (token) => {
   try {
@@ -10,7 +10,10 @@ export const fetchAllUsers = async (token) => {
         'Content-Type': 'application/json'
       }
     });
-    return response.data.$values;
+
+    // console.log(response.data);
+    return response.data.data.$values;
+    
   } catch (error) {
     console.error('Error fetching users:', error);
     throw error;

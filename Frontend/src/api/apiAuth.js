@@ -40,6 +40,21 @@ export const refreshTokenAPI = (token, refreshToken) => {
   });
 };
 
+export const changePassword = (data) => {
+  return axios.post(`${API_BASE_URL}/change-password`, data, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+};
+
+export const resetPassword = (data) => {
+  return axios.post(`${API_BASE_URL}/reset-password`, data, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+};
 // const axiosInstance = axios.create();
 
 // axiosInstance.interceptors.request.use(async (config) => {

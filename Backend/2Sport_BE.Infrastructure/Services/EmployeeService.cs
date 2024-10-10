@@ -322,7 +322,6 @@ namespace _2Sport_BE.Service.Services
 
             return response;
         }
-
         public async Task<ResponseDTO<List<EmployeeVM>>> GetEmployeeWithConditionAsync(Expression<Func<Employee, bool>> where, string? includes = "")
         {
             var response = new ResponseDTO<List<EmployeeVM>>();

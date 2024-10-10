@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-brands-svg-icons": "^6.5.2",
     "@fortawesome/free-regular-svg-icons": "^6.5.2",
@@ -25,6 +27,7 @@
     "framer-motion": "^11.0.28",
     "i18next": "^23.11.2",
     "jwt-decode": "^4.0.0",
+    "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-apexcharts": "^1.4.1",
     "react-countup": "^6.5.3",

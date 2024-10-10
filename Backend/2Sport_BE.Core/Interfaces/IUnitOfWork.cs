@@ -30,6 +30,7 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<EmployeeDetail> EmployeeDetailRepository { get; }
         IGenericRepository<ErrorLog> ErrorLogRepository { get; }
         IGenericRepository<Attendance> AttendanceRepository { get; }
+        IGenericRepository<Guest> GuestRepository { get; }
         void Save();
         Task<bool> SaveChanges();
     }
