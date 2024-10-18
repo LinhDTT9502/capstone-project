@@ -24,8 +24,8 @@ import { fetchAllUsers } from "../../services/ManageUserService";
 import { useTranslation } from "react-i18next";
 import HeaderStaff from "../../layouts/HeaderStaff";
 import SidebarStaff from "../../layouts/SidebarStaff";
-import EditIcon from "@mui/icons-material/Edit";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye,faPen } from '@fortawesome/free-solid-svg-icons';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -426,7 +426,7 @@ export default function ManageUser() {
                               onClick={() => handleEditUser(user.id)}
                               title="Edit"
                             >
-                              <EditIcon />
+                          <FontAwesomeIcon icon={faPen} />
                               <span className="sr-only">Edit</span>
                             </Button>
                             <Button
@@ -435,7 +435,7 @@ export default function ManageUser() {
                               onClick={() => handleViewUser(user.id)}
                               title="View Information"
                             >
-                              <VisibilityIcon />
+                            <FontAwesomeIcon icon={faEye} />
                               <span className="sr-only">View Information</span>
                             </Button>
                           </div>

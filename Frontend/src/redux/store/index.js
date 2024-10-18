@@ -12,6 +12,12 @@ export const store = configureStore({
     cart: cartSlice,
     shipment: shipmentSlice
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'], 
+      },
+    }),
 });
 
 export const persistor = persistStore(store);
