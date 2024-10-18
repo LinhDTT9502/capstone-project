@@ -708,12 +708,43 @@ namespace _2Sport_BE.Controllers
 
                     try
                     {
+                        //Check if brand is not exist, add new brand
+                        #region Add new brand
+                        var existedBrand = await _brandService.GetBrandsAsync(brandValue);
+                        if (existedBrand == null)
+                        {
+                            var brandImg = reader.GetValue(2)?.ToString();
+                            var brandImgFile = ConvertToIFormFile(brandImg);
+                            if (!string.IsNullOrEmpty(brandImg))
+                            {
+                                var uploadResult = await _imageService.UploadImageToCloudinaryAsync(brandImgFile);
+                                if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                                {
+                                    var newBrand = new Brand()
+                                    {
+                                        BrandName = brandValue,
+                                        Logo = uploadResult.SecureUrl.AbsoluteUri,
+                                    };
+                                    await _brandService.CreateANewBrandAsync(newBrand);
+                                }
+                                else
+                                {
+                                    return (int)ProductErrors.NotExcepted;
+                                }
+                            }
+                            else
+                            {
+                                return (int)ProductErrors.NullError;
+                            }
+                        }
+                        #endregion
+
                         //Check if supplier is not exist, add a new supplier
                         #region Add new supplier
                         var existedSupplier = (await _supplierService.GetSuppliersAsync(supplierValue)).FirstOrDefault();
                         if (existedSupplier == null)
                         {
-                            var supplierLocation = reader.GetValue(6)?.ToString();
+                            var supplierLocation = string.IsNullOrEmpty(reader.GetValue(6)?.ToString()) ? "" : reader.GetValue(6).ToString();
                             var newSupplier = new Supplier()
                             {
                                 SupplierName = supplierValue,

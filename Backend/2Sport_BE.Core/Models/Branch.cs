@@ -30,6 +30,7 @@ public class Branch
     public string ImgAvatarPath { get; set; }
 
     public bool? Status { get; set; }
+    public virtual ICollection<BrandBranch> BrandBranches { get; set; }
 
     public virtual ICollection<EmployeeDetail> EmployeeDetails { get; set; }
 
