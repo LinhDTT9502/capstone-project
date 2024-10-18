@@ -18,7 +18,9 @@ public class Warehouse
     [Column("ProductId")]
     public int? ProductId { get; set; }
 
-    public int? Quantity { get; set; }
+    public int? TotalQuantity { get; set; }
+
+    public int? AvailableQuantity { get; set; }
 
     public virtual Product Product { get; set; }
 

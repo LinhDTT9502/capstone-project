@@ -1,4 +1,5 @@
 ﻿using _2Sport_BE.Repository.Models;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace _2Sport_BE.Repository.Interfaces
 {
@@ -31,6 +32,9 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<ErrorLog> ErrorLogRepository { get; }
         IGenericRepository<Attendance> AttendanceRepository { get; }
         IGenericRepository<Guest> GuestRepository { get; }
+        IGenericRepository<RentalOrder> RentalOrderRepository { get; }
+
+        Task<IDbContextTransaction> BeginTransactionAsync();
         void Save();
         Task<bool> SaveChanges();
     }

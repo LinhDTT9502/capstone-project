@@ -232,5 +232,26 @@ namespace _2Sport_BE.Repository.Implements
 
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task UpdateRangeAsync(List<T> values)
+        {
+            if (values == null || !values.Any())
+            {
+                throw new ArgumentException("The values list cannot be null or empty.", nameof(values));
+            }
+
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            try
+            {
+                _dbContext.Set<T>().UpdateRange(values);
+                await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
     }
 }

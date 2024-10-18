@@ -52,9 +52,16 @@ namespace _2Sport_BE.Service.DTOs
         public string? Note { get; set; }
         public DateTime? CreateDate { get; set; }
     }
-    public class OrderUM : OrderDTO
+    public class OrderUM
     {
-       
+        public int? BranchId { get; set; }
+        public int? ShipmentDetailID { get; set; }
+        public decimal TotalPrice { get; set; }
+        public decimal? TranSportFee { get; set; }
+        public string? Note { get; set; }
+        public int? Status { get; set; }
+        public List<OrderDetailUM> orderDetailUMs { get; set; }
+
     }
     public class OrderVM : OrderDTO
     {

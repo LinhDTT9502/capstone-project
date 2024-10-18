@@ -353,7 +353,8 @@ namespace _2Sport_BE.Controllers
                     {
                         BranchId = employeeDetail.BranchId,
                         ProductId = product.Id,
-                        Quantity = productCM.Quantity,
+                        TotalQuantity = productCM.Quantity,
+                        AvailableQuantity = productCM.Quantity
                     };
                     await _warehouseService.CreateANewWarehouseAsync(warehouse);
 
@@ -387,7 +388,8 @@ namespace _2Sport_BE.Controllers
                                                                                 .FirstOrDefault();
                         if (existedWarehouse != null)
                         {
-                            existedWarehouse.Quantity += productCM.Quantity;
+                            existedWarehouse.TotalQuantity += productCM.Quantity;
+                            existedWarehouse.AvailableQuantity += productCM.Quantity;
                             await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
                         }
                         else
@@ -396,7 +398,8 @@ namespace _2Sport_BE.Controllers
                             {
                                 BranchId = employeeDetail.BranchId,
                                 ProductId = existedProductWithSizeColorCodition.Id,
-                                Quantity = productCM.Quantity,
+                                TotalQuantity = productCM.Quantity,
+                                AvailableQuantity = productCM.Quantity,
                             };
                             await _warehouseService.CreateANewWarehouseAsync(warehouse);
                         }
@@ -506,7 +509,8 @@ namespace _2Sport_BE.Controllers
                             {
                                 BranchId = employeeDetail.BranchId,
                                 ProductId = product.Id,
-                                Quantity = productCM.Quantity,
+                                TotalQuantity = productCM.Quantity,
+                                AvailableQuantity = productCM.Quantity
                             };
                             await _warehouseService.CreateANewWarehouseAsync(warehouse);
 
@@ -539,7 +543,8 @@ namespace _2Sport_BE.Controllers
                                                                                         .FirstOrDefault();
                                 if (existedWarehouse != null)
                                 {
-                                    existedWarehouse.Quantity += productCM.Quantity;
+                                    existedWarehouse.TotalQuantity += productCM.Quantity;
+                                    existedWarehouse.AvailableQuantity += productCM.Quantity;
                                     await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
                                 }
                                 else
@@ -549,7 +554,8 @@ namespace _2Sport_BE.Controllers
                                     {
                                         BranchId = employeeDetail.BranchId,
                                         ProductId = existedProductWithSizeColorCodition.Id,
-                                        Quantity = productCM.Quantity,
+                                        TotalQuantity = productCM.Quantity,
+                                        AvailableQuantity = productCM.Quantity,
                                     };
                                     await _warehouseService.CreateANewWarehouseAsync(warehouse);
                                 }
@@ -875,7 +881,8 @@ namespace _2Sport_BE.Controllers
                     {
                         BranchId = 1,
                         ProductId = product.Id,
-                        Quantity = int.Parse(quantityValue),
+                        TotalQuantity = int.Parse(quantityValue),
+                        AvailableQuantity = int.Parse(quantityValue),
                     };
                     await _warehouseService.CreateANewWarehouseAsync(warehouse);
 

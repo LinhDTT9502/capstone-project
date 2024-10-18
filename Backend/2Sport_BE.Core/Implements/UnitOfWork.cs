@@ -1,6 +1,8 @@
 ﻿using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace _2Sport_BE.Repository.Implements
 {
@@ -38,6 +40,18 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<ErrorLog> _errorLogRepository;
         private IGenericRepository<Attendance> _attendanceRepository;
         private IGenericRepository<Guest> _guestRepository;
+        private IGenericRepository<RentalOrder> _rentalOrderRepository;
+        public IGenericRepository<RentalOrder> RentalOrderRepository
+        {
+            get
+            {
+                if (_rentalOrderRepository == null)
+                {
+                    _rentalOrderRepository = new GenericRepository<RentalOrder>(_dbContext);
+                }
+                return _rentalOrderRepository;
+            }
+        }
         public IGenericRepository<Guest> GuestRepository
         {
             get
@@ -82,7 +96,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _blogRepository;
             }
         }
-
         public IGenericRepository<Brand> BrandRepository
         {
             get
@@ -94,7 +107,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _brandRepository;
             }
         }
-
         public IGenericRepository<Branch> BranchRepository
         {
             get
@@ -106,7 +118,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _branchRepository;
             }
         }
-
         public IGenericRepository<Cart> CartRepository
         {
             get
@@ -118,7 +129,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _cartRepository;
             }
         }
-
         public IGenericRepository<CartItem> CartItemRepository
         {
             get
@@ -130,7 +140,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _cartItemRepository;
             }
         }
-
         public IGenericRepository<Category> CategoryRepository
         {
             get
@@ -142,7 +151,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _categoryRepository;
             }
         }
-
         public IGenericRepository<ImagesVideo> ImagesVideoRepository
         {
             get
@@ -154,7 +162,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _imagesVideoRepository;
             }
         }
-
         public IGenericRepository<ImportHistory> ImportHistoryRepository
         {
             get
@@ -177,7 +184,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _likeRepository;
             }
         }
-
         public IGenericRepository<Order> OrderRepository
         {
             get
@@ -189,7 +195,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _orderRepository;
             }
         }
-
         public IGenericRepository<OrderDetail> OrderDetailRepository
         {
             get
@@ -201,7 +206,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _orderDetailRepository;
             }
         }
-
         public IGenericRepository<PaymentMethod> PaymentMethodRepository
         {
             get
@@ -213,7 +217,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _paymentMethodRepository;
             }
         }
-
         public IGenericRepository<Product> ProductRepository
         {
             get
@@ -225,7 +228,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _productRepository;
             }
         }
-
         public IGenericRepository<Review> ReviewRepository
         {
             get
@@ -237,7 +239,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _reviewRepository;
             }
         }
-
         public IGenericRepository<Role> RoleRepository
         {
             get
@@ -249,7 +250,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _roleRepository;
             }
         }
-
         public IGenericRepository<ShipmentDetail> ShipmentDetailRepository
         {
             get
@@ -272,7 +272,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _supplierRepository;
             }
         }
-
         public IGenericRepository<User> UserRepository
         {
             get
@@ -284,7 +283,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _userRepository;
             }
         }
-
         public IGenericRepository<Warehouse> WarehouseRepository
         {
             get
@@ -296,7 +294,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _warehouseRepository;
             }
         }
-
         public IGenericRepository<RefreshToken> RefreshTokenRepository
         {
             get
@@ -308,7 +305,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _refreshTokenRepository;
             }
         }
-
         public IGenericRepository<Sport> SportRepository
         {
             get
@@ -320,7 +316,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _sportRepository;
             }
         }
-
         public IGenericRepository<CustomerDetail> CustomerDetailRepository
         {
             get
@@ -332,7 +327,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _customerDetailRepository;
             }
         }
-
         public IGenericRepository<Employee> EmployeeRepository
         {
             get
@@ -344,7 +338,6 @@ namespace _2Sport_BE.Repository.Implements
                 return _employeeRepository;
             }
         }
-
         public IGenericRepository<EmployeeDetail> EmployeeDetailRepository
         {
             get
@@ -355,6 +348,11 @@ namespace _2Sport_BE.Repository.Implements
                 }
                 return _employeeDetailRepository;
             }
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _dbContext.Database.BeginTransactionAsync();
         }
 
         private bool disposed = false;

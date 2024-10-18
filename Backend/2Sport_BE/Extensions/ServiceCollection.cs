@@ -7,6 +7,7 @@ using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
 using System.Configuration;
 using _2Sport_BE.Repository.Data;
+using _2Sport_BE.Helpers;
 
 namespace _2Sport_BE.Extensions
 {
@@ -47,6 +48,9 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IEmployeeDetailService, EmployeeDetailService>();
             services.AddScoped<ICustomerDetailService, CustomerDetailService>();
+            services.AddScoped<IRentalOrderService, RentalOrderService>();
+            services.AddScoped<IMethodHelper, MethodHelper>();
+
         }
 
         private static string GetConnectionStrings()
