@@ -588,7 +588,7 @@ namespace _2Sport_BE.Service.Services
 
                         await _unitOfWork.OrderDetailRepository.InsertAsync(orderDetail);
                         order.OrderDetails.Add(orderDetail);
-                        totalPrice += (decimal)(item.Price);
+                        totalPrice += (decimal)(item.Price * item.Quantity);
                     }
                     order.TotalPrice = totalPrice;
                     order.TranSportFee = 0;
@@ -707,7 +707,7 @@ namespace _2Sport_BE.Service.Services
 
                         await _unitOfWork.OrderDetailRepository.InsertAsync(orderDetail);
                         order.OrderDetails.Add(orderDetail);
-                        totalPrice += (decimal)(item.Price);
+                        totalPrice += (decimal)(item.Price * item.Quantity);
                     }
                     order.TotalPrice = totalPrice;
                     order.TranSportFee = 0;

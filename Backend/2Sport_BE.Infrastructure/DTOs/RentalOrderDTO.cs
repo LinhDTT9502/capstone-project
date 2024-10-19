@@ -80,6 +80,9 @@ namespace _2Sport_BE.Service.DTOs
         public DateTime? RentalStartDate { get; set; }
         public DateTime? RentalEndDate { get; set; }
         public DateTime? CreatedDate { get; set; }
+        public decimal? TotalPrice { get; set; }
+        public decimal? TransportFee { get; set; }
+        public decimal? IntoMoney { get; set; }
         public string? Note { get; set; }
         public string? PaymentLink { get; set; }
     }
@@ -91,9 +94,9 @@ namespace _2Sport_BE.Service.DTOs
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
-        public string? TotalPrice { get; set; }
-        public string? TransportFee { get; set; }
-        public string? IntoMoney { get; set; }
+        public decimal? TotalPrice { get; set; }
+        public decimal? TransportFee { get; set; }
+        public decimal? IntoMoney { get; set; }
         public string? PaymentLink { get; set; }
         public int PaymentMethodID { get; set; }
         public int BranchId { get; set; }
@@ -118,9 +121,7 @@ namespace _2Sport_BE.Service.DTOs
         public int Status { get; set; }
         [Required]
         public string Note { get; set; }
-        [Required]
-        public List<RentalOrderItems>? RentalOrderItems { get; set; }
-        [Required]
+        public List<RentalOrderItems> rentalOrderItems { get; set; }
         public RentalInfor rentalInfor { get; set; }
 
     }
@@ -136,11 +137,13 @@ namespace _2Sport_BE.Service.DTOs
         [Required]
         public decimal? TranSportFee { get; set; }
         [Required]
+        public decimal? NewIntoMoney { get; set; }
+        [Required]
         public int? Status { get; set; }
         [Required]
         public string? Note { get; set; }
         [Required]
-        public List<RentalOrderItems>? RentalOrderItems { get; set; }
+        public List<RentalOrderItems>? rentalOrderItems { get; set; }
         [Required]
         public RentalInfor rentalInfor { get; set; }
     }

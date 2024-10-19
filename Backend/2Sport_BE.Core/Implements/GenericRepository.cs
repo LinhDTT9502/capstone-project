@@ -46,7 +46,8 @@ namespace _2Sport_BE.Repository.Implements
                 }
                 _dbSet.Remove(entityToDelete);
                 await _dbContext.SaveChangesAsync();
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Console.WriteLine(e);
             }
@@ -110,7 +111,7 @@ namespace _2Sport_BE.Repository.Implements
             {
                 query = query.Where(filter);
             }
-            if(includes != null)
+            if (includes != null)
             {
                 foreach (var include in includes)
                 {
@@ -247,21 +248,20 @@ namespace _2Sport_BE.Repository.Implements
         public async Task UpdateRangeAsync(List<T> values)
         {
             if (values == null || !values.Any())
-            {
-                throw new ArgumentException("The values list cannot be null or empty.", nameof(values));
-            }
+                return;
 
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
             try
             {
                 _dbContext.Set<T>().UpdateRange(values);
-                await _dbContext.SaveChangesAsync();
-                await transaction.CommitAsync();
+                await _dbContext.SaveChangesAsync();    
             }
-            catch
+            catch (DbUpdateConcurrencyException ex)
             {
-                await transaction.RollbackAsync();
-                throw;
+                throw new DbUpdateConcurrencyException("Concurrency conflict occurred", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while updating entities", ex);
             }
         }
     }
