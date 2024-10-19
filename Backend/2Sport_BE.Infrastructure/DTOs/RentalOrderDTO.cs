@@ -113,6 +113,8 @@ namespace _2Sport_BE.Service.DTOs
         [Required]
         public decimal TranSportFee { get; set; }
         [Required]
+        public decimal NewIntoMoney { get; set; }
+        [Required]
         public int Status { get; set; }
         [Required]
         public string Note { get; set; }

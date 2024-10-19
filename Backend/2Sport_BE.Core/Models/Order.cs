@@ -40,6 +40,7 @@ public class Order
 
     [Column("IntoMoney", TypeName = "decimal")]
     public decimal IntoMoney { get; set; }
+
     [Column("Note", TypeName = "nvarchar")]
     [MaxLength(500)]
     public string? Note { get; set; }

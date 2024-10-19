@@ -186,7 +186,8 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(response);
             }
         }
-        [HttpPost("checkout-sale-for-customer")]
+        //==================================================================
+        [HttpPost("checkout-sale-order-for-customer")]
         public async Task<IActionResult> HandleCheckoutForCustomer([FromBody] OrderCM orderCM)
         {
             if (!ModelState.IsValid)
@@ -223,14 +224,14 @@ namespace _2Sport_BE.Controllers
             var paymentLink = orderCM.PaymentMethodID == (int)OrderMethods.PayOS
                                   ? await _paymentService.PaymentWithPayOs(response.Data.OrderID)
                                   : "";
-            if(paymentLink.Length == 0)
+            if (paymentLink.Length == 0)
             {
                 return BadRequest("Cannot create payment link");
             }
             response.Data.PaymentLink = paymentLink;
             return Ok(response);
         }
-        [HttpPost("checkout-sale-for-guest")]
+        [HttpPost("checkout-sale-order-for-guest")]
         public async Task<IActionResult> HandleCheckoutForGuest([FromBody] GuestOrderCM guestOrderCM, [FromQuery] int paymentMethodId)
         {
             if (!ModelState.IsValid)
@@ -245,7 +246,7 @@ namespace _2Sport_BE.Controllers
             }
             //Tao link payment
             var paymentLink = guestOrderCM.PaymentMethodID == (int)OrderMethods.PayOS
-                                  ? await _paymentService.PaymentWithPayOs(response.Data.OrderID)
+                                  ? await _paymentService.PaymentWithPayOsForGuest(response.Data.OrderID)
                                   : "";
             if (paymentLink.Length == 0)
             {
@@ -254,7 +255,37 @@ namespace _2Sport_BE.Controllers
             response.Data.PaymentLink = paymentLink;
             return Ok(response);
         }
-        [HttpPost("checkout-rental-for-customer")]
+        [HttpPut("update-sale-order-for-customer")]
+        public async Task<IActionResult> UpdateSaleOrder([FromQuery] int orderId, [FromBody] OrderUM orderUM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            var response = await _orderService.UpdateOrderOfCustomerAsync(orderId, orderUM);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+        [HttpPut("update-sale-order-for-guest")]
+        public async Task<IActionResult> UpdateSaleOrderForGuest([FromQuery] int orderId, [FromBody] GuestOrderUM guestOrderUM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            var response = await _orderService.UpdateOrderOfGuestAsync(orderId, guestOrderUM);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+        //===================================================================
+
+        [HttpPost("checkout-rental-order-for-customer")]
         public async Task<IActionResult> HandleCheckoutRentalForCustomer([FromBody] RentalOrderCM rentalOrderCM)
         {
             if (!ModelState.IsValid)
@@ -295,38 +326,21 @@ namespace _2Sport_BE.Controllers
             return Ok(response);
         }
         //Renting orders of Guest
-        [HttpPost("checkout-rental-for-guest")]
-        public async Task<IActionResult> HandleCheckoutRentalForGuest([FromBody] RentalOrderCM rentalOrderCM)
+        [HttpPost("checkout-rental-order-for-guest")]
+        public async Task<IActionResult> HandleCheckoutRentalForGuest([FromBody] GuestRentalOrderCM guestRentalOrderCM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid request data.");
             }
-            var userId = GetCurrentUserIdFromToken();
-            if (userId != rentalOrderCM.UserID || userId == 0 || rentalOrderCM.UserID == 0)
-            {
-                return Unauthorized();
-            }
 
-            var cart = await _cartService.GetCartByUserId(rentalOrderCM.UserID);
-            if (cart == null || cart.CartItems.Count == 0)
-            {
-                return NotFound("Your Cart is empty");
-            }
-
-            var response = await _rentalOrderService.CreateRentalOrderForCustomer(rentalOrderCM);
+            var response = await _rentalOrderService.CreateRentalOrderForGuest(guestRentalOrderCM);
             if (!response.IsSuccess)
             {
                 return StatusCode(500, response);
             }
-            var isDeleteCartItem = await _cartItemService.DeleteCartItem(cart, rentalOrderCM.rentalOrderItems);
-            if (!isDeleteCartItem)
-            {
-                return StatusCode(500, "Deleting cart item fail");
-            }
-
-            var paymentLink = rentalOrderCM.PaymentMethodID == (int)OrderMethods.PayOS
-                                  ? await _paymentService.PaymentWithPayOs(response.Data.OrderID)
+            var paymentLink = guestRentalOrderCM.PaymentMethodID == (int)OrderMethods.PayOS
+                                  ? await _paymentService.PaymentWithPayOsForGuest(response.Data.OrderID)
                                   : "";
             if (paymentLink.Length == 0)
             {
@@ -335,8 +349,36 @@ namespace _2Sport_BE.Controllers
             response.Data.PaymentLink = paymentLink;
             return Ok(response);
         }
-        //Update Sale Order
-        //Update Rental Order
+        //Update Rental Order - Staff's function - for Customer
+        [HttpPut("update-rental-order-for-customer")]
+        public async Task<IActionResult> UpdateRentalOrderForCustomer([FromQuery] int orderId, [FromBody] RentalOrderUM orderUM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            var response = await _rentalOrderService.UpdateRentailOrderForCustomerAsync(orderId, orderUM);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+        [HttpPut("update-rental-order-for-guest")]
+        public async Task<IActionResult> UpdateRentalOrderForGuest([FromQuery] int orderId, [FromBody] GuestRentalOrderUM orderUM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            var response = await _rentalOrderService.UpdateRentailOrderForGuestAsync(orderId, orderUM);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+        //=================================================================
 
         [HttpGet("cancel")]
         public async Task<IActionResult> HandleOrderCancel([FromQuery] PaymentResponse paymentResponse)
@@ -357,7 +399,7 @@ namespace _2Sport_BE.Controllers
                 var redirectUrl = "https://twosport.vercel.app/order_cancel";
                 return Redirect(redirectUrl);
             }
-           return BadRequest(result);
+            return BadRequest(result);
         }
         [HttpGet("return")]
         public async Task<IActionResult> HandleOrderReturn([FromQuery] PaymentResponse paymentResponse)

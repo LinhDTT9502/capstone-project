@@ -72,6 +72,17 @@ namespace _2Sport_BE.Repository.Implements
             return await _dbSet.FindAsync(id);
         }
 
+        public T FindObject(Expression<Func<T, bool>> filter = null)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            return query.FirstOrDefault();
+        }
 
         public IQueryable<T> GetAll()
         {

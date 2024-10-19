@@ -34,5 +34,6 @@ namespace _2Sport_BE.Repository.Interfaces
 
         Task UpdateAsync(T entityToUpdate);
         Task UpdateRangeAsync(List<T> values);
+        T FindObject(Expression<Func<T, bool>> filter = null);
     }
 }

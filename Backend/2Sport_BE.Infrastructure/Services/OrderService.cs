@@ -1,27 +1,11 @@
 ﻿using _2Sport_BE.Helpers;
 using _2Sport_BE.Infrastructure.Services;
-using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.DTOs;
 using _2Sport_BE.Service.Enums;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
-using Net.payOS;
-using Net.payOS.Types;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vonage.Common.Monads;
-using Vonage.Users;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Data.SqlTypes;
 
 namespace _2Sport_BE.Service.Services
 {
@@ -42,7 +26,8 @@ namespace _2Sport_BE.Service.Services
         Task<ResponseDTO<List<OrderVM>>> GetOrdersByMonthAndStatus(DateTime startDate, DateTime endDate, int status);
         Task<ResponseDTO<string>> DeleteOrderAsync(int id);
         Task<ResponseDTO<string>> ChangeOrderStatusAsync(int id, int status);
-        Task<ResponseDTO<OrderVM>> UpdateOrderAsync(int orderId, OrderUM orderUM);
+        Task<ResponseDTO<OrderVM>> UpdateOrderOfCustomerAsync(int orderId, OrderUM orderUM);
+        Task<ResponseDTO<OrderVM>> UpdateOrderOfGuestAsync(int orderId, GuestOrderUM orderUM);
         Task<IQueryable<Order>> GetAllOrderQueryableAsync();
         Task<ResponseDTO<int>> ProcessCancelledOrder(PaymentResponse paymentResponse);
         Task<ResponseDTO<int>> ProcessCompletedOrder(PaymentResponse paymentResponse);
@@ -103,15 +88,14 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = new List<OrderDetailCM>()
+                        orderDetailVMs = new List<OrderDetailVM>()
                     };
 
                     foreach (var detail in item.OrderDetails)
                     {
                         var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
-                        orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                        orderVM.orderDetailVMs.Add(new OrderDetailVM()
                         {
-                            Price = (decimal)detail.Price,
                             Quantity = detail.Quantity,
                             WarehouseId = warehouse?.Id ?? 0
                         });
@@ -157,15 +141,14 @@ namespace _2Sport_BE.Service.Services
                     TotalPrice = item.TotalPrice.ToString(),
                     PaymentMethodId = item.PaymentMethodId,
                     ShipmentDetailId = item.ShipmentDetailId,
-                    orderDetailCMs = new List<OrderDetailCM>()
+                    orderDetailVMs = new List<OrderDetailVM>()
                 };
 
                 foreach (var detail in item.OrderDetails)
                 {
                     var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
-                    orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                    orderVM.orderDetailVMs.Add(new OrderDetailVM()
                     {
-                        Price = (decimal)detail.Price,
                         Quantity = detail.Quantity,
                         WarehouseId = warehouse?.Id ?? 0
                     });
@@ -210,15 +193,14 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = new List<OrderDetailCM>()
+                        orderDetailVMs = new List<OrderDetailVM>()
                     };
 
                     foreach (var detail in item.OrderDetails)
                     {
                         var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
-                        orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                        orderVM.orderDetailVMs.Add(new OrderDetailVM()
                         {
-                            Price = (decimal)detail.Price,
                             Quantity = detail.Quantity,
                             WarehouseId = warehouse?.Id ?? 0
                         });
@@ -266,15 +248,14 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = new List<OrderDetailCM>()
+                        orderDetailVMs = new List<OrderDetailVM>()
                     };
 
                     foreach (var detail in item.OrderDetails)
                     {
                         var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
-                        orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                        orderVM.orderDetailVMs.Add(new OrderDetailVM()
                         {
-                            Price = (decimal)detail.Price,
                             Quantity = detail.Quantity,
                             WarehouseId = warehouse?.Id ?? 0
                         });
@@ -321,15 +302,13 @@ namespace _2Sport_BE.Service.Services
                     TotalPrice = item.TotalPrice.ToString(),
                     PaymentMethodId = item.PaymentMethodId,
                     ShipmentDetailId = item.ShipmentDetailId,
-                    orderDetailCMs = new List<OrderDetailCM>()
                 };
 
                 foreach (var detail in item.OrderDetails)
                 {
                     var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
-                    orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                    orderVM.orderDetailVMs.Add(new OrderDetailVM()
                     {
-                        Price = (decimal)detail.Price,
                         Quantity = detail.Quantity,
                         WarehouseId = warehouse?.Id ?? 0
                     });
@@ -376,15 +355,14 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = new List<OrderDetailCM>()
+                        orderDetailVMs = new List<OrderDetailVM>()
                     };
 
                     foreach (var detail in item.OrderDetails)
                     {
                         var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
-                        orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                        orderVM.orderDetailVMs.Add(new OrderDetailVM()
                         {
-                            Price = (decimal)detail.Price,
                             Quantity = detail.Quantity,
                             WarehouseId = warehouse?.Id ?? 0
                         });
@@ -437,15 +415,14 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = item.TotalPrice.ToString(),
                         PaymentMethodId = item.PaymentMethodId,
                         ShipmentDetailId = item.ShipmentDetailId,
-                        orderDetailCMs = new List<OrderDetailCM>()
+                        orderDetailVMs = new List<OrderDetailVM>()
                     };
 
                     foreach (var detail in item.OrderDetails)
                     {
                         var warehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId((int)detail.ProductId, detail.BranchId)).FirstOrDefault();
-                        orderVM.orderDetailCMs.Add(new OrderDetailCM()
+                        orderVM.orderDetailVMs.Add(new OrderDetailVM()
                         {
-                            Price = (decimal)detail.Price,
                             Quantity = detail.Quantity,
                             WarehouseId = warehouse?.Id ?? 0
                         });
@@ -528,7 +505,7 @@ namespace _2Sport_BE.Service.Services
                 return response;
             }
         }
-        //For logged-user checkout
+        //For logged-user
         public async Task<ResponseDTO<OrderVM>> ProcessCreatetOrder(OrderCM orderCM)
         {
             var response = new ResponseDTO<OrderVM>();
@@ -631,7 +608,11 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = order.TotalPrice.ToString(),
                         PaymentMethodId = order.PaymentMethodId,
                         ShipmentDetailId = order.ShipmentDetailId,
-                        orderDetailCMs = orderCM.orderDetailCMs,
+                        orderDetailVMs = orderCM.orderDetailCMs.Select(od => new OrderDetailVM()
+                        {
+                            WarehouseId = od.WarehouseId,
+                            Quantity = od.Quantity,
+                        }).ToList(),
                         TransportFee = order.TranSportFee.ToString(),
                         PaymentLink = ""
                     };
@@ -649,7 +630,7 @@ namespace _2Sport_BE.Service.Services
                 }
             }
         }
-        //For guest checkout
+        //For guest
         public async Task<ResponseDTO<GuestOrderVM>> ProcessCreatetOrderForGuest(GuestOrderCM guestOrderCM)
         {
             var response = new ResponseDTO<GuestOrderVM>();
@@ -768,6 +749,7 @@ namespace _2Sport_BE.Service.Services
                 }
             }
         }
+        //================================
         public async Task<ResponseDTO<RevenueVM>> GetOrdersRevenue(int? branchId, int? orderType, DateTime? from, DateTime? to, int? status)
         {
             var response = new ResponseDTO<RevenueVM>();
@@ -901,13 +883,14 @@ namespace _2Sport_BE.Service.Services
             }
         }
         //Update order for staff
-        public async Task<ResponseDTO<OrderVM>> UpdateOrderAsync(int orderId, OrderUM orderUM)
+        public async Task<ResponseDTO<OrderVM>> UpdateOrderOfCustomerAsync(int orderId, OrderUM orderUM)
         {
             var response = new ResponseDTO<OrderVM>();
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
+                    //Check the order is existed
                     var toUpdate = await _unitOfWork.OrderRepository.GetObjectAsync(o => o.Id == orderId, new string[] { "OrderDetails" });
                     if (toUpdate == null)
                     {
@@ -915,12 +898,14 @@ namespace _2Sport_BE.Service.Services
                         response.Message = $"Order with id {orderId} not found!";
                         return response;
                     }
-                    if (toUpdate.Status != (int)OrderStatus.PENDING)
+                    //If isExisted == true, Check the status of Order, Only allowing 'Pending' and 'Paid' when they use PayOs
+                    if (toUpdate.Status != (int)OrderStatus.PENDING && !(toUpdate.PaymentMethodId == 2 && toUpdate.Status == (int)OrderStatus.PAID))
                     {
                         response.IsSuccess = false;
                         response.Message = $"Your order status has been {toUpdate.Status}. Only orders with a PENDING status will be updated.!";
                         return response;
                     }
+                    //If there are any changes about the branch, which revieved the order, check the branch is existed or not
                     var branch = await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == orderUM.BranchId);
                     if (branch == null)
                     {
@@ -928,7 +913,7 @@ namespace _2Sport_BE.Service.Services
                         response.Message = "Branch not found!";
                         return response;
                     }
-
+                    //The shipment detail of users need existed in List Available ShipmentDetails
                     var shipmentDetail = await _unitOfWork.ShipmentDetailRepository
                         .GetObjectAsync(s => s.Id == orderUM.ShipmentDetailID && s.UserId == toUpdate.UserId);
                     if (shipmentDetail == null)
@@ -937,26 +922,31 @@ namespace _2Sport_BE.Service.Services
                         response.Message = $"ShipmenDetail with Id = {orderUM.ShipmentDetailID} is not found!";
                         return response;
                     }
-
+                    //Handling about updating orderDetailItems if there are any changes (update quantity, quan == 0 -> removing, adding more items)
                     foreach (var updatedItem in orderUM.orderDetailUMs)
                     {
+                        //Finding the warehouse by productId, so we have a record productInWarehouse
                         var warehouse = await _unitOfWork.WarehouseRepository.GetObjectAsync(w => w.Id == updatedItem.WarehouseId, new string[] { "Product" });
+                        //Next, Check for existence of items
                         var orderDetail = await _unitOfWork.OrderDetailRepository.GetObjectAsync(o => o.OrderId == toUpdate.Id && o.ProductId == warehouse.ProductId);
 
+                        //The case: when the quantity are updated to ZERO, it means the item would be removed from order
                         if (updatedItem.Quantity == 0)
                         {
                             if (orderDetail != null)
                             {
-                                //Remove item in order
+                                //restock quantity
                                 AdjustStock(warehouse, (int)orderDetail.Quantity, true);
+
+                                //Remove item in order
                                 await _unitOfWork.OrderDetailRepository.DeleteAsync(orderDetail);
                             }
                         }
-                        else if (orderDetail != null)
+                        else if (orderDetail != null) //The case: when quantity != ZERO and there is a diff between oldQuan and newQuan
                         {
-                            // Update quantity
                             int quantityDifference = (int)(updatedItem.Quantity - orderDetail.Quantity);
 
+                            //Check warehouse, the availableQuan >= diffQuan
                             if (warehouse.AvailableQuantity >= quantityDifference)
                             {
                                 AdjustStock(warehouse, quantityDifference, false);
@@ -971,7 +961,7 @@ namespace _2Sport_BE.Service.Services
                                 return response;
                             }
                         }
-                        else
+                        else //The case of adding a new item into order
                         {
                             // Add new item
                             if (warehouse.AvailableQuantity >= updatedItem.Quantity)
@@ -1000,10 +990,10 @@ namespace _2Sport_BE.Service.Services
                         await _unitOfWork.WarehouseRepository.UpdateAsync(warehouse);
                     }
 
-                    toUpdate.Status = orderUM.Status;
                     toUpdate.TotalPrice = orderUM.TotalPrice;
                     toUpdate.TranSportFee = orderUM.TranSportFee;
-                    toUpdate.TotalPrice = (decimal)(toUpdate.TotalPrice + toUpdate.TranSportFee);
+                    toUpdate.IntoMoney = orderUM.NewIntoMoney ?? toUpdate.TotalPrice;//into money
+                    toUpdate.Status = orderUM.Status;
                     toUpdate.Note = orderUM.Note;
                     toUpdate.ShipmentDetailId = orderUM.ShipmentDetailID;
                     toUpdate.BranchId = orderUM.BranchId;
@@ -1011,6 +1001,165 @@ namespace _2Sport_BE.Service.Services
 
                     await transaction.CommitAsync();
                     //Return
+                    var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == toUpdate.Id);
+                    var result = new OrderVM()
+                    {
+                        OrderID = toUpdate.Id,
+                        OrderCode = toUpdate.OrderCode,
+                        CreateDate = toUpdate.CreateAt,
+                        UserID = toUpdate.UserId,
+                        Status = toUpdate.Status.ToString(),
+                        TotalPrice = toUpdate.TotalPrice.ToString(),
+                        IntoMoney = toUpdate.IntoMoney.ToString(),
+                        PaymentMethodId = toUpdate.PaymentMethodId,
+                        ShipmentDetailId = toUpdate.ShipmentDetailId,
+                        TransportFee = toUpdate.TranSportFee.ToString(),
+                        orderDetailVMs = orderDetails.Select(o => new OrderDetailVM()
+                        {
+                            Quantity = o.Quantity,
+                            WarehouseId = GetWarehouseId(o.ProductId)
+                        }).ToList(),
+                    };
+
+                    response.IsSuccess = true;
+                    response.Message = $"Update Order processed successfully";
+                    response.Data = result;
+                    return response;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    response.IsSuccess = false;
+                    response.Message = ex.Message;
+                    return response;
+                }
+            }
+        }
+        public async Task<ResponseDTO<OrderVM>> UpdateOrderOfGuestAsync(int orderId, GuestOrderUM orderUM)
+        {
+            var response = new ResponseDTO<OrderVM>();
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    //Check the order is existed
+                    var toUpdate = await _unitOfWork.OrderRepository.GetObjectAsync(o => o.Id == orderId, new string[] { "OrderDetails" });
+                    if (toUpdate == null)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = $"Order with id {orderId} not found!";
+                        return response;
+                    }
+                    //If isExisted == true, Check the status of Order, Only allowing 'Pending' and 'Paid' when they use PayOs
+                    if (toUpdate.Status != (int)OrderStatus.PENDING && !(toUpdate.PaymentMethodId == 2 && toUpdate.Status == (int)OrderStatus.PAID))
+                    {
+                        response.IsSuccess = false;
+                        response.Message = $"Your order status has been {toUpdate.Status}. Only orders with a PENDING status will be updated.!";
+                        return response;
+                    }
+                    //If there are any changes about the branch, which revieved the order, check the branch is existed or not
+                    var branch = await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == orderUM.BranchId);
+                    if (branch == null)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = "Branch not found!";
+                        return response;
+                    }
+                    //Find the guest in database of updating order, if isExisted == true, updating with given infors
+                    var guestOfOrder = await _unitOfWork.GuestRepository.GetObjectAsync(g => g.Id == toUpdate.GuestId);
+                    if (guestOfOrder == null)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = $"Guest's information of the orderId = {toUpdate.Id} not found;";
+                        return response;
+                    }
+                    else
+                    {
+                        guestOfOrder.Address = orderUM.guestUM.Address;
+                        guestOfOrder.Email = orderUM.guestUM.Email;
+                        guestOfOrder.FullName = orderUM.guestUM.FullName;
+                        guestOfOrder.PhoneNumber = orderUM.guestUM.PhoneNumber;
+                        await _unitOfWork.GuestRepository.UpdateAsync(guestOfOrder);
+                    }
+                    //Handling about updating orderDetailItems if there are any changes (update quantity, quan == 0 -> removing, adding more items)
+                    foreach (var updatedItem in orderUM.orderDetailUMs)
+                    {
+                        //Finding the warehouse by productId, so we have a record productInWarehouse
+                        var warehouse = await _unitOfWork.WarehouseRepository.GetObjectAsync(w => w.Id == updatedItem.WarehouseId, new string[] { "Product" });
+                        //Next, Check for existence of items
+                        var orderDetail = await _unitOfWork.OrderDetailRepository.GetObjectAsync(o => o.OrderId == toUpdate.Id && o.ProductId == warehouse.ProductId);
+
+                        //The case: when the quantity are updated to ZERO, it means the item would be removed from order
+                        if (updatedItem.Quantity == 0)
+                        {
+                            if (orderDetail != null)
+                            {
+                                //restock quantity
+                                AdjustStock(warehouse, (int)orderDetail.Quantity, true);
+
+                                //Remove item in order
+                                await _unitOfWork.OrderDetailRepository.DeleteAsync(orderDetail);
+                            }
+                        }
+                        else if (orderDetail != null) //The case: when quantity != ZERO and there is a diff between oldQuan and newQuan
+                        {
+                            int quantityDifference = (int)(updatedItem.Quantity - orderDetail.Quantity);
+
+                            //Check warehouse, the availableQuan >= diffQuan
+                            if (warehouse.AvailableQuantity >= quantityDifference)
+                            {
+                                AdjustStock(warehouse, quantityDifference, false);
+
+                                orderDetail.Quantity = updatedItem.Quantity;
+                                await _unitOfWork.OrderDetailRepository.UpdateAsync(orderDetail);
+                            }
+                            else
+                            {
+                                response.IsSuccess = false;
+                                response.Message = $"Insufficient stock for product: {warehouse.Product.ProductName}";
+                                return response;
+                            }
+                        }
+                        else //The case of adding a new item into order
+                        {
+                            // Add new item
+                            if (warehouse.AvailableQuantity >= updatedItem.Quantity)
+                            {
+                                var newOrderDetail = new OrderDetail
+                                {
+                                    OrderId = orderId,
+                                    ProductId = warehouse.ProductId,
+                                    Quantity = updatedItem.Quantity,
+                                    BranchId = warehouse.BranchId,
+                                    CreatedAt = DateTime.Now,
+                                    UpdatedAt = DateTime.Now,
+                                    Price = warehouse.Product.Price,
+                                };
+
+                                AdjustStock(warehouse, (int)updatedItem.Quantity, false);
+                                await _unitOfWork.OrderDetailRepository.InsertAsync(newOrderDetail);
+                            }
+                            else
+                            {
+                                response.IsSuccess = false;
+                                response.Message = $"Insufficient stock for product: {warehouse.Product.ProductName}";
+                                return response;
+                            }
+                        }
+                        await _unitOfWork.WarehouseRepository.UpdateAsync(warehouse);
+                    }
+
+                    toUpdate.TotalPrice = orderUM.TotalPrice;
+                    toUpdate.TranSportFee = orderUM.TranSportFee;
+                    toUpdate.IntoMoney = orderUM.NewIntoMoney ?? toUpdate.TotalPrice;
+                    toUpdate.Status = orderUM.Status;
+                    toUpdate.Note = orderUM.Note;
+                    toUpdate.BranchId = orderUM.BranchId;
+                    await _unitOfWork.OrderRepository.UpdateAsync(toUpdate);
+
+                    await transaction.CommitAsync();
+                    //Return
+                    var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == toUpdate.Id);
                     var result = new OrderVM()
                     {
                         OrderID = toUpdate.Id,
@@ -1023,8 +1172,12 @@ namespace _2Sport_BE.Service.Services
                         PaymentMethodId = toUpdate.PaymentMethodId,
                         ShipmentDetailId = toUpdate.ShipmentDetailId,
                         TransportFee = toUpdate.TranSportFee.ToString(),
+                        orderDetailVMs = orderDetails.Select(o => new OrderDetailVM()
+                        {
+                            Quantity = o.Quantity,
+                            WarehouseId = GetWarehouseId(o.ProductId)
+                        }).ToList()
                     };
-
                     response.IsSuccess = true;
                     response.Message = $"Order processed successfully";
                     response.Data = result;
@@ -1078,6 +1231,11 @@ namespace _2Sport_BE.Service.Services
             var query = await _unitOfWork.OrderRepository.GetAllAsync();
 
             return query.AsQueryable();
+        }
+        private int GetWarehouseId(int? productId)
+        {
+            var warehouse = _unitOfWork.WarehouseRepository.FindObject(o => o.ProductId == productId);
+            return warehouse.Id;
         }
     }
 
