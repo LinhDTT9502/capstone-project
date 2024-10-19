@@ -20,6 +20,7 @@ namespace _2Sport_BE.Service.Services
     {
         //PAYOS
         Task<string> PaymentWithPayOs(int orderId);
+        Task<string> PaymentWithPayOsForGuest(int orderId);
         //VNPay
         Task PaymentWithVnPay(int orderId);
         Task<PaymentLinkInformation> CancelPaymentLink(int orderId, string reason);
@@ -46,38 +47,91 @@ namespace _2Sport_BE.Service.Services
 
         public async Task<string> PaymentWithPayOs(int orderId)
         {
-            var order = (await _unitOfWork.OrderRepository
-                                .GetAsync(o => o.Id == orderId, "OrderDetails")).FirstOrDefault();
-            if(order != null)
+            try
             {
-                List<ItemData> orders = new List<ItemData>();
-                var listOrderDetail = order.OrderDetails.ToList();
-
-                var user = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == order.UserId);
-
-                for(int i = 0; i < listOrderDetail.Count; i++)
-                {   var product = await _unitOfWork.ProductRepository
-                                        .GetObjectAsync(p => p.Id == listOrderDetail[i].ProductId);
-
-                    ItemData item = new ItemData(product.ProductName,
-                                                (int)(listOrderDetail[i].Quantity),
-                                                Convert.ToInt32(listOrderDetail[i].Price.ToString()));
-                    orders.Add(item);
-                }
-                if (order.TranSportFee > 0)
+                var order = await _unitOfWork.OrderRepository
+                                .GetObjectAsync(o => o.Id == orderId, new string[] {"OrderDetails"});
+                if (order != null)
                 {
-                    ItemData item = new ItemData("Chi phi van chuyen", 1,(int) order.TranSportFee);
-                    orders.Add(item);
+                    List<ItemData> orders = new List<ItemData>();
+                    var listOrderDetail = order.OrderDetails.ToList();
+
+                    var user = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == order.UserId);
+
+                    for (int i = 0; i < listOrderDetail.Count; i++)
+                    {
+                        var product = await _unitOfWork.ProductRepository
+                                            .GetObjectAsync(p => p.Id == listOrderDetail[i].ProductId);
+
+                        ItemData item = new ItemData(product.ProductName,
+                                                    (int)(listOrderDetail[i].Quantity),
+                                                    Convert.ToInt32(listOrderDetail[i].Price.ToString()));
+                        orders.Add(item);
+                    }
+                    if (order.TranSportFee > 0)
+                    {
+                        ItemData item = new ItemData("Chi phi van chuyen", 1, (int)order.TranSportFee);
+                        orders.Add(item);
+                    }
+                    string content = $"Hoa don {order.OrderCode}";
+                    int expiredAt = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (60 * 5));
+                    PaymentData data = new PaymentData(Convert.ToInt64(order.OrderCode), Int32.Parse(order.IntoMoney.ToString()), content, orders,
+                        "https://twosportapiv2.azurewebsites.net/api/Payment/cancel", "https://twosportapiv2.azurewebsites.net/api/Payment/return",
+                        null, user.FullName, user.Email, user.Phone, user.Address, expiredAt);
+                    var createPayment = await _payOs.createPaymentLink(data);
+                    return createPayment.checkoutUrl;
                 }
-                string content = $"Thanh toan hoa don {order.OrderCode}";
-                int expiredAt = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (60 * 5));
-                PaymentData data = new PaymentData(Int32.Parse(order.OrderCode), Int32.Parse(order.IntoMoney.ToString()), content, orders,
-                    "https://twosportapiv2.azurewebsites.net/api/Payment/cancel", "https://twosportapiv2.azurewebsites.net/api/Payment/return",
-                    null, user.FullName, user.Email, user.Phone, "", expiredAt);
-                var createPayment = await _payOs.createPaymentLink(data);
-                return createPayment.checkoutUrl;
+                return "Somethings is wrong when creating payOs link";
             }
-            return String.Empty;
+            catch (Exception ex)
+            {
+
+                return ex.Message;
+            }
+        }
+        public async Task<string> PaymentWithPayOsForGuest(int orderId)
+        {
+            try
+            {
+                var order = await _unitOfWork.OrderRepository
+                                .GetObjectAsync(o => o.Id == orderId, new string[] { "OrderDetails" });
+                if (order != null)
+                {
+                    List<ItemData> orders = new List<ItemData>();
+                    var listOrderDetail = order.OrderDetails.ToList();
+
+                    var guest = await _unitOfWork.GuestRepository.GetObjectAsync(u => u.Id == order.GuestId);
+
+                    for (int i = 0; i < listOrderDetail.Count; i++)
+                    {
+                        var product = await _unitOfWork.ProductRepository
+                                            .GetObjectAsync(p => p.Id == listOrderDetail[i].ProductId);
+
+                        ItemData item = new ItemData(product.ProductName,
+                                                    (int)(listOrderDetail[i].Quantity),
+                                                    Convert.ToInt32(listOrderDetail[i].Price.ToString()));
+                        orders.Add(item);
+                    }
+                    if (order.TranSportFee > 0)
+                    {
+                        ItemData item = new ItemData("Chi phi van chuyen", 1, (int)order.TranSportFee);
+                        orders.Add(item);
+                    }
+                    string content = $"Hoa don {order.OrderCode}";
+                    int expiredAt = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (60 * 5));
+                    PaymentData data = new PaymentData(Convert.ToInt64(order.OrderCode), Int32.Parse(order.IntoMoney.ToString()), content, orders,
+                        "https://twosportapiv2.azurewebsites.net/api/Payment/cancel", "https://twosportapiv2.azurewebsites.net/api/Payment/return",
+                        null, guest.FullName, guest.Email, guest.PhoneNumber, guest.Address, expiredAt);
+                    var createPayment = await _payOs.createPaymentLink(data);
+                    return createPayment.checkoutUrl;
+                }
+                return "Somethings is wrong when creating payOs link";
+            }
+            catch (Exception ex)
+            {
+
+                return ex.Message;
+            }
         }
 
         public Task PaymentWithVnPay(int orderId)

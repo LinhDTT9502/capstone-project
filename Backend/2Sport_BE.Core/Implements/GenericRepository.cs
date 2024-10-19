@@ -90,7 +90,26 @@ namespace _2Sport_BE.Repository.Implements
 
             return await query.ToListAsync();
         }
+        public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> filter = null, params string[] includes)
+        {
 
+            IQueryable<T> query = _dbSet;
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+            if(includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+            // Using AsNoTracking for read-only queries
+            return await query.AsNoTracking().ToListAsync();
+
+        }
         public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> filter = null)
         {
 
@@ -180,6 +199,19 @@ namespace _2Sport_BE.Repository.Implements
             IQueryable<T> query = _dbSet;
             return await query.Where(filter).FirstOrDefaultAsync();
         }
+        public async Task<T> GetObjectAsync(Expression<Func<T, bool>> filter = null, params string[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+            return await query.Where(filter).FirstOrDefaultAsync();
+        }
 
         public async Task InsertAsync(T entity)
         {
@@ -199,6 +231,27 @@ namespace _2Sport_BE.Repository.Implements
             _dbContext.Entry(entityToUpdate).State = EntityState.Modified;
 
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task UpdateRangeAsync(List<T> values)
+        {
+            if (values == null || !values.Any())
+            {
+                throw new ArgumentException("The values list cannot be null or empty.", nameof(values));
+            }
+
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            try
+            {
+                _dbContext.Set<T>().UpdateRange(values);
+                await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
     }
 }

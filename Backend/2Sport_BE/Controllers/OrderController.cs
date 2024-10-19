@@ -6,6 +6,7 @@ using _2Sport_BE.Service.Enums;
 using _2Sport_BE.Service.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
+using MailKit.Search;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
@@ -23,15 +24,18 @@ namespace _2Sport_BE.Controllers
         private readonly ICartService _cartService;
         private readonly ICartItemService _cartItemService;
         private readonly IPaymentService _paymentService;
-        public OrderController( IOrderService orderService,
+        private readonly IRentalOrderService _rentalOrderService;
+        public OrderController(IOrderService orderService,
                                 ICartService cartService,
                                 ICartItemService cartItemService,
-                                IPaymentService paymentService)
+                                IPaymentService paymentService,
+                                IRentalOrderService rentalOrderService)
         {
             _orderService = orderService;
             _cartService = cartService;
             _cartItemService = cartItemService;
             _paymentService = paymentService;
+            _rentalOrderService = rentalOrderService;
         }
         [HttpGet]
         [Route("get-all-orders")]
@@ -183,14 +187,14 @@ namespace _2Sport_BE.Controllers
             }
         }
         [HttpPost("checkout-sale-for-customer")]
-        public async Task<IActionResult> HandleCheckoutForCustomer([FromBody] OrderCM orderCM, [FromQuery] int paymentMethodId)
+        public async Task<IActionResult> HandleCheckoutForCustomer([FromBody] OrderCM orderCM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid request data.");
             }
             var userId = GetCurrentUserIdFromToken();
-            if(userId != orderCM.UserID)
+            if (userId != orderCM.UserID || userId == 0 || orderCM.UserID == 0)
             {
                 return Unauthorized();
             }
@@ -250,6 +254,90 @@ namespace _2Sport_BE.Controllers
             response.Data.PaymentLink = paymentLink;
             return Ok(response);
         }
+        [HttpPost("checkout-rental-for-customer")]
+        public async Task<IActionResult> HandleCheckoutRentalForCustomer([FromBody] RentalOrderCM rentalOrderCM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            var userId = GetCurrentUserIdFromToken();
+            if (userId != rentalOrderCM.UserID || userId == 0 || rentalOrderCM.UserID == 0)
+            {
+                return Unauthorized();
+            }
+
+            var cart = await _cartService.GetCartByUserId(rentalOrderCM.UserID);
+            if (cart == null || cart.CartItems.Count == 0)
+            {
+                return NotFound("Your Cart is empty");
+            }
+
+            var response = await _rentalOrderService.CreateRentalOrderForCustomer(rentalOrderCM);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            var isDeleteCartItem = await _cartItemService.DeleteCartItem(cart, rentalOrderCM.rentalOrderItems);
+            if (!isDeleteCartItem)
+            {
+                return StatusCode(500, "Deleting cart item fail");
+            }
+
+            var paymentLink = rentalOrderCM.PaymentMethodID == (int)OrderMethods.PayOS
+                                  ? await _paymentService.PaymentWithPayOs(response.Data.OrderID)
+                                  : "";
+            if (paymentLink.Length == 0)
+            {
+                return BadRequest("Cannot create payment link");
+            }
+            response.Data.PaymentLink = paymentLink;
+            return Ok(response);
+        }
+        //Renting orders of Guest
+        [HttpPost("checkout-rental-for-guest")]
+        public async Task<IActionResult> HandleCheckoutRentalForGuest([FromBody] RentalOrderCM rentalOrderCM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            var userId = GetCurrentUserIdFromToken();
+            if (userId != rentalOrderCM.UserID || userId == 0 || rentalOrderCM.UserID == 0)
+            {
+                return Unauthorized();
+            }
+
+            var cart = await _cartService.GetCartByUserId(rentalOrderCM.UserID);
+            if (cart == null || cart.CartItems.Count == 0)
+            {
+                return NotFound("Your Cart is empty");
+            }
+
+            var response = await _rentalOrderService.CreateRentalOrderForCustomer(rentalOrderCM);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            var isDeleteCartItem = await _cartItemService.DeleteCartItem(cart, rentalOrderCM.rentalOrderItems);
+            if (!isDeleteCartItem)
+            {
+                return StatusCode(500, "Deleting cart item fail");
+            }
+
+            var paymentLink = rentalOrderCM.PaymentMethodID == (int)OrderMethods.PayOS
+                                  ? await _paymentService.PaymentWithPayOs(response.Data.OrderID)
+                                  : "";
+            if (paymentLink.Length == 0)
+            {
+                return BadRequest("Cannot create payment link");
+            }
+            response.Data.PaymentLink = paymentLink;
+            return Ok(response);
+        }
+        //Update Sale Order
+        //Update Rental Order
+
         [HttpGet("cancel")]
         public async Task<IActionResult> HandleOrderCancel([FromQuery] PaymentResponse paymentResponse)
         {

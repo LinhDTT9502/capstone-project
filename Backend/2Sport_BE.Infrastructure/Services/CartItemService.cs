@@ -23,8 +23,9 @@ namespace _2Sport_BE.Service.Services
         Task UpdateQuantityOfCartItem(int cartItemId, int quantity);
         Task<CartItem> GetCartItemByWareHouseId(int? warehouseId);
         Task<bool> DeleteCartItem(Cart cart, List<OrderDetailCM> orderDetailCMs);
+        Task<bool> DeleteCartItem(Cart cart, List<RentalOrderItems> rentalOrderItems);
     }
-    public class CartItemService : ICartItemService
+	public class CartItemService : ICartItemService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly TwoSportCapstoneDbContext _dbContext;
@@ -87,7 +88,7 @@ namespace _2Sport_BE.Service.Services
             var currentItem = (await _cartItemRepository.GetAsync(_ => _.WarehouseId == cartItem.WarehouseId &&
                                                                         _.CartId == cart.CartId &&
                                                                         _.Status == true)).FirstOrDefault();
-            var warehouse = (await _warehouseRepository.GetAsync(_ => _.Id == cartItem.WarehouseId && _.Quantity > 0))
+            var warehouse = (await _warehouseRepository.GetAsync(_ => _.Id == cartItem.WarehouseId && _.TotalQuantity > 0))
                                                                                 .FirstOrDefault();
             if (warehouse == null)
             {
@@ -216,6 +217,40 @@ namespace _2Sport_BE.Service.Services
             }
 
             HashSet<int?> productIdsToDelete = new HashSet<int?>(orderDetailCMs.Select(od => od.WarehouseId));
+
+            bool flag = false;
+            List<CartItem> cartItems = cart.CartItems.ToList();
+
+            List<CartItem> itemsToDelete = new List<CartItem>();
+
+            foreach (var cartItem in cartItems)
+            {
+                if (productIdsToDelete.Contains(cartItem.WarehouseId))
+                {
+                    itemsToDelete.Add(cartItem);
+                    flag = true;
+                }
+            }
+
+            if (itemsToDelete.Count > 0)
+            {
+                foreach (var item in itemsToDelete)
+                {
+                    await _unitOfWork.CartItemRepository.DeleteAsync(item);
+                }
+            }
+
+            return flag;
+        }
+
+        public async Task<bool> DeleteCartItem(Cart cart, List<RentalOrderItems> rentalOrderItems)
+        {
+            if (rentalOrderItems == null || rentalOrderItems.Count < 1)
+            {
+                return false;
+            }
+
+            HashSet<int?> productIdsToDelete = new HashSet<int?>(rentalOrderItems.Select(od => od.WarehouseId));
 
             bool flag = false;
             List<CartItem> cartItems = cart.CartItems.ToList();

@@ -26,6 +26,7 @@ namespace _2Sport_BE.Service.DTOs
         public string? Phone { get; set; }
         public string? Address { get; set; }
         public DateTime? BirthDate { get; set; }
+        public bool EmailConfirmed { get; set; }
 
     }
     public class UserCM : UserDTO
