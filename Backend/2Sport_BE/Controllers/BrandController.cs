@@ -9,6 +9,8 @@ using _2Sport_BE.ViewModels;
 using AutoMapper;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using _2Sport_BE.Services;
+using System.Security.Claims;
+using _2Sport_BE.Service.Enums;
 
 namespace _2Sport_BE.Controllers
 {
@@ -19,11 +21,17 @@ namespace _2Sport_BE.Controllers
         private readonly IBrandService _brandService;
         private readonly IProductService _productService;
         private readonly IWarehouseService _warehouseService;
+        private readonly IEmployeeDetailService _employeeDetailService;
+        private readonly IUserService _userService;
         private readonly IImageService _imageService;
+        private readonly IEmployeeService _employeeService;
         private readonly IMapper _mapper;
         public BrandController(IBrandService brandService, IProductService productService, 
                                IWarehouseService warehouseService,
                                IImageService imageService,
+                               IEmployeeDetailService employeeDetailService,
+                               IUserService userService,
+                               IEmployeeService employeeService,
                                IMapper mapper)
         {
             _brandService = brandService;
@@ -31,7 +39,9 @@ namespace _2Sport_BE.Controllers
             _warehouseService = warehouseService;
             _imageService = imageService;
             _mapper = mapper;
-
+            _userService = userService;
+            _employeeDetailService = employeeDetailService;
+            _employeeService = employeeService;
         }
         [HttpGet]
         [Route("list-all")]
@@ -40,7 +50,7 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var brands = await _brandService.ListAllAsync();
-                var warehouses = (await _warehouseService.GetWarehouse(_ => _.Quantity > 0)).Include(_ => _.Product).ToList();
+                var warehouses = (await _warehouseService.GetWarehouse(_ => _.TotalQuantity > 0)).Include(_ => _.Product).ToList();
                 foreach (var item in warehouses)
                 {
                     item.Product = await _productService.GetProductById((int)item.ProductId);
@@ -88,8 +98,35 @@ namespace _2Sport_BE.Controllers
         public async Task<IActionResult> AddBrand(BrandCM brandCM)
         {
             var addedBrand = _mapper.Map<Brand>(brandCM);
+            var addedBrandBranch = new BrandBranch();
             try
             {
+                
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
+
+                var employee = await _employeeService.GetEmployeeDetailsById(userId);
+                var employeeDetail = await _employeeDetailService.GetEmployeeDetailByEmployeeId(userId);
+
+                //Add brand under manager role
+                if (employeeDetail != null && employee.Data.RoleId == 2)
+                {
+                    var existedBrand = (await _brandService.GetBrandsAsync(Name)).FirstOrDefault();
+                    if (existedBrand != null)
+                    {
+                        addedBrandBranch.BrandId = existedBrand.Id;
+                        addedBrandBranch.BranchId = employeeDetail.BranchId;
+                        await _brandService.AssignAnOldBrandToBranchAsync(addedBrandBranch);
+                        return Ok("Add Brand successfully!");
+                    }
+
+                    addedBrandBranch.BranchId = employeeDetail.BranchId;
+                }
+
                 if (brandCM.LogoImage != null)
                 {
                     var uploadResult = await _imageService.UploadImageToCloudinaryAsync(brandCM.LogoImage);
@@ -102,7 +139,7 @@ namespace _2Sport_BE.Controllers
                         return BadRequest("Something wrong!");
                     }
                 }
-                await _brandService.CreateANewBrandAsync(addedBrand);
+                await _brandService.CreateANewBrandAsync(addedBrand, addedBrandBranch);
                 return Ok("Add brand successfully!");
             }
             catch (Exception ex)
@@ -163,6 +200,30 @@ namespace _2Sport_BE.Controllers
                 return Ok($"Delete brand with id: {brandId}!");
             }
             return BadRequest($"Cannot find brand with id {brandId}!");
+        }
+
+        protected int GetCurrentUserIdFromToken()
+        {
+            int UserId = 0;
+            try
+            {
+                if (HttpContext.User.Identity.IsAuthenticated)
+                {
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    if (identity != null)
+                    {
+                        IEnumerable<Claim> claims = identity.Claims;
+                        string strUserId = identity.FindFirst("UserId").Value;
+                        int.TryParse(strUserId, out UserId);
+
+                    }
+                }
+                return UserId;
+            }
+            catch
+            {
+                return UserId;
+            }
         }
     }
 }

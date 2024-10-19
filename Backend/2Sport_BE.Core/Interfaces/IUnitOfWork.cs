@@ -1,4 +1,5 @@
 ﻿using _2Sport_BE.Repository.Models;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace _2Sport_BE.Repository.Interfaces
 {
@@ -7,6 +8,7 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<Blog> BlogRepository { get; }
         IGenericRepository<Brand> BrandRepository { get; }
         IGenericRepository<Branch> BranchRepository { get; }
+        IGenericRepository<BrandBranch> BrandBranchRepository { get; }
         IGenericRepository<Cart> CartRepository { get; }
         IGenericRepository<CartItem> CartItemRepository { get; }
         IGenericRepository<Category> CategoryRepository { get; }
@@ -30,6 +32,10 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<EmployeeDetail> EmployeeDetailRepository { get; }
         IGenericRepository<ErrorLog> ErrorLogRepository { get; }
         IGenericRepository<Attendance> AttendanceRepository { get; }
+        IGenericRepository<Guest> GuestRepository { get; }
+        IGenericRepository<RentalOrder> RentalOrderRepository { get; }
+
+        Task<IDbContextTransaction> BeginTransactionAsync();
         void Save();
         Task<bool> SaveChanges();
     }

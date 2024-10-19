@@ -1,12 +1,14 @@
 using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
+using _2Sport_BE.Service.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Vonage.Messages.Webhooks;
 
 namespace _2Sport_BE.Service.Services
 {
@@ -19,7 +21,10 @@ namespace _2Sport_BE.Service.Services
         Task DeleteCartItem(int cartItemId);
         Task ReduceCartItem(int cartItemId);
         Task UpdateQuantityOfCartItem(int cartItemId, int quantity);
-	}
+        Task<CartItem> GetCartItemByWareHouseId(int? warehouseId);
+        Task<bool> DeleteCartItem(Cart cart, List<OrderDetailCM> orderDetailCMs);
+        Task<bool> DeleteCartItem(Cart cart, List<RentalOrderItems> rentalOrderItems);
+    }
 	public class CartItemService : ICartItemService
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -83,7 +88,7 @@ namespace _2Sport_BE.Service.Services
             var currentItem = (await _cartItemRepository.GetAsync(_ => _.WarehouseId == cartItem.WarehouseId &&
                                                                         _.CartId == cart.CartId &&
                                                                         _.Status == true)).FirstOrDefault();
-            var warehouse = (await _warehouseRepository.GetAsync(_ => _.Id == cartItem.WarehouseId && _.Quantity > 0))
+            var warehouse = (await _warehouseRepository.GetAsync(_ => _.Id == cartItem.WarehouseId && _.TotalQuantity > 0))
                                                                                 .FirstOrDefault();
             if (warehouse == null)
             {
@@ -196,5 +201,80 @@ namespace _2Sport_BE.Service.Services
 				}
 			}
 		}
-	}
+
+        public async Task<CartItem> GetCartItemByWareHouseId(int? warehouseId)
+        {
+            var queryCart = (await _cartItemRepository.GetAsync(_ => _.Status == true && _.WarehouseId == warehouseId))
+                                                      .FirstOrDefault();
+            return queryCart;
+        }
+
+        public async Task<bool> DeleteCartItem(Cart cart, List<OrderDetailCM> orderDetailCMs)
+        {
+            if (orderDetailCMs == null || orderDetailCMs.Count < 1)
+            {
+                return false;
+            }
+
+            HashSet<int?> productIdsToDelete = new HashSet<int?>(orderDetailCMs.Select(od => od.WarehouseId));
+
+            bool flag = false;
+            List<CartItem> cartItems = cart.CartItems.ToList();
+
+            List<CartItem> itemsToDelete = new List<CartItem>();
+
+            foreach (var cartItem in cartItems)
+            {
+                if (productIdsToDelete.Contains(cartItem.WarehouseId))
+                {
+                    itemsToDelete.Add(cartItem);
+                    flag = true;
+                }
+            }
+
+            if (itemsToDelete.Count > 0)
+            {
+                foreach (var item in itemsToDelete)
+                {
+                    await _unitOfWork.CartItemRepository.DeleteAsync(item);
+                }
+            }
+
+            return flag;
+        }
+
+        public async Task<bool> DeleteCartItem(Cart cart, List<RentalOrderItems> rentalOrderItems)
+        {
+            if (rentalOrderItems == null || rentalOrderItems.Count < 1)
+            {
+                return false;
+            }
+
+            HashSet<int?> productIdsToDelete = new HashSet<int?>(rentalOrderItems.Select(od => od.WarehouseId));
+
+            bool flag = false;
+            List<CartItem> cartItems = cart.CartItems.ToList();
+
+            List<CartItem> itemsToDelete = new List<CartItem>();
+
+            foreach (var cartItem in cartItems)
+            {
+                if (productIdsToDelete.Contains(cartItem.WarehouseId))
+                {
+                    itemsToDelete.Add(cartItem);
+                    flag = true;
+                }
+            }
+
+            if (itemsToDelete.Count > 0)
+            {
+                foreach (var item in itemsToDelete)
+                {
+                    await _unitOfWork.CartItemRepository.DeleteAsync(item);
+                }
+            }
+
+            return flag;
+        }
+    }
 }

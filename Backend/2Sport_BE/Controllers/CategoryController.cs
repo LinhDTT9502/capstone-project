@@ -41,7 +41,7 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var query = await _categoryService.GetAllCategories();
-                var warehouses = (await _warehouseService.GetWarehouse(_ => _.Quantity > 0)).Include(_ => _.Product).ToList();
+                var warehouses = (await _warehouseService.GetWarehouse(_ => _.TotalQuantity > 0)).Include(_ => _.Product).ToList();
                 foreach (var item in warehouses)
                 {
                     item.Product = await _productService.GetProductById((int)item.ProductId);

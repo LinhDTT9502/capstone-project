@@ -40,6 +40,7 @@ namespace _2Sport_BE.Repository.Data
         public virtual DbSet<Warehouse> Warehouses { get; set; }
         public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
         public virtual DbSet<Attendance> Attendances { get; set; }
+        public virtual DbSet<RentalOrder> RentalOrders { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Attendance>()

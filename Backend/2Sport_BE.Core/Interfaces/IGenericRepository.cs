@@ -17,6 +17,7 @@ namespace _2Sport_BE.Repository.Interfaces
             int? pageIndex = null,
             int? pageSize = null);
         Task<T> GetObjectAsync(Expression<Func<T, bool>> filter = null);
+        Task<T> GetObjectAsync(Expression<Func<T, bool>> filter = null, params string[] includes);
         Task<int> CountAsync(Expression<Func<T, bool>> filter = null);
 
         Task<IEnumerable<T>> GetAllAsync(params string[] includes);
@@ -32,5 +33,7 @@ namespace _2Sport_BE.Repository.Interfaces
         Task DeleteRangeAsync(IEnumerable<T> entities);
 
         Task UpdateAsync(T entityToUpdate);
+        Task UpdateRangeAsync(List<T> values);
+        T FindObject(Expression<Func<T, bool>> filter = null);
     }
 }

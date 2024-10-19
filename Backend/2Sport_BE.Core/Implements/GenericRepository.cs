@@ -46,7 +46,8 @@ namespace _2Sport_BE.Repository.Implements
                 }
                 _dbSet.Remove(entityToDelete);
                 await _dbContext.SaveChangesAsync();
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Console.WriteLine(e);
             }
@@ -72,6 +73,17 @@ namespace _2Sport_BE.Repository.Implements
             return await _dbSet.FindAsync(id);
         }
 
+        public T FindObject(Expression<Func<T, bool>> filter = null)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            return query.FirstOrDefault();
+        }
 
         public IQueryable<T> GetAll()
         {
@@ -90,7 +102,26 @@ namespace _2Sport_BE.Repository.Implements
 
             return await query.ToListAsync();
         }
+        public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> filter = null, params string[] includes)
+        {
 
+            IQueryable<T> query = _dbSet;
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+            // Using AsNoTracking for read-only queries
+            return await query.AsNoTracking().ToListAsync();
+
+        }
         public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> filter = null)
         {
 
@@ -180,6 +211,19 @@ namespace _2Sport_BE.Repository.Implements
             IQueryable<T> query = _dbSet;
             return await query.Where(filter).FirstOrDefaultAsync();
         }
+        public async Task<T> GetObjectAsync(Expression<Func<T, bool>> filter = null, params string[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+            return await query.Where(filter).FirstOrDefaultAsync();
+        }
 
         public async Task InsertAsync(T entity)
         {
@@ -199,6 +243,26 @@ namespace _2Sport_BE.Repository.Implements
             _dbContext.Entry(entityToUpdate).State = EntityState.Modified;
 
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task UpdateRangeAsync(List<T> values)
+        {
+            if (values == null || !values.Any())
+                return;
+
+            try
+            {
+                _dbContext.Set<T>().UpdateRange(values);
+                await _dbContext.SaveChangesAsync();    
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                throw new DbUpdateConcurrencyException("Concurrency conflict occurred", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while updating entities", ex);
+            }
         }
     }
 }
