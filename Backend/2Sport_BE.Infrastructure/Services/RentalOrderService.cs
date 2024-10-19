@@ -52,8 +52,11 @@ namespace _2Sport_BE.Service.Services
         }
         private bool CheckValidOfRentalDate(DateTime? from, DateTime? to)
         {
-            if (from < DateTime.Now || to < DateTime.Now) return false;
-            if (from > to) return false;
+            if (from == null || to == null) return false;
+
+            if (from.Value.Date < DateTime.Now.Date || to.Value.Date < DateTime.Now.Date) return false;
+            if (from.Value.Date > to.Value.Date) return false;
+
             return true;
         }
         private decimal RentalPriceCalculation(decimal price, decimal transportFee, decimal damageFee, decimal lateFee)
@@ -106,7 +109,7 @@ namespace _2Sport_BE.Service.Services
                         var productInWarehouse = await _unitOfWork.WarehouseRepository
                                                 .GetObjectAsync(p => p.Id == item.WarehouseId);
 
-                        if (productInWarehouse == null || productInWarehouse.TotalQuantity < item.Quantity)
+                         if (productInWarehouse == null || !(productInWarehouse.TotalQuantity >= item.Quantity && productInWarehouse.AvailableQuantity >= item.Quantity))
                         {
                             response.IsSuccess = false;
                             response.Message = $"Not enough stock for product {item.WarehouseId} at branch {branch.Id}";
@@ -169,7 +172,7 @@ namespace _2Sport_BE.Service.Services
 
                             await _unitOfWork.OrderDetailRepository.InsertAsync(orderDetail);
                             order.OrderDetails.Add(orderDetail);
-                            totalPrice += (decimal)(productInWarehouse.Product.RentPrice);
+                            totalPrice += (decimal)(productInWarehouse.Product.RentPrice * item.Quantity);
                         }
                         else
                         {
@@ -200,7 +203,9 @@ namespace _2Sport_BE.Service.Services
                         rentalOrderItems = rentalOrderCM.rentalOrderItems,
                         OrderID = order.Id,
                         OrderCode = order.OrderCode,
-
+                        IntoMoney = order.IntoMoney,
+                       TotalPrice = order.TotalPrice,
+                       TransportFee = order.TranSportFee,
                     };
                     response.IsSuccess = true;
                     response.Message = $"Rental Order processed successfully";
@@ -312,7 +317,7 @@ namespace _2Sport_BE.Service.Services
 
                             await _unitOfWork.OrderDetailRepository.InsertAsync(orderDetail);
                             order.OrderDetails.Add(orderDetail);
-                            totalPrice += (decimal)(productInWarehouse.Product.RentPrice);
+                            totalPrice += (decimal)(productInWarehouse.Product.RentPrice * item.Quantity);
                         }
                         else
                         {
@@ -344,10 +349,10 @@ namespace _2Sport_BE.Service.Services
                         FullName = guest.FullName,
                         OrderID = order.Id,
                         PhoneNumber = guest.PhoneNumber,
-                        IntoMoney = order.IntoMoney.ToString(),
-                        TotalPrice = order.TotalPrice.ToString(),
-                        TransportFee = order.TranSportFee.ToString(),
-                        PaymentLink = ""
+                        IntoMoney = order.IntoMoney,
+                        TotalPrice = order.TotalPrice,
+                        TransportFee = order.TranSportFee,
+                        PaymentLink = "",
                     };
                     response.IsSuccess = true;
                     response.Message = $"Rental Order processed successfully";
@@ -365,6 +370,11 @@ namespace _2Sport_BE.Service.Services
         }
         public async Task<ResponseDTO<RentalOrderVM>> UpdateRentailOrderForCustomerAsync(int orderId, RentalOrderUM rentalOrderUM)
         {
+            /* There are 3 fields to updating RentalOrder for Customer
+             - Update items in order and restock if any
+             - Update order infor
+             - Update retal order detail
+             */
             var response = new ResponseDTO<RentalOrderVM>();
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
@@ -377,12 +387,13 @@ namespace _2Sport_BE.Service.Services
                         response.Message = $"Order with id {orderId} not found!";
                         return response;
                     }
-                    if (toUpdate.Status != (int)OrderStatus.PENDING)
+                    if (toUpdate.Status != (int)OrderStatus.PENDING && !(toUpdate.PaymentMethodId == 2 && toUpdate.Status == (int)OrderStatus.PAID))
                     {
                         response.IsSuccess = false;
-                        response.Message = $"Order status is {toUpdate.Status}. Only pending orders can be updated.";
+                        response.Message = $"Your order status has been {toUpdate.Status}. Only orders with a PENDING status will be updated.!";
                         return response;
                     }
+                    //Updating branch
                     var branch = await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == rentalOrderUM.BranchId);
                     if (branch == null)
                     {
@@ -390,7 +401,12 @@ namespace _2Sport_BE.Service.Services
                         response.Message = "Branch not found!";
                         return response;
                     }
+                    else
+                    {
 
+                        toUpdate.BranchId = rentalOrderUM.BranchId;
+                    }
+                    //Update shipment detail
                     var shipmentDetail = await _unitOfWork.ShipmentDetailRepository
                         .GetObjectAsync(s => s.Id == rentalOrderUM.ShipmentDetailID && s.UserId == toUpdate.UserId);
                     if (shipmentDetail == null)
@@ -399,8 +415,13 @@ namespace _2Sport_BE.Service.Services
                         response.Message = $"Shipment detail with Id {rentalOrderUM.ShipmentDetailID} not found!";
                         return response;
                     }
+                    else
+                    {
+                        toUpdate.ShipmentDetailId = rentalOrderUM.ShipmentDetailID;
+                    }
+
                     //Update warehouse and order detail
-                    foreach (var updatedItem in rentalOrderUM.RentalOrderItems)
+                    foreach (var updatedItem in rentalOrderUM.rentalOrderItems)
                     {
                         var warehouse = await _unitOfWork.WarehouseRepository
                             .GetObjectAsync(w => w.Id == updatedItem.WarehouseId, new string[] { "Product" });
@@ -467,10 +488,8 @@ namespace _2Sport_BE.Service.Services
                     toUpdate.Status = rentalOrderUM.Status;
                     toUpdate.TotalPrice = (decimal)rentalOrderUM.TotalPrice;
                     toUpdate.TranSportFee = rentalOrderUM.TranSportFee;
-                    toUpdate.IntoMoney = (decimal)(toUpdate.TotalPrice + toUpdate.TranSportFee);
+                    toUpdate.IntoMoney = (decimal)rentalOrderUM.NewIntoMoney;
                     toUpdate.Note = rentalOrderUM.Note;
-                    toUpdate.ShipmentDetailId = rentalOrderUM.ShipmentDetailID;
-                    toUpdate.BranchId = rentalOrderUM.BranchId;
                     await _unitOfWork.OrderRepository.UpdateAsync(toUpdate);
 
                     //Update rental detail
@@ -497,6 +516,7 @@ namespace _2Sport_BE.Service.Services
 
                     await transaction.CommitAsync();
                     //Return
+                    var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == toUpdate.Id);
                     var result = new RentalOrderVM()
                     {
                         OrderID = toUpdate.Id,
@@ -509,7 +529,14 @@ namespace _2Sport_BE.Service.Services
                         RentalStartDate = rentalOrder.RentalStartDate,
                         RentalEndDate = rentalOrder.RentalEndDate,
                         ShipmentDetailID = toUpdate.ShipmentDetailId ?? 0,
-                        rentalOrderItems = rentalOrderUM.rentalOrderItems,
+                        IntoMoney = toUpdate.IntoMoney,
+                        TransportFee = toUpdate.TranSportFee,
+                        TotalPrice = toUpdate.TotalPrice,
+                        rentalOrderItems = orderDetails.Select(o => new RentalOrderItems
+                        {
+                            Quantity = o.Quantity,
+                            WarehouseId = GetWarehouseId(o.ProductId)
+                        }).ToList(),
                         PaymentLink = ""
                     };
 
@@ -529,6 +556,12 @@ namespace _2Sport_BE.Service.Services
         }
         public async Task<ResponseDTO<RentalOrderVM>> UpdateRentailOrderForGuestAsync(int orderId, GuestRentalOrderUM rentalOrderUM)
         {
+            /* There are 4 fields to updating RentalOrder for Guest
+             - Update Guest Info
+             - Update items in order and restock if any
+             - Update order infor
+             - Update retal order detail
+             */
             var response = new ResponseDTO<RentalOrderVM>();
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
@@ -541,10 +574,10 @@ namespace _2Sport_BE.Service.Services
                         response.Message = $"Order with id {orderId} not found!";
                         return response;
                     }
-                    if (toUpdate.Status != (int)OrderStatus.PENDING)
+                    if (toUpdate.Status != (int)OrderStatus.PENDING && !(toUpdate.PaymentMethodId == 2 && toUpdate.Status == (int)OrderStatus.PAID))
                     {
                         response.IsSuccess = false;
-                        response.Message = $"Order status is {toUpdate.Status}. Only pending orders can be updated.";
+                        response.Message = $"Your order status has been {toUpdate.Status}. Only orders with a PENDING status will be updated.!";
                         return response;
                     }
                     var branch = await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == rentalOrderUM.BranchId);
@@ -554,6 +587,7 @@ namespace _2Sport_BE.Service.Services
                         response.Message = "Branch not found!";
                         return response;
                     }
+                    //1.Update guest infor
                     var guest = await _unitOfWork.GuestRepository.GetObjectAsync(g => g.Id == toUpdate.GuestId);
                     if (guest == null)
                     {
@@ -568,8 +602,8 @@ namespace _2Sport_BE.Service.Services
                         guest.Email = rentalOrderUM.guestUM.Email;
                         await _unitOfWork.GuestRepository.UpdateAsync(guest);
                     }
-                    //Update warehouse and order detail
-                    foreach (var updatedItem in rentalOrderUM.RentalOrderItems)
+                    //2. Update warehouse and order detail
+                    foreach (var updatedItem in rentalOrderUM.rentalOrderItems)
                     {
                         var warehouse = await _unitOfWork.WarehouseRepository
                             .GetObjectAsync(w => w.Id == updatedItem.WarehouseId, new string[] { "Product" });
@@ -632,16 +666,18 @@ namespace _2Sport_BE.Service.Services
                         }
                         await _unitOfWork.WarehouseRepository.UpdateAsync(warehouse);
                     }
-                    //Update order Infor
+
+                    //3. Update order Infor
                     toUpdate.Status = rentalOrderUM.Status;
                     toUpdate.TotalPrice = (decimal)rentalOrderUM.TotalPrice;
                     toUpdate.TranSportFee = rentalOrderUM.TranSportFee;
-                    toUpdate.IntoMoney = (decimal)(toUpdate.TotalPrice + toUpdate.TranSportFee);
+                    toUpdate.IntoMoney = (decimal)rentalOrderUM.NewIntoMoney;
                     toUpdate.Note = rentalOrderUM.Note;
                     toUpdate.BranchId = rentalOrderUM.BranchId;
 
                     await _unitOfWork.OrderRepository.UpdateAsync(toUpdate);
-                    //Update rental detail
+
+                    //4. Update rental detail
                     var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.OrderId == toUpdate.Id);
                     if (toUpdate == null)
                     {
@@ -663,6 +699,7 @@ namespace _2Sport_BE.Service.Services
                     }
 
                     await transaction.CommitAsync();
+                    var orderDetails = await _unitOfWork.OrderDetailRepository.GetAsync(od => od.OrderId == toUpdate.Id);
                     //Return
                     var result = new RentalOrderVM()
                     {
@@ -676,8 +713,15 @@ namespace _2Sport_BE.Service.Services
                         RentalStartDate = rentalOrder.RentalStartDate,
                         RentalEndDate = rentalOrder.RentalEndDate,
                         ShipmentDetailID = toUpdate.ShipmentDetailId ?? 0,
-                        rentalOrderItems = rentalOrderUM.rentalOrderItems,
-                        PaymentLink = ""
+                        PaymentLink = "",
+                        IntoMoney = toUpdate.IntoMoney,
+                        TotalPrice = toUpdate.TotalPrice,
+                        TransportFee = toUpdate.TranSportFee ?? 0,
+                        rentalOrderItems = orderDetails.Select(o => new RentalOrderItems()
+                        {
+                            Quantity = o.Quantity,
+                            WarehouseId = GetWarehouseId(o.ProductId)
+                        }).ToList(),
                     };
 
                     response.IsSuccess = true;
@@ -697,6 +741,14 @@ namespace _2Sport_BE.Service.Services
         //Late or Damage Handling
         //Return Process
         //Verify phone send otp
-        //Update Dtos
+        //Validate Dtos
+        //GetOrderByType
+        //Edit get order for 2 types
+
+        private int GetWarehouseId(int? productId)
+        {
+            var warehouse = _unitOfWork.WarehouseRepository.FindObject(o => o.ProductId == productId);
+            return warehouse.Id;
+        }
     }
 }

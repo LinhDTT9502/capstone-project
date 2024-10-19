@@ -20,7 +20,9 @@ namespace _2Sport_BE.Service.DTOs
         public int? WarehouseId { get; set; }
         public int? Quantity { get; set; }
     }
-    public class OrderDetailVM : OrderDetailDTO
+    public class OrderDetailVM
     {
+        public int? WarehouseId { get; set; }
+        public int? Quantity { get; set; }
     }
 }
