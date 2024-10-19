@@ -708,6 +708,8 @@ namespace _2Sport_BE.Controllers
 
                     try
                     {
+                        var employeeDetail = await _employeeDetailService.GetEmployeeDetailByEmployeeId(managerId);
+
                         //Check if brand is not exist, add new brand
                         #region Add new brand
                         var existedBrand = await _brandService.GetBrandsAsync(brandValue);
@@ -725,7 +727,11 @@ namespace _2Sport_BE.Controllers
                                         BrandName = brandValue,
                                         Logo = uploadResult.SecureUrl.AbsoluteUri,
                                     };
-                                    await _brandService.CreateANewBrandAsync(newBrand);
+                                    var newBrandBranch = new BrandBranch()
+                                    {
+                                        BranchId = employeeDetail.BranchId
+                                    };
+                                    await _brandService.CreateANewBrandAsync(newBrand, newBrandBranch);
                                 }
                                 else
                                 {
@@ -780,7 +786,6 @@ namespace _2Sport_BE.Controllers
                         }
                         var existedProduct = await _productService.GetProductByProductCode(productCodeValue);
 
-                        var employeeDetail = await _employeeDetailService.GetEmployeeDetailByEmployeeId(managerId);
                         var product = new Product
                         {
                             BrandId = brand.Id,

@@ -18,7 +18,8 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<IQueryable<Brand>> GetBrandById(int? id);
         Task<IQueryable<Brand>> GetBrandsByCategoryAsync(string category);
 
-        Task CreateANewBrandAsync(Brand brand);
+        Task CreateANewBrandAsync(Brand brand, BrandBranch brandBranch);
+        Task AssignAnOldBrandToBranchAsync(BrandBranch brandBranch);
         Task UpdateBrandAsync(Brand brand);
         Task DeleteBrandAsync(int id);
     }
@@ -32,10 +33,17 @@ namespace _2Sport_BE.Infrastructure.Services
             _dBContext = dBContext;
         }
 
-        public async Task CreateANewBrandAsync(Brand brand)
+        public async Task AssignAnOldBrandToBranchAsync(BrandBranch brandBranch)
+        {
+            await _unitOfWork.BrandBranchRepository.InsertAsync(brandBranch);
+        }
+
+        public async Task CreateANewBrandAsync(Brand brand, BrandBranch brandBranch)
         {
             brand.Status = true;
             await _unitOfWork.BrandRepository.InsertAsync(brand);
+            brandBranch.BrandId = brand.Id;
+            await _unitOfWork.BrandBranchRepository.InsertAsync(brandBranch);
         }
 
         public async Task DeleteBrandAsync(int id)
