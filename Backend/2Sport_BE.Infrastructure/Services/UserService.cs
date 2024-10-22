@@ -29,6 +29,9 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<bool>> DisableUserAsync(int id);
         Task<ResponseDTO<bool>> UpdatePasswordAsync(int id, ChangePasswordVM changePasswordVM);
         Task<string> VerifyPhoneNumber(string from, string to);
+
+        Task<User> FindUserByPhoneNumber(string phoneNumber);
+
     }
     public class UserService : IUserService
     {
@@ -392,5 +395,15 @@ namespace _2Sport_BE.Infrastructure.Services
 
             return response.Messages.ToString();
         }
+
+        public async Task<User> FindUserByPhoneNumber(string phoneNumber)
+        {
+            var user = await _unitOfWork.UserRepository.GetObjectAsync(U => U.Phone ==  phoneNumber);
+
+            if (user == null) return null;
+            return user;
+        }
+
+
     }
 }

@@ -534,7 +534,7 @@ namespace _2Sport_BE.Service.Services
                         TotalPrice = toUpdate.TotalPrice,
                         rentalOrderItems = orderDetails.Select(o => new RentalOrderItems
                         {
-                            Quantity = o.Quantity,
+                            Quantity = (int)o.Quantity,
                             WarehouseId = GetWarehouseId(o.ProductId)
                         }).ToList(),
                         PaymentLink = ""
@@ -719,7 +719,7 @@ namespace _2Sport_BE.Service.Services
                         TransportFee = toUpdate.TranSportFee ?? 0,
                         rentalOrderItems = orderDetails.Select(o => new RentalOrderItems()
                         {
-                            Quantity = o.Quantity,
+                            Quantity = (int)o.Quantity,
                             WarehouseId = GetWarehouseId(o.ProductId)
                         }).ToList(),
                     };

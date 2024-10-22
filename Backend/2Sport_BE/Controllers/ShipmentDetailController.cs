@@ -71,7 +71,7 @@ namespace _2Shipment_BE.Controllers
                 return BadRequest("Invalid request data");
             }
             var userId = GetCurrentUserIdFromToken();
-            if(userId == null)
+            if(userId == 0)
             {
                 return Unauthorized("Invalid user");
             }

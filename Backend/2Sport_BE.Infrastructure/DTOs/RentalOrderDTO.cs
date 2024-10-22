@@ -10,8 +10,10 @@ namespace _2Sport_BE.Service.DTOs
 {
     public class RentalOrderItems
     {
-        public int? WarehouseId { get; set; }
-        public int? Quantity { get; set; }
+        [Required]
+        public int WarehouseId { get; set; }
+        [Required]
+        public int Quantity { get; set; }
     }
     public class RentalOrderDTO
     {
@@ -107,44 +109,79 @@ namespace _2Sport_BE.Service.DTOs
     }
     public class RentalOrderUM : RentalOrderDTO
     {
-        [Required]
+        [Required(ErrorMessage = "BranchId is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "BranchId must be a positive integer")]
         public int BranchId { get; set; }
-        [Required]
-        public int ShipmentDetailID { get; set; }
-        [Required]
-        public decimal TotalPrice { get; set; }
-        [Required]
-        public decimal TranSportFee { get; set; }
-        [Required]
-        public decimal NewIntoMoney { get; set; }
-        [Required]
-        public int Status { get; set; }
-        [Required]
-        public string Note { get; set; }
-        public List<RentalOrderItems> rentalOrderItems { get; set; }
-        public RentalInfor rentalInfor { get; set; }
 
+        [Required(ErrorMessage = "ShipmentDetailID is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "ShipmentDetailID must be a positive integer")]
+        public int ShipmentDetailID { get; set; }
+
+        [Required(ErrorMessage = "TotalPrice is required")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "TotalPrice must be greater than zero")]
+        public decimal TotalPrice { get; set; }
+
+        [Required(ErrorMessage = "TranSportFee is required")]
+        [Range(0, double.MaxValue, ErrorMessage = "TranSportFee must be a positive value or zero")]
+        public decimal TranSportFee { get; set; }
+
+        [Required(ErrorMessage = "NewIntoMoney is required")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "NewIntoMoney must be greater than zero")]
+        public decimal NewIntoMoney { get; set; }
+
+        [Required(ErrorMessage = "Status is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Status must be a valid integer")]
+        public int Status { get; set; }
+
+        [Required(ErrorMessage = "Note is required")]
+        [StringLength(500, ErrorMessage = "Note cannot exceed 500 characters")]
+        public string Note { get; set; }
+
+        [Required(ErrorMessage = "At least one Rental Order Item is required")]
+        [MinLength(1, ErrorMessage = "At least one Rental Order Item is required")]
+        public List<RentalOrderItems> rentalOrderItems { get; set; }
+
+        [Required(ErrorMessage = "Rental Information is required")]
+        public RentalInfor rentalInfor { get; set; }
     }
+
     public class GuestRentalOrderUM : RentalOrderDTO
     {
-        //Guest Infor UM
+        // Guest Information (must be required if it's crucial for guest orders)
+        [Required(ErrorMessage = "Guest information is required")]
         public GuestUM guestUM { get; set; }
-        //Order Info UM
-        [Required]
+
+        // Order Info
+        [Required(ErrorMessage = "BranchId is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "BranchId must be a positive integer")]
         public int? BranchId { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "TotalPrice is required")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "TotalPrice must be greater than zero")]
         public decimal TotalPrice { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "TranSportFee is required")]
+        [Range(0, double.MaxValue, ErrorMessage = "TranSportFee must be a positive value or zero")]
         public decimal? TranSportFee { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "NewIntoMoney is required")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "NewIntoMoney must be greater than zero")]
         public decimal? NewIntoMoney { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "Status is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Status must be a valid integer")]
         public int? Status { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "Note is required")]
+        [StringLength(500, ErrorMessage = "Note cannot exceed 500 characters")]
         public string? Note { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "At least one Rental Order Item is required")]
+        [MinLength(1, ErrorMessage = "At least one Rental Order Item is required")]
         public List<RentalOrderItems>? rentalOrderItems { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "Rental information is required")]
         public RentalInfor rentalInfor { get; set; }
     }
+
 }

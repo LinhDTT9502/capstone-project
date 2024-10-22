@@ -67,6 +67,17 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(e);
             }
         }
+        [Route("create-admin-account")]
+        [HttpPost]
+        public async Task<IActionResult> CreateAdminAccount([FromBody] EmployeeCM employeeCM)
+        {
+            var result = await _employeeService.CreateANewAdminAccount(employeeCM);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
         [HttpPut]
         [Route("update-password")]
         public async Task<IActionResult> UpdatePasswordAsync([FromQuery] int id, [FromBody] ChangePasswordVM changePasswordVM)
@@ -76,11 +87,23 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(ModelState);
             }
 
+            var response = await _employeeService.UpdatePasswordAsync(id, changePasswordVM);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpPut]
+        [Route("update-employee")]
+        public async Task<IActionResult> UpdateEmployeeAsync([FromQuery] int employeeId, [FromBody] EmployeeUM employeeUM)
+        {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var response = await _employeeService.UpdatePasswordAsync(id, changePasswordVM);
+
+            var response = await _employeeService.UpdateEmployeeAsync(employeeId, employeeUM);
             if (response.IsSuccess)
             {
                 return Ok(response);

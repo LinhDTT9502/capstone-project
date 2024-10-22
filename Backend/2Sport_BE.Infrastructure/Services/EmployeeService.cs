@@ -2,6 +2,7 @@
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.DTOs;
+using _2Sport_BE.Service.Enums;
 using AutoMapper;
 using Azure.Core;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,8 @@ namespace _2Sport_BE.Service.Services
         Task<ResponseDTO<bool>> RemoveEmployeeAsync(int id);
         Task<ResponseDTO<bool>> DisableEmployeeAsync(int id);
         Task<ResponseDTO<bool>> UpdatePasswordAsync(int id, ChangePasswordVM changePasswordVM);
+
+        Task<ResponseDTO<EmployeeVM>> CreateANewAdminAccount(EmployeeCM employeeCM);
     }
     public class EmployeeService : IEmployeeService
     {
@@ -200,12 +203,12 @@ namespace _2Sport_BE.Service.Services
                         Phone = employee.Phone,
                         UserName = employee.UserName,
                         IsActive = employee.IsActive,
-                        LastUpdate = employee.LastUpdate,
-                        RoleId = employee.RoleId,
-                        BranchId = empDetail?.BranchId,
-                        HireDate = empDetail?.HireDate,
-                        Position = empDetail?.Position,
-                        SupervisorId = empDetail?.SupervisorId
+                        LastUpdate = (DateTime)employee.LastUpdate,
+                        RoleId = (int)employee.RoleId,
+                        BranchId = (int)empDetail.BranchId,
+                        HireDate = (DateTime)empDetail.HireDate,
+                        Position = empDetail.Position,
+                        SupervisorId = (int)empDetail.SupervisorId
                     };
 
                     employeeVMList.Add(employeeVM);
@@ -252,12 +255,12 @@ namespace _2Sport_BE.Service.Services
                     Phone = employee.Phone,
                     UserName = employee.UserName,
                     IsActive = employee.IsActive,
-                    LastUpdate = employee.LastUpdate,
-                    RoleId = employee.RoleId,
-                    BranchId = empDetail?.BranchId,
-                    HireDate = empDetail?.HireDate,
-                    Position = empDetail?.Position,
-                    SupervisorId = empDetail?.SupervisorId
+                    LastUpdate = (DateTime)employee.LastUpdate,
+                    RoleId = (int)employee.RoleId,
+                    BranchId = empDetail.BranchId,
+                    HireDate = (DateTime)empDetail.HireDate,
+                    Position = empDetail.Position,
+                    SupervisorId = (int)empDetail.SupervisorId
                 };
 
                 response.IsSuccess = true;
@@ -300,13 +303,13 @@ namespace _2Sport_BE.Service.Services
                     CreatedDate = e.Employee.CreatedDate,
                     DOB = e.Employee.DOB,
                     Gender = e.Employee.Gender,
-                    HireDate = e.HireDate,
+                    HireDate = (DateTime) e.HireDate,
                     IsActive = e.Employee.IsActive,
-                    LastUpdate = e.Employee.LastUpdate,
+                    LastUpdate = (DateTime)e.Employee.LastUpdate,
                     Phone = e.Employee.Phone,
                     Position = e.Position,
-                    RoleId = e.Employee.RoleId,
-                    SupervisorId = e.SupervisorId,
+                    RoleId = (int)e.Employee.RoleId,
+                    SupervisorId = (int)e.SupervisorId,
                     UserName = e.Employee.UserName
                 }).ToList();
 
@@ -353,12 +356,12 @@ namespace _2Sport_BE.Service.Services
                         Phone = employee.Phone,
                         UserName = employee.UserName,
                         IsActive = employee.IsActive,
-                        LastUpdate = employee.LastUpdate,
-                        RoleId = employee.RoleId,
+                        LastUpdate = (DateTime)employee.LastUpdate,
+                        RoleId = (int)employee.RoleId,
                         BranchId = empDetail?.BranchId,
-                        HireDate = empDetail?.HireDate,
+                        HireDate = (DateTime)empDetail.HireDate,
                         Position = empDetail?.Position,
-                        SupervisorId = empDetail?.SupervisorId
+                        SupervisorId = (int)empDetail.SupervisorId
                     };
 
                     employeeVMList.Add(employeeVM);
@@ -480,23 +483,23 @@ namespace _2Sport_BE.Service.Services
                     return response;
                 }
 
-                employee.FullName = employeeUM.FullName ?? employee.FullName;
-                employee.Gender = employeeUM.Gender ?? employee.Gender;
-                employee.Phone = employeeUM.Phone ?? employee.Phone;
-                employee.Address = employeeUM.Address ?? employee.Address;
-                employee.DOB = employeeUM.DOB ?? employee.DOB;
-                employee.AvatarUrl = employeeUM.AvatarUrl ?? employee.AvatarUrl;
+                employee.FullName = employeeUM.FullName;
+                employee.Gender = employeeUM.Gender;
+                employee.Phone = employeeUM.Phone;
+                employee.Address = employeeUM.Address;
+                employee.DOB = employeeUM.DOB;
+                employee.AvatarUrl = employeeUM.AvatarUrl;
                 employee.IsActive = employeeUM.IsActive;
-                employee.RoleId = employeeUM.RoleId ?? employee.RoleId;
+                employee.RoleId = employeeUM?.RoleId;
                 employee.LastUpdate = DateTime.Now;
 
                 var employeeDetail = await _unitOfWork.EmployeeDetailRepository.GetObjectAsync(ed => ed.EmployeeId == id);
                 if (employeeDetail != null)
                 {
-                    employeeDetail.BranchId = employeeUM.BranchId ?? employeeDetail.BranchId;
-                    employeeDetail.HireDate = employeeUM.HireDate ?? employeeDetail.HireDate;
-                    employeeDetail.Position = employeeUM.Position ?? employeeDetail.Position;
-                    employeeDetail.SupervisorId = employeeUM.SupervisorId ?? employeeDetail.SupervisorId;
+                    employeeDetail.BranchId = employeeUM.BranchId;
+                    employeeDetail.HireDate = employeeUM.HireDate;
+                    employeeDetail.Position = employeeUM.Position;
+                    employeeDetail.SupervisorId = employeeUM.SupervisorId;
                 }
 
                 await _unitOfWork.EmployeeRepository.UpdateAsync(employee);
@@ -548,6 +551,97 @@ namespace _2Sport_BE.Service.Services
                 response.Data = false;
             }
 
+            return response;
+        }
+
+        public async Task<ResponseDTO<EmployeeVM>> CreateANewAdminAccount(EmployeeCM employeeCM)
+        {
+            var response = new ResponseDTO<EmployeeVM>();
+
+            var existingEmployee = await _unitOfWork.EmployeeRepository
+                .GetObjectAsync(u => u.Email == employeeCM.Email || u.UserName == employeeCM.UserName);
+            if (existingEmployee != null)
+            {
+                response.IsSuccess = false;
+                response.Message = "UserName or Email already exists!";
+                return response;
+            }
+
+            using(var trasaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Add Employee
+                    var newEmployee = new Employee
+                    {
+                        UserName = employeeCM.UserName,
+                        Email = employeeCM.Email,
+                        Password = HashPassword(employeeCM.Password),
+                        FullName = employeeCM.FullName,
+                        Address = employeeCM.Address,
+                        Phone = employeeCM.Phone,
+                        AvatarUrl = employeeCM.AvatarUrl,
+                        Gender = employeeCM.Gender,
+                        DOB = employeeCM.DOB,
+                        CreatedDate = DateTime.Now,
+                        IsActive = true,
+                        RoleId = (int)UserRole.Admin,
+                        PasswordResetToken = string.Empty,
+                    };
+                    await _unitOfWork.EmployeeRepository.InsertAsync(newEmployee);
+
+                    // Add Employee Detail
+                    var employeeDetail = new EmployeeDetail
+                    {
+                        HireDate = employeeCM.HireDate,
+                        EmployeeId = newEmployee.EmployeeId,
+                        Position = employeeCM.Position ?? "Administrator",
+                    };
+                    await _unitOfWork.EmployeeDetailRepository.InsertAsync(employeeDetail);
+
+                    await _unitOfWork.SaveChanges();
+                    await trasaction.CommitAsync();
+
+                    var result = new EmployeeVM()
+                    {
+                        EmployeeId = newEmployee.EmployeeId,
+                        Address = newEmployee.Address,
+                        AvatarUrl = newEmployee.AvatarUrl,
+                        CreatedDate = newEmployee.CreatedDate,
+                        DOB = newEmployee.DOB,
+                        Email = newEmployee.Email,
+                        FullName = newEmployee.FullName,
+                        Gender = newEmployee.Gender,
+                        Phone = newEmployee.Phone,
+                        UserName = newEmployee.UserName,
+                        IsActive = newEmployee.IsActive,
+                        LastUpdate = (DateTime)newEmployee.LastUpdate,
+                        RoleId = (int)newEmployee.RoleId,
+                        BranchId = employeeDetail.BranchId,
+                        HireDate = (DateTime)employeeDetail.HireDate,
+                        Position = employeeDetail.Position,
+                        SupervisorId = (int)employeeDetail.SupervisorId
+                    };
+
+                    response.IsSuccess = true;
+                    response.Message = "Admin added successfully";
+                    response.Data = result;
+                    return response;
+                }
+                catch (DbUpdateException)
+                {
+                    await trasaction.RollbackAsync();
+                    response.IsSuccess = false;
+                    response.Message = "An error occurred while saving the employee. Please try again.";
+                }
+                catch (Exception ex)
+                {
+                    await trasaction.RollbackAsync();
+                    response.IsSuccess = false;
+                    response.Message = $"Unexpected error: {ex.Message}";
+                }
+
+            }
             return response;
         }
     }

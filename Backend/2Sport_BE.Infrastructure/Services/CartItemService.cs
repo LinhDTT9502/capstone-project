@@ -285,7 +285,7 @@ namespace _2Sport_BE.Service.Services
                 return false;
             }
 
-            HashSet<int?> productIdsToDelete = new HashSet<int?>(rentalOrderItems.Select(od => od.WarehouseId));
+            HashSet<int> productIdsToDelete = new HashSet<int>(rentalOrderItems.Select(od => od.WarehouseId));
 
             bool flag = false;
             List<CartItem> cartItems = cart.CartItems.ToList();
@@ -294,7 +294,7 @@ namespace _2Sport_BE.Service.Services
 
             foreach (var cartItem in cartItems)
             {
-                if (productIdsToDelete.Contains(cartItem.WarehouseId))
+                if (productIdsToDelete.Contains((int)cartItem.WarehouseId))
                 {
                     itemsToDelete.Add(cartItem);
                     flag = true;

@@ -21,5 +21,22 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(response);
         }
+        [HttpPost("add-points")]
+        public async Task<IActionResult> AddPoints(string phoneNumber, int points)
+        {
+            if (string.IsNullOrEmpty(phoneNumber) || points <= 0)
+            {
+                return BadRequest("Invalid phone number or points.");
+            }
+
+            var result = await _customerDetailService.AddMemberPointByPhoneNumber(phoneNumber, points);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result);
+        }
     }
 }

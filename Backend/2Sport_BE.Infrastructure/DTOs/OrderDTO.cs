@@ -110,4 +110,11 @@ namespace _2Sport_BE.Service.DTOs
         public int TotalOrders { get; set; }
         public string TotalPrice { get; set; }
     }
+    public class OrdersSales
+    {
+        public int TotalOrders { get; set; }
+        public decimal TotalIntoMoney { get; set; }
+        public int orderGrowthRatio { get; set; }
+        public bool IsIncrease { get; set; }
+    }
 }
