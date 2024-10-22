@@ -29,11 +29,8 @@ public class Branch
     [MaxLength(500)]
     public string ImgAvatarPath { get; set; }
 
-    [Column("ImgAvatarName", TypeName = "varchar")]
-    [MaxLength(500)]
-    public string ImgAvatarName { get; set; }
-
     public bool? Status { get; set; }
+    public virtual ICollection<BrandBranch> BrandBranches { get; set; }
 
     public virtual ICollection<EmployeeDetail> EmployeeDetails { get; set; }
 

@@ -43,7 +43,6 @@ namespace _2Sport_BE.ViewModels
         public string ProductCode { get; set; }
         public bool? Status { get; set; }
         public string ImgAvatarPath { get; set; }
-        public string ImgAvatarName { get; set; }
     }
 
     public class ProductCM : ProductDTO
@@ -69,7 +68,6 @@ namespace _2Sport_BE.ViewModels
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
         public int Quantity { get; set; }
-        public string ImgAvatarName { get; set; }
         [Required]
         public string LotCode { get; set; }
         [Required]
@@ -100,7 +98,6 @@ namespace _2Sport_BE.ViewModels
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
         public int Quantity { get; set; }
-        public string ImgAvatarName { get; set; }
         [Required]
         public string LotCode { get; set; }
     }

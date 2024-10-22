@@ -5,7 +5,7 @@ namespace _2Sport_BE.ViewModels
     public class SupplierDTO
     {
         public string SupplierName { get; set; }
-        public string Location { get; set; }
+        public string? Location { get; set; }
     }
     public class SupplierVM : SupplierDTO
     {

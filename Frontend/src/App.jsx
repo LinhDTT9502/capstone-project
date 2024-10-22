@@ -62,26 +62,6 @@ function App() {
           <Footer />
         </div>
       )}
-      {!isStaffOrAdmin && <div><Header />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/manage-account/*" element={<UserRoutes />} />
-        <Route path="/product/*" element={<ProductRoutes />} />
-        {/* <Route path="/productform" element={<ProductForm />} /> */}
-        <Route path="/cart" element={<UserCart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/shipment" element={<UserShipment />} />
-        <Route path="/manage-user" element={<ManageUser />} />
-        <Route path="/contact-us" element={<ContactUs />} />
-        <Route path="/about-us" element={<AboutUs />} />
-        <Route path="/order_success" element={<OrderSuccess />} />
-        <Route path="/order_cancel" element={<OrderCancel />} />
-        <Route path="/employee/warehouse" element={<Warehouse />} />
-        {/* <Route path="/privacy-policy" element={<PrivacyPolicyPage />} /> */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-      <Footer />
-      </div>}
       <Routes>
         <Route
           path="/admin/*"

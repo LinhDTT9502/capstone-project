@@ -26,23 +26,18 @@ namespace _2Sport_BE.ViewModels
         public bool? Status { get; set; }
         public string ImgAvatarPath { get; set; }
 
-        public string ImgAvatarName { get; set; }
     }
 
 	public class BranchCM : BranchDTO
     {
         public IFormFile? ImageURL { get; set; }
 
-        [MaxLength(50)]
-        public string? ImgAvatarName { get; set; }
     }
 
     public class BranchUM : BranchDTO
     {
         public IFormFile? ImageURL { get; set; }
 
-        [MaxLength(50)]
-        public string? ImgAvatarName { get; set; }
     }
 
 }

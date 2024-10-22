@@ -21,6 +21,7 @@ namespace _2Sport_BE.Service.Services
         Task DeleteCartItem(int cartItemId);
         Task ReduceCartItem(int cartItemId);
         Task UpdateQuantityOfCartItem(int cartItemId, int quantity);
+        Task<CartItem> GetCartItemByWareHouseId(int? warehouseId);
         Task<bool> DeleteCartItem(Cart cart, List<OrderDetailCM> orderDetailCMs);
         Task<bool> DeleteCartItem(Cart cart, List<RentalOrderItems> rentalOrderItems);
     }
@@ -201,48 +202,12 @@ namespace _2Sport_BE.Service.Services
 			}
 		}
 
-        /*public async Task<bool> DeleteCartItem(Cart cart, int orderId, Warehouse warehouse)
+        public async Task<CartItem> GetCartItemByWareHouseId(int? warehouseId)
         {
-            var order = (await _unitOfWork.OrderRepository.GetAsync(_ => _.Id == orderId, "OrderDetails")).FirstOrDefault();
-            var orderDetails = order.OrderDetails;
-            if (orderDetails == null || !orderDetails.Any())
-            {
-                return false;
-            }
-
-            if (cart.CartItems.Count > 0)
-            {
-                bool allItemsDeleted = true;
-                foreach (var orderDetail in orderDetails)
-                {
-                    if (warehouse != null && warehouse.Quantity >= orderDetail.Quantity)
-                    {
-                        var cartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == orderDetail.ProductId && ci.Status == true);
-                        if (cartItem != null)
-                        {
-                            await _cartItemService.DeleteCartItem(cartItem.Id);
-                            wareHouse.Quantity -= orderDetail.Quantity;
-                            await _warehouseService.UpdateWarehouseAsync(wareHouse);
-                        }
-                        else
-                        {
-                            allItemsDeleted = false;
-                        }
-                    }
-                    else
-                    {
-                        allItemsDeleted = false;
-                    }
-                }
-
-                if (allItemsDeleted)
-                {
-                    _unitOfWork.Save();
-                    return true;
-                }
-            }
-            return false;
-        }*/
+            var queryCart = (await _cartItemRepository.GetAsync(_ => _.Status == true && _.WarehouseId == warehouseId))
+                                                      .FirstOrDefault();
+            return queryCart;
+        }
 
         public async Task<bool> DeleteCartItem(Cart cart, List<OrderDetailCM> orderDetailCMs)
         {
@@ -255,7 +220,7 @@ namespace _2Sport_BE.Service.Services
 
             bool flag = false;
             List<CartItem> cartItems = cart.CartItems.ToList();
-  
+
             List<CartItem> itemsToDelete = new List<CartItem>();
 
             foreach (var cartItem in cartItems)

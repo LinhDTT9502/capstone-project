@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241018092049_add-brandBranch-table")]
+    partial class addbrandBranchtable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -489,7 +492,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ErrorLogs", (string)null);
+                    b.ToTable("ErrorLogs");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Guest", b =>
@@ -757,10 +760,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("UpdatedAt");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("UpdatedAt");
-
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
@@ -921,47 +920,6 @@ namespace _2Sport_BE.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
-                });
-
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.RentalOrder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal?>("DamageFee")
-                        .HasColumnType("decimal")
-                        .HasColumnName("DamageFee");
-
-                    b.Property<bool>("IsInspected")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsRestocked")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("LateFee")
-                        .HasColumnType("decimal")
-                        .HasColumnName("LateFee");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("RentalEndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("RentalStartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ReturnDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("RentalOrders");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Review", b =>
@@ -1184,9 +1142,6 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AvailableQuantity")
-                        .HasColumnType("int");
-
                     b.Property<int?>("BranchId")
                         .HasColumnType("int")
                         .HasColumnName("BranchId");
@@ -1195,7 +1150,7 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ProductId");
 
-                    b.Property<int?>("TotalQuantity")
+                    b.Property<int?>("Quantity")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -1500,17 +1455,6 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Employee");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.RentalOrder", b =>
-                {
-                    b.HasOne("_2Sport_BE.Repository.Models.Order", "Order")
-                        .WithMany()
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Review", b =>

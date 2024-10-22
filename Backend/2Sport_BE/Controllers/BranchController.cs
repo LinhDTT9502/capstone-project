@@ -97,7 +97,6 @@ namespace _2Sport_BE.Controllers
                 updatedBranch.BranchName = branchUM.BranchName;
                 updatedBranch.Location = branchUM.Location;
                 updatedBranch.Hotline = branchUM.Hotline;
-                updatedBranch.ImgAvatarName = branchUM.ImgAvatarName;
                 try
                 {
                     if (branchUM.ImageURL != null)

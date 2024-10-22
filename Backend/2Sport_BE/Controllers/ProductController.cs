@@ -317,7 +317,6 @@ namespace _2Sport_BE.Controllers
                     }
                     else
                     {
-                        product.ImgAvatarName = "";
                         product.ImgAvatarPath = "";
                     }
 
@@ -372,12 +371,21 @@ namespace _2Sport_BE.Controllers
                     if (existedProductWithSizeColorCodition == null)
                     {
                         var newProduct = existedProduct;
+                        newProduct.Id = 0;
                         newProduct.Size = productCM.Size;
                         newProduct.Color = productCM.Color;
                         newProduct.Condition = productCM.Condition;
-                        newProduct.ListedPrice = productCM.ListedPrice;
                         newProduct.Price = productCM.Price;
                         await _productService.AddProduct(newProduct);
+
+                        var warehouse = new Warehouse()
+                        {
+                            BranchId = employeeDetail.BranchId,
+                            ProductId = newProduct.Id,
+                            TotalQuantity = productCM.Quantity,
+                            AvailableQuantity = productCM.Quantity
+                        };
+                        await _warehouseService.CreateANewWarehouseAsync(warehouse);
                     }
                     else
                     {
@@ -386,25 +394,17 @@ namespace _2Sport_BE.Controllers
                                                                                 existedProductWithSizeColorCodition.Id,
                                                                                 employeeDetail.BranchId))
                                                                                 .FirstOrDefault();
-                        if (existedWarehouse != null)
-                        {
-                            existedWarehouse.TotalQuantity += productCM.Quantity;
-                            existedWarehouse.AvailableQuantity += productCM.Quantity;
-                            await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
-                        }
-                        else
-                        {
-                            var warehouse = new Warehouse()
-                            {
-                                BranchId = employeeDetail.BranchId,
-                                ProductId = existedProductWithSizeColorCodition.Id,
-                                TotalQuantity = productCM.Quantity,
-                                AvailableQuantity = productCM.Quantity,
-                            };
-                            await _warehouseService.CreateANewWarehouseAsync(warehouse);
-                        }
+
+                        existedWarehouse.TotalQuantity += productCM.Quantity;
+                        existedWarehouse.AvailableQuantity += productCM.Quantity;
+                        await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
                     }
 
+                }
+
+                if (existedProduct != null)
+                {
+                    product = existedProduct;
                 }
 
                 //Save import history
@@ -473,7 +473,6 @@ namespace _2Sport_BE.Controllers
                             }
                             else
                             {
-                                product.ImgAvatarName = "";
                                 product.ImgAvatarPath = "";
                             }
 
@@ -510,7 +509,7 @@ namespace _2Sport_BE.Controllers
                                 BranchId = employeeDetail.BranchId,
                                 ProductId = product.Id,
                                 TotalQuantity = productCM.Quantity,
-                                AvailableQuantity = productCM.Quantity
+                                AvailableQuantity = productCM.Quantity,
                             };
                             await _warehouseService.CreateANewWarehouseAsync(warehouse);
 
@@ -531,7 +530,6 @@ namespace _2Sport_BE.Controllers
                                 newProduct.Size = productCM.Size;
                                 newProduct.Color = productCM.Color;
                                 newProduct.Condition = productCM.Condition;
-                                newProduct.ListedPrice = productCM.ListedPrice;
                                 newProduct.Price = productCM.Price;
                                 await _productService.AddProduct(newProduct);
                             }
@@ -615,8 +613,31 @@ namespace _2Sport_BE.Controllers
                     // Handle invalid file input
                     return BadRequest("Cannot find import file!");
                 }
-                var products = ImportProductsIntoDB(importFile, userId);
-
+                var importProductStatus = await ImportProductsIntoDB(importFile, userId);
+                if (importProductStatus == (int)ProductErrors.NullError)
+                {
+                    return BadRequest("One or more field are required");
+                }
+                if (importProductStatus == (int)ProductErrors.NotExcepted)
+                {
+                    return StatusCode(500, "Unknown error");
+                }
+                if (importProductStatus == (int)ProductErrors.BrandNameError)
+                {
+                    return BadRequest("Brand name seems wrong please check again");
+                }
+                if (importProductStatus == (int)ProductErrors.CategoryNameError)
+                {
+                    return BadRequest("Category name seems wrong please check again");
+                }
+                if (importProductStatus == (int)ProductErrors.SportNameError)
+                {
+                    return BadRequest("Sport name seems wrong please check again");
+                }
+                if (importProductStatus == (int)ProductErrors.SupplierNameError)
+                {
+                    return BadRequest("Supplier name seems wrong please check again");
+                }
                 //using (var dbct = new TwoSportCapstoneDbContext())
                 //{
                 //    dbct.BulkInsert(products);
@@ -667,8 +688,9 @@ namespace _2Sport_BE.Controllers
                     var rentPriceValue = reader.GetValue(13)?.ToString();
                     var sizeValue = reader.GetValue(14)?.ToString();
                     var colorValue = reader.GetValue(15)?.ToString();
-                    var avaImgValue = reader.GetValue(17)?.ToString();
-                    var isRent = reader.GetValue(16)?.ToString();
+                    var conditionValue = reader.GetValue(16)?.ToString();
+                    var avaImgValue = reader.GetValue(18)?.ToString();
+                    var isRent = reader.GetValue(17)?.ToString();
 
                     // Check for null or empty mandatory fields
                     if (string.IsNullOrEmpty(brandValue) ||
@@ -683,84 +705,58 @@ namespace _2Sport_BE.Controllers
                         string.IsNullOrEmpty(priceValue) ||
                         string.IsNullOrEmpty(sizeValue) ||
                         string.IsNullOrEmpty(colorValue) ||
+                        string.IsNullOrEmpty(conditionValue) ||
                         string.IsNullOrEmpty(avaImgValue) ||
                         string.IsNullOrEmpty(isRent))
                     {
                         return (int)ProductErrors.NullError;
                     }
 
-                    //Check if brand is not exist, add new brand
-                    #region Add new brand
-                    var existedBrand = await _brandService.GetBrandsAsync(brandValue);
-                    if (existedBrand == null)
+                    try
                     {
-                        var brandImg = reader.GetValue(12)?.ToString();
-                        var brandImgFile = ConvertToIFormFile(brandImg);
-                        if (!string.IsNullOrEmpty(brandImg))
+                        var employeeDetail = await _employeeDetailService.GetEmployeeDetailByEmployeeId(managerId);
+
+                        //Check if brand is not exist, add new brand
+                        #region Add new brand
+                        var existedBrand = await _brandService.GetBrandsAsync(brandValue);
+                        if (existedBrand == null)
                         {
-                            var uploadResult = await _imageService.UploadImageToCloudinaryAsync(brandImgFile);
-                            if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                            var brandImg = reader.GetValue(2)?.ToString();
+                            var brandImgFile = ConvertToIFormFile(brandImg);
+                            if (!string.IsNullOrEmpty(brandImg))
                             {
-                                var newBrand = new Brand()
+                                var uploadResult = await _imageService.UploadImageToCloudinaryAsync(brandImgFile);
+                                if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
                                 {
-                                    BrandName = brandValue,
-                                    Logo = uploadResult.SecureUrl.AbsoluteUri,
-                                };
-                                await _brandService.CreateANewBrandAsync(newBrand);
+                                    var newBrand = new Brand()
+                                    {
+                                        BrandName = brandValue,
+                                        Logo = uploadResult.SecureUrl.AbsoluteUri,
+                                    };
+                                    var newBrandBranch = new BrandBranch()
+                                    {
+                                        BranchId = employeeDetail.BranchId
+                                    };
+                                    await _brandService.CreateANewBrandAsync(newBrand, newBrandBranch);
+                                }
+                                else
+                                {
+                                    return (int)ProductErrors.NotExcepted;
+                                }
                             }
                             else
                             {
-                                return (int)ProductErrors.NotExcepted;
+                                return (int)ProductErrors.NullError;
                             }
                         }
-                        else
-                        {
-                            return (int)ProductErrors.NullError;
-                        }
-                    }
-                    #endregion
+                        #endregion
 
-                    //Check if sport is not exist, add a new sport
-                    #region Add new sport
-                    var existedSport = await _sportService.GetSportByName(sportValue);
-                    if (existedSport == null)
-                    {
-                        var newSport = new Sport()
+                        //Check if supplier is not exist, add a new supplier
+                        #region Add new supplier
+                        var existedSupplier = (await _supplierService.GetSuppliersAsync(supplierValue)).FirstOrDefault();
+                        if (existedSupplier == null)
                         {
-                            Name = sportValue,
-                        };
-                        await _sportService.AddSport(newSport);
-                    }
-                    #endregion
-
-                    //Check if category is not exist, add a new category
-                    #region Add new category
-                    var existedCategory = await _categoryService.GetCategoryByName(categoryValue);
-                    var sport = (await _sportService.GetSportByName(sportValue)).FirstOrDefault();
-                    if (existedCategory == null)
-                    {
-                        var newCategory = new Category()
-                        {
-                            CategoryName = categoryValue,
-                            Sport = sport,
-                            SportId = sport.Id
-                        };
-                        await _categoryService.AddCategory(newCategory);
-                    }
-                    #endregion
-
-                    //Check if supplier is not exist, add a new supplier
-                    #region Add new supplier
-                    var existedSupplier = await _supplierService.GetSuppliersAsync(supplierValue);
-                    if (existedSupplier == null)
-                    {
-                        var supplierLocation = reader.GetValue(6)?.ToString();
-                        if (string.IsNullOrEmpty(supplierLocation))
-                        {
-                            return (int)ProductErrors.NullError;
-                        }
-                        else
-                        {
+                            var supplierLocation = string.IsNullOrEmpty(reader.GetValue(6)?.ToString()) ? "" : reader.GetValue(6).ToString();
                             var newSupplier = new Supplier()
                             {
                                 SupplierName = supplierValue,
@@ -768,140 +764,214 @@ namespace _2Sport_BE.Controllers
                             };
                             await _supplierService.CreateANewSupplierAsync(newSupplier);
                         }
-                    }
-                    #endregion
+                        #endregion
 
-                    // Assuming product creation logic if all fields are valid
-                    var brand = (await _brandService.GetBrandsAsync(brandValue)).FirstOrDefault();
-                    var category = (await _categoryService.GetCategoryByName(categoryValue)).FirstOrDefault();
-                    var supplier = (await _supplierService.GetSuppliersAsync(supplierValue)).FirstOrDefault();
-                    var product = new Product
-                    {
-                        BrandId = brand.Id,
-                        CategoryId = category.Id,
-                        ProductName = productNameValue,
-                        ProductCode = productCodeValue,
-                        ListedPrice = decimal.TryParse(listedPriceValue, out var listedPrice) ? listedPrice : 0,
-                        Price = decimal.TryParse(priceValue, out var price) ? price : 0,
-                        Size = sizeValue,
-                        Color = colorValue,
-                        RentPrice = 0,
-                    };
-
-                    if (!string.IsNullOrEmpty(avaImgValue))
-                    {
-                        var avaImgFile = ConvertToIFormFile(avaImgValue);
-                        var uploadResult = await _imageService.UploadImageToCloudinaryAsync(avaImgFile);
-                        if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                        // Assuming product creation logic if all fields are valid
+                        var brand = (await _brandService.GetBrandsAsync(brandValue)).FirstOrDefault();
+                        if (brand == null)
                         {
-                            product.ImgAvatarPath = uploadResult.SecureUrl.AbsolutePath;
+                            return (int)ProductErrors.BrandNameError;
                         }
-                        else
+
+                        var sport = (await _sportService.GetSportByName(sportValue)).FirstOrDefault();
+                        if (sport == null)
                         {
-                            return (int)ProductErrors.NotExcepted;
+                            return (int)ProductErrors.SportNameError;
                         }
-                    }
-                    else
-                    {
-                        return (int)ProductErrors.NullError;
-                    }
 
-                    if (isRent.ToLower().Equals("yes"))
-                    {
-                        product.IsRent = true;
-                        if (!string.IsNullOrEmpty(rentPriceValue))
+                        var category = (await _categoryService.GetCategoryByName(categoryValue)).FirstOrDefault();
+                        if (category == null)
                         {
-                            product.RentPrice = decimal.Parse(rentPriceValue);
+                            return (int)ProductErrors.CategoryNameError;
                         }
-                    }
-                    else
-                    {
-                        product.IsRent = false;
-                    }
 
-                    await _productService.AddProduct(product);
-
-                    //Add product's images into ImageVideo table
-                    var listProductImages = new List<string>();
-                    var firstImgValue = reader.GetValue(18)?.ToString();
-                    var secondImgValue = reader.GetValue(19)?.ToString();
-                    var thirdImgValue = reader.GetValue(20)?.ToString();
-                    var fourthImgValue = reader.GetValue(21)?.ToString();
-                    var fifthImgValue = reader.GetValue(22)?.ToString();
-                    if (!string.IsNullOrEmpty(firstImgValue))
-                    {
-                        listProductImages.Add(firstImgValue);
-                    }
-                    if (!string.IsNullOrEmpty(secondImgValue))
-                    {
-                        listProductImages.Add(secondImgValue);
-                    }
-                    if (!string.IsNullOrEmpty(thirdImgValue))
-                    {
-                        listProductImages.Add(thirdImgValue);
-                    }
-                    if (!string.IsNullOrEmpty(fourthImgValue))
-                    {
-                        listProductImages.Add(fourthImgValue);
-                    }
-                    if (!string.IsNullOrEmpty(fifthImgValue))
-                    {
-                        listProductImages.Add(fifthImgValue);
-                    }
-
-                    if (listProductImages.Count > 0)
-                    {
-                        foreach (var imagePath in listProductImages)
+                        var supplier = (await _supplierService.GetSuppliersAsync(supplierValue)).FirstOrDefault();
+                        if (supplier == null)
                         {
-                            var imageFile = ConvertToIFormFile(imagePath);
-                            var uploadResult = await _imageService.UploadImageToCloudinaryAsync(imageFile);
-                            if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                            return (int)ProductErrors.SupplierNameError;
+                        }
+                        var existedProduct = await _productService.GetProductByProductCode(productCodeValue);
+
+                        var product = new Product
+                        {
+                            BrandId = brand.Id,
+                            CategoryId = category.Id,
+                            SportId = sport.Id,
+                            ProductName = productNameValue,
+                            ProductCode = productCodeValue,
+                            Price = decimal.TryParse(priceValue, out var price) ? price : 0,
+                            Size = sizeValue,
+                            Color = colorValue,
+                            Condition = int.Parse(conditionValue),
+                            RentPrice = 0,
+                        };
+                        if (existedProduct == null)
+                        {
+                            if (!string.IsNullOrEmpty(avaImgValue))
                             {
-                                var imageObject = new ImagesVideo()
+                                var avaImgFile = ConvertToIFormFile(avaImgValue);
+                                var uploadResult = await _imageService.UploadImageToCloudinaryAsync(avaImgFile);
+                                if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
                                 {
-                                    ProductId = product.Id,
-                                    ImageUrl = uploadResult.SecureUri.AbsoluteUri,
-                                    CreateAt = DateTime.Now,
-                                    VideoUrl = null,
-                                    BlogId = null,
-                                };
-                                await _imageVideosService.AddImage(imageObject);
+                                    product.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
+                                }
+                                else
+                                {
+                                    return (int)ProductErrors.NotExcepted;
+                                }
                             }
                             else
                             {
-                                return (int)ProductErrors.NotExcepted;
+                                return (int)ProductErrors.NullError;
+                            }
 
+
+
+                            if (isRent.ToLower().Equals("yes"))
+                            {
+                                product.IsRent = true;
+                                if (!string.IsNullOrEmpty(rentPriceValue))
+                                {
+                                    product.RentPrice = decimal.Parse(rentPriceValue);
+                                }
+                            }
+                            else
+                            {
+                                product.IsRent = false;
+                            }
+
+                            await _productService.AddProduct(product);
+
+                            //Add product's images into ImageVideo table
+                            var listProductImages = new List<string>();
+                            var firstImgValue = reader.GetValue(19)?.ToString();
+                            var secondImgValue = reader.GetValue(20)?.ToString();
+                            var thirdImgValue = reader.GetValue(21)?.ToString();
+                            var fourthImgValue = reader.GetValue(22)?.ToString();
+                            var fifthImgValue = reader.GetValue(23)?.ToString();
+                            if (!string.IsNullOrEmpty(firstImgValue))
+                            {
+                                listProductImages.Add(firstImgValue);
+                            }
+                            if (!string.IsNullOrEmpty(secondImgValue))
+                            {
+                                listProductImages.Add(secondImgValue);
+                            }
+                            if (!string.IsNullOrEmpty(thirdImgValue))
+                            {
+                                listProductImages.Add(thirdImgValue);
+                            }
+                            if (!string.IsNullOrEmpty(fourthImgValue))
+                            {
+                                listProductImages.Add(fourthImgValue);
+                            }
+                            if (!string.IsNullOrEmpty(fifthImgValue))
+                            {
+                                listProductImages.Add(fifthImgValue);
+                            }
+
+                            if (listProductImages.Count > 0)
+                            {
+                                foreach (var imagePath in listProductImages)
+                                {
+                                    var imageFile = ConvertToIFormFile(imagePath);
+                                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(imageFile);
+                                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                                    {
+                                        var imageObject = new ImagesVideo()
+                                        {
+                                            ProductId = product.Id,
+                                            ImageUrl = uploadResult.SecureUri.AbsoluteUri,
+                                            CreateAt = DateTime.Now,
+                                            VideoUrl = null,
+                                            BlogId = null,
+                                        };
+                                        await _imageVideosService.AddImage(imageObject);
+                                    }
+                                    else
+                                    {
+                                        return (int)ProductErrors.NotExcepted;
+
+                                    }
+                                }
+                            }
+
+                            //Import product into warehouse
+                            var warehouse = new Warehouse()
+                            {
+                                BranchId = employeeDetail.BranchId,
+                                ProductId = product.Id,
+                                TotalQuantity = int.Parse(quantityValue),
+                                AvailableQuantity = int.Parse(quantityValue),
+                            };
+                            await _warehouseService.CreateANewWarehouseAsync(warehouse);
+                        }
+                        else
+                        {
+                            //Import a new product if it is different size color and condition
+                            var existedProductWithSizeColorCodition = (await _productService
+                                                                        .GetProductByProductCodeSizeColorCondition
+                                                                        (existedProduct.ProductCode,
+                                                                        sizeValue,
+                                                                        colorValue,
+                                                                        int.Parse(conditionValue))).FirstOrDefault();
+                            if (existedProductWithSizeColorCodition == null)
+                            {
+                                var newProduct = existedProduct;
+                                newProduct.Id = 0;
+                                newProduct.Size = sizeValue;
+                                newProduct.Color = colorValue;
+                                newProduct.Condition = int.Parse(conditionValue);
+                                newProduct.Price = decimal.Parse(priceValue);
+                                await _productService.AddProduct(newProduct);
+
+                                var warehouse = new Warehouse()
+                                {
+                                    BranchId = employeeDetail.BranchId,
+                                    ProductId = newProduct.Id,
+                                    TotalQuantity = int.Parse(quantityValue),
+                                    AvailableQuantity = int.Parse(quantityValue),
+                                };
+                                await _warehouseService.CreateANewWarehouseAsync(warehouse);
+                            }
+                            else
+                            {
+
+                                var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(
+                                                                                        existedProductWithSizeColorCodition.Id,
+                                                                                        employeeDetail.BranchId))
+                                                                                        .FirstOrDefault();
+
+                                existedWarehouse.TotalQuantity += int.Parse(quantityValue);
+                                existedWarehouse.AvailableQuantity += int.Parse(quantityValue);
+                                await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
                             }
                         }
+                        if (existedProduct != null)
+                        {
+                            product = existedProduct;
+                        }
+
+                        //Save import history
+                        var employee = await _employeeDetailService.GetEmployeeDetailByEmployeeId(managerId);
+                        var importedBranch = await _branchService.GetBranchById(employee.BranchId);
+                        var importHistory = new ImportHistory()
+                        {
+                            EmployeeId = managerId,
+                            ProductId = product.Id,
+                            Content = $@"{importedBranch.BranchName}: Import {int.Parse(quantityValue)} {productNameValue} ({productCodeValue})",
+                            ImportDate = DateTime.Now,
+                            Quantity = int.Parse(quantityValue),
+                            SupplierId = supplier.Id,
+                            LotCode = lotCodeValue,
+                        };
+                        await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
+                    }
+                    catch (Exception ex)
+                    {
+                        return (int)ProductErrors.NotExcepted;
                     }
 
-                    //Import product into warehouse
-                    //var branch = (await _branchService.GetBranchByManagerId(managerId)).FirstOrDefault();
-                    var warehouse = new Warehouse()
-                    {
-                        BranchId = 1,
-                        ProductId = product.Id,
-                        TotalQuantity = int.Parse(quantityValue),
-                        AvailableQuantity = int.Parse(quantityValue),
-                    };
-                    await _warehouseService.CreateANewWarehouseAsync(warehouse);
-
-
-
-                    //Save import history
-                    var employee = await _employeeDetailService.GetEmployeeDetailByEmployeeId(managerId);
-                    var importedBranch = await _branchService.GetBranchById(employee.BranchId);
-                    var importHistory = new ImportHistory()
-                    {
-                        EmployeeId = managerId,
-                        ProductId = product.Id,
-                        Content = $@"{importedBranch.BranchName}: Import {int.Parse(quantityValue)} {productNameValue} ({productCodeValue})",
-                        ImportDate = DateTime.Now,
-                        Quantity = int.Parse(quantityValue),
-                        SupplierId = supplier.Id,
-                        LotCode = lotCodeValue,
-                    };
-                    await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
 
                     rowIndex++;
                 }
