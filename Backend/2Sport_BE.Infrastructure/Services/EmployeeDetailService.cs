@@ -10,8 +10,8 @@ namespace _2Sport_BE.Service.Services
 {
     public interface IEmployeeDetailService
     {
-        Task<EmployeeDetail> GetEmployeeDetail(int id);
-        Task<EmployeeDetail> GetEmployeeDetailByEmployeeId(int employeeId);
+        Task<Staff> GetEmployeeDetail(int id);
+        Task<Staff> GetEmployeeDetailByEmployeeId(int employeeId);
     }
     public class EmployeeDetailService : IEmployeeDetailService
     {
@@ -21,7 +21,7 @@ namespace _2Sport_BE.Service.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<EmployeeDetail> GetEmployeeDetail(int id)
+        public async Task<Staff> GetEmployeeDetail(int id)
         {
             var query = await _unitOfWork.EmployeeDetailRepository
                 .GetObjectAsync(ed => ed.Id == id);
@@ -30,7 +30,7 @@ namespace _2Sport_BE.Service.Services
             return query;
         }
 
-        public async Task<EmployeeDetail> GetEmployeeDetailByEmployeeId(int employeeId)
+        public async Task<Staff> GetEmployeeDetailByEmployeeId(int employeeId)
         {
             var query = await _unitOfWork.EmployeeDetailRepository
                 .GetObjectAsync(ed => ed.EmployeeId == employeeId);
