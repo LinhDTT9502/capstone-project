@@ -80,7 +80,7 @@ namespace _2Sport_BE.Service.Services
                 if (customerDetail == null)
                 {
                     //add detail
-                    customerDetail = new Repository.Models.CustomerDetail()
+                    customerDetail = new Repository.Models.Customer()
                     {
                         JoinDate = DateTime.UtcNow,
                         LoyaltyPoints = Convert.ToInt32(order.TotalPrice),
@@ -121,7 +121,7 @@ namespace _2Sport_BE.Service.Services
                 var toUpdate = await _unitOfWork.CustomerDetailRepository.GetObjectAsync(u => u.UserId == user.Id);
                 if (toUpdate == null)
                 {
-                    CustomerDetail customerDetail = new CustomerDetail()
+                    Customer customerDetail = new Customer()
                     {
                         JoinDate = DateTime.Now,
                         MembershipLevel = "Normal_Member",

@@ -111,7 +111,7 @@ namespace _2Sport_BE.Service.Services
                 await _unitOfWork.EmployeeRepository.InsertAsync(newEmployee);
 
                 // Add Employee Detail
-                var employeeDetail = new EmployeeDetail
+                var employeeDetail = new Staff
                 {
                     BranchId = employeeCM.BranchId,
                     HireDate = employeeCM.HireDate,
@@ -591,7 +591,7 @@ namespace _2Sport_BE.Service.Services
                     await _unitOfWork.EmployeeRepository.InsertAsync(newEmployee);
 
                     // Add Employee Detail
-                    var employeeDetail = new EmployeeDetail
+                    var employeeDetail = new Staff
                     {
                         HireDate = employeeCM.HireDate,
                         EmployeeId = newEmployee.EmployeeId,
