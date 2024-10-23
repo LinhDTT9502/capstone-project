@@ -14,6 +14,21 @@ namespace _2Sport_BE.Repository.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int AdminId { get; set; }
+        [Required]
+        [Column("Username", TypeName = "varchar")]
+        [MaxLength(100)]
+        public string UserName { get; set; }
+
+        [Required]
+        [Column("Username", TypeName = "varchar")]
+        [MaxLength(100)]
+        public string HashPassword { get; set; }
+
+        public string Description { get; set; }
         
+        public int  RoleId { get; set; }
+
+        [ForeignKey(nameof(RoleId))]
+        public virtual Role Role { get; set; }
     }
 }

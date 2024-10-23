@@ -5,32 +5,38 @@ using System.ComponentModel.DataAnnotations;
 
 namespace _2Sport_BE.Repository.Models;
 
-[Table("EmployeeDetails")]
-public class EmployeeDetail
+[Table("Staffs")]
+public class Staff
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
+    public int StaffId { get; set; }
 
-    [Column("EmployeeId")]
-    public int? EmployeeId { get; set; }
+    [Column("UserId")]
+    public int? UserId { get; set; }
 
     [Column("BranchId")]
     public int? BranchId { get; set; }
 
+    [Column("ManagerId")]
+    public int? ManagerId { get; set; }
+    public virtual Manager Manager { get; set; }
+
+    [Column("StartDate")]
     [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
     [DataType(DataType.DateTime)]
-    public DateTime? HireDate { get; set; }
+    public DateTime StartDate { get; set; }
+
+    [Column("EndDate")]
+    [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+    [DataType(DataType.DateTime)]
+    public DateTime? EndDate { get; set; }
 
     [Column("Position", TypeName = "nvarchar")]
     [MaxLength(50)]
     public string Position { get; set; }
-
-    [Column("SupervisorId")]
-    public int? SupervisorId { get; set; }
     public virtual Branch Branch { get; set; }
-    public virtual Employee Employee { get; set; }
-    public virtual Employee Supervisor { get; set; }
+    public virtual User User { get; set; }
 
 }
 

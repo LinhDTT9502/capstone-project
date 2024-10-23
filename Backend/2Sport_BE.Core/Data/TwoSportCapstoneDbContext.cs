@@ -21,7 +21,7 @@ namespace _2Sport_BE.Repository.Data
         public virtual DbSet<Cart> Carts { get; set; }
         public virtual DbSet<CartItem> CartItems { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
-        public virtual DbSet<CustomerDetail> CustomerDetails { get; set; }
+        public virtual DbSet<Customer> CustomerDetails { get; set; }
         public virtual DbSet<Employee> Employees { get; set; }
         public virtual DbSet<ImportHistory> ImportHistories { get; set; }
         public virtual DbSet<ImagesVideo> ImagesVideos { get; set; }

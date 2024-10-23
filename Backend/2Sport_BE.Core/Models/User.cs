@@ -16,10 +16,14 @@ namespace _2Sport_BE.Repository.Models
             Reviews = new HashSet<Review>();
             ShipmentDetails = new HashSet<ShipmentDetail>();
         }
-
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+        [Column("UserName")]
         public string? UserName { get; set; }
-        public string? Password { get; set; }
+        [Column("HashPassword")]
+        public string? HashPassword { get; set; }
+        []
         public string? Email { get; set; }
         public string? FullName { get; set; }
         public string? Gender { get; set; }
