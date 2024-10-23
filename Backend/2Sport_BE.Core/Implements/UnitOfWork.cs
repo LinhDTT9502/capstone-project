@@ -36,8 +36,8 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<RefreshToken> _refreshTokenRepository;
         private IGenericRepository<Sport> _sportRepository;
         private IGenericRepository<Employee> _employeeRepository;
-        private IGenericRepository<EmployeeDetail> _employeeDetailRepository;
-        private IGenericRepository<CustomerDetail> _customerDetailRepository;
+        private IGenericRepository<Staff> _employeeDetailRepository;
+        private IGenericRepository<Customer> _customerDetailRepository;
         private IGenericRepository<ErrorLog> _errorLogRepository;
         private IGenericRepository<Attendance> _attendanceRepository;
         private IGenericRepository<Guest> _guestRepository;
@@ -331,13 +331,13 @@ namespace _2Sport_BE.Repository.Implements
                 return _sportRepository;
             }
         }
-        public IGenericRepository<CustomerDetail> CustomerDetailRepository
+        public IGenericRepository<Customer> CustomerDetailRepository
         {
             get
             {
                 if (_customerDetailRepository == null)
                 {
-                    _customerDetailRepository = new GenericRepository<CustomerDetail>(_dbContext);
+                    _customerDetailRepository = new GenericRepository<Customer>(_dbContext);
                 }
                 return _customerDetailRepository;
             }
@@ -353,13 +353,13 @@ namespace _2Sport_BE.Repository.Implements
                 return _employeeRepository;
             }
         }
-        public IGenericRepository<EmployeeDetail> EmployeeDetailRepository
+        public IGenericRepository<Staff> EmployeeDetailRepository
         {
             get
             {
                 if (_employeeDetailRepository == null)
                 {
-                    _employeeDetailRepository = new GenericRepository<EmployeeDetail>(_dbContext);
+                    _employeeDetailRepository = new GenericRepository<Staff>(_dbContext);
                 }
                 return _employeeDetailRepository;
             }

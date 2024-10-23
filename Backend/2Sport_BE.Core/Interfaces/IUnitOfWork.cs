@@ -27,9 +27,9 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<Warehouse> WarehouseRepository { get; }
         IGenericRepository<RefreshToken> RefreshTokenRepository { get; }
         IGenericRepository<Sport> SportRepository { get; }
-        IGenericRepository<CustomerDetail> CustomerDetailRepository { get; }
+        IGenericRepository<Customer> CustomerDetailRepository { get; }
         IGenericRepository<Employee> EmployeeRepository { get; }
-        IGenericRepository<EmployeeDetail> EmployeeDetailRepository { get; }
+        IGenericRepository<Staff> EmployeeDetailRepository { get; }
         IGenericRepository<ErrorLog> ErrorLogRepository { get; }
         IGenericRepository<Attendance> AttendanceRepository { get; }
         IGenericRepository<Guest> GuestRepository { get; }

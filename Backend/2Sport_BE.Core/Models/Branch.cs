@@ -32,7 +32,7 @@ public class Branch
     public bool? Status { get; set; }
     public virtual ICollection<BrandBranch> BrandBranches { get; set; }
 
-    public virtual ICollection<EmployeeDetail> EmployeeDetails { get; set; }
+    public virtual ICollection<Staff> EmployeeDetails { get; set; }
 
     public virtual ICollection<Warehouse> Warehouses { get; set; }
     public virtual ICollection<Attendance> Attendances { get; set; }
