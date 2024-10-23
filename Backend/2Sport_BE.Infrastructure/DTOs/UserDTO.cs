@@ -14,17 +14,17 @@ namespace _2Sport_BE.Service.DTOs
         public string Username { get; set; }
 
         [Required(ErrorMessage = "Password is required")]
-        [StringLength(18, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
+        /*[StringLength(18, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
         [RegularExpression(@"^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)).+$")]
-        [DataType(DataType.Password)]
+        [DataType(DataType.Password)]*/
         public string Password { get; set; }
 
         [Required(ErrorMessage = "FullName is required")]
         public string FullName { get; set; }
 
         [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Email Address is invalid format")]
-        [StringLength(100, ErrorMessage = "Email cannot be longer than 100 characters.")]
+        /*[EmailAddress(ErrorMessage = "Email Address is invalid format")]
+        [StringLength(100, ErrorMessage = "Email cannot be longer than 100 characters.")]*/
         public string Email { get; set; }
     }
     public class UserVM
@@ -47,12 +47,12 @@ namespace _2Sport_BE.Service.DTOs
         public string? Gender { get; set; }
 
         [Required(ErrorMessage = "Phone is required")]
-        [RegularExpression(@"^(\+84|0)(3|5|7|8|9)([0-9]{8})$", ErrorMessage = "Please enter a valid phone number.")]
+       /* [RegularExpression(@"^(\+84|0)(3|5|7|8|9)([0-9]{8})$", ErrorMessage = "Please enter a valid phone number.")]*/
         public string? Phone { get; set; }
 
         [Required(ErrorMessage = "BirthDate is required")]
-        [DataType(DataType.Date)]
-        [Range(typeof(DateTime), "1/1/1900", "12/31/2024", ErrorMessage = "BirthDate must be between {1} and {2}.")]
+        /*[DataType(DataType.Date)]
+        [Range(typeof(DateTime), "1/1/1900", "12/31/2024", ErrorMessage = "BirthDate must be between {1} and {2}.")]*/
         public DateTime? BirthDate { get; set; }
 
         [Required(ErrorMessage = "RoleId is required")]
@@ -67,8 +67,8 @@ namespace _2Sport_BE.Service.DTOs
         public string FullName { get; set; }
 
         [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Email Address is invalid format")]
-        [StringLength(100, ErrorMessage = "Email cannot be longer than 100 characters.")]
+        /*[EmailAddress(ErrorMessage = "Email Address is invalid format")]
+        [StringLength(100, ErrorMessage = "Email cannot be longer than 100 characters.")]*/
         public string Email { get; set; }
 
         [Required(ErrorMessage = "RoleId is required")]
@@ -78,15 +78,15 @@ namespace _2Sport_BE.Service.DTOs
         public string Gender { get; set; }
 
         [Required(ErrorMessage = "Phone is required")]
-        [RegularExpression(@"^(\+84|0)(3|5|7|8|9)([0-9]{8})$", ErrorMessage = "Please enter a valid phone number.")]
+        /*[RegularExpression(@"^(\+84|0)(3|5|7|8|9)([0-9]{8})$", ErrorMessage = "Please enter a valid phone number.")]*/
         public string Phone { get; set; }
 
         [Required(ErrorMessage = "Address is required")]
         public string Address { get; set; }
 
         [Required(ErrorMessage = "BirthDate is required")]
-        [DataType(DataType.Date)]
-        [Range(typeof(DateTime), "1/1/1900", "12/31/2024", ErrorMessage = "BirthDate must be between {1} and {2}.")]
+        /*[DataType(DataType.Date)]
+        [Range(typeof(DateTime), "1/1/1900", "12/31/2024", ErrorMessage = "BirthDate must be between {1} and {2}.")]*/
         public DateTime? BirthDate { get; set; }    
     }
     public class ProfileUM
@@ -98,15 +98,15 @@ namespace _2Sport_BE.Service.DTOs
         public string Gender { get; set; }
 
         [Required(ErrorMessage = "Phone is required")]
-        [RegularExpression(@"^(\+84|0)(3|5|7|8|9)([0-9]{8})$", ErrorMessage = "Please enter a valid phone number.")]
+        /*[RegularExpression(@"^(\+84|0)(3|5|7|8|9)([0-9]{8})$", ErrorMessage = "Please enter a valid phone number.")]*/
         public string Phone { get; set; }
 
         [Required(ErrorMessage = "Address is required")]
         public string Address { get; set; }
 
         [Required(ErrorMessage = "BirthDate is required")]
-        [DataType(DataType.Date)]
-        [Range(typeof(DateTime), "1/1/1900", "12/31/2024", ErrorMessage = "BirthDate must be between {1} and {2}.")]
+        /*[DataType(DataType.Date)]
+        [Range(typeof(DateTime), "1/1/1900", "12/31/2024", ErrorMessage = "BirthDate must be between {1} and {2}.")]*/
         public DateTime BirthDate { get; set; }
     }
     public class UserLogin
@@ -117,8 +117,8 @@ namespace _2Sport_BE.Service.DTOs
 
         [JsonProperty("password")]
         [Required(ErrorMessage = "Password is required")]
-        [StringLength(18, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
-        [RegularExpression(@"^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)).+$")]
+        /*[StringLength(18, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
+        [RegularExpression(@"^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)).+$")]*/
         public string Password { get; set; }
     }
     public class ForgotVM
@@ -129,16 +129,16 @@ namespace _2Sport_BE.Service.DTOs
 
         [JsonProperty("email")]
         [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Email Address is invalid format")]
-        [StringLength(100, ErrorMessage = "Email cannot be longer than 100 characters.")]
+        /*[EmailAddress(ErrorMessage = "Email Address is invalid format")]
+        [StringLength(100, ErrorMessage = "Email cannot be longer than 100 characters.")]*/
         public string Email { get; set; }
     }
     public class ChangePasswordVM
     {
         [JsonProperty("newPassword")]
         [Required(ErrorMessage = "NewPassword is required")]
-        [StringLength(18, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
-        [RegularExpression(@"^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)).+$")]
+        /*[StringLength(18, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
+        [RegularExpression(@"^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)).+$")]*/
         public string NewPassword { get; set; }
     }
     public class ResetPasswordRequest
@@ -147,13 +147,13 @@ namespace _2Sport_BE.Service.DTOs
         public string Token { get; set; }
 
         [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Email Address is invalid format")]
-        [StringLength(100, ErrorMessage = "Email cannot be longer than 100 characters.")]
+        /*[EmailAddress(ErrorMessage = "Email Address is invalid format")]
+        [StringLength(100, ErrorMessage = "Email cannot be longer than 100 characters.")]*/
         public string Email { get; set; }
 
         [Required(ErrorMessage = "NewPassword is required")]
-        [StringLength(18, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
-        [RegularExpression(@"^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)).+$")]
+        /*[StringLength(18, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
+        [RegularExpression(@"^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)).+$")]*/
         public string NewPassword { get; set; }
     }
 }
