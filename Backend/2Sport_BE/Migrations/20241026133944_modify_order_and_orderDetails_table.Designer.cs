@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241026133944_modify_order_and_orderDetails_table")]
+    partial class modify_order_and_orderDetails_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -688,7 +691,7 @@ namespace _2Sport_BE.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasColumnName("Id");
+                        .HasColumnName("RentalOrderId");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
@@ -700,10 +703,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<int?>("BranchId")
                         .HasColumnType("int")
                         .HasColumnName("BranchId");
-
-                    b.Property<string>("BranchName")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("BranchName");
 
                     b.Property<string>("ContactPhone")
                         .IsRequired()
@@ -728,18 +727,11 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("FullName");
 
-                    b.Property<string>("ImgAvatarPath")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar")
-                        .HasColumnName("ImgAvatarPath");
-
                     b.Property<bool>("IsInspected")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsInspected");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRestocked")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsRestocked");
+                        .HasColumnType("bit");
 
                     b.Property<decimal>("LateFee")
                         .HasColumnType("decimal")
@@ -750,6 +742,11 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar")
                         .HasColumnName("Note");
 
+                    b.Property<string>("OrderCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar")
+                        .HasColumnName("OrderCode");
+
                     b.Property<int?>("OrderStatus")
                         .HasColumnType("int")
                         .HasColumnName("OrderStatus");
@@ -758,33 +755,12 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("int")
                         .HasColumnName("PaymentMethodId");
 
-                    b.Property<int?>("PaymentStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("PaymentStatus");
-
-                    b.Property<int?>("ProductId")
-                        .HasColumnType("int")
-                        .HasColumnName("ProductId");
-
-                    b.Property<string>("ProductName")
+                    b.Property<string>("PaymentStatus")
                         .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ProductName");
-
-                    b.Property<int?>("Quantity")
-                        .HasColumnType("int")
-                        .HasColumnName("Quantity");
-
-                    b.Property<decimal?>("RentPrice")
-                        .HasColumnType("decimal")
-                        .HasColumnName("RentPrice");
+                        .HasColumnName("PaymentStatus");
 
                     b.Property<DateTime?>("RentalEndDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("RentalOrderCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar")
-                        .HasColumnName("RentalOrderCode");
 
                     b.Property<DateTime?>("RentalStartDate")
                         .HasColumnType("datetime2");

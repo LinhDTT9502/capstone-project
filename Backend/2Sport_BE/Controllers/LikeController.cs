@@ -32,7 +32,8 @@ namespace _2Sport_BE.Controllers
 			try
 			{
 				return Ok(await _likeService.GetLikes());
-			} catch (Exception ex)
+			}
+			catch (Exception ex)
 			{
 				return BadRequest(ex);
 			}
@@ -62,8 +63,9 @@ namespace _2Sport_BE.Controllers
 				await _likeService.AddLike(addedLike);
 				_unitOfWork.Save();
 				return Ok(addedLike);
-				
-			} catch (Exception ex)
+
+			}
+			catch (Exception ex)
 			{
 				return BadRequest(ex);
 			}

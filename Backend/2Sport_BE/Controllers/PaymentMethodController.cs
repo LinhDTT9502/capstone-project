@@ -21,23 +21,23 @@ namespace _2Sport_BE.Controllers
             _mapper = mapper;
             _userService = userService;
         }
-        /*[HttpGet("{id}")]
-       public async Task<ActionResult<PaymentMethod>> GetPaymentMethodByUser(int id)
-       {
-           var paymentMethod = await _paymentMethodService.GetPaymentMethodAsync(id);
+        [HttpGet("{id}")]
+        public async Task<ActionResult<PaymentMethod>> GetPaymentMethodByUser(int id)
+        {
+            var paymentMethod = await _paymentMethodService.GetPaymentMethodAsync(id);
 
-           if (paymentMethod == null)
-           {
-               return NotFound("Payment method is not valid");
-           }
+            if (paymentMethod == null)
+            {
+                return NotFound("Payment method is not valid");
+            }
 
-           return paymentMethod;
-       }*/
+            return paymentMethod;
+        }
         [HttpGet]
         public async Task<IActionResult> GetPaymentMethods()
         {
             var paymentMethods = await _paymentMethodService.GetPaymentMethodsAsync();
-            if(paymentMethods.Count() == 0)
+            if (paymentMethods.Count() == 0)
             {
                 return NotFound("Cannot find payment method!");
             }
@@ -51,7 +51,7 @@ namespace _2Sport_BE.Controllers
                 PaymentMethodName = paymentMethodCM.Name
             };
             var createdPaymentMethod = await _paymentMethodService.AddPaymentMethodAsync(paymentMethod);
-            if(createdPaymentMethod == null)
+            if (createdPaymentMethod == null)
             {
                 return BadRequest("Cannot insert!");
             }

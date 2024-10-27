@@ -1,5 +1,5 @@
 ﻿using _2Sport_BE.Repository.Models;
-using _2Sport_BE.Service.DTOs;
+using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
 
@@ -16,6 +16,21 @@ namespace _2Sport_BE.Helpers
                 ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<ProfileUM, User>().
                ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            #endregion
+            #region Manager
+            CreateMap<Manager, ManagerVM>();
+            CreateMap<ManagerCM, Manager>();
+            CreateMap<ManagerUM, Manager>();
+            #endregion
+            #region Staff
+            CreateMap<Staff, StaffVM>();
+            CreateMap<StaffCM, Staff>();
+            CreateMap<StaffUM, Staff>();
+            #endregion
+            #region Customer
+            CreateMap<Customer, CustomerVM>();
+            CreateMap<CustomerCM, Customer>();
+            CreateMap<CustomerUM, Customer>();    
             #endregion
             #region Sport
             CreateMap<Sport, SportVM>().ReverseMap();
@@ -45,13 +60,13 @@ namespace _2Sport_BE.Helpers
             CreateMap<PaymentMethodUM, PaymentMethod>();
             #endregion
             #region Order
-            CreateMap<Order, OrderCM>();
+           /* CreateMap<Order, OrderCM>();
             CreateMap<Order, OrderVM>();
             CreateMap<Order, OrderUM>();
-            CreateMap<OrderUM, Order>();
+            CreateMap<OrderUM, Order>();*/
             #endregion
             #region OrderDetail
-            CreateMap<OrderDetail, Service.DTOs.OrderDetailVM>();
+            CreateMap<OrderDetail, SaleOrderDetailVM>();
             #endregion
             #region Category
             CreateMap<Category, CategoryVM>()

@@ -7,7 +7,7 @@ using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
 using System.Configuration;
 using _2Sport_BE.Repository.Data;
-using _2Sport_BE.Helpers;
+using _2Sport_BE.Infrastructure.Helpers;
 
 namespace _2Sport_BE.Extensions
 {
@@ -19,11 +19,19 @@ namespace _2Sport_BE.Extensions
             services.AddDbContext<TwoSportCapstoneDbContext>(options => options
             .UseSqlServer(GetConnectionStrings(),
             b => b.MigrationsAssembly("2Sport_BE")));
+            #region User_Services
+            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IManagerService, ManagerService>();
+            services.AddScoped<IStaffService, StaffService>();
+            services.AddScoped<ICustomerService, CustomerService>();
+            services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            #endregion
+
             services.AddTransient<IBrandService, BrandService>();
             services.AddTransient<IBranchService, BranchService>();
-            services.AddScoped<IRefreshTokenService, RefreshTokenService>();
-            services.AddTransient<IMailService, MailService>();
             services.AddScoped<ISportService, SportService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IProductService, ProductService>();
@@ -31,9 +39,6 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<ICartItemService, CartItemService>();
             services.AddScoped<IShipmentDetailService, ShipmentDetailService>();
             services.AddScoped<IPaymentMethodService, PaymentMethodService>();
-            services.AddScoped<IOrderService, OrderService>();
-            services.AddScoped<IOrderDetailService, OrderDetailService>();
-            services.AddScoped<IPaymentService, PaymentService>();
 			services.AddScoped<ILikeService, LikeService>();
 			services.AddScoped<IReviewService, ReviewService>();
 			services.AddScoped<ISupplierService, SupplierService>();
@@ -41,16 +46,20 @@ namespace _2Sport_BE.Extensions
 			services.AddScoped<IWarehouseService, WarehouseService>();
 			services.AddScoped<IImageService, ImageService>();
 			services.AddScoped<IImageVideosService, ImageVideosService>();
-            services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<AuthService>();
-            services.AddScoped<IRoleService, RoleService>();
-            services.AddScoped<IAttendanceService, AttendanceService>();
-            services.AddScoped<IEmployeeService, EmployeeService>();
-            services.AddScoped<IEmployeeDetailService, EmployeeDetailService>();
-            services.AddScoped<ICustomerDetailService, CustomerDetailService>();
-            services.AddScoped<IRentalOrderService, RentalOrderService>();
-            services.AddScoped<IMethodHelper, MethodHelper>();
 
+            
+            #region Order_Services
+            //SaleOrder
+            services.AddScoped<ISaleOrderService, SaleOrderService>();
+            services.AddScoped<IOrderDetailService, OrderDetailService>();
+            //RentalOrder
+            services.AddScoped<IRentalOrderService, RentalOrderService>();
+            #endregion
+            #region Helper_Services
+            services.AddTransient<IMailService, MailService>();
+            services.AddScoped<IMethodHelper, MethodHelper>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            #endregion
         }
 
         private static string GetConnectionStrings()

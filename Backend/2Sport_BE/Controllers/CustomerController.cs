@@ -1,4 +1,4 @@
-﻿using _2Sport_BE.Service.Services;
+﻿using _2Sport_BE.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,15 +6,19 @@ namespace _2Sport_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CustomerDetailController(ICustomerDetailService customerDetailService) : ControllerBase
+    public class CustomerController : ControllerBase
     {
-        private readonly ICustomerDetailService _customerDetailService = customerDetailService;
+        private readonly ICustomerService _customerDetailService;
+        public CustomerController(ICustomerService customerDetailService)
+        {
+            _customerDetailService = customerDetailService;
+        }
 
         [HttpGet]
-        [Route("get-customer-detail-by-userId")]
-        public async Task<IActionResult> GetCustomerDetailByUserId([FromQuery] int userId)
+        [Route("get-loyal-points")]
+        public async Task<IActionResult> GetPointByUserId([FromQuery] int userId)
         {
-            var response = await _customerDetailService.GetCustomerDetailByUserId(userId);
+            var response = await _customerDetailService.GetPointByUserId(userId);
             if (response.IsSuccess)
             {
                 return Ok(response);
