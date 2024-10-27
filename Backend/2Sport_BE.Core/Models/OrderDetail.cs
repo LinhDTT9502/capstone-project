@@ -14,8 +14,12 @@ public class OrderDetail
 
     [Column("OrderId")]
     public int? OrderId { get; set; }
+
     [Column("ProductId")]
     public int? ProductId { get; set; }
+    [Column("ProductName")]
+    public string? ProductName { get; set; }
+
     [Column("Price", TypeName = "decimal")]
     public decimal? Price { get; set; }
     [Column("Quantity")]
@@ -23,6 +27,9 @@ public class OrderDetail
 
     [Column("BranchId")]
     public int? BranchId { get; set; }
+    [Column("BranchName")]
+    public string? BranchName { get; set; }
+
     [NotMapped]
     public decimal? TotalPrice => Price * Quantity;
     [Column("CreatedAt")]
@@ -31,7 +38,7 @@ public class OrderDetail
     [Column("UpdatedAt")]
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual Order Order { get; set; }
+    public virtual SaleOrder SaleOrder { get; set; }
 
     public virtual Product Product { get; set; }
 

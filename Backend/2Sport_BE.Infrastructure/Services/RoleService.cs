@@ -1,14 +1,8 @@
 ﻿using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
-using _2Sport_BE.Service.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using _2Sport_BE.Infrastructure.DTOs;
 
-namespace _2Sport_BE.Service.Services
+namespace _2Sport_BE.Infrastructure.Services
 {
     public interface IRoleService
     {

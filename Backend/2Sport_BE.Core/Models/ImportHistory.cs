@@ -37,6 +37,6 @@ public class ImportHistory
     public string LotCode { get; set; }
 
     public virtual Product Product { get; set; }
-    public virtual Employee Employee { get; set; }
+    //public virtual Employee Employee { get; set; }
     public virtual Supplier Supplier { get; set; }
 }

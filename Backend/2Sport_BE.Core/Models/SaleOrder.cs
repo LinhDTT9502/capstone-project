@@ -10,7 +10,7 @@ public class SaleOrder
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    [Column("OrderId")]
+    [Column("SaleOrderId")]
     public int Id { get; set; }
 
     [Column("OrderCode", TypeName = "varchar")]
@@ -49,7 +49,7 @@ public class SaleOrder
     public int? OrderStatus { get; set; }
 
     [Column("PaymentStatus")]
-    public string? PaymentStatus { get; set; }
+    public int? PaymentStatus { get; set; }
 
     [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
     [DataType(DataType.DateTime)]

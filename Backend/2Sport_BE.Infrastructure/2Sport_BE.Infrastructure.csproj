@@ -13,7 +13,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
     <PackageReference Include="Nexmo.Csharp.Client" Version="5.2.0" />
     <PackageReference Include="payOS" Version="1.0.6" />
-    <PackageReference Include="Vonage" Version="7.9.0" />
   </ItemGroup>
 
   <ItemGroup>

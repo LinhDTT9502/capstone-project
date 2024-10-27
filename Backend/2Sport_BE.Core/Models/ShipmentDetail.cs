@@ -27,7 +27,11 @@ public class ShipmentDetail
     [MaxLength(255)]
     public string FullName { get; set; }
 
-    public virtual ICollection<Order> Orders { get; set; }
+    [Column("Email", TypeName = "nvarchar")]
+    [MaxLength(255)]
+    public string Email { get; set; }
+    public virtual ICollection<SaleOrder> SaleOrders { get; set; }
+    public virtual ICollection<RentalOrder> RentalOrders { get; set; }
 
     public virtual User User { get; set; }
 }

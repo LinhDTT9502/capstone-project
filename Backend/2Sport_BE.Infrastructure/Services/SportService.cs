@@ -1,12 +1,6 @@
 ﻿using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace _2Sport_BE.Service.Services
 {

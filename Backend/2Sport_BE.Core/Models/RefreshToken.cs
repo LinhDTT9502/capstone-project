@@ -30,10 +30,7 @@ public class RefreshToken
 
     [Column("UserId")]
     public int? UserId { get; set; }
-
-    [Column("EmployeeId")]
-    public int? EmployeeId { get; set; }
-    public bool? Used { get; set; }
     public virtual User User { get; set; }
-    public virtual Employee Employee { get; set; }
+
+    public bool? Used { get; set; }
 }

@@ -1,72 +1,63 @@
 ﻿using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
-using _2Sport_BE.Service.DTOs;
-using _2Sport_BE.Service.Enums;
-using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+using _2Sport_BE.Infrastructure.DTOs;
 
-namespace _2Sport_BE.Service.Services
+namespace _2Sport_BE.Infrastructure.Services
 {
-    public interface ICustomerDetailService
+    public interface ICustomerService
     {
-        Task<ResponseDTO<CustomerDetailVM>> GetCustomerDetailByUserId(int userId);
+        Task<ResponseDTO<CustomerVM>> GetPointByUserId(int userId);
         Task<ResponseDTO<bool>> UpdateLoyaltyPoints(int orderId);
         Task<ResponseDTO<int>> AddMemberPointByPhoneNumber(string phoneNumber, int point);
     }
-    public class CustomerDetailService : ICustomerDetailService
+    public class CustomerService : ICustomerService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public CustomerDetailService(IUnitOfWork unitOfWork)
+        public CustomerService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<ResponseDTO<CustomerDetailVM>> GetCustomerDetailByUserId(int userId)
+        public async Task<ResponseDTO<CustomerVM>> GetPointByUserId(int userId)
         {
-            var response = new ResponseDTO<CustomerDetailVM>();
+            var response = new ResponseDTO<CustomerVM>();
             try
             {
                 var query = await _unitOfWork.CustomerDetailRepository.GetObjectAsync(cd => cd.UserId == userId);
                 if (query != null)
                 {
-                    var result = new CustomerDetailVM()
+                    var result = new CustomerVM()
                     {
+                        Id = query.Id,
                         UserId = query.UserId,
-                        JoinDate = query.JoinDate,
+                        JoinedAt = query.JoinedAt,
                         LoyaltyPoints = query.LoyaltyPoints,
-                        MembershipLevel = query.MembershipLevel,
+                        MembershipLevel = query.MembershipLevel
                     };
 
                     response.IsSuccess = true;
                     response.Message = "Query Successfully";
                     response.Data = result;
-
-                    return response;
                 }
-
-                response.IsSuccess = false;
-                response.Message = "Somethings are wrong when querying!";
-                return response;
+                else
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Somethings are wrong when querying!";
+                }
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
                 response.Message = ex.Message;
-                return response;
             }
+            return response;
         }
-
         public async Task<ResponseDTO<bool>> UpdateLoyaltyPoints(int orderId)
         {
             var response = new ResponseDTO<bool>();
             try
             {
-                var order = await _unitOfWork.OrderRepository.GetObjectAsync(o => o.Id == orderId);
+                var order = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId);
                 if (order == null)
                 {
                     response.IsSuccess = false;
@@ -80,17 +71,17 @@ namespace _2Sport_BE.Service.Services
                 if (customerDetail == null)
                 {
                     //add detail
-                    customerDetail = new Repository.Models.Customer()
+                    customerDetail = new Customer()
                     {
-                        JoinDate = DateTime.UtcNow,
-                        LoyaltyPoints = Convert.ToInt32(order.TotalPrice),
+                        JoinedAt = DateTime.UtcNow,
+                        LoyaltyPoints = Convert.ToInt32(order.SubTotal),
                         MembershipLevel = "Normal_Member",
                         UserId = order.UserId
                     };
                     await _unitOfWork.CustomerDetailRepository.InsertAsync(customerDetail);
                 }
 
-                customerDetail.LoyaltyPoints += Convert.ToInt32(order.TotalPrice);
+                customerDetail.LoyaltyPoints += Convert.ToInt32(order.SubTotal);
                 customerDetail.MembershipLevel = UpdateMembershipLevel(customerDetail.LoyaltyPoints);
                 await _unitOfWork.CustomerDetailRepository.UpdateAsync(customerDetail);
 
@@ -111,7 +102,7 @@ namespace _2Sport_BE.Service.Services
             try
             {
                 var phone = Convert.ToInt32(phoneNumber);
-                var user = await _unitOfWork.UserRepository.GetObjectAsync(_ => Convert.ToInt32(_.Phone).Equals(phone));
+                var user = await _unitOfWork.UserRepository.GetObjectAsync(_ => Convert.ToInt32(_.PhoneNumber).Equals(phone));
                 if (user == null)
                 {
                     response.IsSuccess = false;
@@ -123,7 +114,7 @@ namespace _2Sport_BE.Service.Services
                 {
                     Customer customerDetail = new Customer()
                     {
-                        JoinDate = DateTime.Now,
+                        JoinedAt = DateTime.Now,
                         MembershipLevel = "Normal_Member",
                         UserId = user.Id,
                         LoyaltyPoints = point
@@ -139,20 +130,20 @@ namespace _2Sport_BE.Service.Services
                 response.Message = "Your points add successfully";
                 response.Data = (int)toUpdate.LoyaltyPoints;
                 return response;
-              
+
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.Message = ex.Message ;
+                response.Message = ex.Message;
                 return response;
             }
         }
-        /*        private int CalculateLoyaltyPoints(decimal totalPrice)
-                {
-                    const int pointConversionRate = 10000; // 1 điểm cho mỗi 10.000 VND chi tiêu
-                    return (int)(totalPrice / pointConversionRate);
-                }*/
+        private int CalculateLoyaltyPoints(decimal totalPrice)
+        {
+            const int pointConversionRate = 10000; // 1 điểm cho mỗi 10.000 VND chi tiêu
+            return (int)(totalPrice / pointConversionRate);
+        }
         private string UpdateMembershipLevel(int? loyaltyPoints)
         {
             if (loyaltyPoints >= 10000000)

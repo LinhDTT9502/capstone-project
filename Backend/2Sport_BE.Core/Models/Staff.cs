@@ -33,7 +33,7 @@ public class Staff
     public DateTime? EndDate { get; set; }
 
     [Column("Position", TypeName = "nvarchar")]
-    [MaxLength(50)]
+    [MaxLength(100)]
     public string Position { get; set; }
     public virtual Branch Branch { get; set; }
     public virtual User User { get; set; }

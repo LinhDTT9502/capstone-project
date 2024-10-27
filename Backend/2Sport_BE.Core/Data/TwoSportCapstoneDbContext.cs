@@ -22,11 +22,12 @@ namespace _2Sport_BE.Repository.Data
         public virtual DbSet<CartItem> CartItems { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Customer> CustomerDetails { get; set; }
-        public virtual DbSet<Employee> Employees { get; set; }
+        public virtual DbSet<Staff> Staffs { get; set; }
+        public virtual DbSet<Manager> Managers { get; set; }
         public virtual DbSet<ImportHistory> ImportHistories { get; set; }
         public virtual DbSet<ImagesVideo> ImagesVideos { get; set; }
         public virtual DbSet<Like> Likes { get; set; }
-        public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<SaleOrder> SaleOrder { get; set; }
         public virtual DbSet<OrderDetail> OrderDetails { get; set; }
         public virtual DbSet<PaymentMethod> PaymentMethods { get; set; }
         public virtual DbSet<Product> Products { get; set; }
@@ -39,17 +40,9 @@ namespace _2Sport_BE.Repository.Data
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Warehouse> Warehouses { get; set; }
         public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
-        public virtual DbSet<Attendance> Attendances { get; set; }
         public virtual DbSet<RentalOrder> RentalOrders { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Attendance>()
-                .HasOne(a => a.Employee)
-                .WithMany(e => e.Attendances) 
-                .HasForeignKey(a => a.EmployeeId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            base.OnModelCreating(modelBuilder);
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

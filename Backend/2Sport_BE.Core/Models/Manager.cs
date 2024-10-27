@@ -25,6 +25,7 @@ namespace _2Sport_BE.Repository.Models
         [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
         [DataType(DataType.DateTime)]
         public DateTime? EndDate { get; set; }
+
         public virtual Branch Branch { get; set; }
         public virtual User User { get; set; }
     }

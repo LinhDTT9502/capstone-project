@@ -23,7 +23,7 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<ImagesVideo> _imagesVideoRepository;
         private IGenericRepository<ImportHistory> _importHistoryRepository;
         private IGenericRepository<Like> _likeRepository;
-        private IGenericRepository<Order> _orderRepository;
+        private IGenericRepository<SaleOrder> _orderRepository;
         private IGenericRepository<OrderDetail> _orderDetailRepository;
         private IGenericRepository<PaymentMethod> _paymentMethodRepository;
         private IGenericRepository<Product> _productRepository;
@@ -35,12 +35,11 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<Warehouse> _warehouseRepository;
         private IGenericRepository<RefreshToken> _refreshTokenRepository;
         private IGenericRepository<Sport> _sportRepository;
-        private IGenericRepository<Employee> _employeeRepository;
-        private IGenericRepository<Staff> _employeeDetailRepository;
+
+        private IGenericRepository<Manager> _managerRepository;
+        private IGenericRepository<Staff> _employeeRepository;
         private IGenericRepository<Customer> _customerDetailRepository;
         private IGenericRepository<ErrorLog> _errorLogRepository;
-        private IGenericRepository<Attendance> _attendanceRepository;
-        private IGenericRepository<Guest> _guestRepository;
         private IGenericRepository<RentalOrder> _rentalOrderRepository;
         public IGenericRepository<RentalOrder> RentalOrderRepository
         {
@@ -53,26 +52,15 @@ namespace _2Sport_BE.Repository.Implements
                 return _rentalOrderRepository;
             }
         }
-        public IGenericRepository<Guest> GuestRepository
+        public IGenericRepository<Manager> ManagerRepository
         {
             get
             {
-                if (_guestRepository == null)
+                if (_managerRepository == null)
                 {
-                    _guestRepository = new GenericRepository<Guest>(_dbContext);
+                    _managerRepository = new GenericRepository<Manager>(_dbContext);
                 }
-                return _guestRepository;
-            }
-        }
-        public IGenericRepository<Attendance> AttendanceRepository
-        {
-            get
-            {
-                if (_attendanceRepository == null)
-                {
-                    _attendanceRepository = new GenericRepository<Attendance>(_dbContext);
-                }
-                return _attendanceRepository;
+                return _managerRepository;
             }
         }
         public IGenericRepository<ErrorLog> ErrorLogRepository
@@ -199,13 +187,13 @@ namespace _2Sport_BE.Repository.Implements
                 return _likeRepository;
             }
         }
-        public IGenericRepository<Order> OrderRepository
+        public IGenericRepository<SaleOrder> SaleOrderRepository
         {
             get
             {
                 if (_orderRepository == null)
                 {
-                    _orderRepository = new GenericRepository<Order>(_dbContext);
+                    _orderRepository = new GenericRepository<SaleOrder>(_dbContext);
                 }
                 return _orderRepository;
             }
@@ -342,26 +330,15 @@ namespace _2Sport_BE.Repository.Implements
                 return _customerDetailRepository;
             }
         }
-        public IGenericRepository<Employee> EmployeeRepository
+        public IGenericRepository<Staff> StaffRepository
         {
             get
             {
                 if (_employeeRepository == null)
                 {
-                    _employeeRepository = new GenericRepository<Employee>(_dbContext);
+                    _employeeRepository = new GenericRepository<Staff>(_dbContext);
                 }
                 return _employeeRepository;
-            }
-        }
-        public IGenericRepository<Staff> EmployeeDetailRepository
-        {
-            get
-            {
-                if (_employeeDetailRepository == null)
-                {
-                    _employeeDetailRepository = new GenericRepository<Staff>(_dbContext);
-                }
-                return _employeeDetailRepository;
             }
         }
 
