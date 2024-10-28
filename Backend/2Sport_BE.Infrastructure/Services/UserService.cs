@@ -1,15 +1,11 @@
-﻿using _2Sport_BE.Repository.Data;
-using _2Sport_BE.Repository.Interfaces;
+﻿using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
-using _2Sport_BE.Service.DTOs;
+using _2Sport_BE.Infrastructure.DTOs;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
-using Vonage;
-using Vonage.Request;
-using Vonage.Messaging;
 using Nexmo.Api;
 using static System.Net.Mime.MediaTypeNames;
 namespace _2Sport_BE.Infrastructure.Services
@@ -29,6 +25,10 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<bool>> DisableUserAsync(int id);
         Task<ResponseDTO<bool>> UpdatePasswordAsync(int id, ChangePasswordVM changePasswordVM);
         Task<string> VerifyPhoneNumber(string from, string to);
+
+        Task<User> FindUserByPhoneNumber(string phoneNumber);
+        //Functions to manage managers and staffs (belong to administrator)
+        Task<ResponseDTO<List<UserVM>>> GetUserByRoleIdAndBranchId(int roleId, int branchId);
     }
     public class UserService : IUserService
     {
@@ -97,7 +97,7 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             var response = new ResponseDTO<int>();
             var newUser = await _unitOfWork.UserRepository
-                .GetObjectAsync(u => u.Email.Equals(userCM.Email) || u.UserName.Equals(userCM.Username));
+                .GetObjectAsync(u => u.Email.Equals(userCM.Email) || u.UserName.Equals(userCM.UserName));
 
             if (newUser != null)
             {
@@ -109,9 +109,9 @@ namespace _2Sport_BE.Infrastructure.Services
             try
             {
                 newUser = _mapper.Map<UserCM, User>(userCM);
-                newUser.Password = HashPassword(userCM.Password);
-                newUser.CreatedDate = DateTime.Now;
-                newUser.IsActive = true;
+                newUser.HashPassword = HashPassword(userCM.HashPassword);
+                newUser.CreatedAt = DateTime.Now;
+                newUser.IsActived = true;
 
                 await _unitOfWork.UserRepository.InsertAsync(newUser);
 
@@ -138,7 +138,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
             try
             {
-                var query = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == id);
+                var query = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == id, new string[] {"Staffs", "Managers", "Customers"});
 
                 if (query == null)
                 {
@@ -206,7 +206,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 existingUser = _mapper.Map(userUM, existingUser);
 
-                existingUser.LastUpdate = DateTime.Now;
+                existingUser.UpdatedAt = DateTime.Now;
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
                 response.IsSuccess = true;
                 response.Message = "User updated successfully.";
@@ -235,7 +235,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     return response;
                 }
                 existingUser = _mapper.Map(profile, existingUser);
-                existingUser.LastUpdate = DateTime.UtcNow;
+                existingUser.UpdatedAt = DateTime.UtcNow;
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
                 response.IsSuccess = true;
                 response.Message = "User updated successfully.";
@@ -264,7 +264,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     return response;
                 }
 
-                existingUser.IsActive = !existingUser.IsActive;
+                existingUser.IsActived = !existingUser.IsActived;
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
 
                 response.IsSuccess = true;
@@ -339,7 +339,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     return response;
                 }
 
-                existingUser.Password = HashPassword(changePasswordVM.NewPassword);
+                existingUser.HashPassword = HashPassword(changePasswordVM.NewPassword);
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
 
                 response.IsSuccess = true;
@@ -357,7 +357,7 @@ namespace _2Sport_BE.Infrastructure.Services
         }
         public async Task<string> VerifyPhoneNumber(string from, string to)
         {
-            var credentials = Credentials.FromApiKeyAndSecret("a985b2e1", "45WqlXONkSho55Yf");
+            /*var credentials = Credentials.FromApiKeyAndSecret("a985b2e1", "45WqlXONkSho55Yf");
 
             var vonageClient = new VonageClient(credentials);
 
@@ -366,31 +366,68 @@ namespace _2Sport_BE.Infrastructure.Services
                 To = "+84384394372",
                 From = "+84366819078",
                 Text = "A text message sent using the Vonage SMS API"
-            }); 
-            /*var credentials = new Nexmo.Api.Request.Credentials()
+            });*/
+            var credentials = new Nexmo.Api.Request.Credentials()
             {
                 ApiKey = "a985b2e1",
                 ApiSecret = "45WqlXONkSho55Yf"
-         
+
             };
+            //var credentials = Credentials.FromApiKeyAndSecret(VONAGE_API_KEY, VONAGE_API_SECRET);           
             var results = SMS.Send(new SMS.SMSRequest
             {
                 from = from,
                 to = to,
                 text = "2sport v3"
-            }, credentials);*/
+            }, credentials);
 
 
-            /* var VONAGE_API_KEY = "a985b2e1";
-             var VONAGE_API_SECRET = "45WqlXONkSho55Yf";
-             var credentials = Credentials.FromApiKeyAndSecret(VONAGE_API_KEY, VONAGE_API_SECRET);
-             var client = new SmsClient(credentials);
-             var request = new SendSmsRequest { To = to, From = from, Text = "2sport ver2"};
+            /*var VONAGE_API_KEY = "a985b2e1";
+            var VONAGE_API_SECRET = "45WqlXONkSho55Yf";*/
+            /* var client = new SmsClient(credentials);
+             var request = new SendSmsRequest { To = to, From = from, Text = "2sport ver2" };
              var response = await client.SendAnSmsAsync(request);
-             response.Messages[0].MessageId.ToString();
-             */
+             response.Messages[0].MessageId.ToString();*/
 
-            return response.Messages.ToString();
+
+            return "response.Messages.ToString()";
+        }
+
+        public async Task<User> FindUserByPhoneNumber(string phoneNumber)
+        {
+            var user = await _unitOfWork.UserRepository.GetObjectAsync(U => U.PhoneNumber == phoneNumber);
+
+            if (user == null) return null;
+            return user;
+        }
+        //=========
+        public async Task<ResponseDTO<List<UserVM>>> GetUserByRoleIdAndBranchId(int roleId, int branchId)
+        {
+            var response = new ResponseDTO<List<UserVM>>();
+
+            try
+            {
+                var query = await _unitOfWork.UserRepository.GetAllAsync();
+                if (roleId != 0)
+                {
+                    query = query.Where(x => x.RoleId == roleId);
+                }
+                if (branchId != 0)
+                {
+                    query = query.Where(x => x.RoleId == roleId);
+                }
+                var result = _mapper.Map<List<User>, List<UserVM>>(query.ToList());
+
+                response.IsSuccess = true;
+                response.Message = "Query Successfully";
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = $"An error occurred: {ex.Message}";
+            }
+            return response;
         }
     }
 }

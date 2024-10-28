@@ -1,6 +1,5 @@
 ﻿using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Interfaces;
-using _2Sport_BE.Service.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
@@ -9,7 +8,7 @@ using System.Security.Claims;
 using AutoMapper;
 using _2Sport_BE.Services;
 using Microsoft.AspNetCore.Authentication.Facebook;
-using _2Sport_BE.Service.DTOs;
+using _2Sport_BE.Infrastructure.DTOs;
 
 namespace _2Sport_BE.Controllers
 {
@@ -23,7 +22,6 @@ namespace _2Sport_BE.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IMailService _mailService;
-        private readonly ICartService _cartService;
 
         public AuthController(
             IUserService userService,
@@ -31,8 +29,7 @@ namespace _2Sport_BE.Controllers
             IRefreshTokenService refreshTokenService,
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            IMailService mailService,
-            ICartService cartService)
+            IMailService mailService)
         {
             _userService = userService;
             _identityService = identityService;
@@ -40,7 +37,6 @@ namespace _2Sport_BE.Controllers
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _mailService = mailService;
-            _cartService = cartService;
         }
 
         [Route("sign-in")]

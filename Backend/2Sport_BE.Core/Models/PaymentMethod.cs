@@ -17,5 +17,7 @@ public class PaymentMethod
     [MaxLength(50)]
     public string PaymentMethodName { get; set; }
 
-    public virtual ICollection<Order> Orders { get; set; }
+    public virtual ICollection<SaleOrder> SaleOrders { get; set; }
+    public virtual ICollection<RentalOrder> RentalOrders { get; set; }
+
 }

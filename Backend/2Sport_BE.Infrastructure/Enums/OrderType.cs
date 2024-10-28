@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace _2Sport_BE.Service.Enums
+﻿namespace _2Sport_BE.Infrastructure.Enums
 {
     public enum OrderType : int
     {

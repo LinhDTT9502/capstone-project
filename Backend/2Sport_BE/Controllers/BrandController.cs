@@ -1,4 +1,4 @@
-﻿using _2Sport_BE.DataContent;
+﻿/*using _2Sport_BE.DataContent;
 using _2Sport_BE.Repository.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +26,7 @@ namespace _2Sport_BE.Controllers
         private readonly IImageService _imageService;
         private readonly IEmployeeService _employeeService;
         private readonly IMapper _mapper;
-        public BrandController(IBrandService brandService, IProductService productService, 
+        public BrandController(IBrandService brandService, IProductService productService,
                                IWarehouseService warehouseService,
                                IImageService imageService,
                                IEmployeeDetailService employeeDetailService,
@@ -101,7 +101,7 @@ namespace _2Sport_BE.Controllers
             var addedBrandBranch = new BrandBranch();
             try
             {
-                
+
                 var userId = GetCurrentUserIdFromToken();
 
                 if (userId == 0)
@@ -227,3 +227,4 @@ namespace _2Sport_BE.Controllers
         }
     }
 }
+*/

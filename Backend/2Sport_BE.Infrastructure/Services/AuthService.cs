@@ -1,9 +1,8 @@
-﻿using _2Sport_BE.Infrastructure.Services;
-using _2Sport_BE.Repository.Data;
+﻿using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
-using _2Sport_BE.Service.DTOs;
-using _2Sport_BE.Service.Enums;
+using _2Sport_BE.Infrastructure.DTOs;
+using _2Sport_BE.Infrastructure.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -13,7 +12,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Security.Claims;
 
-namespace _2Sport_BE.Service.Services
+
+namespace _2Sport_BE.Infrastructure.Services
 {
     public class TokenModel
     {
@@ -79,7 +79,7 @@ namespace _2Sport_BE.Service.Services
             try
             {
                 var loginUser = await _unitOfWork.UserRepository
-                    .GetObjectAsync(_ => _.UserName == requestUser.UserName && _.Password == HashPassword(requestUser.Password));
+                    .GetObjectAsync(_ => _.UserName == requestUser.UserName && _.HashPassword == HashPassword(requestUser.Password));
 
                 if (loginUser == null)
                 {
@@ -88,7 +88,7 @@ namespace _2Sport_BE.Service.Services
                     return response;
                 }
 
-                if (loginUser != null && loginUser.IsActive != true)
+                if (loginUser != null && loginUser.IsActived != true)
                 {
                     response.IsSuccess = false;
                     response.Message = "Not Permission";
@@ -99,9 +99,6 @@ namespace _2Sport_BE.Service.Services
 
                 if (authenticationResult != null && authenticationResult.Success)
                 {
-                    //Check cart
-                    await EnsureCartExistsForUser(loginUser.Id);
-
                     response.Message = "Query successfully";
                     response.IsSuccess = true;
                     response.Data = new TokenModel() { UserId = loginUser.Id, Token = authenticationResult.Token, RefreshToken = authenticationResult.RefreshToken };
@@ -119,7 +116,6 @@ namespace _2Sport_BE.Service.Services
                 throw ex;
             }
         }
-
         public async Task<AuthenticationResult> AuthenticateAsync(User user)
         {
             var authenticationResult = new AuthenticationResult();
@@ -134,12 +130,13 @@ namespace _2Sport_BE.Service.Services
                 var Subject = new List<Claim>
                     {
                     new Claim("UserId", user.Id.ToString()),
+                    new Claim("UserName",user.UserName==null?"":user.UserName),
                     new Claim("FullName", user.FullName),
                     new Claim("Email",user.Email==null?"":user.Email),
-                    new Claim("UserName",user.UserName==null?"":user.UserName),
-                    new Claim("Phone",user.Phone==null?"":user.Phone),
+                    new Claim("Phone",user.PhoneNumber==null?"":user.PhoneNumber),
                     new Claim("Gender",user.Gender==null?"":user.Gender),
                     new Claim("Address",user.Address==null?"":user.Address),
+                    new Claim("DOB",user.DOB.ToString()==null?"":user.DOB.ToString()),
                     new Claim(ClaimTypes.Role, role.RoleName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     };
@@ -192,79 +189,6 @@ namespace _2Sport_BE.Service.Services
             }
             return authenticationResult;
         }
-        public async Task<AuthenticationResult> AuthenticateAsync(Employee user)
-        {
-            var authenticationResult = new AuthenticationResult();
-            var tokenHandler = new JwtSecurityTokenHandler();
-
-            try
-            {
-                var symmetricKey = Encoding.UTF8.GetBytes(_configuration.GetSection("ServiceConfiguration:JwtSettings:Secret").Value);
-
-                var role = await _unitOfWork.RoleRepository.GetObjectAsync(_ => _.Id == user.RoleId);
-
-                var Subject = new List<Claim>
-                    {
-                    new Claim("UserId", user.EmployeeId.ToString()),
-                    new Claim("FullName", user.FullName),
-                    new Claim("Email",user.Email==null?"":user.Email),
-                    new Claim("UserName",user.UserName==null?"":user.UserName),
-                    new Claim("Phone",user.Phone==null?"":user.Phone),
-                    new Claim("Gender",user.Gender==null?"":user.Gender),
-                    new Claim("Address",user.Address==null?"":user.Address),
-                    new Claim(ClaimTypes.Role, role.RoleName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    };
-
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(Subject),
-                    Expires = DateTime.UtcNow.
-                    Add(TimeSpan.Parse(_configuration.GetSection("ServiceConfiguration:JwtSettings:TokenLifetime").Value)),
-                    SigningCredentials = new SigningCredentials
-                    (new SymmetricSecurityKey(symmetricKey), SecurityAlgorithms.HmacSha256Signature)
-                };
-
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-                authenticationResult.Token = tokenHandler.WriteToken(token);
-
-                var refreshToken = new RefreshToken
-                {
-                    Token = Guid.NewGuid().ToString(),
-                    JwtId = token.Id,
-                    EmployeeId = user.EmployeeId,
-                    CreateDate = DateTime.UtcNow,
-                    ExpireDate = DateTime.UtcNow.AddMonths(6),
-                    Used = false
-                };
-                var exist = await _unitOfWork.RefreshTokenRepository.
-                    GetObjectAsync(_ => _.UserId == refreshToken.EmployeeId && _.Used == false);
-                if (exist != null)
-                {
-                    exist.Token = refreshToken.Token;
-                    exist.JwtId = refreshToken.JwtId;
-                    exist.CreateDate = refreshToken.CreateDate;
-                    exist.ExpireDate = refreshToken.ExpireDate;
-                    await _unitOfWork.RefreshTokenRepository.UpdateAsync(exist);
-                }
-                else
-                {
-                    await _unitOfWork.RefreshTokenRepository.InsertAsync(refreshToken);
-                }
-                await _unitOfWork.SaveChanges();
-                //return
-                authenticationResult.RefreshToken = refreshToken.Token;
-                authenticationResult.Success = true;
-                return authenticationResult;
-            }
-            catch (Exception ex)
-            {
-                authenticationResult.Success = false;
-                authenticationResult.Errors = new List<string> { ex.Message };
-            }
-            return authenticationResult;
-        }
-
         public async Task<ResponseDTO<TokenModel>> RefreshTokenAsync(TokenModel request)
         {
             ResponseDTO<TokenModel> response = new ResponseDTO<TokenModel>();
@@ -291,7 +215,6 @@ namespace _2Sport_BE.Service.Services
                 return response;
             }
         }
-
         private async Task<AuthenticationResult> GetRefreshTokenAsync(string token, string refreshToken)
         {
             var validatedToken = GetPrincipalFromToken(token);
@@ -351,7 +274,6 @@ namespace _2Sport_BE.Service.Services
 
             return await AuthenticateAsync(user);
         }
-
         private ClaimsPrincipal GetPrincipalFromToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -373,14 +295,12 @@ namespace _2Sport_BE.Service.Services
                 return null;
             }
         }
-
         private bool IsJwtWithValidSecurityAlgorithm(SecurityToken validatedToken)
         {
             return (validatedToken is JwtSecurityToken jwtSecurityToken) &&
                    jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
                        StringComparison.InvariantCultureIgnoreCase);
         }
-
         public async Task<ResponseDTO<TokenModel>> HandleLoginGoogle(ClaimsPrincipal principal)
         {
             var result = new ResponseDTO<TokenModel>();
@@ -394,35 +314,46 @@ namespace _2Sport_BE.Service.Services
             {
                 return new ResponseDTO<TokenModel> { IsSuccess = false, Message = "Error retrieving Google user information" };
             }
-
-            var user = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.GoogleId == googleId.Value);
-            //Check user if it is not exist
-            if (user == null)
+            try
             {
-                user = new User()
+                var user = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.GoogleId == googleId.Value || _.Email == email.Value);
+                //Check user if it is not exist
+                if (user == null)
                 {
-                    FullName = email.Value,
-                    Email = email.Value,
-                    Phone = phone.Value,
-                    RoleId = 4,
-                    GoogleId = googleId.Value,
-                    EmailConfirmed = true,
-                    FacebookId = null,
-                    CreatedDate = DateTime.Now,
-                    LastUpdate = DateTime.Now,
-                    IsActive = true,
+                    user = new User()
+                    {
+                        FullName = email.Value,
+                        Email = email.Value,
+                        PhoneNumber = phone.Value ?? "",
+                        RoleId = (int)UserRole.Customer,
+                        GoogleId = googleId.Value,
+                        EmailConfirmed = true,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
+                        IsActived = true,
 
-                };
-                await _unitOfWork.UserRepository.InsertAsync(user);
+                    };
+                    await _unitOfWork.UserRepository.InsertAsync(user);
+                }
+                else
+                {
+                    user.EmailConfirmed = true;
+                    user.UpdatedAt = DateTime.Now;
+                    await _unitOfWork.UserRepository.UpdateAsync(user);
+                }
+
+                result.IsSuccess = true;
+                result.Message = "Login successfully!";
+                result.Data = await LoginGoogleAsync(user);
             }
+            catch (Exception)
+            {
 
-            var userId = user.Id;
-
-            await EnsureCartExistsForUser(userId);
-
-            result.IsSuccess = true;
-            result.Message = "Login successfully!";
-            result.Data = await LoginGoogleAsync(user);
+                result.IsSuccess = true;
+                result.Message = "Login successfully!";
+                
+            }
+            
 
             return result;
         }
@@ -452,63 +383,45 @@ namespace _2Sport_BE.Service.Services
             {
                 response.IsSuccess = false;
                 response.Message = "Already have an account!";
-                response.Data = "UserName or Email is duplicated";
-                return response;
+                response.Data = "";
             }
-
-            checkExist = new User()
+            else
             {
-                UserName = registerModel.Username,
-                Password = HashPassword(registerModel.Password),
-                Email = registerModel.Email,
-                FullName = registerModel.FullName,
-                EmailConfirmed = false,
-                RoleId = (int)UserRole.Customer,
-                IsActive = true,
-                CreatedDate = DateTime.Now
-            };
+                try
+                {
+                    checkExist = new User()
+                    {
+                        UserName = registerModel.Username,
+                        HashPassword = HashPassword(registerModel.Password),
+                        Email = registerModel.Email,
+                        FullName = registerModel.FullName,
+                        EmailConfirmed = false,
+                        RoleId = (int)UserRole.Customer,
+                        IsActived = true,
+                        CreatedAt = DateTime.Now
+                    };
 
-            try
-            {
-                await _unitOfWork.UserRepository.InsertAsync(checkExist);
-                await EnsureCartExistsForUser(checkExist.Id);
-                _unitOfWork.Save();
+                    await _unitOfWork.UserRepository.InsertAsync(checkExist);
+                    _unitOfWork.Save();
 
-                response.IsSuccess = true;
-                response.Message = "Sign Up Successfully";
-                response.Data = checkExist.Id.ToString();
+                    response.IsSuccess = true;
+                    response.Message = "Sign Up Successfully";
+                    response.Data = checkExist.Id.ToString();
+                }
+                catch (DbUpdateException)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Db exception";
+                }
+                catch (Exception ex)
+                {
+                    response.IsSuccess = false;
+                    response.Message = ex.Message;
+                    throw ex;
+                }
             }
-            catch (DbUpdateException)
-            {
-                response.IsSuccess = false;
-                response.Message = "Db exception";
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-                throw ex;
-            }
-
             return response;
         }
-
-        public async Task EnsureCartExistsForUser(int userId)
-        {
-            var cart = await _unitOfWork.CartRepository.GetObjectAsync(c => c.UserId == userId);
-            if (cart == null)
-            {
-                cart = new Cart
-                {
-                    UserId = userId,
-                    CartItems = new List<CartItem>(),
-                    User = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Id == userId)
-                };
-
-                await _unitOfWork.CartRepository.InsertAsync(cart);
-            }
-        }
-
         public async Task<ResponseDTO<string>> HandleResetPassword(ResetPasswordRequest resetPasswordRequest)
         {
             var response = new ResponseDTO<string>();
@@ -519,15 +432,16 @@ namespace _2Sport_BE.Service.Services
             {
                 response.IsSuccess = false;
                 response.Message = "Invalid or expired token or User not found.";
-                return response;
             }
+            else
+            {
+                user.HashPassword = HashPassword(resetPasswordRequest.NewPassword);
+                user.PasswordResetToken = null;
+                await _userService.UpdateUserAsync(user.Id, user);
 
-            user.Password = HashPassword(resetPasswordRequest.NewPassword);
-            user.PasswordResetToken = null;
-            await _userService.UpdateUserAsync(user.Id, user);
-
-            response.IsSuccess = true;
-            response.Message = "Password reset successful.";
+                response.IsSuccess = true;
+                response.Message = "Password reset successful.";
+            }          
             return response;
         }
     }

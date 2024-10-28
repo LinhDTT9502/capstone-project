@@ -5,8 +5,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace _2Sport_BE.Repository.Models;
 
-[Table("CustomerDetails")]
-public class CustomerDetail
+[Table("Customers")]
+public class Customer
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -14,7 +14,9 @@ public class CustomerDetail
 
     [Column("UserId")]
     public int? UserId { get; set; }
+    public virtual User User { get; set; }
 
+    [Column("LoyaltyPoints")]
     public int? LoyaltyPoints { get; set; }
 
     [Column("MembershipLevel", TypeName = "nvarchar")]
@@ -23,7 +25,5 @@ public class CustomerDetail
 
     [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
     [DataType(DataType.DateTime)]
-    public DateTime? JoinDate { get; set; }
-
-    public virtual User User { get; set; }
+    public DateTime? JoinedAt { get; set; }
 }

@@ -20,7 +20,7 @@ var builder = WebApplication.CreateBuilder(args);
 //Setting Mail
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("AppSettings:MailSettings"));
 //Setting PayOs
-builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOSSettings"));
+//builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOSSettings"));
 
 builder.Services.Register();
 // Add services to the container.

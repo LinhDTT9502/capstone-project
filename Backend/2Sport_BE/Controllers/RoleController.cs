@@ -1,5 +1,5 @@
 ﻿using _2Sport_BE.Repository.Interfaces;
-using _2Sport_BE.Service.Services;
+using _2Sport_BE.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

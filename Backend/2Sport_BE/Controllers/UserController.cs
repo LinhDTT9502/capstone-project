@@ -5,7 +5,7 @@ using System.Security.Claims;
 using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
 using IMailService = _2Sport_BE.Services.IMailService;
-using _2Sport_BE.Service.DTOs;
+using _2Sport_BE.Infrastructure.DTOs;
 
 namespace _2Sport_BE.Controllers
 {
@@ -18,7 +18,7 @@ namespace _2Sport_BE.Controllers
 
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IMailService _mailService;
-        
+
         public UserController(
             IUserService userService,
             IRefreshTokenService refreshTokenService,
@@ -116,7 +116,7 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest(ModelState);
             }
-           var response = await _userService.UpdateUserAsync(id, userUM);
+            var response = await _userService.UpdateUserAsync(id, userUM);
             if (response.IsSuccess)
             {
                 return Ok(response);
@@ -193,7 +193,7 @@ namespace _2Sport_BE.Controllers
             }
 
             var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(request.Email))).FirstOrDefault();
-                
+
             if (user is null)
             {
                 return BadRequest("Email is not found!");

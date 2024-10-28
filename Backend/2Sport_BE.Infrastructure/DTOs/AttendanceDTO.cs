@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace _2Sport_BE.Service.DTOs
+namespace _2Sport_BE.Infrastructure.DTOs
 {
     public class AttendanceDTO
     {

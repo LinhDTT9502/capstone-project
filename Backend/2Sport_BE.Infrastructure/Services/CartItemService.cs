@@ -1,14 +1,13 @@
 using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
-using _2Sport_BE.Service.DTOs;
+using _2Sport_BE.Infrastructure.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Vonage.Messages.Webhooks;
 
 namespace _2Sport_BE.Service.Services
 {
@@ -22,7 +21,7 @@ namespace _2Sport_BE.Service.Services
         Task ReduceCartItem(int cartItemId);
         Task UpdateQuantityOfCartItem(int cartItemId, int quantity);
         Task<CartItem> GetCartItemByWareHouseId(int? warehouseId);
-        Task<bool> DeleteCartItem(Cart cart, List<OrderDetailCM> orderDetailCMs);
+        Task<bool> DeleteCartItem(Cart cart, List<SaleOrderDetailCM> orderDetailCMs);
         Task<bool> DeleteCartItem(Cart cart, List<RentalOrderItems> rentalOrderItems);
     }
 	public class CartItemService : ICartItemService
@@ -209,7 +208,7 @@ namespace _2Sport_BE.Service.Services
             return queryCart;
         }
 
-        public async Task<bool> DeleteCartItem(Cart cart, List<OrderDetailCM> orderDetailCMs)
+        public async Task<bool> DeleteCartItem(Cart cart, List<SaleOrderDetailCM> orderDetailCMs)
         {
             if (orderDetailCMs == null || orderDetailCMs.Count < 1)
             {
@@ -250,7 +249,7 @@ namespace _2Sport_BE.Service.Services
                 return false;
             }
 
-            HashSet<int?> productIdsToDelete = new HashSet<int?>(rentalOrderItems.Select(od => od.WarehouseId));
+            HashSet<int> productIdsToDelete = new HashSet<int>(rentalOrderItems.Select(od => od.WarehouseId));
 
             bool flag = false;
             List<CartItem> cartItems = cart.CartItems.ToList();
@@ -259,7 +258,7 @@ namespace _2Sport_BE.Service.Services
 
             foreach (var cartItem in cartItems)
             {
-                if (productIdsToDelete.Contains(cartItem.WarehouseId))
+                if (productIdsToDelete.Contains((int)cartItem.WarehouseId))
                 {
                     itemsToDelete.Add(cartItem);
                     flag = true;

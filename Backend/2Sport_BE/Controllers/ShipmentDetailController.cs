@@ -28,7 +28,7 @@ namespace _2Shipment_BE.Controllers
         public async Task<IActionResult> GetShipmentDetails()
         {
             var userId = GetCurrentUserIdFromToken();
-            if(userId is 0 || string.IsNullOrEmpty(userId.ToString()))
+            if (userId is 0 || string.IsNullOrEmpty(userId.ToString()))
             {
                 return Unauthorized("Invalid user");
             }
@@ -38,7 +38,7 @@ namespace _2Shipment_BE.Controllers
                 var shipments = query.Select(_ => _mapper.Map<ShipmentDetail, ShipmentDetailVM>(_)).ToList();
                 if (shipments.Count > 0)
                 {
-                return Ok(shipments);
+                    return Ok(shipments);
                 }
                 return Ok(shipments);
             }
@@ -48,7 +48,7 @@ namespace _2Shipment_BE.Controllers
             }
         }
 
-        /*[HttpPost]
+        [HttpPost]
         [Route("add-many-shipment-details")]
         public async Task<IActionResult> AddShipments(List<ShipmentDetail> newShipments)
         {
@@ -61,17 +61,17 @@ namespace _2Shipment_BE.Controllers
             {
                 return BadRequest(ex);
             }
-        }*/
+        }
         [HttpPost]
         [Route("add-shipment-detail")]
-        public async Task<IActionResult> AddShipment([FromBody]ShipmentDetailCM shipmentDetailCM)
+        public async Task<IActionResult> AddShipment([FromBody] ShipmentDetailCM shipmentDetailCM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid request data");
             }
             var userId = GetCurrentUserIdFromToken();
-            if(userId == null)
+            if (userId == 0)
             {
                 return Unauthorized("Invalid user");
             }
@@ -101,7 +101,7 @@ namespace _2Shipment_BE.Controllers
                     Message = "Query successful!",
                     Data = detailVM
                 };
-                
+
                 return Ok(response);
             }
             catch (Exception ex)
@@ -111,7 +111,7 @@ namespace _2Shipment_BE.Controllers
         }
         [HttpPut]
         [Route("update-shipment-detail/{id}")]
-        public async Task<IActionResult> UpdateShipment(int id, [FromBody]ShipmentDetailUM shipmentDetailUM)
+        public async Task<IActionResult> UpdateShipment(int id, [FromBody] ShipmentDetailUM shipmentDetailUM)
         {
             try
             {

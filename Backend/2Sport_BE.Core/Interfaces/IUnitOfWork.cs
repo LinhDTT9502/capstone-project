@@ -15,7 +15,7 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<ImagesVideo> ImagesVideoRepository { get; }
         IGenericRepository<ImportHistory> ImportHistoryRepository { get; }
         IGenericRepository<Like> LikeRepository { get; }
-        IGenericRepository<Order> OrderRepository { get; }
+        IGenericRepository<SaleOrder> SaleOrderRepository { get; }
         IGenericRepository<OrderDetail> OrderDetailRepository { get; }
         IGenericRepository<PaymentMethod> PaymentMethodRepository { get; }
         IGenericRepository<Product> ProductRepository { get; }
@@ -27,12 +27,10 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<Warehouse> WarehouseRepository { get; }
         IGenericRepository<RefreshToken> RefreshTokenRepository { get; }
         IGenericRepository<Sport> SportRepository { get; }
-        IGenericRepository<CustomerDetail> CustomerDetailRepository { get; }
-        IGenericRepository<Employee> EmployeeRepository { get; }
-        IGenericRepository<EmployeeDetail> EmployeeDetailRepository { get; }
+        IGenericRepository<Customer> CustomerDetailRepository { get; }
+        IGenericRepository<Manager> ManagerRepository { get; }
+        IGenericRepository<Staff> StaffRepository { get; }
         IGenericRepository<ErrorLog> ErrorLogRepository { get; }
-        IGenericRepository<Attendance> AttendanceRepository { get; }
-        IGenericRepository<Guest> GuestRepository { get; }
         IGenericRepository<RentalOrder> RentalOrderRepository { get; }
 
         Task<IDbContextTransaction> BeginTransactionAsync();
