@@ -17,8 +17,6 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<Brand> _brandRepository;
         private IGenericRepository<Branch> _branchRepository;
         private IGenericRepository<BrandBranch> _brandBranchRepository;
-        private IGenericRepository<Cart> _cartRepository;
-        private IGenericRepository<CartItem> _cartItemRepository;
         private IGenericRepository<Category> _categoryRepository;
         private IGenericRepository<ImagesVideo> _imagesVideoRepository;
         private IGenericRepository<ImportHistory> _importHistoryRepository;
@@ -30,7 +28,6 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<Review> _reviewRepository;
         private IGenericRepository<Role> _roleRepository;
         private IGenericRepository<ShipmentDetail> _shipmentDetailRepository;
-        private IGenericRepository<Supplier> _supplierRepository;
         private IGenericRepository<User> _userRepository;
         private IGenericRepository<Warehouse> _warehouseRepository;
         private IGenericRepository<RefreshToken> _refreshTokenRepository;
@@ -118,29 +115,6 @@ namespace _2Sport_BE.Repository.Implements
                     _brandBranchRepository = new GenericRepository<BrandBranch>(_dbContext);
                 }
                 return _brandBranchRepository;
-            }
-        }
-
-        public IGenericRepository<Cart> CartRepository
-        {
-            get
-            {
-                if (_cartRepository == null)
-                {
-                    _cartRepository = new GenericRepository<Cart>(_dbContext);
-                }
-                return _cartRepository;
-            }
-        }
-        public IGenericRepository<CartItem> CartItemRepository
-        {
-            get
-            {
-                if (_cartItemRepository == null)
-                {
-                    _cartItemRepository = new GenericRepository<CartItem>(_dbContext);
-                }
-                return _cartItemRepository;
             }
         }
         public IGenericRepository<Category> CategoryRepository
@@ -262,17 +236,6 @@ namespace _2Sport_BE.Repository.Implements
                     _shipmentDetailRepository = new GenericRepository<ShipmentDetail>(_dbContext);
                 }
                 return _shipmentDetailRepository;
-            }
-        }
-        public IGenericRepository<Supplier> SupplierRepository
-        {
-            get
-            {
-                if (_supplierRepository == null)
-                {
-                    _supplierRepository = new GenericRepository<Supplier>(_dbContext);
-                }
-                return _supplierRepository;
             }
         }
         public IGenericRepository<User> UserRepository

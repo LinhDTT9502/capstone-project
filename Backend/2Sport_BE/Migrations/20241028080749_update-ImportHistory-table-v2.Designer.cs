@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241028080749_update-ImportHistory-table-v2")]
+    partial class updateImportHistorytablev2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,6 +177,61 @@ namespace _2Sport_BE.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("BrandCategories");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Cart", b =>
+                {
+                    b.Property<int>("CartId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("CartId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartId"));
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UserId");
+
+                    b.HasKey("CartId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Carts");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.CartItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CartId")
+                        .HasColumnType("int")
+                        .HasColumnName("CartId");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("TotalPrice")
+                        .HasColumnType("decimal")
+                        .HasColumnName("TotalPrice");
+
+                    b.Property<int?>("WarehouseId")
+                        .HasColumnType("int")
+                        .HasColumnName("WarehouseId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CartId");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
@@ -1237,6 +1295,34 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Cart", b =>
+                {
+                    b.HasOne("_2Sport_BE.Repository.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.CartItem", b =>
+                {
+                    b.HasOne("_2Sport_BE.Repository.Models.Cart", "Cart")
+                        .WithMany("CartItems")
+                        .HasForeignKey("CartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("_2Sport_BE.Repository.Models.Warehouse", "Warehouse")
+                        .WithMany("CartItems")
+                        .HasForeignKey("WarehouseId");
+
+                    b.Navigation("Cart");
+
+                    b.Navigation("Warehouse");
+                });
+
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.Sport", "Sport")
@@ -1539,6 +1625,11 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Products");
                 });
 
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Cart", b =>
+                {
+                    b.Navigation("CartItems");
+                });
+
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
                 {
                     b.Navigation("BrandCategories");
@@ -1614,6 +1705,11 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("ShipmentDetails");
 
                     b.Navigation("Staffs");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Warehouse", b =>
+                {
+                    b.Navigation("CartItems");
                 });
 #pragma warning restore 612, 618
         }

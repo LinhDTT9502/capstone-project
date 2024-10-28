@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241028072150_remove-Supplier-table")]
+    partial class removeSuppliertable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,6 +177,61 @@ namespace _2Sport_BE.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("BrandCategories");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Cart", b =>
+                {
+                    b.Property<int>("CartId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("CartId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartId"));
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UserId");
+
+                    b.HasKey("CartId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Carts");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.CartItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CartId")
+                        .HasColumnType("int")
+                        .HasColumnName("CartId");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("TotalPrice")
+                        .HasColumnType("decimal")
+                        .HasColumnName("TotalPrice");
+
+                    b.Property<int?>("WarehouseId")
+                        .HasColumnType("int")
+                        .HasColumnName("WarehouseId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CartId");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
@@ -353,57 +411,35 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Action")
+                    b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar")
-                        .HasColumnName("Action");
+                        .HasColumnName("Content");
 
-                    b.Property<string>("Color")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("Color");
-
-                    b.Property<int?>("Condition")
+                    b.Property<int>("EmployeeId")
                         .HasColumnType("int")
-                        .HasColumnName("Condition");
+                        .HasColumnName("EmployeeId");
 
                     b.Property<DateTime?>("ImportDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("ProductCode")
+                    b.Property<string>("LotCode")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("ProductCode");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar")
+                        .HasColumnName("LotCode");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int")
                         .HasColumnName("ProductId");
 
-                    b.Property<string>("ProductName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("ProductName");
-
-                    b.Property<int?>("Quantity")
+                    b.Property<int>("Quantity")
                         .HasColumnType("int");
-
-                    b.Property<string>("Size")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("Size");
-
-                    b.Property<int>("StaffId")
-                        .HasColumnType("int")
-                        .HasColumnName("StaffId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("StaffId");
 
                     b.ToTable("ImportHistories");
                 });
@@ -1237,6 +1273,34 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Cart", b =>
+                {
+                    b.HasOne("_2Sport_BE.Repository.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.CartItem", b =>
+                {
+                    b.HasOne("_2Sport_BE.Repository.Models.Cart", "Cart")
+                        .WithMany("CartItems")
+                        .HasForeignKey("CartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("_2Sport_BE.Repository.Models.Warehouse", "Warehouse")
+                        .WithMany("CartItems")
+                        .HasForeignKey("WarehouseId");
+
+                    b.Navigation("Cart");
+
+                    b.Navigation("Warehouse");
+                });
+
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.Sport", "Sport")
@@ -1295,15 +1359,7 @@ namespace _2Sport_BE.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("_2Sport_BE.Repository.Models.Staff", "Staff")
-                        .WithMany("ImportHistories")
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Product");
-
-                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Like", b =>
@@ -1539,6 +1595,11 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Products");
                 });
 
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Cart", b =>
+                {
+                    b.Navigation("CartItems");
+                });
+
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
                 {
                     b.Navigation("BrandCategories");
@@ -1590,11 +1651,6 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.Staff", b =>
-                {
-                    b.Navigation("ImportHistories");
-                });
-
             modelBuilder.Entity("_2Sport_BE.Repository.Models.User", b =>
                 {
                     b.Navigation("Customers");
@@ -1614,6 +1670,11 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("ShipmentDetails");
 
                     b.Navigation("Staffs");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Warehouse", b =>
+                {
+                    b.Navigation("CartItems");
                 });
 #pragma warning restore 612, 618
         }

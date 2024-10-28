@@ -16,7 +16,6 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<IQueryable<ImportHistory>> ListAllAsync();
         Task<IQueryable<ImportHistory>> GetImportHistory(Expression<Func<ImportHistory, bool>> filter = null,
                                 string includeProperties = "");
-        Task<IQueryable<ImportHistory>> GetImportHistorysAsync(string supplierName);
         Task<IQueryable<ImportHistory>> GetImportHistoryById(int? id);
         Task<IQueryable<ImportHistory>> GetImportHistorysAsync(int productId);
 
@@ -62,12 +61,6 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task<IQueryable<ImportHistory>> GetImportHistoryById(int? id)
         {
             IEnumerable<ImportHistory> filter = await _unitOfWork.ImportHistoryRepository.GetAsync(_ => _.Id == id);
-            return filter.AsQueryable();
-        }
-
-        public async Task<IQueryable<ImportHistory>> GetImportHistorysAsync(string supplierName)
-        {
-            IEnumerable<ImportHistory> filter = await _unitOfWork.ImportHistoryRepository.GetAsync(_ => _.Supplier.SupplierName.ToUpper().Contains(supplierName.ToUpper()));
             return filter.AsQueryable();
         }
 

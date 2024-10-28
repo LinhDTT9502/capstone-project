@@ -14,29 +14,41 @@ public class ImportHistory
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    [Column("EmployeeId")]
-    public int EmployeeId { get; set; }
+    [Column("StaffId")]
+    public int StaffId { get; set; }
+
+    [Column("Action", TypeName = "nvarchar")]
+    [MaxLength(500)]
+    public string Action { get; set; }
 
     [Column("ProductId")]
     public int ProductId { get; set; }
 
-    [Column("Content", TypeName = "nvarchar")]
-    [MaxLength(500)]
-    public string Content { get; set; }
+    [Column("ProductName", TypeName = "nvarchar")]
+    [MaxLength(255)]
+    public string ProductName { get; set; } = null!;
+
+    [Column("ProductCode", TypeName = "nvarchar")]
+    [MaxLength(255)]
+    public string ProductCode { get; set; }
+
+    [Column("Size", TypeName = "nvarchar")]
+    [MaxLength(50)]
+    public string? Size { get; set; }
+
+    [Column("Color", TypeName = "nvarchar")]
+    [MaxLength(255)]
+    public string? Color { get; set; }
+
+    [Column("Condition")]
+    public int? Condition { get; set; }
+
+    public int? Quantity { get; set; }
 
     [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
     [DataType(DataType.DateTime)]
     public DateTime? ImportDate { get; set; }
-    public int Quantity { get; set; }
-
-    [Column("SupplierId")]
-    public int? SupplierId { get; set; }
-
-    [Column("LotCode", TypeName = "varchar")]
-    [MaxLength(50)]
-    public string LotCode { get; set; }
 
     public virtual Product Product { get; set; }
-    //public virtual Employee Employee { get; set; }
-    public virtual Supplier Supplier { get; set; }
+    public virtual Staff Staff { get; set; }
 }

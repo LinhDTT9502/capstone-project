@@ -19,12 +19,8 @@ namespace _2Sport_BE.Repository.Data
         public virtual DbSet<Brand> Brands { get; set; }
         public virtual DbSet<BrandBranch> BrandBranches { get; set; }
         public virtual DbSet<BrandCategory> BrandCategories { get; set; }
-        public virtual DbSet<Cart> Carts { get; set; }
-        public virtual DbSet<CartItem> CartItems { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Comment> Comments { get; set; }
-        public virtual DbSet<CustomerDetail> CustomerDetails { get; set; }
-        public virtual DbSet<Employee> Employees { get; set; }
         public virtual DbSet<ImportHistory> ImportHistories { get; set; }
         public virtual DbSet<ImagesVideo> ImagesVideos { get; set; }
         public virtual DbSet<Like> Likes { get; set; }
@@ -37,7 +33,6 @@ namespace _2Sport_BE.Repository.Data
         public virtual DbSet<Role> Roles { get; set; }
         public virtual DbSet<ShipmentDetail> ShipmentDetails { get; set; }
         public virtual DbSet<Sport> Sport { get; set; }
-        public virtual DbSet<Supplier> Suppliers { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Warehouse> Warehouses { get; set; }
         public virtual DbSet<ErrorLog> ErrorLogs { get; set; }

@@ -35,13 +35,10 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<ISportService, SportService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IProductService, ProductService>();
-            services.AddScoped<ICartService, CartService>();
-            services.AddScoped<ICartItemService, CartItemService>();
             services.AddScoped<IShipmentDetailService, ShipmentDetailService>();
             services.AddScoped<IPaymentMethodService, PaymentMethodService>();
 			services.AddScoped<ILikeService, LikeService>();
 			services.AddScoped<IReviewService, ReviewService>();
-			services.AddScoped<ISupplierService, SupplierService>();
 			services.AddScoped<IImportHistoryService, ImportHistoryService>();
 			services.AddScoped<IWarehouseService, WarehouseService>();
 			services.AddScoped<IImageService, ImageService>();

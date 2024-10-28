@@ -18,19 +18,16 @@ namespace _2Sport_BE.Controllers
         private readonly IImportHistoryService _importService;
         private readonly IWarehouseService _warehouseService;
         private readonly IProductService _productService;
-        private readonly ISupplierService _supplierService;
         private readonly IMapper _mapper;
         private static readonly char[] characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
         public ImportHistoryController(IImportHistoryService importService, 
                                 IWarehouseService warehouseService,
                                 IProductService productService,
-                                ISupplierService supplierService,
                                 IMapper mapper)
         {
             _importService = importService;
             _warehouseService = warehouseService;
             _productService = productService;
-            _supplierService = supplierService;
             _mapper = mapper;
         }
         [HttpGet]
@@ -43,7 +40,6 @@ namespace _2Sport_BE.Controllers
                 foreach (var item in query)
                 {
                     item.Product = await _productService.GetProductById((int)item.ProductId);
-                    item.Supplier = (await _supplierService.GetSupplierById((int)item.SupplierId)).FirstOrDefault();
                 }
                 var result = _mapper.Map<List<ImportVM>>(query);
                 return Ok(new { total = result.Count(), data = result });

@@ -1,4 +1,4 @@
-/*using _2Sport_BE.Enums;
+using _2Sport_BE.Enums;
 using _2Sport_BE.Helpers;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Data;
@@ -27,7 +27,6 @@ namespace _2Sport_BE.Controllers
         private readonly IBrandService _brandService;
         private readonly IBranchService _branchService;
         private readonly ICategoryService _categoryService;
-        private readonly ISupplierService _supplierService;
         private readonly ISportService _sportService;
         private readonly ILikeService _likeService;
         private readonly IReviewService _reviewService;
@@ -35,7 +34,7 @@ namespace _2Sport_BE.Controllers
         private readonly IWarehouseService _warehouseService;
         private readonly IImageVideosService _imageVideosService;
         private readonly IImportHistoryService _importHistoryService;
-        private readonly IEmployeeDetailService _employeeDetailService;
+        private readonly IManagerService _managerService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
@@ -43,7 +42,6 @@ namespace _2Sport_BE.Controllers
                                 IBrandService brandService,
                                 IBranchService branchService,
                                 ICategoryService categoryService,
-                                ISupplierService supplierService,
                                 IUnitOfWork unitOfWork,
                                 ISportService sportService,
                                 ILikeService likeService,
@@ -52,7 +50,7 @@ namespace _2Sport_BE.Controllers
                                 IImageService imageService,
                                 IImageVideosService imageVideosService,
                                 IImportHistoryService importHistoryService,
-                                IEmployeeDetailService employeeDetailService,
+                                IManagerService managerService,
                                 IMapper mapper)
         {
             _productService = productService;
@@ -61,7 +59,6 @@ namespace _2Sport_BE.Controllers
             _brandService = brandService;
             _branchService = branchService;
             _categoryService = categoryService;
-            _supplierService = supplierService;
             _sportService = sportService;
             _likeService = likeService;
             _reviewService = reviewService;
@@ -69,7 +66,7 @@ namespace _2Sport_BE.Controllers
             _imageService = imageService;
             _imageVideosService = imageVideosService;
             _importHistoryService = importHistoryService;
-            _employeeDetailService = employeeDetailService;
+            _managerService = managerService;
         }
 
         [HttpGet]
@@ -298,7 +295,7 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
 
-                var employeeDetail = await _employeeDetailService.GetEmployeeDetailByEmployeeId(userId);
+                var managerDetail = await _managerService.GetManagerDetailByIdAsync(userId);
 
 
                 if (existedProduct == null)
@@ -350,7 +347,7 @@ namespace _2Sport_BE.Controllers
                     //Import product into warehouse
                     var warehouse = new Warehouse()
                     {
-                        BranchId = employeeDetail.BranchId,
+                        BranchId = managerDetail.Data.BranchId,
                         ProductId = product.Id,
                         TotalQuantity = productCM.Quantity,
                         AvailableQuantity = productCM.Quantity
@@ -380,7 +377,7 @@ namespace _2Sport_BE.Controllers
 
                         var warehouse = new Warehouse()
                         {
-                            BranchId = employeeDetail.BranchId,
+                            BranchId = managerDetail.Data.BranchId,
                             ProductId = newProduct.Id,
                             TotalQuantity = productCM.Quantity,
                             AvailableQuantity = productCM.Quantity
@@ -392,7 +389,7 @@ namespace _2Sport_BE.Controllers
 
                         var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(
                                                                                 existedProductWithSizeColorCodition.Id,
-                                                                                employeeDetail.BranchId))
+                                                                                managerDetail.Data.BranchId))
                                                                                 .FirstOrDefault();
 
                         existedWarehouse.TotalQuantity += productCM.Quantity;
@@ -408,16 +405,14 @@ namespace _2Sport_BE.Controllers
                 }
 
                 //Save import history
-                var importedBranch = await _branchService.GetBranchById(employeeDetail.BranchId);
+                var importedBranch = await _branchService.GetBranchById(managerDetail.Data.BranchId);
                 var importHistory = new ImportHistory()
                 {
-                    EmployeeId = userId,
+                    StaffId = userId,
                     ProductId = product.Id,
-                    Content = $@"{importedBranch.BranchName}: Import {productCM.Quantity} {productCM.ProductName} ({productCM.ProductCode})",
+                    Action = $@"{importedBranch.BranchName}: Import {productCM.Quantity} {productCM.ProductName} ({productCM.ProductCode})",
                     ImportDate = DateTime.Now,
                     Quantity = productCM.Quantity,
-                    SupplierId = productCM.SupplierId,
-                    LotCode = productCM.LotCode,
                 };
                 await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
 
@@ -454,7 +449,7 @@ namespace _2Sport_BE.Controllers
                             return Unauthorized();
                         }
 
-                        var employeeDetail = await _employeeDetailService.GetEmployeeDetailByEmployeeId(userId);
+                        var managerDetail = await _managerService.GetManagerDetailByIdAsync(userId);
 
 
                         if (existedProduct == null)
@@ -506,7 +501,7 @@ namespace _2Sport_BE.Controllers
                             //Import product into warehouse
                             var warehouse = new Warehouse()
                             {
-                                BranchId = employeeDetail.BranchId,
+                                BranchId = managerDetail.Data.BranchId,
                                 ProductId = product.Id,
                                 TotalQuantity = productCM.Quantity,
                                 AvailableQuantity = productCM.Quantity,
@@ -537,7 +532,7 @@ namespace _2Sport_BE.Controllers
                             {
                                 var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(
                                                                                         existedProductWithSizeColorCodition.Id,
-                                                                                        employeeDetail.BranchId))
+                                                                                        managerDetail.Data.BranchId))
                                                                                         .FirstOrDefault();
                                 if (existedWarehouse != null)
                                 {
@@ -550,7 +545,7 @@ namespace _2Sport_BE.Controllers
                                     //var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
                                     var warehouse = new Warehouse()
                                     {
-                                        BranchId = employeeDetail.BranchId,
+                                        BranchId = managerDetail.Data.BranchId,
                                         ProductId = existedProductWithSizeColorCodition.Id,
                                         TotalQuantity = productCM.Quantity,
                                         AvailableQuantity = productCM.Quantity,
@@ -562,16 +557,14 @@ namespace _2Sport_BE.Controllers
                         }
 
                         //Save import history
-                        var importedBranch = await _branchService.GetBranchById(employeeDetail.BranchId);
+                        var importedBranch = await _branchService.GetBranchById(managerDetail.Data.BranchId);
                         var importHistory = new ImportHistory()
                         {
-                            EmployeeId = userId,
+                            StaffId = userId,
                             ProductId = product.Id,
-                            Content = $@"{importedBranch.BranchName}: Import {productCM.Quantity} {productCM.ProductName} ({productCM.ProductCode})",
+                            Action = $@"{importedBranch.BranchName}: Import {productCM.Quantity} {productCM.ProductName} ({productCM.ProductCode})",
                             ImportDate = DateTime.Now,
                             Quantity = productCM.Quantity,
-                            SupplierId = productCM.SupplierId,
-                            LotCode = productCM.LotCode,
                         };
                         await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
 
@@ -714,7 +707,7 @@ namespace _2Sport_BE.Controllers
 
                     try
                     {
-                        var employeeDetail = await _employeeDetailService.GetEmployeeDetailByEmployeeId(managerId);
+                        var managerDetail = await _managerService.GetManagerDetailByIdAsync(managerId);
 
                         //Check if brand is not exist, add new brand
                         #region Add new brand
@@ -735,7 +728,7 @@ namespace _2Sport_BE.Controllers
                                     };
                                     var newBrandBranch = new BrandBranch()
                                     {
-                                        BranchId = employeeDetail.BranchId
+                                        BranchId = managerDetail.Data.BranchId
                                     };
                                     await _brandService.CreateANewBrandAsync(newBrand, newBrandBranch);
                                 }
@@ -748,21 +741,6 @@ namespace _2Sport_BE.Controllers
                             {
                                 return (int)ProductErrors.NullError;
                             }
-                        }
-                        #endregion
-
-                        //Check if supplier is not exist, add a new supplier
-                        #region Add new supplier
-                        var existedSupplier = (await _supplierService.GetSuppliersAsync(supplierValue)).FirstOrDefault();
-                        if (existedSupplier == null)
-                        {
-                            var supplierLocation = string.IsNullOrEmpty(reader.GetValue(6)?.ToString()) ? "" : reader.GetValue(6).ToString();
-                            var newSupplier = new Supplier()
-                            {
-                                SupplierName = supplierValue,
-                                Location = supplierLocation,
-                            };
-                            await _supplierService.CreateANewSupplierAsync(newSupplier);
                         }
                         #endregion
 
@@ -785,11 +763,6 @@ namespace _2Sport_BE.Controllers
                             return (int)ProductErrors.CategoryNameError;
                         }
 
-                        var supplier = (await _supplierService.GetSuppliersAsync(supplierValue)).FirstOrDefault();
-                        if (supplier == null)
-                        {
-                            return (int)ProductErrors.SupplierNameError;
-                        }
                         var existedProduct = await _productService.GetProductByProductCode(productCodeValue);
 
                         var product = new Product
@@ -899,7 +872,7 @@ namespace _2Sport_BE.Controllers
                             //Import product into warehouse
                             var warehouse = new Warehouse()
                             {
-                                BranchId = employeeDetail.BranchId,
+                                BranchId = managerDetail.Data.BranchId,
                                 ProductId = product.Id,
                                 TotalQuantity = int.Parse(quantityValue),
                                 AvailableQuantity = int.Parse(quantityValue),
@@ -927,7 +900,7 @@ namespace _2Sport_BE.Controllers
 
                                 var warehouse = new Warehouse()
                                 {
-                                    BranchId = employeeDetail.BranchId,
+                                    BranchId = managerDetail.Data.BranchId,
                                     ProductId = newProduct.Id,
                                     TotalQuantity = int.Parse(quantityValue),
                                     AvailableQuantity = int.Parse(quantityValue),
@@ -939,7 +912,7 @@ namespace _2Sport_BE.Controllers
 
                                 var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(
                                                                                         existedProductWithSizeColorCodition.Id,
-                                                                                        employeeDetail.BranchId))
+                                                                                        managerDetail.Data.BranchId))
                                                                                         .FirstOrDefault();
 
                                 existedWarehouse.TotalQuantity += int.Parse(quantityValue);
@@ -953,17 +926,15 @@ namespace _2Sport_BE.Controllers
                         }
 
                         //Save import history
-                        var employee = await _employeeDetailService.GetEmployeeDetailByEmployeeId(managerId);
-                        var importedBranch = await _branchService.GetBranchById(employee.BranchId);
+                        var manager = await _managerService.GetManagerDetailByIdAsync(managerId);
+                        var importedBranch = await _branchService.GetBranchById(manager.Data.BranchId);
                         var importHistory = new ImportHistory()
                         {
-                            EmployeeId = managerId,
+                            StaffId = managerId,
                             ProductId = product.Id,
-                            Content = $@"{importedBranch.BranchName}: Import {int.Parse(quantityValue)} {productNameValue} ({productCodeValue})",
+                            Action = $@"{importedBranch.BranchName}: Import {int.Parse(quantityValue)} {productNameValue} ({productCodeValue})",
                             ImportDate = DateTime.Now,
                             Quantity = int.Parse(quantityValue),
-                            SupplierId = supplier.Id,
-                            LotCode = lotCodeValue,
                         };
                         await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
                     }
@@ -1075,13 +1046,11 @@ namespace _2Sport_BE.Controllers
                     var importedBranch = await _branchService.GetBranchById(productUM.BranchId);
                     var importHistory = new ImportHistory()
                     {
-                        EmployeeId = userId,
+                        StaffId = userId,
                         ProductId = updatedProduct.Id,
-                        Content = $@"{importedBranch.BranchName}: Updated {productUM.ProductName} ({productUM.ProductCode})",
+                        Action = $@"{importedBranch.BranchName}: Updated {productUM.ProductName} ({productUM.ProductCode})",
                         ImportDate = DateTime.Now,
                         Quantity = productUM.Quantity,
-                        SupplierId = productUM.SupplierId,
-                        LotCode = productUM.LotCode,
                     };
                     await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
                     return Ok($"Update product with id: {productId}");
@@ -1167,4 +1136,4 @@ namespace _2Sport_BE.Controllers
             }
         }
     }
-}*/
+}

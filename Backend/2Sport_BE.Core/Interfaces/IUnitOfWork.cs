@@ -9,8 +9,6 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<Brand> BrandRepository { get; }
         IGenericRepository<Branch> BranchRepository { get; }
         IGenericRepository<BrandBranch> BrandBranchRepository { get; }
-        IGenericRepository<Cart> CartRepository { get; }
-        IGenericRepository<CartItem> CartItemRepository { get; }
         IGenericRepository<Category> CategoryRepository { get; }
         IGenericRepository<ImagesVideo> ImagesVideoRepository { get; }
         IGenericRepository<ImportHistory> ImportHistoryRepository { get; }
@@ -22,7 +20,6 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<Review> ReviewRepository { get; }
         IGenericRepository<Role> RoleRepository { get; }
         IGenericRepository<ShipmentDetail> ShipmentDetailRepository { get; }
-        IGenericRepository<Supplier> SupplierRepository { get; }
         IGenericRepository<User> UserRepository { get; }
         IGenericRepository<Warehouse> WarehouseRepository { get; }
         IGenericRepository<RefreshToken> RefreshTokenRepository { get; }
