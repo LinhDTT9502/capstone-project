@@ -54,8 +54,6 @@ namespace _2Sport_BE.ViewModels
         [Required]
         public int? SportId { get; set; }
         [Required]
-        public int? SupplierId { get; set; }
-        [Required]
         public string ProductCode { get; set; }
 
         [Required]
@@ -84,8 +82,6 @@ namespace _2Sport_BE.ViewModels
         public int? BranchId { get; set; }
         [Required]
         public int? SportId { get; set; }
-        [Required]
-        public int? SupplierId { get; set; }
         [Required]
         public string ProductCode { get; set; }
         [Required]

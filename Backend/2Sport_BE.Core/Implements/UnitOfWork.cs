@@ -17,6 +17,7 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<Brand> _brandRepository;
         private IGenericRepository<Branch> _branchRepository;
         private IGenericRepository<BrandBranch> _brandBranchRepository;
+        private IGenericRepository<Comment> _commentRepository;
         private IGenericRepository<Category> _categoryRepository;
         private IGenericRepository<ImagesVideo> _imagesVideoRepository;
         private IGenericRepository<ImportHistory> _importHistoryRepository;
@@ -126,6 +127,17 @@ namespace _2Sport_BE.Repository.Implements
                     _categoryRepository = new GenericRepository<Category>(_dbContext);
                 }
                 return _categoryRepository;
+            }
+        }
+        public IGenericRepository<Comment> CommentRepository
+        {
+            get
+            {
+                if (_commentRepository == null)
+                {
+                    _commentRepository = new GenericRepository<Comment>(_dbContext);
+                }
+                return _commentRepository;
             }
         }
         public IGenericRepository<ImagesVideo> ImagesVideoRepository

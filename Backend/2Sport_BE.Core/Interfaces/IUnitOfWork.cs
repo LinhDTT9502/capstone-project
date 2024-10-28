@@ -10,6 +10,7 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<Branch> BranchRepository { get; }
         IGenericRepository<BrandBranch> BrandBranchRepository { get; }
         IGenericRepository<Category> CategoryRepository { get; }
+        IGenericRepository<Comment> CommentRepository { get; }
         IGenericRepository<ImagesVideo> ImagesVideoRepository { get; }
         IGenericRepository<ImportHistory> ImportHistoryRepository { get; }
         IGenericRepository<Like> LikeRepository { get; }

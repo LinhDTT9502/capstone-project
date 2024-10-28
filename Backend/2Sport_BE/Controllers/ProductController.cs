@@ -77,6 +77,12 @@ namespace _2Sport_BE.Controllers
             {
                 var product = await _productService.GetProductById(productId);
                 var productVM = _mapper.Map<ProductVM>(product);
+                var brand = await _brandService.GetBrandById(productVM.BrandId);
+                productVM.BrandName = brand.FirstOrDefault().BrandName;
+                var category = await _categoryService.GetCategoryById(productVM.CategoryID);
+                productVM.CategoryName = category.CategoryName;
+                var sport = await _sportService.GetSportById(productVM.SportId);
+                productVM.SportName = sport.Name;
                 var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
                 productVM.Reviews = reviews.ToList();
                 var numOfLikes = await _likeService.CountLikeOfProduct(productId);
@@ -106,7 +112,7 @@ namespace _2Sport_BE.Controllers
                     var sport = await _sportService.GetSportById(product.SportId);
                     product.Sport = sport;
                 }
-                var result = products.Select(_ => _mapper.Map<Product, ProductVM>(_)).ToList();
+                var result = _mapper.Map<List<Product>, List<ProductVM>>(query.ToList());
                 foreach (var product in result)
                 {
                     var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
@@ -671,25 +677,23 @@ namespace _2Sport_BE.Controllers
                     var brandValue = reader.GetValue(1)?.ToString();
                     var categoryValue = reader.GetValue(3)?.ToString();
                     var sportValue = reader.GetValue(4)?.ToString();
-                    var supplierValue = reader.GetValue(5)?.ToString();
-                    var productNameValue = reader.GetValue(7)?.ToString();
-                    var productCodeValue = reader.GetValue(8)?.ToString();
-                    var quantityValue = reader.GetValue(9)?.ToString();
-                    var lotCodeValue = reader.GetValue(10)?.ToString();
-                    var listedPriceValue = reader.GetValue(11)?.ToString();
-                    var priceValue = reader.GetValue(12)?.ToString();
-                    var rentPriceValue = reader.GetValue(13)?.ToString();
-                    var sizeValue = reader.GetValue(14)?.ToString();
-                    var colorValue = reader.GetValue(15)?.ToString();
-                    var conditionValue = reader.GetValue(16)?.ToString();
-                    var avaImgValue = reader.GetValue(18)?.ToString();
-                    var isRent = reader.GetValue(17)?.ToString();
+                    var productNameValue = reader.GetValue(5)?.ToString();
+                    var productCodeValue = reader.GetValue(6)?.ToString();
+                    var quantityValue = reader.GetValue(7)?.ToString();
+                    var lotCodeValue = reader.GetValue(8)?.ToString();
+                    var listedPriceValue = reader.GetValue(9)?.ToString();
+                    var priceValue = reader.GetValue(10)?.ToString();
+                    var rentPriceValue = reader.GetValue(11)?.ToString();
+                    var sizeValue = reader.GetValue(12)?.ToString();
+                    var colorValue = reader.GetValue(13)?.ToString();
+                    var conditionValue = reader.GetValue(14)?.ToString();
+                    var avaImgValue = reader.GetValue(16)?.ToString();
+                    var isRent = reader.GetValue(15)?.ToString();
 
                     // Check for null or empty mandatory fields
                     if (string.IsNullOrEmpty(brandValue) ||
                         string.IsNullOrEmpty(categoryValue) ||
                         string.IsNullOrEmpty(sportValue) ||
-                        string.IsNullOrEmpty(supplierValue) ||
                         string.IsNullOrEmpty(productNameValue) ||
                         string.IsNullOrEmpty(productCodeValue) ||
                         string.IsNullOrEmpty(quantityValue) ||
@@ -817,11 +821,11 @@ namespace _2Sport_BE.Controllers
 
                             //Add product's images into ImageVideo table
                             var listProductImages = new List<string>();
-                            var firstImgValue = reader.GetValue(19)?.ToString();
-                            var secondImgValue = reader.GetValue(20)?.ToString();
-                            var thirdImgValue = reader.GetValue(21)?.ToString();
-                            var fourthImgValue = reader.GetValue(22)?.ToString();
-                            var fifthImgValue = reader.GetValue(23)?.ToString();
+                            var firstImgValue = reader.GetValue(17)?.ToString();
+                            var secondImgValue = reader.GetValue(18)?.ToString();
+                            var thirdImgValue = reader.GetValue(19)?.ToString();
+                            var fourthImgValue = reader.GetValue(20)?.ToString();
+                            var fifthImgValue = reader.GetValue(21)?.ToString();
                             if (!string.IsNullOrEmpty(firstImgValue))
                             {
                                 listProductImages.Add(firstImgValue);
@@ -1084,11 +1088,12 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var deletedProduct = await _productService.GetProductById(productId);
-                deletedProduct.Status = false;
-                await _productService.UpdateProduct(deletedProduct);
+                var activeDeactiveProduct = await _productService.GetProductById(productId);
+                var tmpProduct = await _productService.GetProductById(productId);
+                activeDeactiveProduct.Status = !tmpProduct.Status;
+                await _productService.UpdateProduct(activeDeactiveProduct);
                 _unitOfWork.Save();
-                return Ok("Delete product successfully!");
+                return Ok("Active/Deactive product successfully!");
             }
             catch (Exception ex)
             {

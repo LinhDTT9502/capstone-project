@@ -32,6 +32,7 @@ namespace _2Sport_BE.Extensions
 
             services.AddTransient<IBrandService, BrandService>();
             services.AddTransient<IBranchService, BranchService>();
+            services.AddTransient<ICommentService, CommentService>();
             services.AddScoped<ISportService, SportService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IProductService, ProductService>();

@@ -30,7 +30,14 @@ namespace _2Sport_BE.Helpers
             #region Customer
             CreateMap<Customer, CustomerVM>();
             CreateMap<CustomerCM, Customer>();
-            CreateMap<CustomerUM, Customer>();    
+            CreateMap<CustomerUM, Customer>();
+            #endregion
+            #region Comment
+            CreateMap<Comment, CommentVM>()
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.UserName))
+                .ReverseMap();
+            CreateMap<Comment, CommentCM>().ReverseMap();
+            CreateMap<Comment, CommentUM>().ReverseMap();
             #endregion
             #region Sport
             CreateMap<Sport, SportVM>().ReverseMap();
