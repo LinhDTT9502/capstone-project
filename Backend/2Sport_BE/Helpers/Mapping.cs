@@ -27,6 +27,14 @@ namespace _2Sport_BE.Helpers
             CreateMap<StaffCM, Staff>();
             CreateMap<StaffUM, Staff>();
             #endregion
+            #region Blog
+            CreateMap<Blog, BlogVM>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
+                .ReverseMap();
+            CreateMap<CustomerCM, Customer>();
+            CreateMap<CustomerUM, Customer>();
+            #endregion
             #region Customer
             CreateMap<Customer, CustomerVM>();
             CreateMap<CustomerCM, Customer>();
