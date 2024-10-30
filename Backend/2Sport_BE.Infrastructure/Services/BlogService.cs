@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace _2Sport_BE.Service.Services
 {
-    internal class BlogService
+    public class BlogService
     {
     }
 }

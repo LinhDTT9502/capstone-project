@@ -12,9 +12,9 @@ public class Blog
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    [Column("BlogName", TypeName = "nvarchar")]
+    [Column("Title", TypeName = "nvarchar")]
     [MaxLength(255)]
-    public string BlogName { get; set; }
+    public string Title { get; set; }
 
     [Column("Content", TypeName = "nvarchar")]
     [MaxLength]

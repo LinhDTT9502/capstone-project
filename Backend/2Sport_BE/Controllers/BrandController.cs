@@ -1,4 +1,4 @@
-﻿/*using _2Sport_BE.DataContent;
+﻿using _2Sport_BE.DataContent;
 using _2Sport_BE.Repository.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +10,6 @@ using AutoMapper;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using _2Sport_BE.Services;
 using System.Security.Claims;
-using _2Sport_BE.Service.Enums;
 
 namespace _2Sport_BE.Controllers
 {
@@ -21,27 +20,27 @@ namespace _2Sport_BE.Controllers
         private readonly IBrandService _brandService;
         private readonly IProductService _productService;
         private readonly IWarehouseService _warehouseService;
-        private readonly IEmployeeDetailService _employeeDetailService;
         private readonly IUserService _userService;
         private readonly IImageService _imageService;
-        private readonly IEmployeeService _employeeService;
+        private readonly IAdminService _adminService;
+        private readonly IManagerService _managerService;
         private readonly IMapper _mapper;
         public BrandController(IBrandService brandService, IProductService productService,
                                IWarehouseService warehouseService,
                                IImageService imageService,
-                               IEmployeeDetailService employeeDetailService,
                                IUserService userService,
-                               IEmployeeService employeeService,
+                               IManagerService managerService,
+                               IAdminService adminService,
                                IMapper mapper)
         {
             _brandService = brandService;
             _productService = productService;
             _warehouseService = warehouseService;
             _imageService = imageService;
+            _managerService = managerService;
+            _adminService = adminService;
             _mapper = mapper;
             _userService = userService;
-            _employeeDetailService = employeeDetailService;
-            _employeeService = employeeService;
         }
         [HttpGet]
         [Route("list-all")]
@@ -98,7 +97,6 @@ namespace _2Sport_BE.Controllers
         public async Task<IActionResult> AddBrand(BrandCM brandCM)
         {
             var addedBrand = _mapper.Map<Brand>(brandCM);
-            var addedBrandBranch = new BrandBranch();
             try
             {
 
@@ -109,37 +107,39 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
 
-                var employee = await _employeeService.GetEmployeeDetailsById(userId);
-                var employeeDetail = await _employeeDetailService.GetEmployeeDetailByEmployeeId(userId);
+                var manager = await _managerService.GetManagerDetailByIdAsync(userId);
+                var admin = await _adminService.GetAdminDetailAsync(userId);
+
 
                 //Add brand under manager role
-                if (employeeDetail != null && employee.Data.RoleId == 2)
+                if (manager.Data != null || admin.Data != null)
                 {
                     var existedBrand = (await _brandService.GetBrandsAsync(Name)).FirstOrDefault();
                     if (existedBrand != null)
                     {
-                        addedBrandBranch.BrandId = existedBrand.Id;
-                        addedBrandBranch.BranchId = employeeDetail.BranchId;
-                        await _brandService.AssignAnOldBrandToBranchAsync(addedBrandBranch);
-                        return Ok("Add Brand successfully!");
+                        return BadRequest("The brand already exists!");
                     }
 
-                    addedBrandBranch.BranchId = employeeDetail.BranchId;
-                }
+                    if (brandCM.LogoImage != null)
+                    {
+                        var uploadResult = await _imageService.UploadImageToCloudinaryAsync(brandCM.LogoImage);
+                        if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                        {
+                            addedBrand.Logo = uploadResult.SecureUrl.AbsoluteUri;
+                        }
+                        else
+                        {
+                            return BadRequest("Something wrong!");
+                        }
+                    }
+                    await _brandService.CreateANewBrandAsync(addedBrand);
 
-                if (brandCM.LogoImage != null)
+                }
+                else
                 {
-                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(brandCM.LogoImage);
-                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        addedBrand.Logo = uploadResult.SecureUrl.AbsoluteUri;
-                    }
-                    else
-                    {
-                        return BadRequest("Something wrong!");
-                    }
+                    return Unauthorized("You are not allowed to add brand!");
                 }
-                await _brandService.CreateANewBrandAsync(addedBrand, addedBrandBranch);
+
                 return Ok("Add brand successfully!");
             }
             catch (Exception ex)
@@ -227,4 +227,3 @@ namespace _2Sport_BE.Controllers
         }
     }
 }
-*/

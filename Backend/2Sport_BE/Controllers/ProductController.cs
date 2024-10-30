@@ -339,7 +339,6 @@ namespace _2Sport_BE.Controllers
                                     ImageUrl = uploadResult.SecureUri.AbsoluteUri,
                                     CreateAt = DateTime.Now,
                                     VideoUrl = null,
-                                    BlogId = null,
                                 };
                                 await _imageVideosService.AddImage(imageObject);
                             }
@@ -493,7 +492,6 @@ namespace _2Sport_BE.Controllers
                                             ImageUrl = uploadResult.SecureUri.AbsoluteUri,
                                             CreateAt = DateTime.Now,
                                             VideoUrl = null,
-                                            BlogId = null,
                                         };
                                         await _imageVideosService.AddImage(imageObject);
                                     }
@@ -734,7 +732,7 @@ namespace _2Sport_BE.Controllers
                                     {
                                         BranchId = managerDetail.Data.BranchId
                                     };
-                                    await _brandService.CreateANewBrandAsync(newBrand, newBrandBranch);
+                                    await _brandService.CreateANewBrandAsync(newBrand);
                                 }
                                 else
                                 {
@@ -861,7 +859,6 @@ namespace _2Sport_BE.Controllers
                                             ImageUrl = uploadResult.SecureUri.AbsoluteUri,
                                             CreateAt = DateTime.Now,
                                             VideoUrl = null,
-                                            BlogId = null,
                                         };
                                         await _imageVideosService.AddImage(imageObject);
                                     }
@@ -1034,7 +1031,6 @@ namespace _2Sport_BE.Controllers
                                     ImageUrl = uploadResult.SecureUri.AbsoluteUri,
                                     CreateAt = DateTime.Now,
                                     VideoUrl = null,
-                                    BlogId = null,
                                 };
                                 await _imageVideosService.AddImage(imageObject);
                             }

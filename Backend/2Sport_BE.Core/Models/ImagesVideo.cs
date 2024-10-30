@@ -24,13 +24,8 @@ public class ImagesVideo
     [DataType(DataType.DateTime)]
     public DateTime? CreateAt { get; set; }
 
-    [Column("BlogId")]
-    public int? BlogId { get; set; }
-
-
     [Column("ProductId")]
     public int? ProductId { get; set; }
 
     public virtual Product Product { get; set; }
-    public virtual Blog Blog { get; set; }
 }
