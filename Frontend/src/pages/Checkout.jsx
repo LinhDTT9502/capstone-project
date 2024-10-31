@@ -1,24 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@material-tailwind/react";
 import DeliveryAddress from "../components/Payment/DeliveryAddress";
 import PaymentMethod from "../components/Payment/PaymentMethod";
-import OrderSuccess from "../components/Payment/OrderSuccess";
 import { checkout } from "../services/paymentServices";
 import { useSelector } from "react-redux";
 import { selectedShipment } from "../redux/slices/shipmentSlice";
 import { useTranslation } from "react-i18next";
+import { selectUser } from "../redux/slices/authSlice";
+import { fetchBranchs } from "../services/branchService";
 
 const Checkout = () => {
+  const user = useSelector(selectUser);
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const shipment = useSelector(selectedShipment);
   const { selectedProducts } = location.state || { selectedProducts: [] };
-  const [distance, setDistance] = useState(null);
+  const [branches, setBranches] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
   const [orderSuccess, setOrderSuccess] = useState(false);
-  const [orderCode] = useState("123456");
   const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState({
     fullName: "",
@@ -27,60 +28,71 @@ const Checkout = () => {
     address: "",
   });
 
+  // New state for discountCode and note
+  const [discountCode, setDiscountCode] = useState("");
+  const [note, setNote] = useState("");
+
   const totalPrice = selectedProducts.reduce(
     (acc, item) => acc + item.totalPrice,
     0
   );
-console.log(selectedProducts);
+
+  // Fetch branches when component mounts
+  useEffect(() => {
+    const loadBranches = async () => {
+      try {
+        const branchData = await fetchBranchs();
+        setBranches(branchData); 
+      } catch (error) {
+        console.error("Error fetching branches:", error);
+      }
+    };
+
+    loadBranches();
+  }, []);
+
+
+  const getBranchIdByName = (branchName) => {
+    const branch = branches.find((b) => b.branchName === branchName);
+    return branch ? branch.id : null; 
+  };  
+
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
   };
 
   const handleCheckout = async () => {
+    
     try {
       const token = localStorage.getItem("token");
-      const orderMethodId = selectedOption;
-
+      const branchId = selectedProducts.length > 0 ? getBranchIdByName(selectedProducts[0].branchName) : null;
       const data = {
-        transportFee: transportFee,
-        receivedDate: new Date().toISOString(),
-        orderDetails: selectedProducts.map((item) => ({
-          productId: item.productId,
+        orderDetailCMs: selectedProducts.map((item) => ({
+          warehouseId: item.warehouseId,
           quantity: item.quantity,
-          price: item.totalPrice,
+          price: item.totalPrice
         })),
-        shipmentDetailId: shipment.id,
+        branchId: branchId,
+        userID: user.UserId,
+        shipmentDetailID: shipment.id,
+        paymentMethodID: selectedOption,
+        orderType: 1,
+        discountCode: discountCode || "nothing",
+        note: note || "nothing",
       };
 
-      const response = await checkout(token, orderMethodId, data);
-      // console.log(data);
+      const response = await checkout(token, data);
 
-      if (orderMethodId === "1") {
+      if (selectedOption === "1") {
         setOrderSuccess(true);
-      } else if (orderMethodId === "2" && response.data.paymentLink) {
+      } else if (selectedOption === "2" && response.data.paymentLink) {
         const paymentLink = response.data.paymentLink;
-        console.log(paymentLink);
         window.location.href = paymentLink;
       }
     } catch (error) {
       console.error("Error during checkout:", error);
     }
   };
-
-  const calculateTransportFee = (distance) => {
-    if (distance < 5) {
-      return 0;
-    } else if (totalPrice >= 500000) {
-      return 0;
-    } else if (distance <= 10) {
-      return 15000;
-    } else {
-      return 35000;
-    }
-  };
-
-  const transportFee =
-    distance !== null ? calculateTransportFee(distance) : "Calculating...";
 
   if (orderSuccess) {
     navigate("/order_success");
@@ -94,7 +106,6 @@ console.log(selectedProducts);
           setUserData={setUserData}
           isEditing={isEditing}
           setIsEditing={setIsEditing}
-          setDistance={setDistance}
         />
         <PaymentMethod
           selectedOption={selectedOption}
@@ -115,10 +126,7 @@ console.log(selectedProducts);
           <div className="overflow-auto h-3/4">
             <div className="grid grid-cols-1 gap-4">
               {selectedProducts.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex border rounded p-4 space-x-2"
-                >
+                <div key={item.id} className="flex border rounded p-4 space-x-2">
                   <div className="relative">
                     <img
                       src={item.mainImagePath}
@@ -150,23 +158,37 @@ console.log(selectedProducts);
               </p>
             </div>
             <div className="flex justify-between items-center pt-1 border rounded mt-4">
+              <label className="block text-lg font-semibold">Mã ưu đãi</label>
+              <input
+                type="text"
+                className="border rounded w-3/4 px-3 py-2 mt-2"
+                value={discountCode}
+                onChange={(e) => setDiscountCode(e.target.value)}
+                placeholder="nhập mã ưu đãi tại đây"
+              />
+            </div>
+            <div className="flex justify-between items-center pt-1 border rounded mt-4">
+              <label className="block text-lg font-semibold">Ghi chú</label>
+              <input
+                type="text"
+                className="border rounded w-3/4 px-3 py-2 mt-2"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="ghi chú của bạn"
+              />
+            </div>
+            <div className="flex justify-between items-center pt-1 border rounded mt-4">
               <h3 className="text-lg font-semibold">
                 {t("checkout.transport_fee")}
               </h3>
               <p className="text-lg text-black">
-                {transportFee === "Calculating..."
-                  ? transportFee
-                  : `${transportFee} VND`}
+                2Sport sẽ liên hệ và thông báo sau
               </p>
             </div>
             <div className="flex justify-between items-center pt-1 border rounded mt-4">
               <h3 className="text-lg font-semibold">{t("checkout.total")}</h3>
               <p className="text-lg text-black">
-                {(
-                  totalPrice +
-                  (transportFee === "Calculating..." ? 0 : transportFee)
-                ).toLocaleString()}{" "}
-                VND
+                {totalPrice.toLocaleString()} VND
               </p>
             </div>
           </div>

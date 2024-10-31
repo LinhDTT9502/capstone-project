@@ -49,9 +49,9 @@
     "breadcrumbs.breadcrumbs":"Breadcrumbs",
     "checkout.order_summary":"Tổng quan đơn hàng",
     "checkout.no_items_selected":"Không có sản phẩm nào được chọn để thanh toán.",
-    "checkout.subtotal":"Tổng cộng",
+    "checkout.subtotal":"Tạm tính",
     "checkout.transport_fee":"Phí vận chuyển",
-    "checkout.total":"Tổng",
+    "checkout.total":"Tổng cộng",
     "checkout.complete_order":"Đặt hàng",
 
         "manage_account.my_profile": "Thông tin của tôi",

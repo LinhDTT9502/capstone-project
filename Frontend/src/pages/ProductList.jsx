@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight, faCartShopping } from '@fortawesome/free-solid-svg-icons';
 
 import { useTranslation } from "react-i18next";
+import { fetchWarehouse } from '../services/warehouseService';
 const perPage = 15;
 
 const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, minPrice, maxPrice }) => {
@@ -46,55 +47,74 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
         }
         await checkWarehouseQuantities(productsData.products);
         dispatch(setProducts({ data: { products: productsData.products, total: productsData.total } }));
+        console.log(productsData.products);
+        
       } catch (error) {
         console.error('Error fetching products:', error);
       }
     };
 
-    const fetchWarehouseData = async () => {
-      const response = await fetch('https://twosportapi-295683427295.asia-southeast2.run.app/api/Warehouse/list-all', {
-        headers: {
-          'accept': '*/*'
-        }
-      });
-      const data = await response.json();
-      return { total: data.total, products: data.data.$values };
-    };
+    // const fetchWarehouseData = async () => {
+    //   const response = await fetch('https://twosportapi-295683427295.asia-southeast2.run.app/api/Warehouse/list-all', {
+    //     headers: {
+    //       'accept': '*/*'
+    //     }
+    //   });
+    //   const data = await response.json();
+    //   return { total: data.total, products: data.data.$values };
+    // };
 
     const checkWarehouseQuantities = async (products) => {
       try {
-        const warehouseData = await fetchWarehouseData();
-        setWarehouseTotal(warehouseData.total)
-        products.forEach(product => {
-          const warehouseProduct = warehouseData.products.find(w => w.productName === product.productName);
-          if (warehouseProduct) {
-            product.quantity = warehouseProduct.quantity;
-          }
-        });
+          const warehouseData = await fetchWarehouse();
+          console.log(warehouseData);
+          
+          setWarehouseTotal(warehouseData.total);
+          products.forEach(product => {
+              const warehouseProduct = warehouseData.products.find(w => w.productName === product.productName);
+              if (warehouseProduct) {
+                  product.warehouseId = warehouseProduct.id;
+                  product.quantity = warehouseProduct.quantity;
+              }
+          });
       } catch (error) {
-        console.error('Error checking warehouse quantities:', error);
+          console.error('Error checking warehouse quantities:', error);
       }
-    };
-
-    getProducts();
+  };
+  getProducts();
   }, [currentPage, sortBy, isAscending, minPrice, maxPrice, selectedCategories, selectedBrands, dispatch]);
 
   const handleAddToCart = async (product, quantityToAdd = 1) => {
     const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const newQuantity = quantity + quantityToAdd;
-        await addToCart(product.id, newQuantity, token);
-        setQuantity(newQuantity);
-        toast.success(`${product.productName} đã được thêm vào giỏ hàng!`);
-      } catch (error) {
-        console.error(`${t("product_list.error_adding_product_to_cart")}:`, error);
-        toast.error(`${t("product_list.error_adding_product_to_cart")}`);
-      }
-    } else {
-      toast.info(`Bạn cần đăng nhập để thêm vào giỏ hàng!`);
+    if (!token) {
+      // If no token is found, notify the user
+      dispatch(addCart(product));
+      toast.info('Added to cart');
+      return;
     }
-  };
+
+    // Find the warehouse associated with the product
+    const warehouseProduct = products.find(p => p.productName === product.productName);
+    if (!warehouseProduct || !warehouseProduct.warehouseId) {
+      toast.error('Warehouse data unavailable for this product.');
+      return;
+    }
+
+    const warehouseId = warehouseProduct.warehouseId; // Get the warehouseId from the matched warehouse product
+    const newQuantity = quantity + quantityToAdd; // Increase the quantity by the amount to add
+
+    try {
+      // Send warehouseId and quantity to the API
+      await addToCart(warehouseId, newQuantity, token);
+
+      setQuantity(newQuantity);
+      toast.success(`${product.productName} has been added to the cart!`);
+    } catch (error) {
+      console.error(`${t("product_list.error_adding_product_to_cart")}:`, error);
+      toast.error(`${t("product_list.error_adding_product_to_cart")}`);
+    }
+};
+
 
   const handlePrevPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);

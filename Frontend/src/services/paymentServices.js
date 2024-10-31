@@ -1,9 +1,9 @@
 import { toast } from 'react-toastify';
 import { checkoutOrder } from '../api/apiPayment';
 
-export const checkout = async (token, orderMethodId, data) => {
+export const checkout = async (token, data) => {
   try {
-    const response = await checkoutOrder(token, orderMethodId, data);
+    const response = await checkoutOrder(token, data);
     return response.data;
   } catch (error) {
     console.error('Error checking out order:', error);

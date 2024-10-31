@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { useSelector, useDispatch } from "react-redux"; // Added for Redux integration
 import {
   getUserCart,
   reduceCartItem,
@@ -12,6 +13,7 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
+import { selectCartItems, removeFromCart, decreaseQuantity, addCart } from "../redux/slices/cartSlice"; 
 
 const UserCart = ({ sortBy }) => {
   const { t } = useTranslation();
@@ -19,105 +21,98 @@ const UserCart = ({ sortBy }) => {
   const [selectedItems, setSelectedItems] = useState([]);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const dispatch = useDispatch();
+  const guestCartItems = useSelector(selectCartItems); 
 
   useEffect(() => {
     const getCart = async () => {
-      try {
-        const cartData = await getUserCart(sortBy);
-        setCartData(cartData);
-      } catch (error) {
-        console.error("Error fetching cart:", error);
+      if (token) {
+        
+        try {
+          const cartData = await getUserCart(sortBy);
+          setCartData(cartData);
+        } catch (error) {
+          console.error("Error fetching cart:", error);
+        }
+      } else {
+       
+        setCartData(guestCartItems);
       }
     };
 
     getCart();
-  }, [sortBy]);
+  }, [sortBy, token, guestCartItems]);
 
   const handleRemoveFromCart = async (itemId) => {
-    try {
-      const response = await removeCartItem(itemId, token);
-      console.log(response);
-      setCartData((prevCartData) =>
-        prevCartData.filter((item) => item.id !== itemId)
-      );
-    } catch (error) {
-      console.error("Error deleting cart item:", error);
+    if (token) {
+      try {
+        await removeCartItem(itemId, token);
+        setCartData((prevCartData) =>
+          prevCartData.filter((item) => item.id !== itemId)
+        );
+      } catch (error) {
+        console.error("Error deleting cart item:", error);
+      }
+    } else {
+      dispatch(removeFromCart(itemId)); 
     }
   };
 
   const handleReduceQuantity = async (id) => {
-    try {
-      const response = await reduceCartItem(id, token);
-      setCartData((prevCartData) => {
-        const updatedCartData = prevCartData
-          .map((item) => {
-            if (item.id === id) {
-              const updatedQuantity = item.quantity - 1;
-              if (updatedQuantity <= 0) {
-                return null;
-              } else {
-                return {
-                  ...item,
-                  quantity: updatedQuantity,
-                  totalPrice: item.totalPrice - item.totalPrice / item.quantity,
-                };
+    if (token) {
+      try {
+        const response = await reduceCartItem(id, token);
+        setCartData((prevCartData) => {
+          const updatedCartData = prevCartData
+            .map((item) => {
+              if (item.id === id) {
+                const updatedQuantity = item.quantity - 1;
+                if (updatedQuantity <= 0) {
+                  return null;
+                } else {
+                  return {
+                    ...item,
+                    quantity: updatedQuantity,
+                    totalPrice:
+                      item.totalPrice - item.totalPrice / item.quantity,
+                  };
+                }
               }
-            }
-            return item;
-          })
-          .filter((item) => item !== null);
-        return updatedCartData;
-      });
-    } catch (error) {
-      console.error("Error reducing cart item:", error);
+              return item;
+            })
+            .filter((item) => item !== null);
+          return updatedCartData;
+        });
+      } catch (error) {
+        console.error("Error reducing cart item:", error);
+      }
+    } else {
+      dispatch(decreaseQuantity(id)); // Reduce item quantity for guest cart
     }
   };
 
   const handleIncreaseQuantity = async (item) => {
-    try {
-      const response = await addToCart(
-        item.productId,
-        item.quantity + 1,
-        token
-      );
-      setCartData((prevCartData) =>
-        prevCartData.map((cartItem) =>
-          cartItem.id === item.id
-            ? {
-                ...cartItem,
-                quantity: cartItem.quantity + 1,
-                totalPrice:
-                  cartItem.totalPrice + cartItem.totalPrice / cartItem.quantity,
-              }
-            : cartItem
-        )
-      );
-    } catch (error) {
-      console.error("Error increasing cart item quantity:", error);
-    }
-  };
-
-  const handleQuantityChange = async (item, quantity) => {
-    if (quantity <= 0) {
-      toast.error("Quantity must be at least 1");
-      return;
-    }
-    try {
-      const response = await updateCartItemQuantity(item.id, quantity, token);
-      setCartData((prevCartData) =>
-        prevCartData.map((cartItem) =>
-          cartItem.id === item.id
-            ? {
-                ...cartItem,
-                quantity,
-                totalPrice:
-                  (cartItem.totalPrice / cartItem.quantity) * quantity,
-              }
-            : cartItem
-        )
-      );
-    } catch (error) {
-      console.error("Error updating cart item quantity:", error);
+    if (token) {
+      try {
+        await addToCart(item.productId, item.quantity + 1, token);
+        setCartData((prevCartData) =>
+          prevCartData.map((cartItem) =>
+            cartItem.id === item.id
+              ? {
+                  ...cartItem,
+                  quantity: cartItem.quantity + 1,
+                  totalPrice:
+                    cartItem.totalPrice + cartItem.totalPrice / cartItem.quantity,
+                }
+              : cartItem
+          )
+        );
+      } catch (error) {
+        console.error("Error increasing cart item quantity:", error);
+      }
+    } else {
+      // For guest, increase quantity in the Redux cart
+      dispatch(addCart({ ...item, quantity: item.quantity + 1 }));
     }
   };
 

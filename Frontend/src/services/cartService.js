@@ -1,10 +1,10 @@
 import { addToCartAPI, getCartAPI, reduceCartItemAPI, remmoveCartItemAPI, updateCartItemQuantityAPI } from '../api/apiCart';
 import { toast } from "react-toastify";
 
-export const addToCart = async (productId, quantityToAdd, token) => {
+export const addToCart = async (warehouseId, quantityToAdd, token) => {
   // console.log(quantity, token, productId);
   try {
-    const response = await addToCartAPI(productId, quantityToAdd, token);
+    const response = await addToCartAPI(warehouseId, quantityToAdd, token);
     // toast.success("Product added to cart successfully");
     return response.data;
   } catch (error) {

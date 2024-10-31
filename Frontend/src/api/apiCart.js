@@ -3,10 +3,10 @@ import axiosInstance from './axiosInstance';
 
 const API_BASE_URL = 'https://twosportapi-295683427295.asia-southeast2.run.app/api/Cart';
 
-export const addToCartAPI = (productId, quantity, token) => {
+export const addToCartAPI = (warehouseId, quantity, token) => {
 
   return axiosInstance.post(`${API_BASE_URL}/add-to-cart`, {
-    productId,
+    warehouseId,
     quantity,
   }, {
     headers: {

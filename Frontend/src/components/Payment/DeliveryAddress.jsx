@@ -123,7 +123,7 @@ const DeliveryAddress = ({
         )
       )}
 
-      {userData.address && (
+      {/* {userData.address && (
         <DistanceCalculator
           userAddress={userData.address}
           onDistanceCalculated={(distance) => {
@@ -131,7 +131,7 @@ const DeliveryAddress = ({
             setDistance(distance);
           }}
         />
-      )}
+      )} */}
     </div>
   );
 };
