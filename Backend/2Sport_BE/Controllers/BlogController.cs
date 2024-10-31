@@ -64,25 +64,57 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("get-all-owner-blogs")]
-        public async Task<IActionResult> GetAllOwnerBlogs()
+        [HttpPut]
+        [Route("edit-blog/{blogId}")]
+        public async Task<IActionResult> EditBlog(int blogId, BlogUM blogUM)
         {
             try
             {
                 var userId = GetCurrentUserIdFromToken();
                 if (userId == null)
                 {
-                    return Unauthorized("You are not allowed to do this method!");
+                    return Unauthorized("You are not allowed to use this function!");
                 }
-                var blogs = await _blogService.GetAllOwnerBlogs(userId);
-                var result = _mapper.Map<List<BlogVM>>(blogs.ToList());
-                return Ok(new { total = result.Count, data = result });
+                var newBlog = _mapper.Map<Blog>(blogUM);
+                var toEditeBlog = (await _blogService.GetBlogById(blogId)).FirstOrDefault();
+                if (toEditeBlog == null)
+                {
+                    return NotFound($"Cannot find the blog with id: {blogId}");
+                }
+                
+                var editedBlog = await _blogService.EditBlog(userId, newBlog);
+                if (editedBlog == null)
+                {
+                    return BadRequest("Staff is not existed!");
+                }
+                var result = _mapper.Map<BlogVM>(editedBlog);
+                return Ok(result);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
+
+        }
+
+        [HttpDelete]
+        [Route("delete-blog/{blogId}")]
+        public async Task<IActionResult> DeleteBlog(int blogId)
+        {
+            try
+            {
+                int userId = GetCurrentUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized("You are not allowed to do this function!");
+                }
+                await _blogService.DeleteBlog(blogId);
+                return Ok("Delete blog successfully!");
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            
         }
 
         protected int GetCurrentUserIdFromToken()
