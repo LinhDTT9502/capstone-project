@@ -153,8 +153,8 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("CorsPolicy");
 app.UseAuthentication();
-//app.UseAuthorization();
-app.UseStaticFiles();
+app.UseAuthorization();
+//app.UseStaticFiles();
 
 // Enable static file serving for RootPath\Media
 var mediaPath = Path.Combine(builder.Environment.ContentRootPath, "Media");
