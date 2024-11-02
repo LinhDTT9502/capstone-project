@@ -12,6 +12,7 @@ import { faChevronLeft, faChevronRight, faCartShopping } from '@fortawesome/free
 
 import { useTranslation } from "react-i18next";
 import { fetchWarehouse } from '../services/warehouseService';
+import AddToCart from '../components/Product/AddToCart';
 const perPage = 15;
 
 const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, minPrice, maxPrice }) => {
@@ -45,7 +46,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
             maxPrice
           );
         }
-        await checkWarehouseQuantities(productsData.products);
+        // await checkWarehouseQuantities(productsData.products);
         dispatch(setProducts({ data: { products: productsData.products, total: productsData.total } }));
         console.log(productsData.products);
         
@@ -84,36 +85,36 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
   getProducts();
   }, [currentPage, sortBy, isAscending, minPrice, maxPrice, selectedCategories, selectedBrands, dispatch]);
 
-  const handleAddToCart = async (product, quantityToAdd = 1) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      // If no token is found, notify the user
-      dispatch(addCart(product));
-      toast.info('Added to cart');
-      return;
-    }
+//   const handleAddToCart = async (product, quantityToAdd = 1) => {
+//     const token = localStorage.getItem('token');
+//     if (!token) {
+//       // If no token is found, notify the user
+//       dispatch(addCart(product));
+//       toast.info('Added to cart');
+//       return;
+//     }
 
-    // Find the warehouse associated with the product
-    const warehouseProduct = products.find(p => p.productName === product.productName);
-    if (!warehouseProduct || !warehouseProduct.warehouseId) {
-      toast.error('Warehouse data unavailable for this product.');
-      return;
-    }
+//     // Find the warehouse associated with the product
+//     const warehouseProduct = products.find(p => p.productName === product.productName);
+//     if (!warehouseProduct || !warehouseProduct.warehouseId) {
+//       toast.error('Warehouse data unavailable for this product.');
+//       return;
+//     }
 
-    const warehouseId = warehouseProduct.warehouseId; // Get the warehouseId from the matched warehouse product
-    const newQuantity = quantity + quantityToAdd; // Increase the quantity by the amount to add
+//     const warehouseId = warehouseProduct.warehouseId; // Get the warehouseId from the matched warehouse product
+//     const newQuantity = quantity + quantityToAdd; // Increase the quantity by the amount to add
 
-    try {
-      // Send warehouseId and quantity to the API
-      await addToCart(warehouseId, newQuantity, token);
+//     try {
+//       // Send warehouseId and quantity to the API
+//       await addToCart(warehouseId, newQuantity, token);
 
-      setQuantity(newQuantity);
-      toast.success(`${product.productName} has been added to the cart!`);
-    } catch (error) {
-      console.error(`${t("product_list.error_adding_product_to_cart")}:`, error);
-      toast.error(`${t("product_list.error_adding_product_to_cart")}`);
-    }
-};
+//       setQuantity(newQuantity);
+//       toast.success(`${product.productName} has been added to the cart!`);
+//     } catch (error) {
+//       console.error(`${t("product_list.error_adding_product_to_cart")}:`, error);
+//       toast.error(`${t("product_list.error_adding_product_to_cart")}`);
+//     }
+// };
 
 
   const handlePrevPage = () => {
@@ -144,12 +145,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
                   SOLD OUT
                 </button>
               ) : (
-                <button
-                  className="absolute bottom-0 left-0 right-0 flex items-center justify-center bg-orange-600 bg-opacity-75 text-white opacity-0 hover:opacity-100 transition-opacity duration-300 py-4"
-                  onClick={() => handleAddToCart(product)}
-                >
-                  {t("product_list.add_to_cart")}
-                </button>
+                <AddToCart product={product} warehouseId={product.warehouseId} />
               )}
             </div>
             <div className='flex justify-between space-x-4'>

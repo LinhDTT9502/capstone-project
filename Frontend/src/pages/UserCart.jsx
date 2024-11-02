@@ -14,8 +14,9 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
 import { selectCartItems, removeFromCart, decreaseQuantity, addCart } from "../redux/slices/cartSlice"; 
+import { addCusCart, decreaseCusQuantity, removeFromCusCart, selectCustomerCartItems } from "../redux/slices/customerCartSlice";
 
-const UserCart = ({ sortBy }) => {
+const UserCart = () => {
   const { t } = useTranslation();
   const [cartData, setCartData] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -23,36 +24,28 @@ const UserCart = ({ sortBy }) => {
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
   const guestCartItems = useSelector(selectCartItems); 
+  const customerCartItems = useSelector(selectCustomerCartItems);
 
   useEffect(() => {
     const getCart = async () => {
       if (token) {
-        
-        try {
-          const cartData = await getUserCart(sortBy);
-          setCartData(cartData);
-        } catch (error) {
-          console.error("Error fetching cart:", error);
-        }
+       setCartData(customerCartItems);
+       console.log(cartData);
+       
       } else {
        
         setCartData(guestCartItems);
+        console.log(cartData);
+        
       }
     };
 
     getCart();
-  }, [sortBy, token, guestCartItems]);
+  }, [token, guestCartItems, customerCartItems]);
 
   const handleRemoveFromCart = async (itemId) => {
     if (token) {
-      try {
-        await removeCartItem(itemId, token);
-        setCartData((prevCartData) =>
-          prevCartData.filter((item) => item.id !== itemId)
-        );
-      } catch (error) {
-        console.error("Error deleting cart item:", error);
-      }
+      dispatch(removeFromCusCart(itemId)); 
     } else {
       dispatch(removeFromCart(itemId)); 
     }
@@ -60,56 +53,15 @@ const UserCart = ({ sortBy }) => {
 
   const handleReduceQuantity = async (id) => {
     if (token) {
-      try {
-        const response = await reduceCartItem(id, token);
-        setCartData((prevCartData) => {
-          const updatedCartData = prevCartData
-            .map((item) => {
-              if (item.id === id) {
-                const updatedQuantity = item.quantity - 1;
-                if (updatedQuantity <= 0) {
-                  return null;
-                } else {
-                  return {
-                    ...item,
-                    quantity: updatedQuantity,
-                    totalPrice:
-                      item.totalPrice - item.totalPrice / item.quantity,
-                  };
-                }
-              }
-              return item;
-            })
-            .filter((item) => item !== null);
-          return updatedCartData;
-        });
-      } catch (error) {
-        console.error("Error reducing cart item:", error);
-      }
+      dispatch(decreaseCusQuantity(id)); 
     } else {
-      dispatch(decreaseQuantity(id)); // Reduce item quantity for guest cart
+      dispatch(decreaseQuantity(id)); 
     }
   };
 
   const handleIncreaseQuantity = async (item) => {
     if (token) {
-      try {
-        await addToCart(item.productId, item.quantity + 1, token);
-        setCartData((prevCartData) =>
-          prevCartData.map((cartItem) =>
-            cartItem.id === item.id
-              ? {
-                  ...cartItem,
-                  quantity: cartItem.quantity + 1,
-                  totalPrice:
-                    cartItem.totalPrice + cartItem.totalPrice / cartItem.quantity,
-                }
-              : cartItem
-          )
-        );
-      } catch (error) {
-        console.error("Error increasing cart item quantity:", error);
-      }
+      dispatch(addCusCart({ ...item, quantity: item.quantity + 1 }));
     } else {
       // For guest, increase quantity in the Redux cart
       dispatch(addCart({ ...item, quantity: item.quantity + 1 }));
@@ -135,7 +87,7 @@ const UserCart = ({ sortBy }) => {
   const totalItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = selectedItems.reduce((acc, id) => {
     const item = cartData.find((item) => item.id === id);
-    return acc + item.totalPrice;
+    return acc + item.price;
   }, 0);
 
   const handleCheckout = () => {
@@ -151,7 +103,7 @@ const UserCart = ({ sortBy }) => {
   };
 
   return (
-    <div className="container mx-auto px-20 py-5">
+    <div className="container mx-auto px-20 py-10">
       <ToastContainer />
       <div className="flex justify-between items-center mb-4">
         <h1 className="font-alfa text-orange-500 text-2xl">
@@ -204,8 +156,8 @@ const UserCart = ({ sortBy }) => {
                 </div>
                 <div className="w-5/12 flex items-center">
                   <img
-                    src={item.mainImagePath}
-                    alt={item.mainImageName}
+                    src={item.imgAvatarPath}
+                    alt={item.productName}
                     className="w-16 h-16 object-cover mr-4"
                   />
                   <Link
@@ -239,11 +191,11 @@ const UserCart = ({ sortBy }) => {
                   </button>
                 </div>
                 <div className="w-1/12 text-center">
-                  {(item.totalPrice / item.quantity).toLocaleString()}{" "}
+                  {item.price.toLocaleString()}{" "}
                   {t("user_cart.vnd")}
                 </div>
                 <div className="w-2/12 text-center">
-                  {item.totalPrice.toLocaleString()} {t("user_cart.vnd")}
+                  {(item.price * item.quantity).toLocaleString()} {t("user_cart.vnd")}
                 </div>
                 <div className="w-1/12 text-center">
                   <button
@@ -274,7 +226,7 @@ const UserCart = ({ sortBy }) => {
                 className="bg-orange-500 text-white px-4 py-2 mt-2"
                 onClick={handleCheckout}
               >
-                {t("user_cart.checkout")}
+               Đặt hàng
               </button>
             </div>
           </div>

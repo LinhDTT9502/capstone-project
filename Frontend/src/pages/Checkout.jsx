@@ -33,7 +33,7 @@ const Checkout = () => {
   const [note, setNote] = useState("");
 
   const totalPrice = selectedProducts.reduce(
-    (acc, item) => acc + item.totalPrice,
+    (acc, item) => acc + item.price,
     0
   );
 
@@ -129,8 +129,8 @@ const Checkout = () => {
                 <div key={item.id} className="flex border rounded p-4 space-x-2">
                   <div className="relative">
                     <img
-                      src={item.mainImagePath}
-                      alt={item.mainImageName}
+                      src={item.imgAvatarPath}
+                      alt={item.productName}
                       className="w-auto h-32 object-scale-down rounded"
                     />
                     <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
@@ -143,7 +143,7 @@ const Checkout = () => {
                         {item.productName}
                       </h3>
                     </div>
-                    <p className="text-lg text-black">{item.totalPrice} VND</p>
+                    <p className="text-lg text-black">{item.price.toLocaleString()} VND</p>
                   </div>
                 </div>
               ))}
