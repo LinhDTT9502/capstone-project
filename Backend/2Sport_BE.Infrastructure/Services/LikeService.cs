@@ -13,10 +13,11 @@ namespace _2Sport_BE.Service.Services
 	{
 		Task AddLike(Like like);
 		Task<int> CountLikeOfProduct(int productId);
-		Task<IQueryable<Like>> GetLikes();
+        Task<int> CountLikeOfProductByProductCode(string productCode);
+        Task<IQueryable<Like>> GetLikes();
 	}
 
-	public class LikeService : ILikeService
+    public class LikeService : ILikeService
 	{
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly TwoSportCapstoneDbContext _context;
@@ -58,7 +59,21 @@ namespace _2Sport_BE.Service.Services
 				return 0;
 			}
 		}
-	}
+
+        public async Task<int> CountLikeOfProductByProductCode(string productCode)
+        {
+            try
+            {
+                var likes = (await _unitOfWork.LikeRepository.GetAsync(_ => _.Product.ProductCode.Equals(productCode)));
+                var numOfLikes = likes.Count();
+                return numOfLikes;
+            }
+            catch (Exception ex)
+            {
+                return 0;
+            }
+        }
+    }
 
 
 }

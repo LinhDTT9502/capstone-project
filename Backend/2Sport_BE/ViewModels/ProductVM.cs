@@ -97,4 +97,6 @@ namespace _2Sport_BE.ViewModels
         [Required]
         public string LotCode { get; set; }
     }
+
+
 }
