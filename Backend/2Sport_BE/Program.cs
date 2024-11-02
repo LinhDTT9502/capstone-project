@@ -15,7 +15,6 @@ using Google.Apis.Auth.OAuth2;
 using FirebaseAdmin;
 using System.Configuration;
 using Newtonsoft.Json;
-using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 //Setting Mail
@@ -155,17 +154,6 @@ app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
-
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-//app.Run($"http://0.0.0.0:{port}");
-
-// Enable static file serving for RootPath\Media
-var mediaPath = Path.Combine(builder.Environment.ContentRootPath, "Media");
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(mediaPath),
-    RequestPath = "/media"
-});
 
 app.UseEndpoints(endpoints =>
 {
