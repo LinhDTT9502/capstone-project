@@ -54,10 +54,11 @@ namespace _2Sport_BE.Controllers
                 var fileUrl = "";
                 if (subfolderPath != "")
                 {
-                    fileUrl = $"{Request.Scheme}://{Request.Host}/Media/{subfolderPath}/{fileName}";
+                    fileUrl = $"{Request.Scheme}://{Request.Host}/api/ImageVideo/view-image?fileName={fileName}" +
+                        $"&subFolderPath={subfolderPath}"; ;
                 } else
                 {
-                    fileUrl = $"{Request.Scheme}://{Request.Host}/Media/{fileName}";
+                    fileUrl = $"{Request.Scheme}://{Request.Host}/api/ImageVideo/view-image?fileName={fileName}";
                 }
                 imageUrls.Add(fileUrl);
             }
@@ -141,10 +142,11 @@ namespace _2Sport_BE.Controllers
                 var fileUrl = "";
                 if (subfolderPath != "")
                 {
-                    fileUrl = $"{Request.Scheme}://{Request.Host}/Media/{subfolderPath}/{fileName}";
+                    fileUrl = $"{Request.Scheme}://{Request.Host}/api/ImageVideo/view-image?fileName={fileName}" +
+                        $"&subFolderPath={subfolderPath}";
                 } else
                 {
-                    fileUrl = $"{Request.Scheme}://{Request.Host}/Media/{fileName}";
+                    fileUrl = $"{Request.Scheme}://{Request.Host}/api/ImageVideo/view-image?fileName={fileName}";
                 }
                 return Ok(new { FileUrl = fileUrl });
             }
