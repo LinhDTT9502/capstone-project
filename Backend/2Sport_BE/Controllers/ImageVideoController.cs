@@ -65,6 +65,50 @@ namespace _2Sport_BE.Controllers
             return Ok(imageUrls);
         }
 
+        [HttpGet("view-image")]
+        public IActionResult ViewImage([FromQuery] string fileName, [FromQuery] string subfolderPath = "")
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return BadRequest("File name is required.");
+            }
+
+            // Construct the full file path
+            var mediaDirectory = Path.Combine(_environment.ContentRootPath, "Media");
+            var targetDirectory = string.IsNullOrEmpty(subfolderPath) ? mediaDirectory : Path.Combine(mediaDirectory, subfolderPath);
+            var filePath = Path.Combine(targetDirectory, fileName);
+
+            // Check if the file exists
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("File not found.");
+            }
+
+            try
+            {
+                // Determine the content type based on file extension
+                var contentType = GetContentType(filePath);
+                var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                return File(fileStream, contentType);
+            }
+            catch (IOException ex)
+            {
+                return StatusCode(500, $"Error reading file: {ex.Message}");
+            }
+        }
+
+        private string GetContentType(string filePath)
+        {
+            var ext = Path.GetExtension(filePath).ToLowerInvariant();
+            return ext switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                _ => "application/octet-stream"
+            };
+        }
+
         [HttpPost]
         [Route("upload-image-in-text-editor")]
         public async Task<IActionResult> UploadImageInTextEditor(IFormFile file, [FromQuery] string subfolderPath = "")
