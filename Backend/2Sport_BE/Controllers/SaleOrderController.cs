@@ -167,11 +167,6 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest("Invalid request data.");
             }
-/*            var userId = GetCurrentUserIdFromToken();
-            if (userId != orderCM.UserID || userId == 0 || orderCM.UserID == 0)
-            {
-                return Unauthorized();
-            }*/
             //Tao order
             var response = await _orderService.CreatetSaleOrderAsync(orderCM);
             if (!response.IsSuccess)
