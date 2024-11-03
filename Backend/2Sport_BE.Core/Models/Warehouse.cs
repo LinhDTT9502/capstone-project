@@ -27,7 +27,6 @@ public class Warehouse
     public virtual Branch Branch { get; set; }
 
 
-    public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
 
 
 }

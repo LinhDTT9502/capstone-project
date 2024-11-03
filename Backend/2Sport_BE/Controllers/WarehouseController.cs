@@ -16,15 +16,12 @@ namespace _2Sport_BE.Controllers
     {
         private readonly IWarehouseService _warehouseService;
         private readonly IProductService _productService;
-        private readonly ISupplierService _supplierService;
         private readonly IMapper _mapper;
         public WarehouseController(IWarehouseService warehouseService,
                                    IProductService productService,
-                                   ISupplierService supplierService,
                                    IMapper mapper)
         {
             _productService = productService;
-            _supplierService = supplierService;
             _warehouseService = warehouseService;
             _mapper = mapper;
         }

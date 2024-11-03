@@ -37,6 +37,7 @@ public class Staff
     public string Position { get; set; }
     public virtual Branch Branch { get; set; }
     public virtual User User { get; set; }
+    public virtual ICollection<ImportHistory> ImportHistories { get; set; }
 
 }
 

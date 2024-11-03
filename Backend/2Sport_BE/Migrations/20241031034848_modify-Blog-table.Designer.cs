@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241031034848_modify-Blog-table")]
+    partial class modifyBlogtable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -507,6 +510,14 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedAt");
 
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("OrderId");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal")
+                        .HasColumnName("Price");
+
                     b.Property<int?>("ProductId")
                         .HasColumnType("int")
                         .HasColumnName("ProductId");
@@ -519,13 +530,8 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Quantity");
 
-                    b.Property<int?>("SaleOrderId")
-                        .HasColumnType("int")
-                        .HasColumnName("SaleOrderId");
-
-                    b.Property<decimal?>("UnitPrice")
-                        .HasColumnType("decimal")
-                        .HasColumnName("UnitPrice");
+                    b.Property<int>("SaleOrderId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2")
@@ -737,10 +743,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("varchar")
                         .HasColumnName("ImgAvatarPath");
 
-                    b.Property<bool?>("IsExtendRentalOrder")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsExtendRentalOrder");
-
                     b.Property<bool>("IsInspected")
                         .HasColumnType("bit")
                         .HasColumnName("IsInspected");
@@ -761,11 +763,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<int?>("OrderStatus")
                         .HasColumnType("int")
                         .HasColumnName("OrderStatus");
-
-                    b.Property<string>("ParentOrderCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar")
-                        .HasColumnName("ParentOrderCode");
 
                     b.Property<int?>("PaymentMethodId")
                         .HasColumnType("int")
@@ -933,16 +930,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedAt");
 
-                    b.Property<DateTime?>("DateOfReceipt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("DateOfReceipt");
-
-                    b.Property<string>("DeliveryMethod")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("DeliveryMethod");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -952,11 +939,6 @@ namespace _2Sport_BE.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("FullName");
-
-                    b.Property<string>("Gender")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Gender");
 
                     b.Property<string>("Note")
                         .HasMaxLength(500)
@@ -1394,7 +1376,9 @@ namespace _2Sport_BE.Migrations
 
                     b.HasOne("_2Sport_BE.Repository.Models.SaleOrder", "SaleOrder")
                         .WithMany("OrderDetails")
-                        .HasForeignKey("SaleOrderId");
+                        .HasForeignKey("SaleOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Product");
 

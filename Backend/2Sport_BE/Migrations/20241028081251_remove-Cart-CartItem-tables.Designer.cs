@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241028081251_remove-Cart-CartItem-tables")]
+    partial class removeCartCartItemtables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,6 +33,12 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BlogName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("BlogName");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar")
@@ -38,34 +47,13 @@ namespace _2Sport_BE.Migrations
                     b.Property<DateTime?>("CreateAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CreatedByStaffStaffId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CreatedStaffId")
+                    b.Property<int>("UserId")
                         .HasColumnType("int")
-                        .HasColumnName("CreatedStaffId");
-
-                    b.Property<int?>("EditedByStaffId")
-                        .HasColumnType("int")
-                        .HasColumnName("EditedByStaffId");
-
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("Title");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnName("UserId");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedByStaffStaffId");
-
-                    b.HasIndex("EditedByStaffId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Blogs");
                 });
@@ -237,7 +225,6 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasMaxLength(200)
                         .HasColumnType("nvarchar")
                         .HasColumnName("Content");
 
@@ -250,16 +237,11 @@ namespace _2Sport_BE.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ParentCommentId");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Comments");
                 });
@@ -336,6 +318,10 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("BlogId")
+                        .HasColumnType("int")
+                        .HasColumnName("BlogId");
+
                     b.Property<DateTime?>("CreateAt")
                         .HasColumnType("datetime2");
 
@@ -354,6 +340,8 @@ namespace _2Sport_BE.Migrations
                         .HasColumnName("VideoUrl");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BlogId");
 
                     b.HasIndex("ProductId");
 
@@ -507,6 +495,14 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedAt");
 
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("OrderId");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal")
+                        .HasColumnName("Price");
+
                     b.Property<int?>("ProductId")
                         .HasColumnType("int")
                         .HasColumnName("ProductId");
@@ -519,13 +515,8 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Quantity");
 
-                    b.Property<int?>("SaleOrderId")
-                        .HasColumnType("int")
-                        .HasColumnName("SaleOrderId");
-
-                    b.Property<decimal?>("UnitPrice")
-                        .HasColumnType("decimal")
-                        .HasColumnName("UnitPrice");
+                    b.Property<int>("SaleOrderId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2")
@@ -737,10 +728,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("varchar")
                         .HasColumnName("ImgAvatarPath");
 
-                    b.Property<bool?>("IsExtendRentalOrder")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsExtendRentalOrder");
-
                     b.Property<bool>("IsInspected")
                         .HasColumnType("bit")
                         .HasColumnName("IsInspected");
@@ -761,11 +748,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<int?>("OrderStatus")
                         .HasColumnType("int")
                         .HasColumnName("OrderStatus");
-
-                    b.Property<string>("ParentOrderCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar")
-                        .HasColumnName("ParentOrderCode");
 
                     b.Property<int?>("PaymentMethodId")
                         .HasColumnType("int")
@@ -933,16 +915,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedAt");
 
-                    b.Property<DateTime?>("DateOfReceipt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("DateOfReceipt");
-
-                    b.Property<string>("DeliveryMethod")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("DeliveryMethod");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -952,11 +924,6 @@ namespace _2Sport_BE.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("FullName");
-
-                    b.Property<string>("Gender")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Gender");
 
                     b.Property<string>("Note")
                         .HasMaxLength(500)
@@ -1234,19 +1201,13 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Blog", b =>
                 {
-                    b.HasOne("_2Sport_BE.Repository.Models.Staff", "CreatedByStaff")
+                    b.HasOne("_2Sport_BE.Repository.Models.User", "User")
                         .WithMany()
-                        .HasForeignKey("CreatedByStaffStaffId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("_2Sport_BE.Repository.Models.Staff", "EditedByStaff")
-                        .WithMany()
-                        .HasForeignKey("EditedByStaffId");
-
-                    b.Navigation("CreatedByStaff");
-
-                    b.Navigation("EditedByStaff");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.BrandBranch", b =>
@@ -1300,17 +1261,9 @@ namespace _2Sport_BE.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("_2Sport_BE.Repository.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("ParentComment");
 
                     b.Navigation("Product");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Customer", b =>
@@ -1324,9 +1277,15 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ImagesVideo", b =>
                 {
+                    b.HasOne("_2Sport_BE.Repository.Models.Blog", "Blog")
+                        .WithMany()
+                        .HasForeignKey("BlogId");
+
                     b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
                         .WithMany("ImagesVideos")
                         .HasForeignKey("ProductId");
+
+                    b.Navigation("Blog");
 
                     b.Navigation("Product");
                 });
@@ -1394,7 +1353,9 @@ namespace _2Sport_BE.Migrations
 
                     b.HasOne("_2Sport_BE.Repository.Models.SaleOrder", "SaleOrder")
                         .WithMany("OrderDetails")
-                        .HasForeignKey("SaleOrderId");
+                        .HasForeignKey("SaleOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Product");
 
