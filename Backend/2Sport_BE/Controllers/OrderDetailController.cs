@@ -33,11 +33,12 @@ namespace _2Sport_BE.Controllers
                 result.Add(new OrderDetailDTO()
                 {
                     Id = order[i].Id,
-                    OrderId = order[i].OrderId,
+                    OrderId = order[i].SaleOrderId,
                     ProductId = order[i].ProductId,
                     ProductName = order[i].Product.ProductName,
                     Quantity = order[i].Quantity,
-                    Price = order[i].Price
+                    Price = order[i].UnitPrice
+
                 });
             }
             return Ok(result);

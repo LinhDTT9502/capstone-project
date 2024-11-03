@@ -1,34 +1,25 @@
-﻿using _2Sport_BE.Infrastructure.Services;
+﻿using _2Sport_BE.Infrastructure.DTOs;
+using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Models;
-using _2Sport_BE.Infrastructure.DTOs;
-using AutoMapper;
-using Azure;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace _2Sport_BE.Controllers
 {
-    //Admin nay lay employee, user, 
     [Route("api/[controller]")]
     [ApiController]
-
-    public class AdminController : ControllerBase
+    public class ManagerController : ControllerBase
     {
-
-        private readonly IAdminService _adminService;
-        public AdminController(
-            IAdminService adminService
-            )
+        private readonly IManagerService _managerService;
+        public ManagerController(IManagerService managerService)
         {
-            _adminService = adminService;
+            _managerService = managerService;
         }
-
         [HttpGet]
-        [Route("get-all-admins")]
-        public async Task<IActionResult> GetAllAddmins()
+        [Route("get-all-managers")]
+        public async Task<IActionResult> GetAllManagers()
         {
-            var response = await _adminService.GetAllAdminAsync();
+            var response = await _managerService.GetAllManagerAsync();
             if (response.IsSuccess)
             {
                 return Ok(response);
@@ -36,11 +27,11 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
         [HttpGet]
-        [Route("get-admin-detail")]
+        [Route("get-staff-detail")]
         //Role User
-        public async Task<IActionResult> GetAdminDetail([FromQuery] int adminId)
+        public async Task<IActionResult> GetManagerDetail([FromQuery] int managerId)
         {
-            var admin = await _adminService.GetAdminDetailAsync(adminId);
+            var admin = await _managerService.GetManagerDetailByIdAsync(managerId);
             if (admin.IsSuccess)
             {
                 return Ok(admin);
@@ -48,14 +39,14 @@ namespace _2Sport_BE.Controllers
             return BadRequest(admin);
         }
         [HttpPost]
-        [Route("create-admin")]
-        public async Task<IActionResult> CreateAdmin([FromBody] AdminCM adminCM)
+        [Route("create-manager")]
+        public async Task<IActionResult> CreateManager([FromBody] ManagerCM managerCM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var response = await _adminService.CreateAdminAsync(adminCM);
+            var response = await _managerService.CreateManagerAsync(managerCM);
 
             if (response.IsSuccess)
             {
@@ -65,14 +56,14 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
         [HttpPut]
-        [Route("update-admin")]
-        public async Task<IActionResult> UpdateAdminAsync([FromQuery] int admidId, [FromBody] AdminUM adminUM)
+        [Route("update-manager")]
+        public async Task<IActionResult> UpdateManager([FromQuery] int managerId, [FromBody] ManagerUM managerUM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var response = await _adminService.UpDateAdminAsync(admidId, adminUM);
+            var response = await _managerService.UpdateManagerAsync(managerId, managerUM);
             if (response.IsSuccess)
             {
                 return Ok(response);
@@ -81,15 +72,14 @@ namespace _2Sport_BE.Controllers
         }
         [HttpDelete]
         [Route("delete-admin")]
-        public async Task<ActionResult<User>> DeleteAdmin([FromQuery] int adminId)
+        public async Task<ActionResult<User>> DeleteManager([FromQuery] int managerId)
         {
-            var response = await _adminService.DeleteAdminAsync(adminId);
+            var response = await _managerService.DeleteManagerAsync(managerId);
             if (response.IsSuccess)
             {
                 return Ok(response);
             }
             return BadRequest(response);
         }
-
     }
 }

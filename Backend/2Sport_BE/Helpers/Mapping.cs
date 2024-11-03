@@ -9,6 +9,9 @@ namespace _2Sport_BE.Helpers
     {
         public Mapping()
         {
+            #region RentalOrder
+            CreateMap<RentalOrder, RentalOrderVM>();
+            #endregion
             #region User
             CreateMap<User, UserVM>();
             CreateMap<UserCM, User>();
@@ -59,11 +62,10 @@ namespace _2Sport_BE.Helpers
             CreateMap<PaymentMethod, PaymentMethodUM>();
             CreateMap<PaymentMethodUM, PaymentMethod>();
             #endregion
-            #region Order
-           /* CreateMap<Order, OrderCM>();
-            CreateMap<Order, OrderVM>();
-            CreateMap<Order, OrderUM>();
-            CreateMap<OrderUM, Order>();*/
+            #region SaleOrder
+            CreateMap<SaleOrderCM, SaleOrder>();
+            CreateMap<SaleOrderUM, SaleOrder>();
+            CreateMap<SaleOrder, SaleOrderVM>();
             #endregion
             #region OrderDetail
             CreateMap<OrderDetail, SaleOrderDetailVM>();

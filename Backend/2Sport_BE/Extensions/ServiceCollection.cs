@@ -54,11 +54,18 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<IOrderDetailService, OrderDetailService>();
             //RentalOrder
             services.AddScoped<IRentalOrderService, RentalOrderService>();
+            services.AddScoped<RentalOrderService>();
             #endregion
             #region Helper_Services
             services.AddTransient<IMailService, MailService>();
             services.AddScoped<IMethodHelper, MethodHelper>();
-            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IPaymentService, PayOsPaymentService>();
+            services.AddScoped<IPayOsService, PayOsPaymentService>();
+            services.AddScoped<PayOsPaymentService>();
+            services.AddScoped<PaymentFactory>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IDeliveryMethodService, DeliveryMethodService>();
+
             #endregion
         }
 

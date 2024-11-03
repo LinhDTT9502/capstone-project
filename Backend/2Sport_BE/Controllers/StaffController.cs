@@ -1,34 +1,25 @@
-﻿using _2Sport_BE.Infrastructure.Services;
+﻿using _2Sport_BE.Infrastructure.DTOs;
+using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Models;
-using _2Sport_BE.Infrastructure.DTOs;
-using AutoMapper;
-using Azure;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace _2Sport_BE.Controllers
 {
-    //Admin nay lay employee, user, 
     [Route("api/[controller]")]
     [ApiController]
-
-    public class AdminController : ControllerBase
+    public class StaffController : ControllerBase
     {
-
-        private readonly IAdminService _adminService;
-        public AdminController(
-            IAdminService adminService
-            )
+        private readonly IStaffService _staffService;
+        public StaffController(IStaffService staffService)
         {
-            _adminService = adminService;
+            _staffService = staffService;
         }
-
         [HttpGet]
-        [Route("get-all-admins")]
-        public async Task<IActionResult> GetAllAddmins()
+        [Route("get-all-staffs")]
+        public async Task<IActionResult> GetAllStaffs()
         {
-            var response = await _adminService.GetAllAdminAsync();
+            var response = await _staffService.GetAllStaffsAsync();
             if (response.IsSuccess)
             {
                 return Ok(response);
@@ -36,11 +27,11 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
         [HttpGet]
-        [Route("get-admin-detail")]
+        [Route("get-staff-detail")]
         //Role User
-        public async Task<IActionResult> GetAdminDetail([FromQuery] int adminId)
+        public async Task<IActionResult> GetStaffDetail([FromQuery] int staffId)
         {
-            var admin = await _adminService.GetAdminDetailAsync(adminId);
+            var admin = await _staffService.GetStaffDetailAsync(staffId);
             if (admin.IsSuccess)
             {
                 return Ok(admin);
@@ -48,14 +39,14 @@ namespace _2Sport_BE.Controllers
             return BadRequest(admin);
         }
         [HttpPost]
-        [Route("create-admin")]
-        public async Task<IActionResult> CreateAdmin([FromBody] AdminCM adminCM)
+        [Route("create-staff")]
+        public async Task<IActionResult> CreateStaff([FromBody] StaffCM staffCM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var response = await _adminService.CreateAdminAsync(adminCM);
+            var response = await _staffService.CreateStaffAsync(staffCM);
 
             if (response.IsSuccess)
             {
@@ -65,14 +56,14 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
         [HttpPut]
-        [Route("update-admin")]
-        public async Task<IActionResult> UpdateAdminAsync([FromQuery] int admidId, [FromBody] AdminUM adminUM)
+        [Route("update-staff")]
+        public async Task<IActionResult> UpdateStaff([FromQuery] int staffId, [FromBody] StaffUM staffUM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var response = await _adminService.UpDateAdminAsync(admidId, adminUM);
+            var response = await _staffService.UpdateStaffAsync(staffId, staffUM);
             if (response.IsSuccess)
             {
                 return Ok(response);
@@ -81,15 +72,14 @@ namespace _2Sport_BE.Controllers
         }
         [HttpDelete]
         [Route("delete-admin")]
-        public async Task<ActionResult<User>> DeleteAdmin([FromQuery] int adminId)
+        public async Task<ActionResult<User>> DeleteStaff([FromQuery] int staffId)
         {
-            var response = await _adminService.DeleteAdminAsync(adminId);
+            var response = await _staffService.DeleteStaffAsync(staffId);
             if (response.IsSuccess)
             {
                 return Ok(response);
             }
             return BadRequest(response);
         }
-
     }
 }
