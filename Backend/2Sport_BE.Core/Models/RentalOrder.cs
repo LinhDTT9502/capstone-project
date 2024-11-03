@@ -19,7 +19,9 @@ namespace _2Sport_BE.Repository.Models
         [Column("RentalOrderCode", TypeName = "varchar")]
         [MaxLength(50)]
         public string? RentalOrderCode { get; set; }
-
+        [Column("ParentOrderCode", TypeName = "varchar")]
+        [MaxLength(50)]
+        public string? ParentOrderCode { get; set; }
         [Column("UserId")]
         public int? UserId { get; set; }
 
@@ -110,6 +112,8 @@ namespace _2Sport_BE.Repository.Models
         [Column("UpdatedAt")]
         public DateTime? UpdatedAt { get; set; }
 
+        [Column("IsExtendRentalOrder")]
+        public bool? IsExtendRentalOrder { get; set; }
         public virtual PaymentMethod PaymentMethod { get; set; }
         public virtual User User { get; set; }
         public virtual Branch Branch { get; set; }

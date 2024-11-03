@@ -139,6 +139,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     new Claim("DOB",user.DOB.ToString()==null?"":user.DOB.ToString()),
                     new Claim(ClaimTypes.Role, role.RoleName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     };
 
                 var tokenDescriptor = new SecurityTokenDescriptor

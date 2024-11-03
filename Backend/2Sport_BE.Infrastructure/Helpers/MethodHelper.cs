@@ -6,6 +6,7 @@ namespace _2Sport_BE.Infrastructure.Helpers
     {
         string GenerateOrderCode();
         bool AreAnyStringsNullOrEmpty(PaymentResponse response);
+        bool CheckValidOfRentalDate(DateTime? from, DateTime? to);
     }
     public class MethodHelper : IMethodHelper
     {
@@ -20,7 +21,6 @@ namespace _2Sport_BE.Infrastructure.Helpers
 
             return SaleOrderCode;
         }
-
         public bool AreAnyStringsNullOrEmpty(PaymentResponse response)
         {
             return string.IsNullOrEmpty(response.Status) ||
@@ -39,6 +39,16 @@ namespace _2Sport_BE.Infrastructure.Helpers
             double change = ((double)(current - previous) / previous) * 100;
             isIncrease = change >= 0;
             return change;
+        }
+
+        public bool CheckValidOfRentalDate(DateTime? from, DateTime? to)
+        {
+            if (from == null || to == null) return false;
+
+            if (from.Value.Date < DateTime.Now.Date || to.Value.Date < DateTime.Now.Date) return false;
+            if (from.Value.Date > to.Value.Date) return false;
+
+            return true;
         }
     }
 }

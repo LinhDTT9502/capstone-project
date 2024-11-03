@@ -16,7 +16,7 @@ namespace _2Sport_BE.Service.Services
         }
         public async Task<List<OrderDetail>> GetOrderDetailByOrderIdAsync(int orderId)
         {
-            var result = await _unitOfWork.OrderDetailRepository.GetAsync(_ => _.OrderId == orderId);
+            var result = await _unitOfWork.OrderDetailRepository.GetAsync(_ => _.SaleOrderId == orderId);
             return result.ToList();
         }
     }

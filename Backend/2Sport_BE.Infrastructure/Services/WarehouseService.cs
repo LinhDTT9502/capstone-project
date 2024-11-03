@@ -22,6 +22,10 @@ namespace _2Sport_BE.Infrastructure.Services
         Task DeleteWarehouseAsync(int id);
         Task DeleteWarehouseAsync(List<Warehouse> warehouses);
         Task<IQueryable<Warehouse>> GetWarehouseByProductIdAndBranchId(int productId, int? branchId);
+        Task UpdateWarehouseStock(Warehouse productInWarehouse, int quantity);
+        Task AdjustStockLevel(Warehouse productInWarehouse, int? quantity, bool isRestock);
+
+        bool IsStockAvailable(Warehouse productInWarehouse, int quantity);
     }
     public class WarehouseService : IWarehouseService
     {
@@ -31,6 +35,30 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             _unitOfWork = unitOfWork;
             _dBContext = dBContext;
+        }
+
+        public async Task AdjustStockLevel(Warehouse productInWarehouse, int? quantity, bool isRestock)
+        {
+            if (isRestock) //Tang quantity lai
+            {
+                productInWarehouse.AvailableQuantity += quantity;
+                productInWarehouse.TotalQuantity += quantity;
+
+            }
+            else
+            {
+                if (productInWarehouse.AvailableQuantity >= quantity)
+                {
+                    productInWarehouse.AvailableQuantity -= quantity;
+                    productInWarehouse.TotalQuantity -= quantity;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Insufficient stock available.");
+                }
+            }
+
+            await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
         }
 
         public async Task CreateANewWarehouseAsync(Warehouse warehouse)
@@ -77,6 +105,13 @@ namespace _2Sport_BE.Infrastructure.Services
             return filter.AsQueryable();
         }
 
+        public bool IsStockAvailable(Warehouse productInWarehouse, int quantity)
+        {
+            return productInWarehouse != null &&
+                    productInWarehouse.TotalQuantity >= quantity &&
+                    productInWarehouse.AvailableQuantity >= quantity;
+        }
+
         public async Task<IQueryable<Warehouse>> ListAllAsync()
         {
             IEnumerable<Warehouse> listAll = await _unitOfWork.WarehouseRepository.GetAllAsync();
@@ -86,6 +121,12 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task UpdateWarehouseAsync(Warehouse warehouse)
         {
             await _unitOfWork.WarehouseRepository.UpdateAsync(warehouse);
+        }
+
+        public async Task UpdateWarehouseStock(Warehouse productInWarehouse, int quantity)
+        {
+            productInWarehouse.AvailableQuantity -= quantity;
+            await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
         }
     }
 }
