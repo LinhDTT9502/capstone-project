@@ -58,13 +58,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.Message = "Không tìm thấy đơn hàng với mã ID được cung cấp.";
                     return response;
                 }
-                var user = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == order.UserId);
-                if (user is null)
-                {
-                    response.IsSuccess = false;
-                    response.Message = "Không tìm thấy thông tin người dùng liên quan đến đơn hàng.";
-                    return response;
-                }
+
                 List<ItemData> orders = new List<ItemData>();
                 var listOrderDetail = order.OrderDetails.ToList();
 
@@ -95,9 +89,9 @@ namespace _2Sport_BE.Infrastructure.Services
                         content, orders,
                         "https://localhost:7276/api/Checkout/cancel",
                         "https://localhost:7276/api/Checkout/return",
-                        null, user.FullName,
-                        user.Email, user.PhoneNumber,
-                        user.Address,
+                        null, order.FullName,
+                        order.Email, order.ContactPhone,
+                        order.Address,
                         expiredAt);
                 var createPayment = await _payOs.createPaymentLink(data);
 

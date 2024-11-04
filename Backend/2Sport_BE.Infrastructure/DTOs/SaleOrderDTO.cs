@@ -79,6 +79,5 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public int PaymentMethodID { get; set; }
         public int OrderID { get; set; }
         public string OrderCode { get; set; }
-        public int UserId { get; set; }
     }
 }

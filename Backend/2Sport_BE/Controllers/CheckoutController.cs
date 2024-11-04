@@ -40,11 +40,6 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (checkoutModel.UserId != GetCurrentUserIdFromToken())
-            {
-                return Unauthorized();
-            }
-
             if (checkoutModel.PaymentMethodID != (int)OrderMethods.PayOS)
             {
                 return BadRequest("Invalid PaymentMethodId. It must match PayOS payment method.");
