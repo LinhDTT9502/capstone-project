@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241104052223_modify-content-column-in-Blog")]
+    partial class modifycontentcolumninBlog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,6 +41,9 @@ namespace _2Sport_BE.Migrations
                     b.Property<DateTime?>("CreateAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("CreatedByStaffStaffId")
+                        .HasColumnType("int");
+
                     b.Property<int>("CreatedStaffId")
                         .HasColumnType("int")
                         .HasColumnName("CreatedStaffId");
@@ -60,7 +66,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedStaffId");
+                    b.HasIndex("CreatedByStaffStaffId");
 
                     b.HasIndex("EditedByStaffId");
 
@@ -1247,15 +1253,14 @@ namespace _2Sport_BE.Migrations
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Blog", b =>
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.Staff", "CreatedByStaff")
-                        .WithMany("CreatedBlogs")
-                        .HasForeignKey("CreatedStaffId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .WithMany()
+                        .HasForeignKey("CreatedByStaffStaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("_2Sport_BE.Repository.Models.Staff", "EditedByStaff")
-                        .WithMany("EditedBlogs")
-                        .HasForeignKey("EditedByStaffId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .WithMany()
+                        .HasForeignKey("EditedByStaffId");
 
                     b.Navigation("CreatedByStaff");
 
@@ -1647,10 +1652,6 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Staff", b =>
                 {
-                    b.Navigation("CreatedBlogs");
-
-                    b.Navigation("EditedBlogs");
-
                     b.Navigation("ImportHistories");
                 });
 

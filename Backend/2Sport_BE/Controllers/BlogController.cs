@@ -1,4 +1,5 @@
-﻿using _2Sport_BE.Repository.Interfaces;
+﻿using _2Sport_BE.Infrastructure.Services;
+using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
 using _2Sport_BE.ViewModels;
@@ -16,12 +17,16 @@ namespace _2Sport_BE.Controllers
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IBlogService _blogService;
+        private readonly IUserService _userService;
 
-        public BlogController(IMapper mapper, IUnitOfWork unitOfWork, IBlogService blogService)
+        public BlogController(IMapper mapper, IUnitOfWork unitOfWork, 
+                              IBlogService blogService,
+                              IUserService userService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _blogService = blogService;
+            _userService = userService;
         }
 
         [HttpPost]
@@ -32,7 +37,7 @@ namespace _2Sport_BE.Controllers
             {
                 var blog = _mapper.Map<Blog>(blogCM);
                 var userId = GetCurrentUserIdFromToken();
-                if (userId == null)
+                if (userId == 0)
                 {
                     return Unauthorized("You are not allowed to do this method!");
                 }
@@ -56,9 +61,42 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var blogs = await _blogService.GetAllBlogs();
+                foreach (var blog in blogs)
+                {
+                    var createdStaffAccount = await _userService.GetUserById((int)blog.CreatedByStaff.UserId);
+                    blog.CreatedByStaff.User = createdStaffAccount;
+                    if (blog.EditedByStaff != null)
+                    {
+                        var editedStaffAccount = await _userService.GetUserById((int)blog.EditedByStaff.UserId);
+                        blog.CreatedByStaff.User = editedStaffAccount;
+                    }
+                }
                 var result = _mapper.Map<List<BlogVM>>(blogs.ToList());
                 return Ok(new { total = result.Count, data = result });
             } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("get-blog-by-id")]
+        public async Task<IActionResult> GetBlogById(int id)
+        {
+            try
+            {
+                var blog = await _blogService.GetBlogById(id);
+                var createdStaffAccount = await _userService.GetUserById((int)blog.CreatedByStaff.UserId);
+                blog.CreatedByStaff.User = createdStaffAccount;
+                if (blog.EditedByStaff != null)
+                {
+                    var editedStaffAccount = await _userService.GetUserById((int)blog.EditedByStaff.UserId);
+                    blog.CreatedByStaff.User = editedStaffAccount;
+                }
+                var result = _mapper.Map<BlogVM>(blog);
+                return Ok(result);
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
@@ -75,20 +113,59 @@ namespace _2Sport_BE.Controllers
                 {
                     return Unauthorized("You are not allowed to use this function!");
                 }
-                var newBlog = _mapper.Map<Blog>(blogUM);
-                var toEditeBlog = (await _blogService.GetBlogById(blogId)).FirstOrDefault();
+                var toEditeBlog = (await _blogService.GetBlogById(blogId));
                 if (toEditeBlog == null)
                 {
                     return NotFound($"Cannot find the blog with id: {blogId}");
                 }
-                
+                toEditeBlog.Title = blogUM.Title;
+                toEditeBlog.Content = blogUM.Content;
+                var newBlog = _mapper.Map<Blog>(toEditeBlog);
                 var editedBlog = await _blogService.EditBlog(userId, newBlog);
                 if (editedBlog == null)
                 {
-                    return BadRequest("Staff is not existed!");
+                    return BadRequest("Edit blog failed!");
                 }
                 var result = _mapper.Map<BlogVM>(editedBlog);
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
+
+        [HttpPut]
+        [Route("hide-show-blog/{blogId}")]
+        public async Task<IActionResult> HideShowBlog(int blogId)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized("You are not allowed to use this function!");
+                }
+                var toEditeBlog = (await _blogService.GetBlogById(blogId));
+                if (toEditeBlog == null)
+                {
+                    return NotFound($"Cannot find the blog with id: {blogId}");
+                }
+                toEditeBlog.Status = !toEditeBlog.Status;
+                var newBlog = _mapper.Map<Blog>(toEditeBlog);
+                var editedBlog = await _blogService.HideShowBlog(newBlog);
+                if (editedBlog == null)
+                {
+                    return BadRequest("Hide/show blog failed!");
+                }
+                else if (editedBlog.Status == false)
+                {
+                    return Ok("Hide blog successfully!");
+                } else
+                {
+                    return Ok("Show blog successfully!");
+                }
             }
             catch (Exception ex)
             {

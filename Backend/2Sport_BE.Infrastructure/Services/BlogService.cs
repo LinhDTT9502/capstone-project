@@ -13,9 +13,10 @@ namespace _2Sport_BE.Service.Services
     {
         Task<int> CreateBlog(int userId, Blog blog);
         Task<Blog> EditBlog(int userId, Blog blog);
+        Task<Blog> HideShowBlog(Blog blog);
         Task DeleteBlog(int blogId);
         Task<IQueryable<Blog>> GetAllBlogs();
-        Task<IQueryable<Blog>> GetBlogById(int blogId);
+        Task<Blog> GetBlogById(int blogId);
     }
     public class BlogService : IBlogService
     {
@@ -28,49 +29,111 @@ namespace _2Sport_BE.Service.Services
 
         public async Task<int> CreateBlog(int userId, Blog blog)
         {
-            var staff = (await _unitOfWork.StaffRepository.GetAsync(_ => _.UserId == userId)).FirstOrDefault();
-            if (staff == null)
+            try
             {
-                return -1;
+                var staff = (await _unitOfWork.StaffRepository.GetAsync(_ => _.UserId == userId)).FirstOrDefault();
+                if (staff == null)
+                {
+                    return -1;
+                }
+                blog.CreateAt = DateTime.Now;
+                blog.CreatedStaffId = staff.StaffId;
+                blog.UpdatedAt = null;
+                blog.EditedByStaffId = null;
+                blog.Status = true;
+                await _unitOfWork.BlogRepository.InsertAsync(blog);
+                return 1;
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return 0;
             }
-            blog.CreateAt = DateTime.Now;
-            blog.CreatedStaffId = userId;
-            blog.CreatedByStaff = staff;
-            blog.UpdatedAt = null;
-            blog.EditedByStaff = null;
-            blog.EditedByStaffId = null;
-            await _unitOfWork.BlogRepository.InsertAsync(blog);
-            return 1;
+            
    
         }
 
         public async Task DeleteBlog(int blogId)
         {
-            await _unitOfWork.BlogRepository.DeleteAsync(blogId);
+            try
+            {
+                await _unitOfWork.BlogRepository.DeleteAsync(blogId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public async Task<IQueryable<Blog>> GetAllBlogs()
         {
-            return (await _unitOfWork.BlogRepository.GetAllAsync()).AsQueryable().Include(_ => _.CreatedByStaff)
-                                                                                 .Include(_ => _.EditedByStaff);
+            var blogs = (await _unitOfWork.BlogRepository.GetAllAsync()).AsQueryable().Include(_ => _.CreatedByStaff)
+                                                                                      .Include(_ => _.EditedByStaff);
+            foreach (var blog in blogs)
+            {
+                var createdStaff = await _unitOfWork.StaffRepository.GetAsync(_ => _.StaffId == blog.CreatedStaffId);
+                if (createdStaff != null)
+                {
+                    blog.CreatedByStaff = createdStaff.FirstOrDefault();
+                }
+
+                var editedStaff = await _unitOfWork.StaffRepository.GetAsync(_ => _.StaffId == blog.EditedByStaffId);
+                if (editedStaff != null)
+                {
+                    blog.EditedByStaff = editedStaff.FirstOrDefault();
+                }
+            }
+            return blogs;
         }
 
         public async Task<Blog> EditBlog(int userId, Blog blog)
         {
-            var editedByStaff = (await _unitOfWork.StaffRepository.GetAsync(_ => _.UserId == userId)).FirstOrDefault();
-            if (editedByStaff == null)
+            try
             {
+                var editedByStaff = (await _unitOfWork.StaffRepository.GetAsync(_ => _.UserId == userId)).FirstOrDefault();
+                if (editedByStaff == null)
+                {
+                    return null;
+                }
+                blog.UpdatedAt = DateTime.Now;
+                blog.EditedByStaffId = editedByStaff.StaffId;
+                await _unitOfWork.BlogRepository.UpdateAsync(blog);
+                return blog;
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
                 return null;
             }
-            blog.UpdatedAt = DateTime.Now;
-            blog.EditedByStaff = editedByStaff;
-            await _unitOfWork.BlogRepository.UpdateAsync(blog);
+        }
+
+        public async Task<Blog> GetBlogById(int blogId)
+        {
+            var blog = (await _unitOfWork.BlogRepository.GetAsync(_ => _.Id == blogId)).FirstOrDefault();
+            var createdStaff = await _unitOfWork.StaffRepository.GetAsync(_ => _.StaffId == blog.CreatedStaffId);
+            if (createdStaff != null)
+            {
+                blog.CreatedByStaff = createdStaff.FirstOrDefault();
+            }
+
+            var editedStaff = await _unitOfWork.StaffRepository.GetAsync(_ => _.StaffId == blog.EditedByStaffId);
+            if (editedStaff != null)
+            {
+                blog.EditedByStaff = editedStaff.FirstOrDefault();
+            }
             return blog;
         }
 
-        public async Task<IQueryable<Blog>> GetBlogById(int blogId)
+        public async Task<Blog> HideShowBlog(Blog blog)
         {
-            return (await _unitOfWork.BlogRepository.GetAsync(_ => _.Id == blogId)).AsQueryable();
+            try
+            {
+                await _unitOfWork.BlogRepository.UpdateAsync(blog);
+                return blog;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
         }
     }
 }

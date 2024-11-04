@@ -32,13 +32,16 @@ namespace _2Sport_BE.Helpers
             #endregion
             #region Blog
             CreateMap<Blog, BlogVM>()
+                .ForMember(dest => dest.BlogId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.CreatedByStaffId, opt => opt.MapFrom(src => src.CreatedStaffId))
+                .ForMember(dest => dest.EditedByStaffId, opt => opt.MapFrom(src => src.EditedByStaffId))
                 .ForMember(dest => dest.CreatedByStaffName, opt => opt.MapFrom(src => src.CreatedByStaff.User.UserName))
                 .ForMember(dest => dest.CreatedByStaffFullName, opt => opt.MapFrom(src => src.CreatedByStaff.User.FullName))
                 .ForMember(dest => dest.EditedByStaffName, opt => opt.MapFrom(src => src.EditedByStaff.User.UserName))
                 .ForMember(dest => dest.EditedByStaffFullName, opt => opt.MapFrom(src => src.EditedByStaff.User.FullName))
                 .ReverseMap();
-            CreateMap<CustomerCM, Customer>();
-            CreateMap<CustomerUM, Customer>();
+            CreateMap<BlogCM, Blog>();
+            CreateMap<BlogUM, Blog>();
             #endregion
             #region Customer
             CreateMap<Customer, CustomerVM>();

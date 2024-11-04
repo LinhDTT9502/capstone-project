@@ -15,13 +15,14 @@ namespace _2Sport_BE.ViewModels
 
     public class BlogVM : BlogDTO
     {
+        public int BlogId { get; set; }
         public int CreatedByStaffId { get; set; }
         public string CreatedByStaffName { get; set; }
         public string CreatedByStaffFullName { get; set; }
-
         public int EditedByStaffId { get; set; }
         public string EditedByStaffName { get; set; }
         public string EditedByStaffFullName { get; set; }
+        public bool Status { get; set; }
     }
 
     public class BlogCM : BlogDTO

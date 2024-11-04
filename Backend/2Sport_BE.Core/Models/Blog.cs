@@ -16,8 +16,7 @@ namespace _2Sport_BE.Repository.Models
         [MaxLength(255)]
         public string Title { get; set; }
 
-        [Column("Content", TypeName = "nvarchar")]
-        [MaxLength]
+        [Column("Content", TypeName = "nvarchar(MAX)")]
         public string Content { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
@@ -31,6 +30,7 @@ namespace _2Sport_BE.Repository.Models
         [Column("CreatedStaffId")]
         public int CreatedStaffId { get; set; }
 
+        [ForeignKey("CreatedStaffId")]
         public virtual Staff CreatedByStaff { get; set; }
 
         [Column("EditedByStaffId")]
@@ -38,6 +38,7 @@ namespace _2Sport_BE.Repository.Models
 
         [ForeignKey("EditedByStaffId")]
         public virtual Staff EditedByStaff { get; set; }
+
         public bool Status { get; set; }
 
         public virtual ICollection<Like> Likes { get; set; }

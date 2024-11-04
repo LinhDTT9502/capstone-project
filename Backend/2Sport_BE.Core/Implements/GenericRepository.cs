@@ -246,8 +246,15 @@ namespace _2Sport_BE.Repository.Implements
 
         public async Task InsertAsync(T entity)
         {
-            await _dbSet.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                await _dbSet.AddAsync(entity);
+                await _dbContext.SaveChangesAsync();
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
         }
 
         public async Task InsertRangeAsync(IEnumerable<T> entities)
