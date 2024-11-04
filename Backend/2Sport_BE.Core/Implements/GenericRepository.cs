@@ -102,6 +102,25 @@ namespace _2Sport_BE.Repository.Implements
 
             return await query.ToListAsync();
         }
+
+        public async Task<IEnumerable<T>> GetAndIncludeAsync(Expression<Func<T, bool>> filter = null, params string[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+            // Using AsNoTracking for read-only queries
+            return await query.AsNoTracking().ToListAsync();
+        }
+
         public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> filter = null, params string[] includes)
         {
 
@@ -264,5 +283,6 @@ namespace _2Sport_BE.Repository.Implements
                 throw new Exception("An error occurred while updating entities", ex);
             }
         }
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace _2Sport_BE.Repository.Interfaces
 {
@@ -10,6 +11,8 @@ namespace _2Sport_BE.Repository.Interfaces
                                   string includeProperties = "",
                                   int? pageIndex = null,
                                   int? pageSize = null);
+        Task<IEnumerable<T>> GetAndIncludeAsync(Expression<Func<T, bool>> filter = null,
+                                  params string[] includes);
         Task<IEnumerable<T>> GetAsync(
             Expression<Func<T, bool>> filter = null,
             Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,

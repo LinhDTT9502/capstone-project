@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Routing.Tree;
 using _2Sport_BE.Infrastructure.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using _2Sport_BE.Service.Enums;
+using Hangfire.Server;
 
 
 namespace _2Sport_BE.Infrastructure.Services
@@ -37,19 +38,22 @@ namespace _2Sport_BE.Infrastructure.Services
         private readonly ICustomerService _customerService;
         private IMapper _mapper;
         private readonly INotificationService _notificationService;
+        private readonly IDeliveryMethodService _deliveryMethodService;
         public RentalOrderService(
             IUnitOfWork unitOfWork,
             IMethodHelper methodHelper,
             IWarehouseService warehouseService,
             ICustomerService customerService,
             IMapper mapper,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IDeliveryMethodService deliveryMethodService)
         {
             _unitOfWork = unitOfWork;
             _methodHelper = methodHelper;
             _warehouseService = warehouseService;
             _customerService = customerService;
             _mapper = mapper;
+            _deliveryMethodService = deliveryMethodService;
         }
         public async Task CheckRentalOrdersForExpiration()
         {
@@ -64,63 +68,210 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task<ResponseDTO<RentalOrderVM>> CreateRentalOrderAsync(RentalOrderCM rentalOrderCM)
         {
             var response = new ResponseDTO<RentalOrderVM>();
-            using var transaction = await _unitOfWork.BeginTransactionAsync();
-
-            try
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
-                if (rentalOrderCM.CustomerInfo.UserID.HasValue && rentalOrderCM.CustomerInfo.ShipmentDetailID.HasValue)
+                try
                 {
-                    var shipmentDetail = await _unitOfWork.ShipmentDetailRepository
-                                    .GetObjectAsync(s => s.Id == rentalOrderCM.CustomerInfo.ShipmentDetailID 
-                                                                && s.UserId == rentalOrderCM.CustomerInfo.UserID);
-                    if(shipmentDetail is null)
-                        return GenerateErrorResponse($"ShipmentDetail with ID = {rentalOrderCM.CustomerInfo.ShipmentDetailID} is not found!");
-                }
-                if (rentalOrderCM.rentalOrderItems.Count== 0)
+                    User user = null;
+                    ShipmentDetail shipmentDetail = null;
+                    if (rentalOrderCM.UserID.HasValue && rentalOrderCM.UserID != 0)
+                    {
+                        user = await _unitOfWork.UserRepository
+                                        .GetObjectAsync(u => u.Id == rentalOrderCM.UserID);
+                        if (user == null)
+                        {
+                            return GenerateErrorResponse($"User with Id = {rentalOrderCM.UserID} is not found!");
+                        }
+                        else
+                        {
+                            shipmentDetail = await _unitOfWork.ShipmentDetailRepository
+                                    .GetObjectAsync(s => s.Id == rentalOrderCM.ShipmentDetailID && s.UserId == user.Id);
+                            if (shipmentDetail == null)
+                            {
+                                return GenerateErrorResponse($"ShipmenDetail with Id = {rentalOrderCM.ShipmentDetailID} is not found!");
+                            }
+                        }
+                    }
+                    if (rentalOrderCM.rentalOrderItems.Count == 0)
                         return GenerateErrorResponse($"List of items are empty");
 
-                foreach (var item in rentalOrderCM.rentalOrderItems)
-                {
-                    var productInWarehouse = await _unitOfWork.WarehouseRepository
-                        .GetObjectAsync(p => p.Id == item.WarehouseId, new string[] { "Branch", "Product" });
+                    string DeliveryMethod = rentalOrderCM.DeliveryMethod;
+                    if (string.IsNullOrEmpty(DeliveryMethod) || !_deliveryMethodService.IsValidMethod(DeliveryMethod))
+                    {
+                        return GenerateErrorResponse("Delivery Method is invalid");
+                    }
+                    //Den store lay thi phai co branchId
+                    if (DeliveryMethod.Equals("STORE_PICKUP") && !rentalOrderCM.BranchId.HasValue)
+                    {
+                        return GenerateErrorResponse("Delivery Method is invalid");
+                    }
+                    if(rentalOrderCM.rentalOrderItems.Count == 1) // Create only 1 order
+                    {
 
-                    if (!_warehouseService.IsStockAvailable(productInWarehouse, item.Quantity))
+                        var rentalOrder = CreateParentRentalOrder(rentalOrderCM);
+                        if (user != null && shipmentDetail != null)
+                        {
+                            if (user != null && shipmentDetail != null)
+                            {
+                                SetOrderUserDetails(rentalOrder, user, shipmentDetail);
+                            }
+                        }
+                        if (DeliveryMethod.Equals("HOME_DELIVERY"))
+                        {
+                            rentalOrder.PaymentMethodId = (int)OrderMethods.COD;
+                        }
+                        foreach (var item in rentalOrderCM.rentalOrderItems)
+                        {
+                            //Set rentalPeriod
+                            if (!_methodHelper.CheckValidOfRentalDate(item.RentalStartDate, item.RentalEndDate))
+                            {
+                                response.IsSuccess = false;
+                                response.Message = "Rental dates are invalid!";
+                                return response;
+                            }
+                            rentalOrder.RentalEndDate = item.RentalEndDate;
+                            rentalOrder.RentalStartDate = item.RentalStartDate;
+
+                            var branch = await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == rentalOrder.BranchId);
+                            if (branch != null)
+                            {
+                                rentalOrder.BranchId = branch.Id;
+                                rentalOrder.BranchName = branch.BranchName;
+                                //Neu chon den cua hang, thi tru available quantity trong cua hang truoc
+                                var reduceInWarehouse = await FindAndReduceQuantityInWarehouse(item, branch.Id);
+                                if (!reduceInWarehouse)
+                                {
+                                    await transaction.RollbackAsync();
+                                    return GenerateErrorResponse($"Failed to update stock for product {item.ProductName}");
+                                }
+                            }
+                            var product = await _unitOfWork.ProductRepository.GetObjectAsync(p => p.Id == item.ProductId);
+                            if (product != null)
+                            {
+                                rentalOrder.ProductId = product.Id;
+                                rentalOrder.ProductName = product.ProductName;
+                                rentalOrder.RentPrice = product.RentPrice;
+                            }
+                            int rentalDays = Math.Max((item.RentalEndDate - item.RentalStartDate).Days, 1);
+                            rentalOrder.SubTotal += item.UnitPrice * item.Quantity * rentalDays;
+                        }
+                        rentalOrder.TranSportFee = 0;
+                        rentalOrder.TotalAmount = (decimal)(rentalOrder.SubTotal + rentalOrder.TranSportFee);
+
+                        await transaction.CommitAsync();
+                        //Send notifications to Admmin
+                        await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode);
+
+                        // Return success response
+                        response = GenerateSuccessResponse(rentalOrder, "Rental order inserted successfully");
+
+                    }
+                    else if( rentalOrderCM.rentalOrderItems.Count > 1 )//Parent order and child order
+                    {
+                        var parentRentalOrder = CreateParentRentalOrder(rentalOrderCM);
+                        if (user != null && shipmentDetail != null)
+                        {
+                            if (user != null && shipmentDetail != null)
+                            {
+                                SetOrderUserDetails(parentRentalOrder, user, shipmentDetail);
+                            }
+                        }
+                        if (DeliveryMethod.Equals("HOME_DELIVERY"))
+                        {
+                            parentRentalOrder.PaymentMethodId = (int)OrderMethods.COD;
+                        }
+                        await _unitOfWork.RentalOrderRepository.InsertAsync(parentRentalOrder);
+
+                        foreach (var item in rentalOrderCM.rentalOrderItems)
+                        {
+                            var childRentalOrder = CreateChildRentalOrder(rentalOrderCM, parentRentalOrder.ParentOrderCode);
+                            if (user != null && shipmentDetail != null)
+                            {
+                                SetOrderUserDetails(childRentalOrder,user, shipmentDetail);
+                            }
+                            if (DeliveryMethod.Equals("HOME_DELIVERY"))
+                            {
+                                childRentalOrder.PaymentMethodId = (int)OrderMethods.COD;
+                            }
+                            //Set rentalPeriod
+                            if (!_methodHelper.CheckValidOfRentalDate(item.RentalStartDate, item.RentalEndDate))
+                            {
+                                response.IsSuccess = false;
+                                response.Message = "Rental dates are invalid!";
+                                return response;
+                            }
+                            childRentalOrder.RentalEndDate = item.RentalEndDate;
+                            childRentalOrder.RentalStartDate = item.RentalStartDate;
+
+                            var branch = await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == rentalOrderCM.BranchId);
+                            if (branch != null)
+                            {
+                                childRentalOrder.BranchId = branch.Id;
+                                childRentalOrder.BranchName = branch.BranchName;
+                                //Neu chon den cua hang, thi tru available quantity trong cua hang truoc
+                                var reduceInWarehouse = await FindAndReduceQuantityInWarehouse(item, branch.Id);
+                                if (!reduceInWarehouse)
+                                {
+                                    response.IsSuccess = false;
+                                    response.Message = $"Failed to update stock for product {item.ProductName}";
+                                    await transaction.RollbackAsync();
+                                    return response;
+                                }
+                            }
+                            var product = await _unitOfWork.ProductRepository.GetObjectAsync(p => p.Id == item.ProductId);
+                            if (product != null)
+                            {
+                                childRentalOrder.ProductId = product.Id;
+                                childRentalOrder.ProductName = product.ProductName;
+                                childRentalOrder.RentPrice = product.RentPrice;
+                            }
+                            int rentalDays = Math.Max((item.RentalEndDate - item.RentalStartDate).Days, 1);
+                            childRentalOrder.SubTotal += item.UnitPrice * item.Quantity * rentalDays;
+                            childRentalOrder.TranSportFee = 0;
+                            childRentalOrder.TotalAmount = (decimal)(childRentalOrder.SubTotal + childRentalOrder.TranSportFee);
+                            await _unitOfWork.RentalOrderRepository.InsertAsync(childRentalOrder);
+                            parentRentalOrder.SubTotal += childRentalOrder.TotalAmount;
+                        }
+                        parentRentalOrder.TotalAmount += (decimal)parentRentalOrder.SubTotal;
+                        await _unitOfWork.RentalOrderRepository.UpdateAsync(parentRentalOrder);
+
+                        await transaction.CommitAsync();
+                        //Send notifications to Admmin
+                        await _notificationService.NotifyForCreatingNewOrderAsync(parentRentalOrder.RentalOrderCode);
+
+                        // Return success response
+                        response = GenerateSuccessResponse(parentRentalOrder, "Rental order inserted successfully");
+                    }
+                    else
                     {
                         response.IsSuccess = false;
-                        response.Message = $"Not enough stock in warehouse {item.WarehouseId}";
+                        response.Message = "Error in created rentalOrder Process!";
                         return response;
                     }
 
-                    // Reduce stock
-                    await _warehouseService.UpdateWarehouseStock(productInWarehouse, item.Quantity);
-
-                    // Create the rental order
-                    var order = CreateRentalOrder(rentalOrderCM, item, productInWarehouse);
-
-                    if (!_methodHelper.CheckValidOfRentalDate(order.RentalStartDate, order.RentalEndDate))
-                    {
-                        response.IsSuccess = false;
-                        response.Message = "Rental dates are invalid!";
-                        return response;
-                    }
-
-                    await _unitOfWork.RentalOrderRepository.InsertAsync(order);
-                    await transaction.CommitAsync();
-                    //Send notifications to Admmin
-                    await _notificationService.NotifyForCreatingNewOrderAsync(order.RentalOrderCode);
-
-                    // Return success response
-                    response = GenerateSuccessResponse(order, "Rental order inserted successfully");
+                    return response;
                 }
-                return response;
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    response.IsSuccess = false;
+                    response.Message = ex.Message;
+                    return response;
+                }
             }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-                return response;
-            }
+        }
+        private decimal CalculateItemSubTotal(RentalOrderItems item)
+        {
+            int rentalDays = Math.Max((item.RentalEndDate - item.RentalStartDate).Days, 1);
+            return (decimal)(item.UnitPrice * item.Quantity * rentalDays);
+        }
+        private void SetOrderUserDetails(RentalOrder order, User user, ShipmentDetail shipmentDetail)
+        {
+            order.Address = shipmentDetail.Address;
+            order.FullName = shipmentDetail.FullName;
+            order.Email = shipmentDetail.Email;
+            order.ContactPhone = shipmentDetail.PhoneNumber;
+            order.UserId = user.Id;
         }
         public async Task<ResponseDTO<RentalOrderVM>> UpdateRentalOrderAsync(int orderId, RentalOrderUM rentalOrderUM)
         {
@@ -130,7 +281,8 @@ namespace _2Sport_BE.Infrastructure.Services
                 try
                 {
                     var toUpdate = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
-                    if (toUpdate == null)
+
+                    /*if (toUpdate == null)
                         return GenerateErrorResponse($"Order with id {orderId} not found!");
 
                     var warehouseToRestock = await _unitOfWork.WarehouseRepository.GetObjectAsync(w => w.ProductId == toUpdate.ProductId && w.BranchId == toUpdate.BranchId);
@@ -153,7 +305,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     UpdateOrderDetails(toUpdate, rentalOrderUM, warehouseToUpdate);
                     await _unitOfWork.RentalOrderRepository.UpdateAsync(toUpdate);
 
-                    await transaction.CommitAsync();
+                    await transaction.CommitAsync();*/
 
 
                     response = GenerateSuccessResponse(toUpdate, "Rental order updated successfully");
@@ -196,41 +348,48 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             return response;
         }
-        private RentalOrder CreateRentalOrder(RentalOrderCM rentalOrderCM, RentalOrderItems item, Warehouse productInWarehouse)
+        private RentalOrder CreateParentRentalOrder(RentalOrderCM rentalOrderCM)
         {
-            int totaOfDays = CalculateTotalOfDay(item.RentalStartDate, item.RentalEndDate);
-            return new RentalOrder
+            return new RentalOrder()
             {
                 RentalOrderCode = _methodHelper.GenerateOrderCode(),
-                Address = rentalOrderCM.CustomerInfo.Address,
-                FullName = rentalOrderCM.CustomerInfo.FullName,
-                ContactPhone = rentalOrderCM.CustomerInfo.ContactPhone,
-                Email = rentalOrderCM.CustomerInfo.Email,
-                PaymentMethodId = rentalOrderCM.PaymentMethodID,
-                UserId = rentalOrderCM.CustomerInfo.UserID,
-                BranchName = productInWarehouse.Branch.BranchName,
-                ImgAvatarPath = item.ImgAvatarPath ?? productInWarehouse.Product.ImgAvatarPath,
-                OrderStatus = (int)OrderStatus.PENDING,
-                PaymentStatus = (int)PaymentStatus.IsWating,
-                ProductId = productInWarehouse.ProductId,
-                ProductName = productInWarehouse.Product.ProductName,
-                RentPrice = productInWarehouse.Product.RentPrice,
-                Quantity = item.Quantity,
-                RentalStartDate = item.RentalStartDate,
-                RentalEndDate = item.RentalEndDate,
-                SubTotal = CalculateSubTotalForRentalOrder((decimal)productInWarehouse.Product.RentPrice, item.Quantity, totaOfDays),
-                Note = rentalOrderCM.Note,
+
+                Address = rentalOrderCM.Address,
+                FullName = rentalOrderCM.FullName,
+                Gender = rentalOrderCM.Gender,
+                Email = rentalOrderCM.Email,
+                ContactPhone = rentalOrderCM.ContactPhone,
+
+                DeliveryMethod = rentalOrderCM.DeliveryMethod,
+                DateOfReceipt = rentalOrderCM.DateOfReceipt ?? DateTime.Now.AddDays(3),
+
                 CreatedAt = DateTime.Now,
+                Note = rentalOrderCM.Note,
+                OrderStatus = (int?)OrderStatus.PENDING,
+                PaymentStatus = (int)PaymentStatus.IsWating,
             };
         }
-        private void UpdateCustomerInfo(RentalOrder toUpdate, CustomerInfo customerInfo)
+        private RentalOrder CreateChildRentalOrder(RentalOrderCM rentalOrderCM, string parentCode)
         {
-            //5
-            toUpdate.Address = customerInfo.Address;
-            toUpdate.FullName = customerInfo.FullName;
-            toUpdate.ContactPhone = customerInfo.ContactPhone;
-            toUpdate.Email = customerInfo.Email;
-            toUpdate.UserId = customerInfo.UserID;
+            return new RentalOrder()
+            {
+                RentalOrderCode = _methodHelper.GenerateOrderCode(),
+                ParentOrderCode = parentCode,
+
+                Address = rentalOrderCM.Address,
+                FullName = rentalOrderCM.FullName,
+                Gender = rentalOrderCM.Gender,
+                Email = rentalOrderCM.Email,
+                ContactPhone = rentalOrderCM.ContactPhone,
+
+                DeliveryMethod = rentalOrderCM.DeliveryMethod,
+                DateOfReceipt = rentalOrderCM.DateOfReceipt ?? DateTime.Now.AddDays(3),
+                
+                CreatedAt = DateTime.Now,
+                Note = rentalOrderCM.Note,
+                OrderStatus = (int?)OrderStatus.PENDING,
+                PaymentStatus = (int)PaymentStatus.IsWating,
+            };
         }
         private void UpdateRentalInfo(RentalOrder toUpdate, RentalInfor rentalInfo)
         {
@@ -550,6 +709,41 @@ namespace _2Sport_BE.Infrastructure.Services
                 throw;
             }
             return response;
+        }
+
+        private async Task<bool> UpdateStock(RentalOrderItems item, int branchId, bool isReturningStock)
+        {
+            var warehouse = await _unitOfWork.WarehouseRepository
+                .GetObjectAsync(w => w.ProductId == item.ProductId && w.BranchId == branchId);
+
+            if (warehouse == null || warehouse.TotalQuantity < item.Quantity || warehouse.AvailableQuantity < item.Quantity)
+            {
+                return false;
+            }
+
+            // Cập nhật kho dựa trên loại yêu cầu
+            int quantityAdjustment = isReturningStock ? item.Quantity.Value : -item.Quantity.Value;
+            warehouse.AvailableQuantity += quantityAdjustment;
+            warehouse.TotalQuantity += quantityAdjustment;
+
+            await _unitOfWork.WarehouseRepository.UpdateAsync(warehouse);
+            return true;
+        }
+        private async Task<bool> FindAndReduceQuantityInWarehouse(RentalOrderItems item, int branchId)
+        {
+            var warehouse = await _unitOfWork.WarehouseRepository
+                .GetObjectAsync(w => w.ProductId == item.ProductId && w.BranchId == branchId);
+
+            if (warehouse == null || warehouse.TotalQuantity < item.Quantity || warehouse.AvailableQuantity < item.Quantity)
+            {
+                return false;
+            }
+
+            // Cập nhật kho dựa trên loại yêu cầu
+            warehouse.AvailableQuantity -= item.Quantity;
+
+            await _unitOfWork.WarehouseRepository.UpdateAsync(warehouse);
+            return true;
         }
     }
 }

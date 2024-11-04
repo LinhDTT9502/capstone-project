@@ -5,32 +5,25 @@ namespace _2Sport_BE.Infrastructure.DTOs
 {
     public class RentalOrderItems
     {
-        [Required]
-        public int WarehouseId { get; set; }
-        [Required]
-        public int Quantity { get; set; }
-        [Required]
+        public int? ProductId { get; set; }
+        public string? ProductName { get; set; }
+        public int? Quantity { get; set; }
+        public decimal? UnitPrice { get; set; }
         public DateTime RentalStartDate { get; set; }
-        [Required]
         public DateTime RentalEndDate { get; set; }
-
         public string? ImgAvatarPath { get; set; }
     }
     public class RentalOrderDTO
     {
-        [Required]
-        public CustomerInfo CustomerInfo { get; set; }
-    }
-    public class CustomerInfo
-    {
         public int? UserID { get; set; }
         public int? ShipmentDetailID { get; set; }
+        public string Gender { get; set; }
         public string FullName { get; set; }
         public string Email { get; set; }
         public string ContactPhone { get; set; }
         public string Address { get; set; }
     }
-    
+
     public class RentalInfor
     {
         public DateTime? ReturnDate { get; set; }
@@ -41,10 +34,13 @@ namespace _2Sport_BE.Infrastructure.DTOs
     }
     public class RentalOrderCM : RentalOrderDTO
     {
-        [Required]
-        public int PaymentMethodID { get; set; }
+
+        public string DeliveryMethod { get; set; }
+        public int? BranchId { get; set; }
         public string? DiscountCode { get; set; } // Option
         public string? Note { get; set; }
+        public DateTime? DateOfReceipt { get; set; } //NGAY NHAN HANG 
+
         [Required]
         public List<RentalOrderItems> rentalOrderItems { get; set; }
     }
@@ -69,11 +65,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
     {
         public int Id { get; set; }
         public string? RentalOrderCode { get; set; }
-        public int? UserId { get; set; }
-        public string Email { get; set; }
-        public string ContactPhone { get; set; }
-        public string FullName { get; set; }
-        public string Address { get; set; }
+        public string? ParentOrderCode { get; set; }
         public int? BranchId { get; set; }
         public string? BranchName { get; set; }
         public int? ProductId { get; set; }
@@ -84,7 +76,8 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public DateTime? RentalEndDate { get; set; }
         public decimal? SubTotal { get; set; }
         public decimal? TranSportFee { get; set; }
-        public decimal TotalAmount { get; set; }
+        public decimal? TotalAmount { get; set; }
+        public string? DeliveryMethod { get; set; }
         public int? PaymentMethodId { get; set; }
         public string? Note { get; set; }
         public string? OrderStatus { get; set; }
@@ -92,12 +85,12 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public DateTime? ReturnDate { get; set; }
         public decimal LateFee { get; set; }
         public bool IsRestocked { get; set; } // Track if the product has been restocked
-        public bool IsInspected { get; set; } // Track if the product is inspected upon return
+        public bool? IsInspected { get; set; } // Track if the product is inspected upon return
         public decimal? DamageFee { get; set; }
         public string? ImgAvatarPath { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public string? PaymentLink {  get; set; }
+        public string? PaymentLink { get; set; }
     }
 
 }

@@ -155,7 +155,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<List<SaleOrderVM>>();
             try
             {
-                var query = await _unitOfWork.SaleOrderRepository.GetAsync(o => o.UserId == userId, "User, SaleOrderDetails");
+                var query = await _unitOfWork.SaleOrderRepository.GetAndIncludeAsync(o => o.UserId == userId, new string[] { "User", "OrderDetails" });
                 if (query == null || !query.Any())
                 {
                     response.IsSuccess = false;
@@ -450,13 +450,14 @@ namespace _2Sport_BE.Infrastructure.Services
                         response.Message = "Delivery Method is invalid";
                         return response;
                     }
-                    //Den store lay thi phai co branchId
+
                     if (DeliveryMethod.Equals("STORE_PICKUP") && !saleOrderCM.BranchId.HasValue)
                     {
                         response.IsSuccess = false;
                         response.Message = "Branch is required!";
                         return response;
                     }
+
                     var toCreate = new SaleOrder
                     {
                         OrderCode = _methodHelper.GenerateOrderCode(),
@@ -472,9 +473,9 @@ namespace _2Sport_BE.Infrastructure.Services
                         DateOfReceipt = saleOrderCM.DateOfReceipt ?? DateTime.Now.AddDays(3),
                         BranchId = saleOrderCM.BranchId ?? null,
                         Gender = saleOrderCM.Gender,
-
                     };
-                    if(user != null && shipmentDetail != null)
+
+                    if (user != null && shipmentDetail != null)
                     {
                         toCreate.Address = shipmentDetail.Address;
                         toCreate.FullName = shipmentDetail.FullName;
@@ -482,6 +483,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         toCreate.ContactPhone = shipmentDetail.PhoneNumber;
                         toCreate.UserId = user.Id;
                     }
+
                     if (DeliveryMethod.Equals("HOME_DELIVERY"))
                     {
                         toCreate.PaymentMethodId = (int)OrderMethods.COD;
@@ -491,18 +493,6 @@ namespace _2Sport_BE.Infrastructure.Services
                     decimal subTotal = 0;
                     foreach (var item in saleOrderCM.SaleOrderDetailCMs)
                     {
-                        /*var stockInWarehouse = await _unitOfWork.WarehouseRepository
-                                                .GetObjectAsync(p => p.Id == item.WarehouseId, new string[] { "Product, Branch" });
-
-                        if (stockInWarehouse == null || stockInWarehouse.TotalQuantity < item.Quantity)
-                        {
-                            response.IsSuccess = false;
-                            response.Message = $"Not enough stock for product {item.WarehouseId} at branch {stockInWarehouse.Branch.BranchName}";
-                            return response;
-                        }
-                        //update available quantity in wareHouse
-                        stockInWarehouse.AvailableQuantity -= item.Quantity;
-                        await _unitOfWork.WarehouseRepository.UpdateAsync(stockInWarehouse);*/
                         var detail = new OrderDetail
                         {
                             SaleOrderId = toCreate.Id,
@@ -519,7 +509,6 @@ namespace _2Sport_BE.Infrastructure.Services
                             {
                                 response.IsSuccess = false;
                                 response.Message = $"Failed to update stock for product {item.ProductName}";
-                                await transaction.RollbackAsync();
                                 return response;
                             }
                         }
@@ -537,18 +526,17 @@ namespace _2Sport_BE.Infrastructure.Services
 
                     toCreate.SubTotal = subTotal;
                     toCreate.TranSportFee = 0;
-                    toCreate.TotalAmount = (decimal)(toCreate.SubTotal); // if we have coupon, applying to TotalAmount
+                    toCreate.TotalAmount = (decimal)toCreate.SubTotal;
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(toCreate);
 
-                    // Transaction submit
-                    await transaction.CommitAsync();
-                    //Return
                     var result = _mapper.Map<SaleOrderVM>(toCreate);
                     result.PaymentStatus = Enum.GetName((PaymentStatus)toCreate.PaymentStatus);
                     result.OrderStatus = Enum.GetName((OrderStatus)toCreate.OrderStatus);
-                    result.PaymentMethod = Enum.GetName((OrderMethods)toCreate.PaymentMethodId);
+                    result.PaymentMethod = toCreate.PaymentMethodId.HasValue
+                                        ? Enum.GetName(typeof(OrderMethods), toCreate.PaymentMethodId.Value)
+                                        : "Chua co";
                     result.SaleOrderId = toCreate.Id;
-                    var saleOrderDetail = _unitOfWork.OrderDetailRepository.GetAsync(od => od.SaleOrderId == toCreate.Id);
+
                     result.SaleOrderDetailVMs = toCreate.OrderDetails.Select(od => new SaleOrderDetailVM()
                     {
                         ProductId = od.ProductId,
@@ -557,6 +545,9 @@ namespace _2Sport_BE.Infrastructure.Services
                         Quantity = od.Quantity,
                         TotalPrice = od.TotalPrice,
                     }).ToList();
+
+                    await transaction.CommitAsync();
+
                     response.IsSuccess = true;
                     response.Message = $"SaleOrder processed successfully";
                     response.Data = result;
@@ -571,6 +562,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
             }
         }
+
         public async Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderAsync(int SaleOrderId, SaleOrderUM SaleOrderUM)
         {
             var response = new ResponseDTO<SaleOrderVM>();

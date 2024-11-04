@@ -28,14 +28,21 @@ namespace _2Sport_BE.Repository.Models
         [Column("Email")]
         public string Email { get; set; }
 
-        [Column("ContactPhone")]
-        public string ContactPhone { get; set; }
-
         [Column("FullName")]
         public string FullName { get; set; }
 
+        [Column("Gender")]
+        public string Gender { get; set; }
+
+        [Column("ContactPhone")]
+        public string ContactPhone { get; set; }
+
         [Column("Address")]
         public string Address { get; set; }
+
+        [Column("DeliveryMethod")]
+        [MaxLength(500)]
+        public string DeliveryMethod { get; set; }
 
         [Column("BranchId")]
         public int? BranchId { get; set; }
@@ -52,6 +59,11 @@ namespace _2Sport_BE.Repository.Models
 
         [Column("Quantity")]
         public int? Quantity { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.DateTime)]
+        [Column("DateOfReceipt")]
+        public DateTime? DateOfReceipt { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
         [DataType(DataType.DateTime)]
