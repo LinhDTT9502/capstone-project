@@ -22,6 +22,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task DeleteWarehouseAsync(int id);
         Task DeleteWarehouseAsync(List<Warehouse> warehouses);
         Task<IQueryable<Warehouse>> GetWarehouseByProductIdAndBranchId(int productId, int? branchId);
+        Task<IQueryable<Warehouse>> GetProductsOfBranch(int branchId);
     }
     public class WarehouseService : IWarehouseService
     {
@@ -86,6 +87,13 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task UpdateWarehouseAsync(Warehouse warehouse)
         {
             await _unitOfWork.WarehouseRepository.UpdateAsync(warehouse);
+        }
+
+
+        public async Task<IQueryable<Warehouse>> GetProductsOfBranch(int branchId)
+        {
+            var listProductByBranchId = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.BranchId == branchId);
+            return listProductByBranchId.AsQueryable();
         }
     }
 }

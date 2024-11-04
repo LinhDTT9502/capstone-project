@@ -197,5 +197,6 @@ namespace _2Sport_BE.Service.Services
         {
             await _unitOfWork.ProductRepository.UpdateAsync(newProduct);
         }
+
     }
 }
