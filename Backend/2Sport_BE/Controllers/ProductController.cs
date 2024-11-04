@@ -76,23 +76,84 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var product = await _productService.GetProductById(productId);
-                var productVM = _mapper.Map<ProductVM>(product);
-                var brand = await _brandService.GetBrandById(productVM.BrandId);
-                productVM.BrandName = brand.FirstOrDefault().BrandName;
-                var category = await _categoryService.GetCategoryById(productVM.CategoryID);
-                productVM.CategoryName = category.CategoryName;
-                var sport = await _sportService.GetSportById(productVM.SportId);
-                productVM.SportName = sport.Name;
-                var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
-                productVM.Reviews = reviews.ToList();
-                var numOfLikes = await _likeService.CountLikeOfProduct(productId);
-                productVM.Likes = numOfLikes;
-                return Ok(productVM);
+                var productsSameProductCode = await _productService.GetProductsByProductCode(product.ProductCode);
+
+                var productVMs = _mapper.Map<List<ProductVM>>(productsSameProductCode.ToList());
+                foreach (var productVM in productVMs)
+                {
+                    var brand = await _brandService.GetBrandById(productVM.BrandId);
+                    productVM.BrandName = brand.FirstOrDefault().BrandName;
+                    var category = await _categoryService.GetCategoryById(productVM.CategoryID);
+                    productVM.CategoryName = category.CategoryName;
+                    var sport = await _sportService.GetSportById(productVM.SportId);
+                    productVM.SportName = sport.Name;
+                    var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                    productVM.Reviews = reviews.ToList();
+                    var numOfLikes = await _likeService.CountLikeOfProduct(productId);
+                    productVM.Likes = numOfLikes;
+                }
+                
+                return Ok(productVMs);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex);
             }
+        }
+
+        [HttpGet]
+        [Route("get-product-by-product-code/{productCode}")]
+        public async Task<IActionResult> GetProductByProductCode(string productCode)
+        {
+            try
+            {
+                var productsSameProductCode = await _productService.GetProductsByProductCode(productCode);
+
+                var productVMs = _mapper.Map<List<ProductVM>>(productsSameProductCode.ToList());
+                foreach (var productVM in productVMs)
+                {
+                    var brand = await _brandService.GetBrandById(productVM.BrandId);
+                    productVM.BrandName = brand.FirstOrDefault().BrandName;
+                    var category = await _categoryService.GetCategoryById(productVM.CategoryID);
+                    productVM.CategoryName = category.CategoryName;
+                    var sport = await _sportService.GetSportById(productVM.SportId);
+                    productVM.SportName = sport.Name;
+                    var reviews = await _reviewService.GetReviewsOfProductByProductCode(productCode);
+                    productVM.Reviews = reviews.ToList();
+                    var numOfLikes = await _likeService.CountLikeOfProductByProductCode(productCode);
+                    productVM.Likes = numOfLikes;
+                }
+
+                return Ok(productVMs);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpGet]
+        [Route("list-colors-of-product/{productCode}")]
+        public async Task<IActionResult> GetColorsOfProduct(string productCode)
+        {
+            var colors = await _productService.GetColorsOfProduct(productCode);
+            return Ok(new { total = colors.Count, data = colors }); 
+        }
+
+        [HttpGet]
+        [Route("list-conditions-of-product/{productCode}")]
+        public async Task<IActionResult> GetConditionsOfProduct(string productCode)
+        {
+            var conditions = await _productService.GetConditionsOfProduct(productCode);
+            return Ok(new { total = conditions.Count, data = conditions });
+        }
+
+        [HttpGet]
+        [Route("list-sizes-of-product/{productCode}")]
+        public async Task<IActionResult> GetSizesOfProduct(string productCode)
+        {
+            var sizes = await _productService.GetSizesOfProduct(productCode);
+            return Ok(new { total = sizes.Count, data = sizes });
         }
 
         [HttpGet]
@@ -1112,6 +1173,8 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+
 
         protected int GetCurrentUserIdFromToken()
         {

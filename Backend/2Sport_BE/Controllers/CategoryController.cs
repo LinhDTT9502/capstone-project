@@ -2,6 +2,7 @@
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
+using _2Sport_BE.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -18,17 +19,20 @@ namespace _2Sport_BE.Controllers
         private readonly IProductService _productService;
         private readonly ISportService _sportService;
         private readonly IWarehouseService _warehouseService;
+        private readonly IImageService _imageService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         public CategoryController(ICategoryService categoryService, IUnitOfWork unitOfWork,
 									IProductService productService,
                                     IWarehouseService warehouseService,
+                                    IImageService imageService,
                                     IMapper mapper, 
                                     ISportService sportService)
         {
             _categoryService = categoryService;
             _productService = productService;
             _warehouseService = warehouseService;
+            _imageService = imageService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _sportService = sportService;
@@ -91,6 +95,18 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var newCategory = _mapper.Map<Category>(newCategoryCM);
+                if (newCategoryCM.CategoryImage != null)
+                {
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(newCategoryCM.CategoryImage);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        newCategory.CategoryImgPath = uploadResult.SecureUrl.AbsoluteUri;
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
                 await _categoryService.AddCategory(newCategory);
                 return Ok("Add new category successfully!");
             }
@@ -106,8 +122,24 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var newCategories = _mapper.Map<List<Category>>(newCategoryCMs);
-                await _categoryService.AddCategories(newCategories);
+                foreach (var newCategoryCM in newCategoryCMs)
+                {
+                    var newCategory = _mapper.Map<Category>(newCategoryCM);
+                    if (newCategoryCM.CategoryImage != null)
+                    {
+                        var uploadResult = await _imageService.UploadImageToCloudinaryAsync(newCategoryCM.CategoryImage);
+                        if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                        {
+                            newCategory.CategoryImgPath = uploadResult.SecureUrl.AbsoluteUri;
+                        }
+                        else
+                        {
+                            return BadRequest("Something wrong!");
+                        }
+                    }
+                    await _categoryService.AddCategory(newCategory);
+
+                }
                 return Ok("Add new categories successfully!");
             }
             catch (Exception ex)
@@ -127,6 +159,18 @@ namespace _2Sport_BE.Controllers
                 updatedCategory.SportId = categoryUM.SportId;
                 updatedCategory.Sport = await _sportService.GetSportById(categoryUM.SportId);
                 updatedCategory.Description = categoryUM.Description;
+                if (categoryUM.CategoryImage != null)
+                {
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(categoryUM.CategoryImage);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        updatedCategory.CategoryImgPath = uploadResult.SecureUrl.AbsoluteUri;
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
                 await _categoryService.UpdateCategory(updatedCategory);
                 return Ok(updatedCategory);
             }

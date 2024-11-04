@@ -5,7 +5,6 @@ namespace _2Sport_BE.ViewModels
     public class CategoryDTO
     {
         public string CategoryName { get; set; }
-
     }
     public class CategoryVM : CategoryDTO
     {
@@ -14,17 +13,20 @@ namespace _2Sport_BE.ViewModels
         public bool? Status { get; set; }
         public int? SportId { get; set; }
         public string? SportName { get; set; }
+        public string? CategoryImgPath { get; set; }
     }
 
     public class CategoryCM : CategoryDTO
     {
         public string Description { get; set; }
         public int? SportId { get; set; }
+        public IFormFile CategoryImage { get; set; }
     }
 
     public class CategoryUM : CategoryDTO
     {
         public string Description { get; set; }
         public int? SportId { get; set; }
+        public IFormFile CategoryImage { get; set; }
     }
 }

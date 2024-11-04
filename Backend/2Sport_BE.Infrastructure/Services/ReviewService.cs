@@ -12,10 +12,11 @@ namespace _2Sport_BE.Service.Services
 	{
 		Task AddReview(Review review);
 		Task<IQueryable<Review>> GetReviewsOfProduct(int productId);
-		Task<IQueryable<Review>> GetAllReviews();
+		Task<IQueryable<Review>> GetReviewsOfProductByProductCode(string productCode);
+        Task<IQueryable<Review>> GetAllReviews();
 
 	}
-	public class ReviewService : IReviewService
+    public class ReviewService : IReviewService
 	{
 		private readonly IUnitOfWork _unitOfWork;
 
@@ -46,5 +47,18 @@ namespace _2Sport_BE.Service.Services
 				return null;
 			}
 		}
-	}
+
+        public async Task<IQueryable<Review>> GetReviewsOfProductByProductCode(string productCode)
+        {
+            try
+            {
+                var reviews = (await _unitOfWork.ReviewRepository.GetAsync(_ => _.Product.ProductCode.Equals(productCode)));
+                return reviews.AsQueryable();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+    }
 }

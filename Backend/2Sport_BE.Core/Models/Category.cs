@@ -20,6 +20,10 @@ public class Category
     [MaxLength(500)]
     public string Description { get; set; }
 
+    [Column("CategoryImgPath", TypeName = "nvarchar")]
+    [MaxLength(500)]
+    public string? CategoryImgPath { get; set; }
+
     public int? Quantity { get; set; }
     public bool? Status { get; set; }
     public int? SportId { get; set; }
