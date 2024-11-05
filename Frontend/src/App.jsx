@@ -12,7 +12,6 @@ import NotFoundPage from './pages/NotFoundPage';
 import ProductList from './pages/ProductList';
 import ProductRoutes from './routes/ProductRoutes';
 import Checkout from './pages/Checkout';
-import Cart from './pages/Cart';
 import UserCart from './pages/UserCart';
 import { useSelector } from 'react-redux';
 import { selectUser } from './redux/slices/authSlice';
@@ -28,6 +27,7 @@ import SidebarStaff from './layouts/SidebarStaff';
 import Warehouse from './components/Staff/Warehouse'
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoutes from './routes/AdminRoutes';
+import PlacedOrder from './components/Order/PlacedOrder';
 
 
 
@@ -47,7 +47,7 @@ function App() {
             {/* <Route path="/productv2" element={<Productv2Page />} /> */}
             <Route path="/product/*" element={<ProductRoutes />} />
             <Route path="/cart" element={<UserCart />} />
-            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/checkout" element={<PlacedOrder />} />
             <Route path="/shipment" element={<UserShipment />} />
 
             {/* <Route path="/dashboard" element={<Dashboard />} /> */}

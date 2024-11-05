@@ -1,31 +1,30 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@material-tailwind/react";
-import DeliveryAddress from "../components/Payment/DeliveryAddress";
-import PaymentMethod from "../components/Payment/PaymentMethod";
-import { checkout } from "../services/paymentServices";
 import { useSelector } from "react-redux";
-import { selectedShipment } from "../redux/slices/shipmentSlice";
+import { selectedShipment } from "../../redux/slices/shipmentSlice";
 import { useTranslation } from "react-i18next";
-import { selectUser } from "../redux/slices/authSlice";
-import { fetchBranchs } from "../services/branchService";
-import OrderMethod from "../components/Order/OrderMethod";
+import { selectUser } from "../../redux/slices/authSlice";
+import OrderMethod from "./OrderMethod";
+import { placedOrder } from "../../services/Checkout/checkoutService";
 
-const Checkout = () => {
+const PlacedOrder = () => {
   const user = useSelector(selectUser);
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const shipment = useSelector(selectedShipment);
   const { selectedProducts } = location.state || { selectedProducts: [] };
-  const [branches, setBranches] = useState([]);
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [branchId, setBranchId] = useState(null); // Change this to null
+  const [selectedOption, setSelectedOption] = useState("");
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [userData, setUserData] = useState({
     fullName: "",
+    gender: "",
     email: "",
     phoneNumber: "",
     address: "",
+    shipmentDetailID: 0,
   });
 
   // New state for discountCode and note
@@ -33,81 +32,78 @@ const Checkout = () => {
   const [note, setNote] = useState("");
 
   const totalPrice = selectedProducts.reduce(
-    (acc, item) => acc + item.price,
+    (acc, item) => acc + item.price * item.quantity, // Calculate total price correctly
     0
   );
 
-  // Fetch branches when component mounts
-  useEffect(() => {
-    const loadBranches = async () => {
-      try {
-        const branchData = await fetchBranchs();
-        setBranches(branchData); 
-      } catch (error) {
-        console.error("Error fetching branches:", error);
-      }
-    };
-
-    loadBranches();
-  }, []);
-
-
-  const getBranchIdByName = (branchName) => {
-    const branch = branches.find((b) => b.branchName === branchName);
-    return branch ? branch.id : null; 
-  };  
-
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
+    if (event.target.value === "STORE_PICKUP") {
+      // Logic to handle branch selection can be added here if necessary
+    }
   };
 
-  const handleCheckout = async () => {
-    console.log(userData);
+  const handleOrder = async () => {
+    console.log(branchId);
     
     try {
       const token = localStorage.getItem("token");
-      const branchId = selectedProducts.length > 0 ? getBranchIdByName(selectedProducts[0].branchName) : null;
       const data = {
-        orderDetailCMs: selectedProducts.map((item) => ({
-          warehouseId: item.warehouseId,
+        fullName: userData.fullName,
+        email: userData.email,
+        contactPhone: userData.phoneNumber,
+        address: userData.address,
+        userID: token ? user.UserId : 0, // If user is not logged in, userID is 0
+        shipmentDetailID: userData.shipmentDetailID, 
+        deliveryMethod: selectedOption,
+        gender: userData.gender,
+        branchId: selectedOption === "STORE_PICKUP" ? branchId : null,
+        dateOfReceipt: null,
+        discountCode: discountCode || null,
+        note: note || null,
+        saleOrderDetailCMs: selectedProducts.map((item) => ({
+          productId: item.id, // Assuming the item has an id
+          productName: item.productName, // Assuming the item has a productName
           quantity: item.quantity,
-          price: item.totalPrice
+          unitPrice: item.price,
         })),
-        branchId: branchId,
-        userID: user.UserId,
-        shipmentDetailID: shipment.id,
-        paymentMethodID: selectedOption,
-        orderType: 1,
-        discountCode: discountCode || "nothing",
-        note: note || "nothing",
       };
 
-      const response = await checkout(token, data);
+      // Call the placedOrder function to make the API request
+      const response = await placedOrder(data);
 
-      if (selectedOption === "1") {
+      if (response) {
+        console.log(response);
+        
         setOrderSuccess(true);
-      } else if (selectedOption === "2" && response.data.paymentLink) {
-        const paymentLink = response.data.paymentLink;
-        window.location.href = paymentLink;
+        navigate("/order_success", {
+            state: {
+              orderID: response.data.saleOrderId,
+              orderCode: response.data.orderCode,
+            },
+        });
       }
     } catch (error) {
       console.error("Error during checkout:", error);
     }
   };
 
-  if (orderSuccess) {
-    navigate("/order_success");
-  }
+//   useEffect(() => {
+//     if (orderSuccess) {
+//       navigate("/order_success");
+//     }
+//   }, [orderSuccess, navigate]);
 
   return (
     <div className="px-5 py-5 flex flex-row bg-slate-200">
       <div className="text-nowrap basis-2/3 bg-white mx-2 pr-14">
-       
         <OrderMethod
-        userData={userData}
-        setUserData={setUserData}
+          userData={userData}
+          setUserData={setUserData}
           selectedOption={selectedOption}
           handleOptionChange={handleOptionChange}
+          selectedBranchId={branchId} 
+          setSelectedBranchId={setBranchId}
         />
       </div>
       <div className="basis-3/5 mx-2 h-1/4">
@@ -141,7 +137,7 @@ const Checkout = () => {
                         {item.productName}
                       </h3>
                     </div>
-                    <p className="text-lg text-black">{item.price.toLocaleString()} VND</p>
+                    <p className="text-lg text-black">{(item.price * item.quantity).toLocaleString()} VND</p>
                   </div>
                 </div>
               ))}
@@ -194,7 +190,7 @@ const Checkout = () => {
         <div className="flex justify-center items-center">
           <Button
             className="text-white bg-orange-500 w-40 py-3 rounded"
-            onClick={handleCheckout}
+            onClick={handleOrder}
           >
             {t("checkout.complete_order")}
           </Button>
@@ -204,4 +200,4 @@ const Checkout = () => {
   );
 };
 
-export default Checkout;
+export default PlacedOrder;

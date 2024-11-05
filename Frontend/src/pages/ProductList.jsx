@@ -23,9 +23,11 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
   const [currentPage, setCurrentPage] = useState(1);
   const [warehouseTotal, setWarehouseTotal] = useState(null);
   const totalPages = Math.ceil(warehouseTotal / perPage);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const getProducts = async () => {
+      setIsLoading(true);
       try {
         let productsData;
         if (
@@ -46,14 +48,17 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
             maxPrice
           );
         }
-        // await checkWarehouseQuantities(productsData.products);
         dispatch(setProducts({ data: { products: productsData.products, total: productsData.total } }));
         console.log(productsData.products);
-        
       } catch (error) {
         console.error('Error fetching products:', error);
+      } finally {
+        setIsLoading(false); 
       }
     };
+
+    getProducts();
+  }, [dispatch, sortBy, isAscending, selectedBrands, selectedCategories, minPrice, maxPrice, currentPage]);
 
     // const fetchWarehouseData = async () => {
     //   const response = await fetch('https://twosportapi-295683427295.asia-southeast2.run.app/api/Warehouse/list-all', {
@@ -65,25 +70,24 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
     //   return { total: data.total, products: data.data.$values };
     // };
 
-    const checkWarehouseQuantities = async (products) => {
-      try {
-          const warehouseData = await fetchWarehouse();
-          console.log(warehouseData);
+  //   const checkWarehouseQuantities = async (products) => {
+  //     try {
+  //         const warehouseData = await fetchWarehouse();
+  //         console.log(warehouseData);
           
-          setWarehouseTotal(warehouseData.total);
-          products.forEach(product => {
-              const warehouseProduct = warehouseData.products.find(w => w.productName === product.productName);
-              if (warehouseProduct) {
-                  product.warehouseId = warehouseProduct.id;
-                  product.quantity = warehouseProduct.quantity;
-              }
-          });
-      } catch (error) {
-          console.error('Error checking warehouse quantities:', error);
-      }
-  };
-  getProducts();
-  }, [currentPage, sortBy, isAscending, minPrice, maxPrice, selectedCategories, selectedBrands, dispatch]);
+  //         setWarehouseTotal(warehouseData.total);
+  //         products.forEach(product => {
+  //             const warehouseProduct = warehouseData.products.find(w => w.productName === product.productName);
+  //             if (warehouseProduct) {
+  //                 product.warehouseId = warehouseProduct.id;
+  //                 product.quantity = warehouseProduct.quantity;
+  //             }
+  //         });
+  //     } catch (error) {
+  //         console.error('Error checking warehouse quantities:', error);
+  //     }
+  // };
+  
 
 //   const handleAddToCart = async (product, quantityToAdd = 1) => {
 //     const token = localStorage.getItem('token');

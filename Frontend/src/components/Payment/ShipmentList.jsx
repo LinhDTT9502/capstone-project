@@ -84,7 +84,7 @@ export default function ShipmentList() {
       <button
         type="button"
         onClick={openModal}
-        className="border-r-2 pr-4 text-orange-500"
+        className="pr-4 text-orange-500"
       >
         Địa chỉ đã lưu trữ
       </button>

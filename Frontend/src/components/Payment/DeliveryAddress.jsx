@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Input, Button } from "@material-tailwind/react";
+import { Input, Button, Radio } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import SignInModal from "../Auth/SignInModal";
 import ShipmentList from "./ShipmentList";
@@ -14,6 +14,7 @@ import AddShipment from "./AddShipment";
 import { useNavigate } from "react-router-dom";
 import { addUserShipmentDetail, getUserShipmentDetails } from "../../services/shipmentService";
 import { useTranslation } from "react-i18next";
+import AddressForm from "../AddressForm";
 
 const DeliveryAddress = ({
   userData,
@@ -24,6 +25,8 @@ const DeliveryAddress = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const user = useSelector(selectUser);
   const shipments = useSelector(selectShipment);
+  console.log(shipments);
+  
   const shipment = useSelector(selectedShipment);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
@@ -46,19 +49,21 @@ const DeliveryAddress = ({
   }, [token, dispatch, shipments.length]);
 
   useEffect(() => {
-    if (shipment) {
-      setUserData({
-        fullName: shipment.fullName,
-        address: shipment.address,
-        phoneNumber: shipment.phoneNumber,
-      });
+    if (user && shipment) {
+      setUserData((prevData) => ({
+        ...prevData,
+        fullName: shipment?.fullName || prevData.fullName,
+        address: shipment?.address || prevData.address,
+        phoneNumber: shipment?.phoneNumber || prevData.phoneNumber,
+        shipmentDetailID: shipment?.id
+      }));
     }
-  }, [shipment, setUserData]);
+  }, [user, shipment, setUserData]);
 
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setUserData({ ...userData, [name]: value });
-  };
+  // Monitor changes in userData
+  useEffect(() => {
+    console.log("Updated userData:", userData);
+  }, [userData]);
 
   const handleSaveClick = async (data) => {
     setIsSubmitting(true);
@@ -80,21 +85,72 @@ const DeliveryAddress = ({
     navigate("/cart");
   };
 
+  const handleAddressChange = (fullAddress) => {
+    setUserData((prevData) => ({ ...prevData, address: fullAddress }));
+  };
+
+  const handleGenderChange = (e) => {
+    setUserData((prevData) => ({ ...prevData, gender: e.target.value }));
+  };
+
   return (
-    <div className="pl-20 py-10">
+    <div className="">
       <div className="flex justify-between items-center">
-        <h3 className="text-2xl font-bold">{t("payment.delivery_address")}</h3>
       </div>
 
-      {!user ? (
-        <div className="flex items-center">
-          <p className="text-xl pr-5">{t("payment.already_have_account")}</p>
-          <SignInModal className="text-blue-500" />
+     
+        <div className="w-full bg-white border border-gray-200 rounded-lg shadow-md p-6 space-y-2">
+          <h3 className="text-sm font-bold">Thông tin khách hàng</h3>
+          <div className="flex gap-10 ">
+          <Radio
+          name="gender"
+          label="Anh"
+          value="Male" 
+          onChange={handleGenderChange}
+          checked={userData.gender === "Male"}
+        />
+        <Radio
+          name="gender"
+          label="Chị"
+          value="Female" 
+          onChange={handleGenderChange}
+          checked={userData.gender === "Female"}
+        />
+          </div>
+          <Input
+            type="text"
+            label="Email"
+            name="email"
+            value={userData.email}
+            onChange={(e) => setUserData((prevData) => ({ ...prevData, email: e.target.value }))}
+            required
+          />
+          {!user ? (
+            <div>
+          <Input
+            type="text"
+            label={t("payment.full_name")}
+            name="fullName"
+            value={userData.fullName}
+            onChange={(e) => setUserData((prevData) => ({ ...prevData, fullName: e.target.value }))}
+            required
+          />
+          
+          <Input
+            type="text"
+            label={t("payment.phone_number")}
+            name="phoneNumber"
+            value={userData.phoneNumber}
+            onChange={(e) => setUserData((prevData) => ({ ...prevData, phoneNumber: e.target.value }))}
+            required
+          />
+
+          <AddressForm onAddressChange={handleAddressChange} />
         </div>
       ) : (
         shipments.length > 0 ? (
           <>
-            <ShipmentList />
+           
             {shipment && (
               <div className="w-fit bg-white border border-gray-200 rounded-lg shadow-md p-6 my-4 space-y-2 ">
                 <h4 className="text-lg font-semibold mb-4">{t("payment.selected_shipment")}:</h4>
@@ -112,6 +168,7 @@ const DeliveryAddress = ({
                 </p>
               </div>
             )}
+             <ShipmentList />
           </>
         ) : (
           <AddShipment
@@ -122,16 +179,7 @@ const DeliveryAddress = ({
           />
         )
       )}
-
-      {/* {userData.address && (
-        <DistanceCalculator
-          userAddress={userData.address}
-          onDistanceCalculated={(distance) => {
-            console.log("Calculated Distance:", distance);
-            setDistance(distance);
-          }}
-        />
-      )} */}
+</div>
     </div>
   );
 };
