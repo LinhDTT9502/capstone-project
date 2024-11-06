@@ -97,6 +97,13 @@ namespace _2Sport_BE.Helpers
             CreateMap<Category, CategoryCM>().ReverseMap();
             CreateMap<Category, CategoryUM>().ReverseMap();
             #endregion
+            #region CartItem
+            CreateMap<CartItem, CartItemVM>()
+                .ForMember(dest => dest.MainImagePath, opt => opt.MapFrom(src => src.Product.ImgAvatarPath))
+                .ReverseMap();
+            CreateMap<CartItem, CartItemCM>().ReverseMap();
+            CreateMap<CartItem, CartItemUM>().ReverseMap();
+            #endregion
             #region Product
             CreateMap<Product, ProductVM>()
                 .ForMember(dest => dest.BrandName, opt => opt.MapFrom(src => src.Brand.BrandName))
@@ -113,14 +120,12 @@ namespace _2Sport_BE.Helpers
             CreateMap<ImportCM, ImportHistory>().ReverseMap();
             CreateMap<ImportUM, ImportHistory>().ReverseMap();
             #endregion
-
             #region ImageVideo
             CreateMap<ImagesVideo, ImagesVideoVM>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
                 .ReverseMap();
 
             #endregion
-
             #region Warehouse
             CreateMap<Warehouse, WarehouseVM>()
                 .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.BranchName))

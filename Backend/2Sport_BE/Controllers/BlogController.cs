@@ -120,8 +120,7 @@ namespace _2Sport_BE.Controllers
                 }
                 toEditeBlog.Title = blogUM.Title;
                 toEditeBlog.Content = blogUM.Content;
-                var newBlog = _mapper.Map<Blog>(toEditeBlog);
-                var editedBlog = await _blogService.EditBlog(userId, newBlog);
+                var editedBlog = await _blogService.EditBlog(userId, toEditeBlog);
                 if (editedBlog == null)
                 {
                     return BadRequest("Edit blog failed!");
