@@ -41,5 +41,6 @@ namespace _2Sport_BE.Repository.Models
 
         public bool Status { get; set; }
 
-    public virtual User User { get; set; }
+        public virtual User User { get; set; }
+    }
 }
