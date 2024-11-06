@@ -29,6 +29,4 @@ public class Blog
     public int UserId { get; set; }
 
     public virtual User User { get; set; }
-    public virtual ICollection<Like> Likes { get; set; }
-
 }
