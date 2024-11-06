@@ -89,6 +89,9 @@ namespace _2Sport_BE.Helpers
             #endregion
             #region OrderDetail
             CreateMap<OrderDetail, SaleOrderDetailVM>();
+            CreateMap<SaleOrderDetailUM, OrderDetail>();
+            CreateMap<OrderDetailVM, OrderDetailVM>();
+
             #endregion
             #region Category
             CreateMap<Category, CategoryVM>()

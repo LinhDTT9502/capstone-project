@@ -82,6 +82,7 @@ namespace _2Shipment_BE.Controllers
                     PhoneNumber = shipmentDetailCM.PhoneNumber,
                     Address = shipmentDetailCM.Address,
                     FullName = shipmentDetailCM.FullName,
+                    Email = shipmentDetailCM.Email,
                     UserId = userId,
                     User = await GetUserFromToken()
                 };
@@ -89,10 +90,11 @@ namespace _2Shipment_BE.Controllers
 
                 ShipmentDetailVM detailVM = new ShipmentDetailVM()
                 {
-                    UserId = userId,
-                    FullName = shipmentDetailCM.FullName,
-                    Address = shipmentDetailCM.Address,
-                    PhoneNumber = shipmentDetailCM.PhoneNumber,
+                    UserId = (int)newShipmentDetail.UserId,
+                    FullName = newShipmentDetail.FullName,
+                    Address = newShipmentDetail.Address,
+                    PhoneNumber = newShipmentDetail.PhoneNumber,
+                    Email = newShipmentDetail.Email,
                 };
 
                 ResponseModel<ShipmentDetailVM> response = new ResponseModel<ShipmentDetailVM>()

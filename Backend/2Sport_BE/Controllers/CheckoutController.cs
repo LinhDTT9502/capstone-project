@@ -56,6 +56,12 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest("PaymentStatus is not allowed to checkout.");
             }
+            if (order.PaymentMethodId == (int)OrderMethods.COD)
+            {
+                return BadRequest("PaymentStatus is not allowed to checkout because Your Order is chosing Ship COD");
+
+            }
+
             if (order.PaymentMethodId != (int)OrderMethods.PayOS)
             {
                 order.PaymentMethodId = (int)OrderMethods.PayOS;

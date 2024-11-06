@@ -17,11 +17,12 @@ namespace _2Sport_BE.Extensions
         public static void Register(this IServiceCollection services)
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             services.AddDbContext<TwoSportCapstoneDbContext>(options =>
             {
-            options.UseSqlServer(GetConnectionStrings(), b => b.MigrationsAssembly("2Sport_BE"));
-            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-            });
+                options.UseSqlServer(GetConnectionStrings(), b => b.MigrationsAssembly("2Sport_BE"));
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            }, ServiceLifetime.Transient);
             #region User_Services
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();

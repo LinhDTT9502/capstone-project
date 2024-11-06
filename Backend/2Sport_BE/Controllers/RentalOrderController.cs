@@ -57,6 +57,17 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
         [HttpGet]
+        [Route("get-rental-by-parent-code")]
+        public async Task<IActionResult> GetOrderByParentCode(string parentCode)
+        {
+            var response = await _rentalOrderServices.GetRentalOrderByParentCodeAsync(parentCode);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpGet]
         [Route("get-rental-orders-by-status")]
         public async Task<IActionResult> GetOrdersByStatus(int? orderStatus, int? paymentStatus)
         {
@@ -89,7 +100,7 @@ namespace _2Sport_BE.Controllers
                     }
                     return BadRequest(response);
                 }*/
-        [HttpPost("create-sale-order")]
+        [HttpPost("create-rental-order")]
         public async Task<IActionResult> CreateOrder([FromBody] RentalOrderCM rentalOrderCM)
         {
             if (!ModelState.IsValid)
@@ -103,7 +114,21 @@ namespace _2Sport_BE.Controllers
             }
             return Ok(response);
         }
-        [HttpPut("update-order-status")]
+        [HttpPut("update-rental-order")]
+        public async Task<IActionResult> UpdateRentalOrder([FromQuery] int orderId, [FromBody] RentalOrderUM orderUM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            var response = await _rentalOrderServices.UpdateRentalOrderAsync(orderId, orderUM);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+        [HttpPut("update-rental-order-status")]
         public async Task<IActionResult> ChangeOrderStatus(int orderId, int status)
         {
             var response = await _rentalOrderServices.ChangeStatusRentalOrderAsync(orderId, status);
@@ -177,19 +202,6 @@ namespace _2Sport_BE.Controllers
                 }*/
        
 
-        [HttpPut("update-rental-order")]
-        public async Task<IActionResult> UpdateRentalOrder([FromQuery] int orderId, [FromBody] RentalOrderUM orderUM)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Invalid request data.");
-            }
-            var response = await _rentalOrderServices.UpdateRentalOrderAsync(orderId, orderUM);
-            if (!response.IsSuccess)
-            {
-                return StatusCode(500, response);
-            }
-            return Ok(response);
-        }
+        
     }
 }
