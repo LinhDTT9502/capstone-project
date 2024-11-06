@@ -77,6 +77,35 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(response);
         }
+        [HttpPost("create-sale-order")]
+        public async Task<IActionResult> CreateOrder([FromBody] SaleOrderCM orderCM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            //Tao order
+            var response = await _orderService.CreatetSaleOrderAsync(orderCM);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+        [HttpPut("update-sale-order")]
+        public async Task<IActionResult> UpdateSaleOrder([FromQuery] int orderId, [FromBody] SaleOrderUM orderUM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            var response = await _orderService.UpdateSaleOrderAsync(orderId, orderUM);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
         /*        [HttpGet]
                 [Route("get-orders-by-date-and-status")]
                 public async Task<IActionResult> GetOrdersByOrderCode(DateTime startDate, DateTime endDate, int status)
@@ -160,37 +189,6 @@ namespace _2Sport_BE.Controllers
                         return BadRequest(response);
                     }
                 }*/
-        [HttpPost("create-sale-order")]
-        public async Task<IActionResult> CreateOrder([FromBody] SaleOrderCM orderCM)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Invalid request data.");
-            }
-            //Tao order
-            var response = await _orderService.CreatetSaleOrderAsync(orderCM);
-            if (!response.IsSuccess)
-            {
-                return StatusCode(500, response);
-            }
-            return Ok(response);
-        }
-
-        [HttpPut("update-sale-order")]
-        public async Task<IActionResult> UpdateSaleOrder([FromQuery] int orderId, [FromBody] SaleOrderUM orderUM)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Invalid request data.");
-            }
-            var response = await _orderService.UpdateSaleOrderAsync(orderId, orderUM);
-            if (!response.IsSuccess)
-            {
-                return StatusCode(500, response);
-            }
-            return Ok(response);
-        }
-
         /*        }  
                 [HttpGet]
                 [Route("get-revenue")]

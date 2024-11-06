@@ -46,7 +46,7 @@ namespace _2Sport_BE.Infrastructure.Helpers
             if (from == null || to == null) return false;
 
             if (from.Value.Date < DateTime.Now.Date || to.Value.Date < DateTime.Now.Date) return false;
-            if (from.Value.Date > to.Value.Date) return false;
+            if (from.Value.Date >= to.Value.Date) return false;
 
             return true;
         }

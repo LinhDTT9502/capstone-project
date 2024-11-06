@@ -54,6 +54,9 @@ namespace _2Sport_BE.Repository.Models
         [Column("ProductName")]
         public string? ProductName { get; set; }
 
+        [Column("ProductCode")]
+        public string? ProductCode { get; set; } //Them ProductCode
+
         [Column("RentPrice", TypeName = "decimal")]
         public decimal? RentPrice { get; set; }
 
@@ -100,12 +103,12 @@ namespace _2Sport_BE.Repository.Models
         public DateTime? ReturnDate { get; set; }
 
         [Column("LateFee", TypeName = "decimal")]
-        public decimal LateFee { get; set; }
+        public decimal? LateFee { get; set; }
         [Column("IsRestocked")]
-        public bool IsRestocked { get; set; } // Track if the product has been restocked
+        public bool? IsRestocked { get; set; } // Track if the product has been restocked
 
         [Column("IsInspected")]
-        public bool IsInspected { get; set; } // Track if the product is inspected upon return
+        public bool? IsInspected { get; set; } // Track if the product is inspected upon return
 
         [Column("DamageFee", TypeName = "decimal")]
         public decimal? DamageFee { get; set; }

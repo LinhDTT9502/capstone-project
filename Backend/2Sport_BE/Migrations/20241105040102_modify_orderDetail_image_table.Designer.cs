@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241105040102_modify_orderDetail_image_table")]
+    partial class modify_orderDetail_image_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -511,10 +514,6 @@ namespace _2Sport_BE.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("varchar")
                         .HasColumnName("ImgAvatarPath");
-
-                    b.Property<string>("ProductCode")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ProductCode");
 
                     b.Property<int?>("ProductId")
                         .HasColumnType("int")

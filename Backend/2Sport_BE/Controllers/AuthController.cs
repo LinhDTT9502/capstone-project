@@ -9,6 +9,7 @@ using AutoMapper;
 using _2Sport_BE.Services;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using _2Sport_BE.Infrastructure.DTOs;
+using _2Sport_BE.Repository.Models;
 
 namespace _2Sport_BE.Controllers
 {
@@ -93,12 +94,25 @@ namespace _2Sport_BE.Controllers
 
             if (result.IsSuccess)
             {
-                return StatusCode(201, new { processStatus = result.Message, userId = result.Data });
-            }
+                var user = await _unitOfWork.UserRepository
+                           .GetObjectAsync(_ =>
+                           _.Email.ToLower().Equals(registerModel.Email.ToLower()) ||
+                           _.UserName.Equals(registerModel.Username));
 
+                var token = await _mailService.GenerateEmailVerificationTokenAsync(user.Email);
+                user.Token = token;
+                await _userService.UpdateUserAsync(user.Id, user);
+
+                var verificationLink = Url.Action("VerifyEmail", "User", new { token = token, email = user.Email }, Request.Scheme);
+
+                var isSent = await _mailService.SendVerifyEmailAsync(verificationLink, user.Email);
+                if (isSent)
+                {
+                    return StatusCode(201, new { processStatus = result.Message, userId = result.Data });
+                }
+            }
             return StatusCode(500, result);
         }
-
         [Route("refresh-token")]
         [HttpPost]
         public async Task<IActionResult> RefreshAsync([FromBody] TokenModel request)

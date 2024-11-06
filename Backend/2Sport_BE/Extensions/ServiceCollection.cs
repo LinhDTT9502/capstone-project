@@ -18,7 +18,7 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddDbContext<TwoSportCapstoneDbContext>(options => options
             .UseSqlServer(GetConnectionStrings(),
-            b => b.MigrationsAssembly("2Sport_BE")));
+            b => b.MigrationsAssembly("2Sport_BE")), ServiceLifetime.Transient);
             #region User_Services
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();

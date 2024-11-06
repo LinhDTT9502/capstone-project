@@ -178,6 +178,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     return response;
                 }
                 await _unitOfWork.UserRepository.DeleteAsync(id);
+                await _unitOfWork.SaveChanges();  
                 response.IsSuccess = true;
                 response.Message = "User removed successfully.";
                 response.Data = true;

@@ -118,7 +118,7 @@ namespace _2Sport_BE.Repository.Implements
                 }
             }
             // Using AsNoTracking for read-only queries
-            return await query.AsNoTracking().ToListAsync();
+            return await query.ToListAsync();
         }
 
         public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> filter = null, params string[] includes)
@@ -228,7 +228,7 @@ namespace _2Sport_BE.Repository.Implements
         public async Task<T> GetObjectAsync(Expression<Func<T, bool>> filter = null)
         {
             IQueryable<T> query = _dbSet;
-            return await query.Where(filter).FirstOrDefaultAsync();
+            return await query.Where(filter).AsNoTracking().FirstOrDefaultAsync();
         }
         public async Task<T> GetObjectAsync(Expression<Func<T, bool>> filter = null, params string[] includes)
         {
@@ -241,7 +241,7 @@ namespace _2Sport_BE.Repository.Implements
                     query = query.Include(include);
                 }
             }
-            return await query.Where(filter).FirstOrDefaultAsync();
+            return await query.AsNoTracking().Where(filter).FirstOrDefaultAsync();
         }
 
         public async Task InsertAsync(T entity)
@@ -258,9 +258,11 @@ namespace _2Sport_BE.Repository.Implements
 
         public async Task UpdateAsync(T entityToUpdate)
         {
-            _dbSet.Attach(entityToUpdate);
+            if (_dbContext.Entry(entityToUpdate).State == EntityState.Detached)
+            {
+                _dbSet.Attach(entityToUpdate);
+            }
             _dbContext.Entry(entityToUpdate).State = EntityState.Modified;
-
             await _dbContext.SaveChangesAsync();
         }
 
