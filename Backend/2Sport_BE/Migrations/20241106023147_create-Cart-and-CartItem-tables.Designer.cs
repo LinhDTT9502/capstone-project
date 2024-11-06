@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241106023147_create-Cart-and-CartItem-tables")]
+    partial class createCartandCartItemtables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -480,6 +483,10 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("BlogId")
+                        .HasColumnType("int")
+                        .HasColumnName("BlogId");
+
                     b.Property<int?>("ProductId")
                         .HasColumnType("int")
                         .HasColumnName("ProductId");
@@ -489,6 +496,8 @@ namespace _2Sport_BE.Migrations
                         .HasColumnName("UserId");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BlogId");
 
                     b.HasIndex("ProductId");
 
@@ -549,15 +558,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedAt");
-
-                    b.Property<string>("ImgAvatarPath")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar")
-                        .HasColumnName("ImgAvatarPath");
-
-                    b.Property<string>("ProductCode")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ProductCode");
 
                     b.Property<int?>("ProductId")
                         .HasColumnType("int")
@@ -841,11 +841,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<int?>("PaymentStatus")
                         .HasColumnType("int")
                         .HasColumnName("PaymentStatus");
-
-                    b.Property<string>("ProductCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ProductCode");
 
                     b.Property<int?>("ProductId")
                         .HasColumnType("int")
@@ -1449,6 +1444,10 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Like", b =>
                 {
+                    b.HasOne("_2Sport_BE.Repository.Models.Blog", "Blog")
+                        .WithMany("Likes")
+                        .HasForeignKey("BlogId");
+
                     b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
                         .WithMany("Likes")
                         .HasForeignKey("ProductId");
@@ -1456,6 +1455,8 @@ namespace _2Sport_BE.Migrations
                     b.HasOne("_2Sport_BE.Repository.Models.User", "User")
                         .WithMany("Likes")
                         .HasForeignKey("UserId");
+
+                    b.Navigation("Blog");
 
                     b.Navigation("Product");
 
@@ -1645,6 +1646,11 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Branch");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Blog", b =>
+                {
+                    b.Navigation("Likes");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Branch", b =>

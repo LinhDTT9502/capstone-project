@@ -32,13 +32,16 @@ namespace _2Sport_BE.Helpers
             #endregion
             #region Blog
             CreateMap<Blog, BlogVM>()
+                .ForMember(dest => dest.BlogId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.CreatedByStaffId, opt => opt.MapFrom(src => src.CreatedStaffId))
+                .ForMember(dest => dest.EditedByStaffId, opt => opt.MapFrom(src => src.EditedByStaffId))
                 .ForMember(dest => dest.CreatedByStaffName, opt => opt.MapFrom(src => src.CreatedByStaff.User.UserName))
                 .ForMember(dest => dest.CreatedByStaffFullName, opt => opt.MapFrom(src => src.CreatedByStaff.User.FullName))
                 .ForMember(dest => dest.EditedByStaffName, opt => opt.MapFrom(src => src.EditedByStaff.User.UserName))
                 .ForMember(dest => dest.EditedByStaffFullName, opt => opt.MapFrom(src => src.EditedByStaff.User.FullName))
                 .ReverseMap();
-            CreateMap<CustomerCM, Customer>();
-            CreateMap<CustomerUM, Customer>();
+            CreateMap<BlogCM, Blog>();
+            CreateMap<BlogUM, Blog>();
             #endregion
             #region Customer
             CreateMap<Customer, CustomerVM>();
@@ -97,6 +100,13 @@ namespace _2Sport_BE.Helpers
             CreateMap<Category, CategoryCM>().ReverseMap();
             CreateMap<Category, CategoryUM>().ReverseMap();
             #endregion
+            #region CartItem
+            CreateMap<CartItem, CartItemVM>()
+                .ForMember(dest => dest.MainImagePath, opt => opt.MapFrom(src => src.Product.ImgAvatarPath))
+                .ReverseMap();
+            CreateMap<CartItem, CartItemCM>().ReverseMap();
+            CreateMap<CartItem, CartItemUM>().ReverseMap();
+            #endregion
             #region Product
             CreateMap<Product, ProductVM>()
                 .ForMember(dest => dest.BrandName, opt => opt.MapFrom(src => src.Brand.BrandName))
@@ -113,16 +123,15 @@ namespace _2Sport_BE.Helpers
             CreateMap<ImportCM, ImportHistory>().ReverseMap();
             CreateMap<ImportUM, ImportHistory>().ReverseMap();
             #endregion
-
             #region ImageVideo
             CreateMap<ImagesVideo, ImagesVideoVM>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
                 .ReverseMap();
 
             #endregion
-
             #region Warehouse
             CreateMap<Warehouse, WarehouseVM>()
+                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.BranchName))
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
                 .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.Product.Id))
                 .ReverseMap();

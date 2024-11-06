@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using _2Sport_BE.Service.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace _2Sport_BE.Controllers
 {
@@ -16,13 +17,16 @@ namespace _2Sport_BE.Controllers
     {
         private readonly IWarehouseService _warehouseService;
         private readonly IProductService _productService;
+        private readonly IBranchService _branchService;
         private readonly IMapper _mapper;
         public WarehouseController(IWarehouseService warehouseService,
                                    IProductService productService,
+                                   IBranchService branchService,
                                    IMapper mapper)
         {
             _productService = productService;
             _warehouseService = warehouseService;
+            _branchService = branchService;
             _mapper = mapper;
         }
 
@@ -35,9 +39,14 @@ namespace _2Sport_BE.Controllers
                 var query = (await _warehouseService.ListAllAsync()).Include(_ => _.Product).ToList();
                 foreach (var item in query)
                 {
-                    if (item.ProductId != null)
+                    if (item.ProductId > 0)
                     {
                         item.Product = await _productService.GetProductById((int)item.ProductId);
+                    }
+
+                    if (item.BranchId > 0)
+                    {
+                        item.Branch = await _branchService.GetBranchById((int)item.BranchId);
                     }
                 }
                 var result = _mapper.Map<List<WarehouseVM>>(query);
@@ -47,6 +56,29 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest(e);
             }
+        }
+
+
+
+        [HttpGet]
+        [Route("list-products-of-branch/{branchId}")]
+        public async Task<IActionResult> GetProductsOfBranch(int branchId)
+        {
+            var query = (await _warehouseService.GetProductsOfBranch(branchId)).ToList();
+            foreach (var item in query)
+            {
+                if (item.ProductId > 0)
+                {
+                    item.Product = await _productService.GetProductById((int)item.ProductId);
+                }
+
+                if (item.BranchId > 0)
+                {
+                    item.Branch = await _branchService.GetBranchById((int)item.BranchId);
+                }
+            }
+            var result = _mapper.Map<List<WarehouseVM>>(query.ToList());
+            return Ok(new { total = result.Count, data = result });
         }
 
         [HttpGet]

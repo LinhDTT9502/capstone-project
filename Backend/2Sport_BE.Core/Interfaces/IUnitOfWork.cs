@@ -9,6 +9,8 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<Brand> BrandRepository { get; }
         IGenericRepository<Branch> BranchRepository { get; }
         IGenericRepository<BrandBranch> BrandBranchRepository { get; }
+        IGenericRepository<Cart> CartRepository { get; }
+        IGenericRepository<CartItem> CartItemRepository { get; }
         IGenericRepository<Category> CategoryRepository { get; }
         IGenericRepository<Comment> CommentRepository { get; }
         IGenericRepository<ImagesVideo> ImagesVideoRepository { get; }

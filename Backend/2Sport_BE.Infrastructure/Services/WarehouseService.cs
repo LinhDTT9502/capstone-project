@@ -26,6 +26,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task AdjustStockLevel(Warehouse productInWarehouse, int? quantity, bool isRestock);
 
         bool IsStockAvailable(Warehouse productInWarehouse, int quantity);
+        Task<IQueryable<Warehouse>> GetProductsOfBranch(int branchId);
     }
     public class WarehouseService : IWarehouseService
     {
@@ -127,6 +128,12 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             productInWarehouse.AvailableQuantity -= quantity;
             await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
+        }
+
+        public async Task<IQueryable<Warehouse>> GetProductsOfBranch(int branchId)
+        {
+            var listProductByBranchId = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.BranchId == branchId);
+            return listProductByBranchId.AsQueryable();
         }
     }
 }
