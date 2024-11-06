@@ -1124,6 +1124,26 @@ namespace _2Sport_BE.Controllers
 
         }
 
+        [HttpPut]
+        [Route("edit-description-of-product/{productId}")]
+        public async Task<IActionResult> EditDescriptionOfProduct(int productId, string description)
+        {
+            try
+            {
+                var editedProduct = await _productService.GetProductById(productId);
+                if (editedProduct == null)
+                {
+                    return BadRequest($"There is no any products with id {productId}");
+                }
+                editedProduct.Description = description;
+                await _productService.UpdateProduct(editedProduct);
+                return Ok("Save successfully!");
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpDelete]
         [Route("delete-product/{productId}")]
         public async Task<IActionResult> DeleteProduct(int productId)
