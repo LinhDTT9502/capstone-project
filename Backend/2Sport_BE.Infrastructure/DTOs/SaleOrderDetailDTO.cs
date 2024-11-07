@@ -17,6 +17,7 @@
     }
     public class SaleOrderDetailVM : SaleOrderDetailDTO
     {
+        public string? ImgAvatarPath { get; set; }
         public decimal? TotalPrice { get; set; }
     }
 }

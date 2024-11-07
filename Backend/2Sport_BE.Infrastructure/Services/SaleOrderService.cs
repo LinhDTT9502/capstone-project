@@ -116,20 +116,8 @@ namespace _2Sport_BE.Infrastructure.Services
                     return response;
                 }
 
-                var saleOrderVM = _mapper.Map<SaleOrderVM>(saleOrder);
-                saleOrderVM.PaymentStatus = Enum.GetName((PaymentStatus)saleOrder.PaymentStatus);
-                saleOrderVM.OrderStatus = Enum.GetName((OrderStatus)saleOrder.OrderStatus);
-                saleOrderVM.PaymentMethod = saleOrder.PaymentMethodId != null
-                                ? Enum.GetName(typeof(OrderMethods), saleOrder.PaymentMethodId) : null;
-                saleOrderVM.SaleOrderId = saleOrder.Id;
-                saleOrderVM.SaleOrderDetailVMs = saleOrder.OrderDetails.Select(od => new SaleOrderDetailVM()
-                {
-                    ProductId = od.ProductId,
-                    ProductName = od.ProductName,
-                    UnitPrice = od.UnitPrice,
-                    Quantity = od.Quantity,
-                    TotalPrice = od.TotalAmount,
-                }).ToList();
+                var saleOrderVM = MapSaleOrderToSaleOrderVM(saleOrder);
+
 
                 response.IsSuccess = true;
                 response.Message = "Query successfully";
@@ -478,6 +466,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 UnitPrice = od.UnitPrice,
                 Quantity = od.Quantity,
                 TotalPrice = od.TotalAmount,
+                ImgAvatarPath = od.ImgAvatarPath,
             }).ToList();
             return result;
         }

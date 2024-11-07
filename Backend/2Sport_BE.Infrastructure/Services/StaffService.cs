@@ -52,6 +52,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         UserId = staffCM.UserId,
                     };
                     await _unitOfWork.StaffRepository.InsertAsync(staff);
+                    await _unitOfWork.SaveChanges();
                     //Return
                     var result = _mapper.Map<StaffVM>(staff);
 
@@ -91,7 +92,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 else
                 {
                     await _unitOfWork.StaffRepository.DeleteAsync(toDeleted);
-
+                    await _unitOfWork.SaveChanges();
                     response.IsSuccess = true;
                     response.Message = "Deleted Successfully";
                     response.Data = 1;
@@ -228,7 +229,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 {
                     staff = _mapper.Map<Staff>(staffUM);
                     await _unitOfWork.StaffRepository.UpdateAsync(staff);
-
+                    await _unitOfWork.SaveChanges();
                     //Return
                     var result = _mapper.Map<StaffVM>(staff);
                     response.IsSuccess = true;
