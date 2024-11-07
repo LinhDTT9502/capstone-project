@@ -158,7 +158,6 @@ namespace _2Sport_BE.Controllers
                 updatedCategory.CategoryName = categoryUM.CategoryName;
                 updatedCategory.SportId = categoryUM.SportId;
                 updatedCategory.Sport = await _sportService.GetSportById(categoryUM.SportId);
-                updatedCategory.Description = categoryUM.Description;
                 if (categoryUM.CategoryImage != null)
                 {
                     var uploadResult = await _imageService.UploadImageToCloudinaryAsync(categoryUM.CategoryImage);
