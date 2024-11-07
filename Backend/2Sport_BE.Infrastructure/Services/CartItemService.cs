@@ -158,10 +158,8 @@ namespace _2Sport_BE.Service.Services
         public async Task<CartItem> GetCartItemByUserIdAndProductId(int userId, int productId)
         {
             var cart = (await _cartRepository.GetAsync(_ => _.UserId == userId)).FirstOrDefault();
-            var queryCartItem = (await _cartItemRepository.GetAsync(_ => _.CartId == cart.Id && _.ProductId == productId))
-                                                      .AsQueryable()
-                                                      .AsNoTracking()
-                                                      .FirstOrDefault();
+            var queryCartItem = (await _cartItemRepository
+                                .GetObjectAsync(_ => _.CartId == cart.Id && _.ProductId == productId));
             return queryCartItem;
 
         }
