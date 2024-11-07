@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -40,7 +40,5 @@ namespace _2Sport_BE.Repository.Models
         public virtual Staff EditedByStaff { get; set; }
 
         public bool Status { get; set; }
-
-        public virtual User User { get; set; }
     }
 }
