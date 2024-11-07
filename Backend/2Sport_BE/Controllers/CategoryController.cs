@@ -204,5 +204,20 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(ex);
             }
         }
+
+        [HttpDelete]
+        [Route("delete-category/{categoryId}")]
+        public async Task<IActionResult> DeleteCategory(int categoryId)
+        {
+            try
+            {
+                await _categoryService.DeleteCategoryById(categoryId);
+                return Ok("Delete category successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
     }
 }
