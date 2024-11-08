@@ -142,17 +142,17 @@ namespace _2Sport_BE.Controllers
 
         [HttpGet]
         [Route("list-conditions-of-product/{productCode}")]
-        public async Task<IActionResult> GetConditionsOfProduct(string productCode)
+        public async Task<IActionResult> GetConditionsOfProduct(string productCode, string color, string size)
         {
-            var conditions = await _productService.GetConditionsOfProduct(productCode);
+            var conditions = await _productService.GetConditionsOfProduct(productCode, color, size);
             return Ok(new { total = conditions.Count, data = conditions });
         }
 
         [HttpGet]
         [Route("list-sizes-of-product/{productCode}")]
-        public async Task<IActionResult> GetSizesOfProduct(string productCode)
+        public async Task<IActionResult> GetSizesOfProduct(string productCode, string color)
         {
-            var sizes = await _productService.GetSizesOfProduct(productCode);
+            var sizes = await _productService.GetSizesOfProduct(productCode, color);
             return Ok(new { total = sizes.Count, data = sizes });
         }
 
