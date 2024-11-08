@@ -35,8 +35,10 @@ namespace _2Sport_BE.Services
         Task<bool> SendForgotPasswordEmailAsync(string resetLink, string email);
         Task<string> GenerateEmailVerificationTokenAsync(string email);
         Task<bool> SendSaleOrderInformationToCustomer(SaleOrder saleOrder, List<OrderDetail> orderDetails, string emailStr);
+        Task<bool> SendRentalOrderInformationToCustomer(RentalOrder rentalOrder, List<RentalOrder> rentalOrders, string emailStr);
+
         bool IsValidEmail(string email);
-        Task<bool> SendEMailAsync(string email, string content);
+        Task<bool> SenOTPMaillAsync(string email, string content);
     }
 
     public class MailService : IMailService
@@ -44,6 +46,7 @@ namespace _2Sport_BE.Services
         private const string VERIFY_EMAIL_CONSTANT = "Verify Your Mail";
         private const string FORGOT_PASSWORD_CONSTANT = "Reset Your Password";
         private const string ORDER_INFORMAION_CONSTANT = "SaleOrder Information";
+        private const string RENTAL_ORDER_INFORMAION_CONSTANT = "RentalOrder Information";
 
         private readonly IConfiguration _configuration;
         private readonly ILogger<MailService> _logger;
@@ -70,6 +73,7 @@ namespace _2Sport_BE.Services
             };
             _unitOfWork = unitOfWork;
         }
+
         public bool IsValidEmail(string email)
         {
             string regex = @"^[^@\s]+@[^@\s]+\.(com|net|org|gov)$";
@@ -209,29 +213,22 @@ namespace _2Sport_BE.Services
                 var templateContent = await File.ReadAllTextAsync(templatePath);
 
                 templateContent = templateContent
-                    .Replace("{{OrderCode}}", saleOrder.OrderCode);
-                templateContent = templateContent
-                    .Replace("{{CreatedAt}}", saleOrder.CreatedAt.ToString());
-                templateContent = templateContent
-                    .Replace("{{TotalAmount}}", FormatCurrency(saleOrder.TotalAmount));
-                templateContent = templateContent
-                    .Replace("{{FullName}}", saleOrder.FullName);
-                templateContent = templateContent
-                    .Replace("{{Address}}", saleOrder.Address);
-                templateContent = templateContent
-                    .Replace("{{ContactPhone}}", saleOrder.ContactPhone);
-                templateContent = templateContent
-                   .Replace("{{Count}}", orderDetails.Count.ToString());
-                templateContent = templateContent
-                   .Replace("{{SubTotal}}", FormatCurrency((decimal)saleOrder.SubTotal));
-                templateContent = templateContent
+                    .Replace("{{OrderCode}}", saleOrder.OrderCode)
+                    .Replace("{{CreatedAt}}", saleOrder.CreatedAt.ToString())
+                    .Replace("{{CreatedAt}}", saleOrder.CreatedAt.ToString())
+                    .Replace("{{TotalAmount}}", FormatCurrency(saleOrder.TotalAmount))
+                    .Replace("{{FullName}}", saleOrder.FullName)
+                    .Replace("{{Address}}", saleOrder.Address)
+                    .Replace("{{ContactPhone}}", saleOrder.ContactPhone)
+                    .Replace("{{Count}}", orderDetails.Count.ToString())
+                    .Replace("{{SubTotal}}", FormatCurrency((decimal)saleOrder.SubTotal))
                     .Replace("{{TransportFee}}", saleOrder.TranSportFee.ToString());
+                    
                 StringBuilder filledHtml = new StringBuilder();
                 foreach (var item in orderDetails)
                 {
                     string productHtml = templateContent;
 
-                    // Replace the placeholders with actual product data
                     templateContent = templateContent.Replace("{{ProductImage}}", item.ImgAvatarPath)
                                              .Replace("{{ProductName}}", item.ProductName)
                                              .Replace("{{Quantity}}", item.Quantity.ToString())
@@ -274,21 +271,22 @@ namespace _2Sport_BE.Services
             return status;
         }
 
-        public async Task<bool> SendEMailAsync(string email, string content)
+        public async Task<bool> SenOTPMaillAsync(string mail, string otp)
         {
             bool status = false;
-            /*try
+            try
             {
-                var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "Forgot_Password_Email.html");
+                //var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "Generate_OTP_Email.html");
+                var templatePath = "C:\\Users\\NguyenTuanVu\\Desktop\\Capstone\\new_brand\\capstone-project\\Backend\\2Sport_BE\\Templates\\Generate_OTP_Email.html";
                 var templateContent = await File.ReadAllTextAsync(templatePath);
 
                 var emailContent = templateContent
-                    .Replace("{{ChangePasswordLink}}", resetLink);
+                    .Replace("{{OTP}}", otp);
 
                 var email = new MimeMessage();
                 email.From.Add(MailboxAddress.Parse(_mailSettings.Mail));
                 email.To.Add(MailboxAddress.Parse(mail));
-                email.Subject = FORGOT_PASSWORD_CONSTANT;
+                email.Subject = VERIFY_EMAIL_CONSTANT;
                 email.Body = new TextPart("html") { Text = emailContent };
 
                 using (var client = new MailKit.Net.Smtp.SmtpClient())
@@ -315,7 +313,93 @@ namespace _2Sport_BE.Services
                 };
                 await _unitOfWork.ErrorLogRepository.InsertAsync(errorLog);
                 await _unitOfWork.SaveChanges();
-            }*/
+            }
+            return status;
+        }
+
+        public async Task<bool> SendRentalOrderInformationToCustomer(RentalOrder rentalOrder, List<RentalOrder> rentalOrders, string emailStr)
+        {
+            bool status = false;
+            try
+            {
+                var templatePath = "C:\\Users\\NguyenTuanVu\\Desktop\\Capstone\\new_brand\\capstone-project\\Backend\\2Sport_BE\\Templates\\Rental_Order_Email.html";
+                var templateContent = await File.ReadAllTextAsync(templatePath);
+
+                templateContent = templateContent
+                    .Replace("{{OrderCode}}", rentalOrder.ParentOrderCode)
+                    .Replace("{{CreatedAt}}", rentalOrder.CreatedAt.ToString())
+                    .Replace("{{TotalAmount}}", FormatCurrency(rentalOrder.TotalAmount))
+                    .Replace("{{FullName}}", rentalOrder.FullName)
+                    .Replace("{{Address}}", rentalOrder.Address)
+                    .Replace("{{ContactPhone}}", rentalOrder.ContactPhone)
+                    .Replace("{{Count}}", rentalOrders.Count.ToString())
+                    .Replace("{{SubTotal}}", FormatCurrency((decimal)rentalOrder.SubTotal))
+                    .Replace("{{TransportFee}}", rentalOrder.TranSportFee.ToString());
+
+                StringBuilder filledHtml = new StringBuilder();
+                if (!rentalOrders.Any())
+                {
+                    string productHtml = templateContent;
+
+                    productHtml = productHtml.Replace("{{ProductImage}}", rentalOrder.ImgAvatarPath)
+                                             .Replace("{{ProductName}}", rentalOrder.ProductName)
+                                             .Replace("{{Quantity}}", rentalOrder.Quantity.ToString())
+                                             .Replace("{{RentalStartDate}}", rentalOrder.RentalStartDate.ToString())
+                                             .Replace("{{RentalEndDate}}", rentalOrder.RentalEndDate.ToString())
+                                             .Replace("{{UnitPrice}}", FormatCurrency((decimal)rentalOrder.RentPrice));
+
+                    // Append this product's HTML to the final HTML
+                    filledHtml.Append(productHtml);
+                }
+                else
+                {
+                    foreach (var item in rentalOrders)
+                    {
+                        string productHtml = templateContent;
+
+                        productHtml = productHtml.Replace("{{ProductImage}}", item.ImgAvatarPath)
+                                                 .Replace("{{ProductName}}", item.ProductName)
+                                                 .Replace("{{Quantity}}", item.Quantity.ToString())
+                                                 .Replace("{{RentalStartDate}}", item.RentalStartDate.ToString())
+                                                 .Replace("{{RentalEndDate}}", item.RentalEndDate.ToString())
+                                                 .Replace("{{UnitPrice}}", FormatCurrency((decimal)item.RentPrice));
+
+                        // Append this product's HTML to the final HTML
+                        filledHtml.Append(productHtml);
+                    }
+                }
+                
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse(_mailSettings.Mail));
+                email.To.Add(MailboxAddress.Parse(emailStr));
+                email.Subject = RENTAL_ORDER_INFORMAION_CONSTANT;
+                email.Body = new TextPart("html") { Text = templateContent };
+
+                using (var client = new MailKit.Net.Smtp.SmtpClient())
+                {
+                    await client.ConnectAsync(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTlsWhenAvailable);
+                    client.AuthenticationMechanisms.Remove("XOAUTH2");
+                    await client.AuthenticateAsync(_mailSettings.Mail, _mailSettings.SecrectKey);
+                    await client.SendAsync(email);
+                    await client.DisconnectAsync(true);
+                }
+                status = true;
+
+            }
+            catch (Exception ex)
+            {
+                status = false;
+                _logger.LogError($"Error sending email: {ex.Message}");
+                var errorLog = new ErrorLog
+                {
+                    ErrorMessage = ex.Message,
+                    StackTrace = ex.StackTrace,
+                    InnerException = ex.InnerException?.Message,
+                    Source = ex.Source
+                };
+                await _unitOfWork.ErrorLogRepository.InsertAsync(errorLog);
+                await _unitOfWork.SaveChanges();
+            }
             return status;
         }
     }

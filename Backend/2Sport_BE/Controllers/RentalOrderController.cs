@@ -114,6 +114,21 @@ namespace _2Sport_BE.Controllers
             }
             return Ok(response);
         }
+        [HttpPost("create-extend-request")]
+        public async Task<IActionResult> CreateOrder([FromBody] ExtendRentalModel extendRentalModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            var response = await _rentalOrderServices
+                .RequestExtendRentalPeriod(extendRentalModel.orderCode, extendRentalModel.quantity, extendRentalModel.quantity.Value);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
         [HttpPut("update-rental-order")]
         public async Task<IActionResult> UpdateRentalOrder([FromQuery] int orderId, [FromBody] RentalOrderUM orderUM)
         {

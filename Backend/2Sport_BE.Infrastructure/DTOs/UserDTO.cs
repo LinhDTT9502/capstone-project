@@ -121,4 +121,15 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         public string NewPassword { get; set; }
     }
+    public class VerifyOTPModel
+    {
+
+        [Required(ErrorMessage = "Username is required")]
+        public string Username { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        public string Email { get; set; }
+        [Required(ErrorMessage = "OtpCode is required")]
+        public string OtpCode { get; set; }
+    }
 }

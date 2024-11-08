@@ -99,7 +99,12 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public string? PaymentStatus { get; set; }
         public DateTime? CreatedAt { get; set; }
         public string? PaymentLink { get; set; }
-        public List<RentalOrderVM> listChild { get; set; }
+        public List<RentalOrderVM>? listChild { get; set; }
     }
-
-}
+    public class ExtendRentalModel
+    {
+        public string orderCode { get; set; }
+        public int? quantity { get; set; }
+        public int period { get; set; }
+    }
+}   

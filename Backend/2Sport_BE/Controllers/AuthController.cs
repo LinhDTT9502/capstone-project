@@ -10,6 +10,7 @@ using _2Sport_BE.Services;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Repository.Models;
+using _2Sport_BE.Infrastructure.Helpers;
 
 namespace _2Sport_BE.Controllers
 {
@@ -23,14 +24,15 @@ namespace _2Sport_BE.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IMailService _mailService;
-
+        private readonly IMethodHelper _methodHelper;
         public AuthController(
             IUserService userService,
             IAuthService identityService,
             IRefreshTokenService refreshTokenService,
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            IMailService mailService)
+            IMailService mailService,
+            IMethodHelper methodHelper)
         {
             _userService = userService;
             _identityService = identityService;
@@ -38,6 +40,7 @@ namespace _2Sport_BE.Controllers
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _mailService = mailService;
+            _methodHelper = methodHelper;
         }
 
         [Route("sign-in")]
@@ -112,6 +115,73 @@ namespace _2Sport_BE.Controllers
                 }
             }
             return StatusCode(500, result);
+        }
+        [Route("sign-up-mobile")]
+        [HttpPost]
+        public async Task<IActionResult> SignUpForMobile([FromBody] RegisterModel registerModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (!_mailService.IsValidEmail(registerModel.Email))
+            {
+                return BadRequest("Email is invalid!");
+            }
+
+            var result = await _identityService.SignUpAsync(registerModel);
+
+            if (result.IsSuccess)
+            {
+                var user = await _unitOfWork.UserRepository
+                           .GetObjectAsync(_ =>
+                           _.Email.ToLower().Equals(registerModel.Email.ToLower()) ||
+                           _.UserName.Equals(registerModel.Username));
+
+                var otp = _methodHelper.GenerateOTPCode();
+                user.Token = otp;
+                await _userService.UpdateUserAsync(user.Id, user);
+
+                var isSent = await _mailService.SenOTPMaillAsync(user.Email, otp);
+                if (isSent)
+                {
+                    return StatusCode(201, new { processStatus = result.Message, userId = result.Data });
+                }
+            }
+            return StatusCode(500, result);
+        }
+        [Route("verify-account-mobile")]
+        [HttpPost]
+        public async Task<IActionResult> VerifyForMobile([FromBody] VerifyOTPModel verifyOTPModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (!_mailService.IsValidEmail(verifyOTPModel.Email))
+            {
+                return BadRequest("Email is invalid!");
+            }
+
+            var user = await _unitOfWork.UserRepository
+                       .GetObjectAsync(_ =>
+                       _.Email.ToLower().Equals(verifyOTPModel.Email.ToLower()) &&
+                       _.UserName.Equals(verifyOTPModel.Username));
+
+            if (user != null)
+            {
+                user.Token = null;
+                user.EmailConfirmed = true;
+                await _userService.UpdateUserAsync(user.Id, user);
+
+                return StatusCode(200, "Verify successfully");
+            }
+            else
+            {
+                return StatusCode(500, "Your account is not found!");
+            }
         }
         [Route("refresh-token")]
         [HttpPost]

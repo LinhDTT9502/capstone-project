@@ -1,6 +1,7 @@
 ﻿using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
+using Microsoft.VisualBasic;
 
 namespace _2Sport_BE.Service.Services
 {
@@ -26,6 +27,7 @@ namespace _2Sport_BE.Service.Services
         public async Task AddShipmentDetail(ShipmentDetail shipmentDetail)
         {
             await _unitOfWork.ShipmentDetailRepository.InsertAsync(shipmentDetail);
+            await _unitOfWork.SaveChanges();
         }
 
         public async Task AddShipmentDetails(IEnumerable<ShipmentDetail> shipmentDetails)
@@ -35,10 +37,10 @@ namespace _2Sport_BE.Service.Services
 
         public async Task DeleteShipmentDetailById(int id)
         {
-            var result = await _unitOfWork.ShipmentDetailRepository.GetAsync(_ => _.Id == id);
+            var result = await _unitOfWork.ShipmentDetailRepository.GetObjectAsync(_ => _.Id == id);
             if(result != null)
             {
-                dbContext.ShipmentDetails.Remove(result.FirstOrDefault());
+                await _unitOfWork.ShipmentDetailRepository.DeleteAsync(result);
                 await _unitOfWork.SaveChanges();
             }
         }
@@ -58,6 +60,7 @@ namespace _2Sport_BE.Service.Services
         public async Task UpdateShipmentDetail(ShipmentDetail shipmentDetail)
         {
             await _unitOfWork.ShipmentDetailRepository.UpdateAsync(shipmentDetail);
+            await _unitOfWork.SaveChanges();
         }
     }
 }

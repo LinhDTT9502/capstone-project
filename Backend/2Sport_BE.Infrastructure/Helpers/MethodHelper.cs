@@ -5,11 +5,19 @@ namespace _2Sport_BE.Infrastructure.Helpers
     public interface IMethodHelper
     {
         string GenerateOrderCode();
+        string GenerateOTPCode();
+
         bool AreAnyStringsNullOrEmpty(PaymentResponse response);
         bool CheckValidOfRentalDate(DateTime? from, DateTime? to);
     }
     public class MethodHelper : IMethodHelper
     {
+        public string GenerateOTPCode()
+        {
+            Random random = new Random();
+            string randomPart = random.Next(100000, 999999).ToString();
+            return randomPart;
+        }
         public string GenerateOrderCode()
         {
             string datePart = DateTime.UtcNow.ToString("yyMMdd");
