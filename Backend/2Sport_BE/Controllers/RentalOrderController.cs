@@ -1,7 +1,12 @@
-﻿using _2Sport_BE.Infrastructure.DTOs;
+﻿using _2Sport_BE.DataContent;
+using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Infrastructure.Enums;
+using _2Sport_BE.Infrastructure.Hubs;
+using _2Sport_BE.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using System.Security.Claims;
 
 namespace _2Sport_BE.Controllers
 {
@@ -9,49 +14,194 @@ namespace _2Sport_BE.Controllers
     [ApiController]
     public class RentalOrderController : ControllerBase
     {
-        /*[HttpPost("checkout-rental-order")]
-        public async Task<IActionResult> HandleCheckoutRental([FromBody] RentalOrderCM rentalOrderCM)
+        private readonly IRentalOrderService _rentalOrderServices;
+        private readonly IPaymentService _paymentService;
+        
+        public RentalOrderController(IRentalOrderService rentalOrderServices, IPaymentService paymentService, IHubContext<NotificationHub> hubContext)
+        {
+            _rentalOrderServices = rentalOrderServices;
+            _paymentService = paymentService;
+        }
+
+        [HttpGet]
+        [Route("get-all-rental-orders")]
+        public async Task<IActionResult> GetOrders()
+        {
+            var response = await _rentalOrderServices.GetAllRentalOrderAsync();
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpGet]
+        [Route("get-rental-order-detail")]
+        public async Task<IActionResult> GetOrderByOrderId(int orderId)
+        {
+            var response = await _rentalOrderServices.GetRentalOrderByIdAsync(orderId);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpGet]
+        [Route("get-rental-order-by-user")]
+        public async Task<IActionResult> GetOrdersByUserId(int userId)
+        {
+            var response = await _rentalOrderServices.GetOrdersByUserIdAsync(userId);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpGet]
+        [Route("get-rental-by-parent-code")]
+        public async Task<IActionResult> GetOrderByParentCode(string parentCode)
+        {
+            var response = await _rentalOrderServices.GetRentalOrderByParentCodeAsync(parentCode);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpGet]
+        [Route("get-rental-orders-by-status")]
+        public async Task<IActionResult> GetOrdersByStatus(int? orderStatus, int? paymentStatus)
+        {
+            var response = await _rentalOrderServices.GetRentalOrdersByStatusAsync(orderStatus, paymentStatus);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpGet]
+        [Route("get-rental-order-by-orderCode")]
+        public async Task<IActionResult> GetOrdersByOrderCode(string orderCode)
+        {
+            var response = await _rentalOrderServices.GetRentalOrderByOrderCodeAsync(orderCode);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        /*        [HttpGet]
+                [Route("get-orders-by-date-and-status")]
+                public async Task<IActionResult> GetOrdersByOrderCode(DateTime startDate, DateTime endDate, int status)
+                {
+                    var response = await _orderService.GetOrdersByMonthAndStatus(startDate, endDate, status);
+                    if (response.IsSuccess)
+                    {
+                        return Ok(response);
+                    }
+                    return BadRequest(response);
+                }*/
+        [HttpPost("create-rental-order")]
+        public async Task<IActionResult> CreateOrder([FromBody] RentalOrderCM rentalOrderCM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid request data.");
             }
-            var userId = GetCurrentUserIdFromToken();
-            if (userId != rentalOrderCM.UserID || userId == 0 || rentalOrderCM.UserID == 0)
-            {
-                return Unauthorized();
-            }
-
-            var response = await _rentalOrderService.CreateRentalOrderForCustomer(rentalOrderCM);
+            var response = await _rentalOrderServices.CreateRentalOrderAsync(rentalOrderCM);
             if (!response.IsSuccess)
             {
                 return StatusCode(500, response);
             }
-
-            var paymentLink = rentalOrderCM.PaymentMethodID == (int)OrderMethods.PayOS
-                                  ? await _paymentService.PaymentWithPayOs(response.Data.OrderID)
-                                  : "";
-            if (paymentLink.Length == 0)
-            {
-                return BadRequest("Cannot create payment link");
-            }
-            response.Data.PaymentLink = paymentLink;
             return Ok(response);
-        }*/
-
-       /* [HttpPut("update-rental-orderr")]
+        }
+        [HttpPut("update-rental-order")]
         public async Task<IActionResult> UpdateRentalOrder([FromQuery] int orderId, [FromBody] RentalOrderUM orderUM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid request data.");
             }
-            var response = await _rentalOrderService.UpdateRentailOrderForCustomerAsync(orderId, orderUM);
+            var response = await _rentalOrderServices.UpdateRentalOrderAsync(orderId, orderUM);
             if (!response.IsSuccess)
             {
                 return StatusCode(500, response);
             }
             return Ok(response);
-        }*/
+        }
+        [HttpPut("update-rental-order-status")]
+        public async Task<IActionResult> ChangeOrderStatus(int orderId, int status)
+        {
+            var response = await _rentalOrderServices.ChangeStatusRentalOrderAsync(orderId, status);
+
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        /*        [HttpGet]
+                [Route("revenue-summary")]
+                public async Task<IActionResult> GetSalesOrdersByStatus([FromQuery] DateTime? startDate,
+                                                                        [FromQuery] DateTime? endDate,
+                                                                        [FromQuery] int? status)
+                {
+                    try
+                    {
+                        var query = await _orderService.GetAllSaleOrderQueryableAsync();
+                        if (startDate.HasValue)
+                        {
+                            query = query.Where(o => o.CreatedAt >= startDate.Value);
+                        }
+                        if (endDate.HasValue)
+                        {
+                            query = query.Where(o => o.CreatedAt <= endDate.Value);
+                        }
+
+                        // Lọc theo trạng thái đơn hàng
+                        if (status.HasValue)
+                        {
+                            query = query.Where(o => o.OrderStatus == status.Value);
+                        }
+
+                        var totalRevenue = await query.SumAsync(o => o.TotalAmount);
+                        var totalOrders = await query.CountAsync();
+
+                        decimal totalRevenueInMonth = (decimal)query.Sum(_ => _.TotalAmount);
+                        int ordersInMonth = query.Count();
+                        int ordersInLastMonth = 1;
+                        bool isIncrease;
+                        double orderGrowthRatio = PercentageChange(ordersInMonth, ordersInLastMonth, out isIncrease);
+
+                        SaleOrdersSales ordersSales = new SaleOrdersSales
+                        {
+                            SaleOrderGrowthRatio = totalOrders,
+                            TotalIntoMoney = totalRevenue,
+                            TotalSaleOrders = 0,
+                            IsIncrease = true
+                        };
+
+                        ResponseModel<SaleOrdersSales> response = new ResponseModel<SaleOrdersSales>
+                        {
+                            IsSuccess = true,
+                            Message = "Query Successfully",
+                            Data = ordersSales
+                        };
+
+                        return Ok(response);
+                    }
+                    catch (Exception ex)
+                    {
+                        ResponseModel<OrdersSales> response = new ResponseModel<OrdersSales>
+                        {
+                            IsSuccess = false,
+                            Message = "Something went wrong: " + ex.Message,
+                            Data = null
+                        };
+                        return BadRequest(response);
+                    }
+                }*/
+       
+
+        
     }
 }

@@ -15,17 +15,12 @@ namespace _2Sport_BE.Controllers
 
     public class AdminController : ControllerBase
     {
-        private readonly IUserService _userService;
-        private readonly IMapper _mapper;
+
         private readonly IAdminService _adminService;
         public AdminController(
-            IUserService userService,
-            IMapper mapper,
             IAdminService adminService
             )
         {
-            _userService = userService;
-            _mapper = mapper;
             _adminService = adminService;
         }
 

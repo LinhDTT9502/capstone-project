@@ -42,6 +42,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         EndDate = managerCM.EndDate ?? null,
                     };
                     await _unitOfWork.ManagerRepository.InsertAsync(manager);
+                    await _unitOfWork.SaveChanges();
                     //Return
                     var result = _mapper.Map<ManagerVM>(manager);
                     response.IsSuccess = true;
@@ -81,7 +82,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 else
                 {
                     await _unitOfWork.ManagerRepository.DeleteAsync(toDeleted);
-
+                    await _unitOfWork.SaveChanges();
                     response.IsSuccess = true;
                     response.Message = "Deleted Successfully";
                     response.Data = 1;
@@ -209,7 +210,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 {
                     manager = _mapper.Map<Manager>(managerUM);
                     await _unitOfWork.ManagerRepository.UpdateAsync(manager);
-
+                    await _unitOfWork.SaveChanges();
                     //Return
                     var result = _mapper.Map<ManagerVM>(manager);
                     response.IsSuccess = true;

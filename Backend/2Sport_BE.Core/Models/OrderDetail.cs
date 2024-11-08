@@ -12,16 +12,18 @@ public class OrderDetail
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    [Column("OrderId")]
-    public int? OrderId { get; set; }
+    [Column("SaleOrderId")]
+    public int? SaleOrderId { get; set; }
 
     [Column("ProductId")]
     public int? ProductId { get; set; }
     [Column("ProductName")]
     public string? ProductName { get; set; }
+    [Column("ProductCode")]
+    public string? ProductCode { get; set; }
 
-    [Column("Price", TypeName = "decimal")]
-    public decimal? Price { get; set; }
+    [Column("UnitPrice", TypeName = "decimal")]
+    public decimal? UnitPrice { get; set; }
     [Column("Quantity")]
     public int? Quantity { get; set; }
 
@@ -31,12 +33,16 @@ public class OrderDetail
     public string? BranchName { get; set; }
 
     [NotMapped]
-    public decimal? TotalPrice => Price * Quantity;
+    public decimal? TotalAmount => UnitPrice * Quantity;
     [Column("CreatedAt")]
     public DateTime CreatedAt { get; set; }
 
     [Column("UpdatedAt")]
     public DateTime? UpdatedAt { get; set; }
+
+    [Column("ImgAvatarPath", TypeName = "varchar")]
+    [MaxLength(500)]
+    public string? ImgAvatarPath { get; set; } //Them anh cho detail
 
     public virtual SaleOrder SaleOrder { get; set; }
 

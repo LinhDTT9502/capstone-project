@@ -18,19 +18,30 @@ public class SaleOrder
     public string? OrderCode { get; set; }
     [Column("UserId")]
     public int? UserId { get; set; }
-    [Column("Email")]
-    public string Email { get; set; }
-    [Column("ContactPhone")]
-    public string ContactPhone { get; set; }
     [Column("FullName")]
     public string FullName { get; set; }
+
+    [Column("Gender")]
+    public string Gender { get; set; }//THEM GENDER
+    
+    [Column("Email")]
+    public string Email { get; set; }
+
+    [Column("ContactPhone")]
+    public string ContactPhone { get; set; }
+
     [Column("Address")]
     public string Address { get; set; }
-    [Column("BranchId")]
-    public int? BranchId { get; set; }
+
+    [Column("DeliveryMethod")]
+    [MaxLength(500)]
+    public string DeliveryMethod { get; set; } //PHUONG THUC NHAN HANG
 
     [Column("PaymentMethodId")]
     public int? PaymentMethodId { get; set; }
+
+    [Column("BranchId")]
+    public int? BranchId { get; set; }
 
     [Column("SubTotal", TypeName = "decimal")]
     public decimal? SubTotal { get; set; }
@@ -40,6 +51,11 @@ public class SaleOrder
 
     [Column("TotalAmount", TypeName = "decimal")]
     public decimal TotalAmount { get; set; }
+
+    [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+    [DataType(DataType.DateTime)]
+    [Column("DateOfReceipt")]
+    public DateTime? DateOfReceipt { get; set; } //NGAY NHAN HANG 
 
     [Column("Note", TypeName = "nvarchar")]
     [MaxLength(500)]

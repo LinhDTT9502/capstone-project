@@ -9,6 +9,9 @@ namespace _2Sport_BE.Helpers
     {
         public Mapping()
         {
+            #region RentalOrder
+            CreateMap<RentalOrder, RentalOrderVM>();
+            #endregion
             #region User
             CreateMap<User, UserVM>();
             CreateMap<UserCM, User>();
@@ -26,6 +29,19 @@ namespace _2Sport_BE.Helpers
             CreateMap<Staff, StaffVM>();
             CreateMap<StaffCM, Staff>();
             CreateMap<StaffUM, Staff>();
+            #endregion
+            #region Blog
+            CreateMap<Blog, BlogVM>()
+                .ForMember(dest => dest.BlogId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.CreatedByStaffId, opt => opt.MapFrom(src => src.CreatedStaffId))
+                .ForMember(dest => dest.EditedByStaffId, opt => opt.MapFrom(src => src.EditedByStaffId))
+                .ForMember(dest => dest.CreatedByStaffName, opt => opt.MapFrom(src => src.CreatedByStaff.User.UserName))
+                .ForMember(dest => dest.CreatedByStaffFullName, opt => opt.MapFrom(src => src.CreatedByStaff.User.FullName))
+                .ForMember(dest => dest.EditedByStaffName, opt => opt.MapFrom(src => src.EditedByStaff.User.UserName))
+                .ForMember(dest => dest.EditedByStaffFullName, opt => opt.MapFrom(src => src.EditedByStaff.User.FullName))
+                .ReverseMap();
+            CreateMap<BlogCM, Blog>();
+            CreateMap<BlogUM, Blog>();
             #endregion
             #region Customer
             CreateMap<Customer, CustomerVM>();
@@ -66,14 +82,16 @@ namespace _2Sport_BE.Helpers
             CreateMap<PaymentMethod, PaymentMethodUM>();
             CreateMap<PaymentMethodUM, PaymentMethod>();
             #endregion
-            #region Order
-           /* CreateMap<Order, OrderCM>();
-            CreateMap<Order, OrderVM>();
-            CreateMap<Order, OrderUM>();
-            CreateMap<OrderUM, Order>();*/
+            #region SaleOrder
+            CreateMap<SaleOrderCM, SaleOrder>();
+            CreateMap<SaleOrderUM, SaleOrder>();
+            CreateMap<SaleOrder, SaleOrderVM>();
             #endregion
             #region OrderDetail
             CreateMap<OrderDetail, SaleOrderDetailVM>();
+            CreateMap<SaleOrderDetailUM, OrderDetail>();
+            CreateMap<OrderDetailVM, OrderDetailVM>();
+
             #endregion
             #region Category
             CreateMap<Category, CategoryVM>()
@@ -81,6 +99,13 @@ namespace _2Sport_BE.Helpers
                 .ReverseMap();
             CreateMap<Category, CategoryCM>().ReverseMap();
             CreateMap<Category, CategoryUM>().ReverseMap();
+            #endregion
+            #region CartItem
+            CreateMap<CartItem, CartItemVM>()
+                .ForMember(dest => dest.MainImagePath, opt => opt.MapFrom(src => src.Product.ImgAvatarPath))
+                .ReverseMap();
+            CreateMap<CartItem, CartItemCM>().ReverseMap();
+            CreateMap<CartItem, CartItemUM>().ReverseMap();
             #endregion
             #region Product
             CreateMap<Product, ProductVM>()
@@ -98,14 +123,12 @@ namespace _2Sport_BE.Helpers
             CreateMap<ImportCM, ImportHistory>().ReverseMap();
             CreateMap<ImportUM, ImportHistory>().ReverseMap();
             #endregion
-
             #region ImageVideo
             CreateMap<ImagesVideo, ImagesVideoVM>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
                 .ReverseMap();
 
             #endregion
-
             #region Warehouse
             CreateMap<Warehouse, WarehouseVM>()
                 .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.BranchName))

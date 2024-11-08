@@ -15,15 +15,27 @@ using Google.Apis.Auth.OAuth2;
 using FirebaseAdmin;
 using System.Configuration;
 using Newtonsoft.Json;
-using Microsoft.Extensions.FileProviders;
+using _2Sport_BE.Infrastructure.Services;
+using _2Sport_BE.Infrastructure.Hubs;
+using Hangfire;
+using HangfireBasicAuthenticationFilter;
 
 var builder = WebApplication.CreateBuilder(args);
 //Setting Mail
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("AppSettings:MailSettings"));
 //Setting PayOs
-//builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOSSettings"));
-
+builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOSSettings"));
+//Register SignalR
+builder.Services.AddSignalR();
+builder.Services.AddHttpContextAccessor();
 builder.Services.Register();
+//Register Hangfire
+builder.Services.AddHangfire((sp, config) =>
+{
+    var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection");
+    config.UseSqlServerStorage(connectionString);
+});
+builder.Services.AddHangfireServer();
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(x =>
    x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
@@ -78,12 +90,6 @@ builder.Services.AddAuthentication(options =>
        facebookOptions.Fields.Add("email"); // Email
 
    });
-//Configure Firebase
-/*var firebaseConfig = builder.Configuration.GetSection("FirebaseSettings").Get<FirebaseConfig>();
-FirebaseApp.Create(new AppOptions()
-{
-    Credential = GoogleCredential.FromJson(JsonConvert.SerializeObject(firebaseConfig))
-});*/
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -117,7 +123,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
-    builder.WithOrigins("https://twosport.vercel.app", "http://localhost:5173", "http://demo-api.ap-southeast-2.elasticbeanstalk.com")
+    builder.WithOrigins("https://twosport.vercel.app", "http://localhost:5173", "http://localhost:5174",
+                        "http://demo-api.ap-southeast-2.elasticbeanstalk.com")
            .AllowAnyMethod()
            .AllowAnyHeader()
     );
@@ -147,8 +154,6 @@ var app = builder.Build();
     app.UseSwagger();
     app.UseSwaggerUI();
 
-
-
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("CorsPolicy");
@@ -156,19 +161,41 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
 
-// Enable static file serving for RootPath\Media
-var mediaPath = Path.Combine(builder.Environment.ContentRootPath, "Media");
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(mediaPath),
-    RequestPath = "/media"
-});
-
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
+    endpoints.MapHub<NotificationHub>("/notificationHub");
 });
 
 app.MapGet("/", () => Results.Redirect("/swagger"));
+app.UseHangfireServer();
+app.UseHangfireDashboard("/hangfireDasboard", new DashboardOptions
+{
+    DashboardTitle = "Hangfire for 2Sport",
+    DarkModeEnabled = false,
+    DisplayStorageConnectionString = false,
+    Authorization = new[]
+    {
+        new HangfireCustomBasicAuthenticationFilter
+        {
+            User = "admin123",
+            Pass = "admin123"
+        }
+    }
+});
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider.GetRequiredService<IRentalOrderService>();
+
+    app.Lifetime.ApplicationStarted.Register(() =>
+    {
+        var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
+        recurringJobs.AddOrUpdate(
+            "CheckRentalExpiration",
+            () => services.CheckRentalOrdersForExpiration(),
+            Cron.Daily
+        );
+    });
+}
 
 app.Run();

@@ -45,7 +45,7 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
         [HttpGet]
-        [Route("get-orders-of-user")]
+        [Route("get-orders-by-user")]
         public async Task<IActionResult> GetOrdersByUserId(int userId)
         {
             var response = await _orderService.GetSaleOrdersOfUserAsync(userId);
@@ -76,6 +76,35 @@ namespace _2Sport_BE.Controllers
                 return Ok(response);
             }
             return BadRequest(response);
+        }
+        [HttpPost("create-sale-order")]
+        public async Task<IActionResult> CreateOrder([FromBody] SaleOrderCM orderCM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            //Tao order
+            var response = await _orderService.CreatetSaleOrderAsync(orderCM);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+        [HttpPut("update-sale-order")]
+        public async Task<IActionResult> UpdateSaleOrder([FromQuery] int orderId, [FromBody] SaleOrderUM orderUM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            var response = await _orderService.UpdateSaleOrderAsync(orderId, orderUM);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            return Ok(response);
         }
         /*        [HttpGet]
                 [Route("get-orders-by-date-and-status")]
@@ -160,93 +189,6 @@ namespace _2Sport_BE.Controllers
                         return BadRequest(response);
                     }
                 }*/
-        [HttpPost("create-sale-order")]
-        public async Task<IActionResult> CreateOrder([FromBody] SaleOrderCM orderCM)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Invalid request data.");
-            }
-            var userId = GetCurrentUserIdFromToken();
-            if (userId != orderCM.UserID || userId == 0 || orderCM.UserID == 0)
-            {
-                return Unauthorized();
-            }
-            //Tao order
-            var response = await _orderService.CreatetSaleOrderAsync(orderCM);
-            if (!response.IsSuccess)
-            {
-                return StatusCode(500, response);
-            }
-            //Tao link payment
-            var paymentLink = orderCM.PaymentMethodID == (int)OrderMethods.PayOS
-                                  ? await _paymentService.PaymentWithPayOs(response.Data.SaleOrderID)
-                                  : "";
-            if (paymentLink.Length == 0)
-            {
-                return BadRequest("Cannot create payment link");
-            }
-            response.Data.PaymentLink = paymentLink;
-            return Ok(response);
-        }
-
-        [HttpPut("update-sale-order")]
-        public async Task<IActionResult> UpdateSaleOrder([FromQuery] int orderId, [FromBody] SaleOrderUM orderUM)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Invalid request data.");
-            }
-            var response = await _orderService.UpdateSaleOrderAsync(orderId, orderUM);
-            if (!response.IsSuccess)
-            {
-                return StatusCode(500, response);
-            }
-            return Ok(response);
-        }
-
-        [HttpGet("cancel")]
-        public async Task<IActionResult> HandleOrderCancel([FromQuery] PaymentResponse paymentResponse)
-        {
-            if (!ModelState.IsValid || _methodHelper.AreAnyStringsNullOrEmpty(paymentResponse))
-            {
-                return BadRequest(new ResponseModel<object>
-                {
-                    IsSuccess = false,
-                    Message = "Invalid request data.",
-                    Data = null
-                });
-            }
-
-            var result = await _orderService.ProcessCancelledSaleOrder(paymentResponse);
-            if (result.IsSuccess)
-            {
-                var redirectUrl = "https://twosport.vercel.app/order_cancel";
-                return Redirect(redirectUrl);
-            }
-            return BadRequest(result);
-        }
-        [HttpGet("return")]
-        public async Task<IActionResult> HandleOrderReturn([FromQuery] PaymentResponse paymentResponse)
-        {
-            if (!ModelState.IsValid || _methodHelper.AreAnyStringsNullOrEmpty(paymentResponse))
-            {
-                return BadRequest(new ResponseModel<object>
-                {
-                    IsSuccess = false,
-                    Message = "Invalid request data.",
-                    Data = null
-                });
-            }
-
-            var result = await _orderService.ProcessCompletedSaleOrder(paymentResponse);
-            if (result.IsSuccess)
-            {
-                var redirectUrl = "https://twosport.vercel.app/order_success";
-                return Redirect(redirectUrl);
-            }
-            return BadRequest(result);
-        }
         /*        }  
                 [HttpGet]
                 [Route("get-revenue")]

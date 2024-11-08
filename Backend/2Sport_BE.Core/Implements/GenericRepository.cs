@@ -102,6 +102,25 @@ namespace _2Sport_BE.Repository.Implements
 
             return await query.ToListAsync();
         }
+
+        public async Task<IEnumerable<T>> GetAndIncludeAsync(Expression<Func<T, bool>> filter = null, params string[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+            // Using AsNoTracking for read-only queries
+            return await query.ToListAsync();
+        }
+
         public async Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> filter = null, params string[] includes)
         {
 
@@ -209,7 +228,7 @@ namespace _2Sport_BE.Repository.Implements
         public async Task<T> GetObjectAsync(Expression<Func<T, bool>> filter = null)
         {
             IQueryable<T> query = _dbSet;
-            return await query.Where(filter).FirstOrDefaultAsync();
+            return await query.Where(filter).AsNoTracking().FirstOrDefaultAsync();
         }
         public async Task<T> GetObjectAsync(Expression<Func<T, bool>> filter = null, params string[] includes)
         {
@@ -222,13 +241,20 @@ namespace _2Sport_BE.Repository.Implements
                     query = query.Include(include);
                 }
             }
-            return await query.Where(filter).FirstOrDefaultAsync();
+            return await query.AsNoTracking().Where(filter).FirstOrDefaultAsync();
         }
 
         public async Task InsertAsync(T entity)
         {
-            await _dbSet.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                await _dbSet.AddAsync(entity);
+                await _dbContext.SaveChangesAsync();
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
         }
 
         public async Task InsertRangeAsync(IEnumerable<T> entities)
@@ -239,9 +265,11 @@ namespace _2Sport_BE.Repository.Implements
 
         public async Task UpdateAsync(T entityToUpdate)
         {
-            _dbSet.Attach(entityToUpdate);
+            if (_dbContext.Entry(entityToUpdate).State == EntityState.Detached)
+            {
+                _dbSet.Attach(entityToUpdate);
+            }
             _dbContext.Entry(entityToUpdate).State = EntityState.Modified;
-
             await _dbContext.SaveChangesAsync();
         }
 
@@ -264,5 +292,6 @@ namespace _2Sport_BE.Repository.Implements
                 throw new Exception("An error occurred while updating entities", ex);
             }
         }
+
     }
 }

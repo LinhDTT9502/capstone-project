@@ -19,21 +19,30 @@ namespace _2Sport_BE.Repository.Models
         [Column("RentalOrderCode", TypeName = "varchar")]
         [MaxLength(50)]
         public string? RentalOrderCode { get; set; }
-
+        [Column("ParentOrderCode", TypeName = "varchar")]
+        [MaxLength(50)]
+        public string? ParentOrderCode { get; set; }
         [Column("UserId")]
         public int? UserId { get; set; }
 
         [Column("Email")]
         public string Email { get; set; }
 
-        [Column("ContactPhone")]
-        public string ContactPhone { get; set; }
-
         [Column("FullName")]
         public string FullName { get; set; }
 
+        [Column("Gender")]
+        public string Gender { get; set; }
+
+        [Column("ContactPhone")]
+        public string ContactPhone { get; set; }
+
         [Column("Address")]
         public string Address { get; set; }
+
+        [Column("DeliveryMethod")]
+        [MaxLength(500)]
+        public string DeliveryMethod { get; set; }
 
         [Column("BranchId")]
         public int? BranchId { get; set; }
@@ -45,11 +54,19 @@ namespace _2Sport_BE.Repository.Models
         [Column("ProductName")]
         public string? ProductName { get; set; }
 
+        [Column("ProductCode")]
+        public string? ProductCode { get; set; } //Them ProductCode
+
         [Column("RentPrice", TypeName = "decimal")]
         public decimal? RentPrice { get; set; }
 
         [Column("Quantity")]
         public int? Quantity { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.DateTime)]
+        [Column("DateOfReceipt")]
+        public DateTime? DateOfReceipt { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
         [DataType(DataType.DateTime)]
@@ -86,12 +103,12 @@ namespace _2Sport_BE.Repository.Models
         public DateTime? ReturnDate { get; set; }
 
         [Column("LateFee", TypeName = "decimal")]
-        public decimal LateFee { get; set; }
+        public decimal? LateFee { get; set; }
         [Column("IsRestocked")]
-        public bool IsRestocked { get; set; } // Track if the product has been restocked
+        public bool? IsRestocked { get; set; } // Track if the product has been restocked
 
         [Column("IsInspected")]
-        public bool IsInspected { get; set; } // Track if the product is inspected upon return
+        public bool? IsInspected { get; set; } // Track if the product is inspected upon return
 
         [Column("DamageFee", TypeName = "decimal")]
         public decimal? DamageFee { get; set; }
@@ -110,6 +127,8 @@ namespace _2Sport_BE.Repository.Models
         [Column("UpdatedAt")]
         public DateTime? UpdatedAt { get; set; }
 
+        [Column("IsExtendRentalOrder")]
+        public bool? IsExtendRentalOrder { get; set; }
         public virtual PaymentMethod PaymentMethod { get; set; }
         public virtual User User { get; set; }
         public virtual Branch Branch { get; set; }

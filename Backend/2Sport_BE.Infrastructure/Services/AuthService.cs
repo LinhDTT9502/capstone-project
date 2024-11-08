@@ -11,6 +11,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using System.Text;
 using System.Security.Claims;
+using _2Sport_BE.Services;
 
 
 namespace _2Sport_BE.Infrastructure.Services
@@ -45,6 +46,7 @@ namespace _2Sport_BE.Infrastructure.Services
         private readonly IConfiguration _configuration;
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMailService _mailService;
 
         public AuthService(TwoSportCapstoneDbContext context,
             IUserService userService,
@@ -79,7 +81,8 @@ namespace _2Sport_BE.Infrastructure.Services
             try
             {
                 var loginUser = await _unitOfWork.UserRepository
-                    .GetObjectAsync(_ => _.UserName == requestUser.UserName && _.HashPassword == HashPassword(requestUser.Password));
+                    .GetObjectAsync(_ => _.UserName == requestUser.UserName 
+                    && _.HashPassword == HashPassword(requestUser.Password));
 
                 if (loginUser == null)
                 {
@@ -87,8 +90,13 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.Message = "Invalid Username And Password";
                     return response;
                 }
-
-                if (loginUser != null && loginUser.IsActived != true)
+                if (!loginUser.EmailConfirmed)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Your account is not confirmed.";
+                    return response;
+                }
+                if (loginUser.IsActived != true)
                 {
                     response.IsSuccess = false;
                     response.Message = "Not Permission";
@@ -139,6 +147,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     new Claim("DOB",user.DOB.ToString()==null?"":user.DOB.ToString()),
                     new Claim(ClaimTypes.Role, role.RoleName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     };
 
                 var tokenDescriptor = new SecurityTokenDescriptor
@@ -405,7 +414,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     _unitOfWork.Save();
 
                     response.IsSuccess = true;
-                    response.Message = "Sign Up Successfully";
+                    response.Message = "Sign Up Successfully, Please check email to verify account";
                     response.Data = checkExist.Id.ToString();
                 }
                 catch (DbUpdateException)

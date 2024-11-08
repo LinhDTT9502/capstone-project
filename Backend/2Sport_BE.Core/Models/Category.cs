@@ -16,10 +16,6 @@ public class Category
     [MaxLength(500)]
     public string CategoryName { get; set; }
 
-    [Column("Description", TypeName = "nvarchar")]
-    [MaxLength(500)]
-    public string Description { get; set; }
-
     [Column("CategoryImgPath", TypeName = "nvarchar")]
     [MaxLength(500)]
     public string? CategoryImgPath { get; set; }

@@ -8,17 +8,21 @@ using _2Sport_BE.Services;
 using System.Configuration;
 using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Infrastructure.Helpers;
+using Microsoft.Extensions.Options;
 
 namespace _2Sport_BE.Extensions
 {
     public static class ServiceCollection
     {
-        public static void Register (this IServiceCollection services)
+        public static void Register(this IServiceCollection services)
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddDbContext<TwoSportCapstoneDbContext>(options => options
-            .UseSqlServer(GetConnectionStrings(),
-            b => b.MigrationsAssembly("2Sport_BE")));
+
+            services.AddDbContext<TwoSportCapstoneDbContext>(options =>
+            {
+                options.UseSqlServer(GetConnectionStrings(), b => b.MigrationsAssembly("2Sport_BE"));
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            }, ServiceLifetime.Transient);
             #region User_Services
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
@@ -31,10 +35,13 @@ namespace _2Sport_BE.Extensions
             #endregion
 
             services.AddTransient<IBrandService, BrandService>();
+            services.AddTransient<IBlogService, BlogService>();
             services.AddTransient<IBranchService, BranchService>();
             services.AddTransient<ICommentService, CommentService>();
             services.AddScoped<ISportService, SportService>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<ICartService, CartService>();
+            services.AddScoped<ICartItemService, CartItemService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IShipmentDetailService, ShipmentDetailService>();
             services.AddScoped<IPaymentMethodService, PaymentMethodService>();
@@ -52,11 +59,18 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<IOrderDetailService, OrderDetailService>();
             //RentalOrder
             services.AddScoped<IRentalOrderService, RentalOrderService>();
+            services.AddScoped<RentalOrderService>();
             #endregion
             #region Helper_Services
             services.AddTransient<IMailService, MailService>();
             services.AddScoped<IMethodHelper, MethodHelper>();
-            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IPaymentService, PayOsPaymentService>();
+            services.AddScoped<IPayOsService, PayOsPaymentService>();
+            services.AddScoped<PayOsPaymentService>();
+            services.AddScoped<PaymentFactory>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IDeliveryMethodService, DeliveryMethodService>();
+
             #endregion
         }
 
