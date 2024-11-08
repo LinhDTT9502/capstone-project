@@ -158,7 +158,6 @@ namespace _2Sport_BE.Controllers
                 updatedCategory.CategoryName = categoryUM.CategoryName;
                 updatedCategory.SportId = categoryUM.SportId;
                 updatedCategory.Sport = await _sportService.GetSportById(categoryUM.SportId);
-                updatedCategory.Description = categoryUM.Description;
                 if (categoryUM.CategoryImage != null)
                 {
                     var uploadResult = await _imageService.UploadImageToCloudinaryAsync(categoryUM.CategoryImage);
@@ -199,6 +198,21 @@ namespace _2Sport_BE.Controllers
                     await _categoryService.UpdateCategory(deletedCategory);
                     return Ok("Active successfully");
                 }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpDelete]
+        [Route("delete-category/{categoryId}")]
+        public async Task<IActionResult> DeleteCategory(int categoryId)
+        {
+            try
+            {
+                await _categoryService.DeleteCategoryById(categoryId);
+                return Ok("Delete category successfully!");
             }
             catch (Exception ex)
             {
