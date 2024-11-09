@@ -171,7 +171,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         await _unitOfWork.SaveChanges();
                         //Send notifications to Admmin
                         await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode);
-                        //await _mailService.SendRentalOrderInformationToCustomer(rentalOrder, null, rentalOrder.Email);
+                        await _mailService.SendRentalOrderInformationToCustomer(rentalOrder, null, rentalOrder.Email);
                         // Return success response
                         response = GenerateSuccessResponse(rentalOrder,null, "Rental order created successfully");
                         await transaction.CommitAsync();
@@ -443,6 +443,7 @@ namespace _2Sport_BE.Infrastructure.Services
             result.PaymentMethod = order.PaymentMethodId.HasValue
                                ? Enum.GetName(typeof(OrderMethods), order.PaymentMethodId.Value)
                                : "Unknown PaymentMethod";
+            
             result.Id = order.Id;
             if (listChild == null || !listChild.Any())
             {

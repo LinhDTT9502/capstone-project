@@ -1,4 +1,4 @@
-﻿/*using _2Sport_BE.DataContent;
+﻿using _2Sport_BE.DataContent;
 using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Infrastructure.Helpers;
@@ -62,9 +62,9 @@ namespace _2Sport_BE.Controllers
 
             }
 
-            if (order.PaymentMethodId != (int)OrderMethods.PayOS)
+            if (order.PaymentMethodId != (int)OrderMethods.VnPay)
             {
-                order.PaymentMethodId = (int)OrderMethods.PayOS;
+                order.PaymentMethodId = (int)OrderMethods.VnPay;
                 await _saleOrderService.UpdateSaleOrder(order);
             }
 
@@ -80,7 +80,7 @@ namespace _2Sport_BE.Controllers
                 return BadRequest("Phương thức thanh toán không hợp lệ.");
             }
 
-            var createdLink = await paymentService.ProcessSaleOrderPayment(order.Id);
+            var createdLink = await paymentService.ProcessSaleOrderPayment(order.Id, HttpContext);
 
             if (createdLink.IsSuccess)
             {
@@ -89,7 +89,7 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(createdLink);
         }
-        [HttpGet("sale-order-cancel")]
+        /*[HttpGet("sale-order-cancel")]
         public async Task<IActionResult> HandleSaleOrderCancelPayOs([FromQuery] PaymentResponse paymentResponse)
         {
             if (!ModelState.IsValid || _methodHelper.AreAnyStringsNullOrEmpty(paymentResponse))
@@ -229,7 +229,6 @@ namespace _2Sport_BE.Controllers
                 return Redirect(redirectUrl);
             }
             return BadRequest(result);
-        }
+        }*/
     }
 }
-*/

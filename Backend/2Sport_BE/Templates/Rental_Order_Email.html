@@ -59,19 +59,7 @@
                         <td>
                             <h2 style="font-size: 1.1em; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Sản phẩm đã đặt:</h2>
                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                                <tr>
-                                    <td width="60" valign="top" style="padding: 10px 0;">
-                                        <img src="{{ProductImage}}" alt="{{ProductName}}" style="width: 50px; height: auto;">
-                                    </td>
-                                    <td valign="top" style="padding: 10px 5px;">
-                                        <p><strong>{{ProductName}}</strong></p>
-                                        <p>Qty: {{Quantity}}</p>
-                                        <p>Ngày bắt đầu: {{RentalStartDate}}</p>
-                                        <p>Ngày kết thúc: {{RentalEndDate}}</p>
-
-                                    </td>
-                                    <td align="right" style="padding: 10px; font-weight: bold;">Giá thuê: {{UnitPrice}}</td>
-                                </tr>
+                                {{OrderDetails}}
                             </table>
                         </td>
                     </tr>

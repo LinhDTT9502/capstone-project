@@ -98,6 +98,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public string? OrderStatus { get; set; }
         public string? PaymentStatus { get; set; }
         public DateTime? CreatedAt { get; set; }
+        public string? ImgAvatarPath { get; set; }
         public string? PaymentLink { get; set; }
         public List<RentalOrderVM>? listChild { get; set; }
     }

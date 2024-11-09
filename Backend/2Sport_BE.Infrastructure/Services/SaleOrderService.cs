@@ -430,8 +430,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(toCreate);
 
                     var result = MapSaleOrderToSaleOrderVM(toCreate);
-
-                    
+       
                     //Send notifications to Admmin
                     await _notificationService.NotifyForCreatingNewOrderAsync(toCreate.OrderCode);
                     await _mailService.SendSaleOrderInformationToCustomer(toCreate, toCreate.OrderDetails.ToList(), toCreate.Email);

@@ -191,10 +191,10 @@ using (var scope = app.Services.CreateScope())
     {
         var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
         recurringJobs.AddOrUpdate(
-            "CheckRentalExpiration",
-            () => services.CheckRentalOrdersForExpiration(),
-            Cron.Daily
-        );
+        "CheckRentalExpiration",
+        () => services.CheckRentalOrdersForExpiration(),
+        Cron.Daily
+    );
     });
 }
 

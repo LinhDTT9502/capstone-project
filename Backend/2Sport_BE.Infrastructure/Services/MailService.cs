@@ -12,6 +12,7 @@ using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Text.Encodings.Web;
 
 
 namespace _2Sport_BE.Services
@@ -80,6 +81,12 @@ namespace _2Sport_BE.Services
 
             return Regex.IsMatch(email, regex, RegexOptions.IgnoreCase);
         }
+        private async Task<string> LoadEmailTemplateAsync(string templateFileName)
+        {
+            var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", templateFileName);
+            return await File.ReadAllTextAsync(templatePath);
+        }
+
         public async Task<string> GenerateEmailVerificationTokenAsync(string email)
         {
             try
@@ -118,8 +125,7 @@ namespace _2Sport_BE.Services
             bool status = false;
             try
             {
-                var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "Forgot_Password_Email.html");
-                var templateContent = await File.ReadAllTextAsync(templatePath);
+                var templateContent = await LoadEmailTemplateAsync("Forgot_Password_Email.html");
 
                 var emailContent = templateContent
                     .Replace("{{ChangePasswordLink}}", resetLink);
@@ -162,8 +168,7 @@ namespace _2Sport_BE.Services
             bool status = false;
             try
             {
-                var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "Verify_Email.html");
-                var templateContent = await File.ReadAllTextAsync(templatePath);
+                var templateContent = await LoadEmailTemplateAsync("Verify_Email.html");
 
                 var emailContent = templateContent
                     .Replace("{{VerifyLink}}", verifyLink);
@@ -209,12 +214,10 @@ namespace _2Sport_BE.Services
             bool status = false;
             try
             {
-                var templatePath = "C:\\Users\\NguyenTuanVu\\Desktop\\Capstone\\new_brand\\capstone-project\\Backend\\2Sport_BE\\Templates\\Order_Email.html";
-                var templateContent = await File.ReadAllTextAsync(templatePath);
+                var templateContent = await LoadEmailTemplateAsync("Order_Email.html");
 
                 templateContent = templateContent
                     .Replace("{{OrderCode}}", saleOrder.OrderCode)
-                    .Replace("{{CreatedAt}}", saleOrder.CreatedAt.ToString())
                     .Replace("{{CreatedAt}}", saleOrder.CreatedAt.ToString())
                     .Replace("{{TotalAmount}}", FormatCurrency(saleOrder.TotalAmount))
                     .Replace("{{FullName}}", saleOrder.FullName)
@@ -223,20 +226,25 @@ namespace _2Sport_BE.Services
                     .Replace("{{Count}}", orderDetails.Count.ToString())
                     .Replace("{{SubTotal}}", FormatCurrency((decimal)saleOrder.SubTotal))
                     .Replace("{{TransportFee}}", saleOrder.TranSportFee.ToString());
-                    
+
                 StringBuilder filledHtml = new StringBuilder();
                 foreach (var item in orderDetails)
                 {
-                    string productHtml = templateContent;
+                    string orderDetailHtml = $@"
+                                <tr>
+                                    <td width='60' valign='top' style='padding: 10px 0;'>
+                                        <img src='{item.ImgAvatarPath}' alt='{item.ProductName}' style='width: 50px; height: auto;'>
+                                    </td>
+                                    <td valign='top' style='padding: 10px 5px;'>
+                                        <p><strong>{item.ProductName}</strong></p>
+                                        <p>Qty: {item.Quantity}</p>
+                                    </td>
+                                    <td align='right' style='padding: 10px; font-weight: bold;'>{FormatCurrency((decimal)item.UnitPrice)}</td>
+                                </tr>";
 
-                    templateContent = templateContent.Replace("{{ProductImage}}", item.ImgAvatarPath)
-                                             .Replace("{{ProductName}}", item.ProductName)
-                                             .Replace("{{Quantity}}", item.Quantity.ToString())
-                                             .Replace("{{UnitPrice}}", FormatCurrency((decimal)item.UnitPrice));
-
-                    // Append this product's HTML to the final HTML
-                    filledHtml.Append(templateContent);
+                    filledHtml.Append(orderDetailHtml);
                 }
+                templateContent = templateContent.Replace("{{OrderDetails}}", filledHtml.ToString());
                 var email = new MimeMessage();
                 email.From.Add(MailboxAddress.Parse(_mailSettings.Mail));
                 email.To.Add(MailboxAddress.Parse(emailStr));
@@ -317,14 +325,17 @@ namespace _2Sport_BE.Services
             return status;
         }
 
-        public async Task<bool> SendRentalOrderInformationToCustomer(RentalOrder rentalOrder, List<RentalOrder> rentalOrders, string emailStr)
+        public async Task<bool> SendRentalOrderInformationToCustomer(RentalOrder rentalOrder, List<RentalOrder>? rentalOrders, string emailStr)
         {
             bool status = false;
             try
             {
-                var templatePath = "C:\\Users\\NguyenTuanVu\\Desktop\\Capstone\\new_brand\\capstone-project\\Backend\\2Sport_BE\\Templates\\Rental_Order_Email.html";
-                var templateContent = await File.ReadAllTextAsync(templatePath);
+                var templateContent = await LoadEmailTemplateAsync("Rental_Order_Email.html");
 
+                if (rentalOrders == null)
+                {
+                    rentalOrders = new List<RentalOrder> { rentalOrder };
+                }
                 templateContent = templateContent
                     .Replace("{{OrderCode}}", rentalOrder.ParentOrderCode)
                     .Replace("{{CreatedAt}}", rentalOrder.CreatedAt.ToString())
@@ -336,39 +347,11 @@ namespace _2Sport_BE.Services
                     .Replace("{{SubTotal}}", FormatCurrency((decimal)rentalOrder.SubTotal))
                     .Replace("{{TransportFee}}", rentalOrder.TranSportFee.ToString());
 
-                StringBuilder filledHtml = new StringBuilder();
-                if (!rentalOrders.Any())
-                {
-                    string productHtml = templateContent;
+                string orderDetailHtml = "";
 
-                    productHtml = productHtml.Replace("{{ProductImage}}", rentalOrder.ImgAvatarPath)
-                                             .Replace("{{ProductName}}", rentalOrder.ProductName)
-                                             .Replace("{{Quantity}}", rentalOrder.Quantity.ToString())
-                                             .Replace("{{RentalStartDate}}", rentalOrder.RentalStartDate.ToString())
-                                             .Replace("{{RentalEndDate}}", rentalOrder.RentalEndDate.ToString())
-                                             .Replace("{{UnitPrice}}", FormatCurrency((decimal)rentalOrder.RentPrice));
+                orderDetailHtml = GenerateRentalDetailsHtml(rentalOrders);
 
-                    // Append this product's HTML to the final HTML
-                    filledHtml.Append(productHtml);
-                }
-                else
-                {
-                    foreach (var item in rentalOrders)
-                    {
-                        string productHtml = templateContent;
-
-                        productHtml = productHtml.Replace("{{ProductImage}}", item.ImgAvatarPath)
-                                                 .Replace("{{ProductName}}", item.ProductName)
-                                                 .Replace("{{Quantity}}", item.Quantity.ToString())
-                                                 .Replace("{{RentalStartDate}}", item.RentalStartDate.ToString())
-                                                 .Replace("{{RentalEndDate}}", item.RentalEndDate.ToString())
-                                                 .Replace("{{UnitPrice}}", FormatCurrency((decimal)item.RentPrice));
-
-                        // Append this product's HTML to the final HTML
-                        filledHtml.Append(productHtml);
-                    }
-                }
-                
+                templateContent = templateContent.Replace("{{OrderDetails}}", orderDetailHtml.ToString());
                 var email = new MimeMessage();
                 email.From.Add(MailboxAddress.Parse(_mailSettings.Mail));
                 email.To.Add(MailboxAddress.Parse(emailStr));
@@ -401,6 +384,29 @@ namespace _2Sport_BE.Services
                 await _unitOfWork.SaveChanges();
             }
             return status;
+        }
+        private string GenerateRentalDetailsHtml(List<RentalOrder> rentalOrders)
+        {
+            StringBuilder filledHtml = new StringBuilder();
+
+            foreach (var item in rentalOrders)
+            {
+                filledHtml.Append($@"
+            <tr>
+                <td width='60' valign='top' style='padding: 10px 0;'>
+                    <img src='{HtmlEncoder.Default.Encode(item.ImgAvatarPath)}' alt='{HtmlEncoder.Default.Encode(item.ProductName)}' style='width: 50px; height: auto;'>
+                </td>
+                <td valign='top' style='padding: 10px 5px;'>
+                    <p><strong>{HtmlEncoder.Default.Encode(item.ProductName)}</strong></p>
+                    <p>Qty: {item.Quantity}</p>
+                    <p><i>Ngày bắt đầu: {item.RentalStartDate:dd-MM-yyyy}</i></p>
+                    <p><i>Ngày kết thúc: {item.RentalEndDate:dd-MM-yyyy}</i></p>
+                </td>
+                <td align='right' style='padding: 10px; font-weight: bold;'>{FormatCurrency((decimal)item.RentPrice)}</td>
+            </tr>");
+            }
+
+            return filledHtml.ToString();
         }
     }
 

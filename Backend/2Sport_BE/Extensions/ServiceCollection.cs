@@ -67,6 +67,9 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<IPaymentService, PayOsPaymentService>();
             services.AddScoped<IPayOsService, PayOsPaymentService>();
             services.AddScoped<PayOsPaymentService>();
+            services.AddScoped<IVnPayService, VnPayPaymentService>();
+            services.AddScoped<VnPayPaymentService>();
+
             services.AddScoped<PaymentFactory>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IDeliveryMethodService, DeliveryMethodService>();

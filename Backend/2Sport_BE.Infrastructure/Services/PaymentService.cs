@@ -2,6 +2,7 @@
 using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Repository.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
 using Net.payOS.Types;
@@ -258,7 +259,6 @@ namespace _2Sport_BE.Infrastructure.Services
                 return response;
             }
         }
-
         public async Task<ResponseDTO<int>> ProcessCancelledRentalOrder(PaymentResponse paymentResponse)
         {
             var response = new ResponseDTO<int>();
@@ -379,7 +379,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<int>> ProcessCancelledRentalOrderVnPay(PaymentResponse paymentResponse);
         Task<ResponseDTO<int>> ProcessCompletedRentalOrderVnPay(PaymentResponse paymentResponse);
     }
-    public class VnPayPaymentService : IPaymentService
+    public class VnPayPaymentService : IPaymentService, IVnPayService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
@@ -428,7 +428,55 @@ namespace _2Sport_BE.Infrastructure.Services
 
             return response.Data;
         }
-        public Task<ResponseDTO<string>> ProcessSaleOrderPayment(int orderId, HttpContext context)
+        public async Task<ResponseDTO<string>> ProcessSaleOrderPayment(int orderId, HttpContext context)
+        {
+            var model = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId, new string[] {"OrderDetails"});
+            var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(_configuration["TimeZoneId"]);
+            var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
+            var tick = DateTime.Now.Ticks.ToString();
+            var pay = new VnPayLibrary();
+            var urlCallBack = _configuration["PaymentCallBack:ReturnUrl"];
+
+            pay.AddRequestData("vnp_Version", _configuration["Vnpay:Version"]);
+            pay.AddRequestData("vnp_Command", _configuration["Vnpay:Command"]);
+            pay.AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"]);
+            pay.AddRequestData("vnp_Amount", ((int)model.TotalAmount * 100).ToString());
+            pay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
+            pay.AddRequestData("vnp_CurrCode", _configuration["Vnpay:CurrCode"]);
+            pay.AddRequestData("vnp_IpAddr", pay.GetIpAddress(context));
+            pay.AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"]);
+            pay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang: {model.OrderCode}");
+            pay.AddRequestData("vnp_OrderType", "sale order");
+            pay.AddRequestData("vnp_ReturnUrl", urlCallBack);
+            pay.AddRequestData("vnp_TxnRef", tick);
+
+            var paymentUrl =
+                pay.CreateRequestUrl(_configuration["Vnpay:BaseUrl"], _configuration["Vnpay:HashSecret"]);
+
+            return new ResponseDTO<string>()
+            {
+                Data = paymentUrl,
+                IsSuccess = true,
+                Message = "Generate payment string"
+            };
+        }
+
+        public Task<ResponseDTO<int>> ProcessCancelledSaleOrderVnPay(PaymentResponse paymentResponse)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ResponseDTO<int>> ProcessCompletedSaleOrderVnPay(PaymentResponse paymentResponse)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ResponseDTO<int>> ProcessCancelledRentalOrderVnPay(PaymentResponse paymentResponse)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ResponseDTO<int>> ProcessCompletedRentalOrderVnPay(PaymentResponse paymentResponse)
         {
             throw new NotImplementedException();
         }
