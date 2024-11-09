@@ -345,7 +345,7 @@ namespace _2Sport_BE.Controllers
 
         [HttpPost]
         [Route("import-product")]
-        public async Task<IActionResult> ImportProduct(ProductCM productCM)
+        public async Task<IActionResult> ImportProduct([FromForm] ProductCM productCM)
         {
             var existedProduct = await _productService.GetProductByProductCode(productCM.ProductCode);
 
@@ -1043,6 +1043,13 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
+
                 var updatedProduct = await _productService.GetProductById(productId);
                 if (updatedProduct == null)
                 {
@@ -1050,13 +1057,6 @@ namespace _2Sport_BE.Controllers
                 }
                 else
                 {
-                    var userId = GetCurrentUserIdFromToken();
-
-                    if (userId == 0)
-                    {
-                        return Unauthorized();
-                    }
-
                     if (productUM.MainImage != null)
                     {
                         var uploadResult = await _imageService.UploadImageToCloudinaryAsync(productUM.MainImage);
@@ -1104,7 +1104,8 @@ namespace _2Sport_BE.Controllers
 
 
                     //Save import history
-                    var importedBranch = await _branchService.GetBranchById(productUM.BranchId);
+                    var manager = await _managerService.GetManagerDetailByIdAsync(userId);
+                    var importedBranch = await _branchService.GetBranchById(manager.Data.BranchId);
                     var importHistory = new ImportHistory()
                     {
                         StaffId = userId,
