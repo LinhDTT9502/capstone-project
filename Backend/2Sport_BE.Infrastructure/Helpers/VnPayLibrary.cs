@@ -17,12 +17,20 @@ public class PaymentResponseModel
     public string PaymentId { get; set; }
     public string Token { get; set; }
     public string VnPayResponseCode { get; set; }
+    public string OrderCode { get; set; }
 }
 public class VnPayLibrary
 {
     private readonly SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());
     private readonly SortedList<string, string> _responseData = new SortedList<string, string>(new VnPayCompare());
+    public string ExtractNumberAfterColon(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return string.Empty;
 
+        string[] parts = input.Split(':');
+        return parts.Length > 1 ? parts[1].Trim() : string.Empty;
+    }
     public ResponseDTO<PaymentResponseModel> GetFullResponseData(IQueryCollection collection, string hashSecret)
     {
         var vnPay = new VnPayLibrary();
@@ -44,7 +52,7 @@ public class VnPayLibrary
 
         var checkSignature =
             vnPay.ValidateSignature(vnpSecureHash, hashSecret); //check Signature
-
+        var orderCode = ExtractNumberAfterColon(orderInfo);
         if (!checkSignature)
             return new ResponseDTO<PaymentResponseModel>()
             {
@@ -63,7 +71,8 @@ public class VnPayLibrary
                 PaymentId = vnPayTranId.ToString(),
                 TransactionId = vnPayTranId.ToString(),
                 Token = vnpSecureHash,
-                VnPayResponseCode = vnpResponseCode
+                VnPayResponseCode = vnpResponseCode,
+                OrderCode = orderCode
             }
         };
     }

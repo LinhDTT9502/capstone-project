@@ -1,6 +1,7 @@
 ﻿using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Repository.Interfaces;
+using MailKit.Search;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
@@ -374,60 +375,27 @@ namespace _2Sport_BE.Infrastructure.Services
     }
     public interface IVnPayService
     {
-        Task<ResponseDTO<int>> ProcessCancelledSaleOrderVnPay(PaymentResponse paymentResponse);
-        Task<ResponseDTO<int>> ProcessCompletedSaleOrderVnPay(PaymentResponse paymentResponse);
-        Task<ResponseDTO<int>> ProcessCancelledRentalOrderVnPay(PaymentResponse paymentResponse);
-        Task<ResponseDTO<int>> ProcessCompletedRentalOrderVnPay(PaymentResponse paymentResponse);
+        Task<ResponseDTO<PaymentResponseModel>> PaymentRentalOrderExecute(IQueryCollection collections);
+        Task<ResponseDTO<PaymentResponseModel>> PaymentSaleOrderExecute(IQueryCollection collections);
+
     }
     public class VnPayPaymentService : IPaymentService, IVnPayService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
-        public VnPayPaymentService(IUnitOfWork unitOfWork, IConfiguration configuration)
+        private readonly ISaleOrderService _saleOrderService;
+        private readonly IRentalOrderService _rentalOrderService;
+        public VnPayPaymentService(IUnitOfWork unitOfWork,
+            IConfiguration configuration,
+            ISaleOrderService saleOrderService,
+            IRentalOrderService rentalOrderService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
+            _saleOrderService = saleOrderService;
+            _rentalOrderService = rentalOrderService;
         }
 
-        public async Task<ResponseDTO<string>> ProcessRentalOrderPayment(int orderId, HttpContext context)
-        {
-            var model = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
-            var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(_configuration["TimeZoneId"]);
-            var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
-            var tick = DateTime.Now.Ticks.ToString();
-            var pay = new VnPayLibrary();
-            var urlCallBack = _configuration["PaymentCallBack:ReturnUrl"];
-
-            pay.AddRequestData("vnp_Version", _configuration["Vnpay:Version"]);
-            pay.AddRequestData("vnp_Command", _configuration["Vnpay:Command"]);
-            pay.AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"]);
-            pay.AddRequestData("vnp_Amount", ((int)model.TotalAmount * 100).ToString());
-            pay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
-            pay.AddRequestData("vnp_CurrCode", _configuration["Vnpay:CurrCode"]);
-            pay.AddRequestData("vnp_IpAddr", pay.GetIpAddress(context));
-            pay.AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"]);
-            pay.AddRequestData("vnp_OrderInfo", $"{model.ProductName} {model.Quantity} {model.SubTotal}");
-            /*pay.AddRequestData("vnp_OrderType", model.OrderType);*/
-            pay.AddRequestData("vnp_ReturnUrl", urlCallBack);
-            pay.AddRequestData("vnp_TxnRef", tick);
-
-            var paymentUrl =
-                pay.CreateRequestUrl(_configuration["Vnpay:BaseUrl"], _configuration["Vnpay:HashSecret"]);
-
-            return new ResponseDTO<string>()
-            {
-                Data = paymentUrl,
-                IsSuccess = true,
-                Message = "Generate payment string"
-            };
-        }
-        public PaymentResponseModel PaymentExecute(IQueryCollection collections)
-        {
-            var pay = new VnPayLibrary();
-            var response = pay.GetFullResponseData(collections, _configuration["Vnpay:HashSecret"]);
-
-            return response.Data;
-        }
         public async Task<ResponseDTO<string>> ProcessSaleOrderPayment(int orderId, HttpContext context)
         {
             var model = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId, new string[] {"OrderDetails"});
@@ -435,7 +403,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
             var tick = DateTime.Now.Ticks.ToString();
             var pay = new VnPayLibrary();
-            var urlCallBack = _configuration["PaymentCallBack:ReturnUrl"];
+            var urlCallBack = _configuration["PaymentCallBack:ReturnUrlSaleOrder"];
 
             pay.AddRequestData("vnp_Version", _configuration["Vnpay:Version"]);
             pay.AddRequestData("vnp_Command", _configuration["Vnpay:Command"]);
@@ -445,7 +413,7 @@ namespace _2Sport_BE.Infrastructure.Services
             pay.AddRequestData("vnp_CurrCode", _configuration["Vnpay:CurrCode"]);
             pay.AddRequestData("vnp_IpAddr", pay.GetIpAddress(context));
             pay.AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"]);
-            pay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang: {model.OrderCode}");
+            pay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang mua: {model.OrderCode}");
             pay.AddRequestData("vnp_OrderType", "sale order");
             pay.AddRequestData("vnp_ReturnUrl", urlCallBack);
             pay.AddRequestData("vnp_TxnRef", tick);
@@ -460,25 +428,83 @@ namespace _2Sport_BE.Infrastructure.Services
                 Message = "Generate payment string"
             };
         }
-
-        public Task<ResponseDTO<int>> ProcessCancelledSaleOrderVnPay(PaymentResponse paymentResponse)
+        public async Task<ResponseDTO<string>> ProcessRentalOrderPayment(int orderId, HttpContext context)
         {
-            throw new NotImplementedException();
+            var model = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
+            var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(_configuration["TimeZoneId"]);
+            var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
+            var tick = DateTime.Now.Ticks.ToString();
+            var pay = new VnPayLibrary();
+            var urlCallBack = _configuration["PaymentCallBack:ReturnUrlRentalOrder"];
+
+            pay.AddRequestData("vnp_Version", _configuration["Vnpay:Version"]);
+            pay.AddRequestData("vnp_Command", _configuration["Vnpay:Command"]);
+            pay.AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"]);
+            pay.AddRequestData("vnp_Amount", ((int)model.TotalAmount * 100).ToString());
+            pay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
+            pay.AddRequestData("vnp_CurrCode", _configuration["Vnpay:CurrCode"]);
+            pay.AddRequestData("vnp_IpAddr", pay.GetIpAddress(context));
+            pay.AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"]);
+            pay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang thue:" + model.RentalOrderCode);
+            pay.AddRequestData("vnp_OrderType", "Rental Order");
+            pay.AddRequestData("vnp_ReturnUrl", urlCallBack);
+            pay.AddRequestData("vnp_TxnRef", tick);
+
+            var paymentUrl =
+                pay.CreateRequestUrl(_configuration["Vnpay:BaseUrl"], _configuration["Vnpay:HashSecret"]);
+
+            return new ResponseDTO<string>()
+            {
+                Data = paymentUrl,
+                IsSuccess = true,
+                Message = "Generate payment string"
+            };
         }
-
-        public Task<ResponseDTO<int>> ProcessCompletedSaleOrderVnPay(PaymentResponse paymentResponse)
+        public async Task<ResponseDTO<PaymentResponseModel>> PaymentSaleOrderExecute(IQueryCollection collections)
         {
-            throw new NotImplementedException();
+            var pay = new VnPayLibrary();
+            var response = pay.GetFullResponseData(collections, _configuration["Vnpay:HashSecret"]);
+            var isUpdated = false;
+            if (response.IsSuccess)
+            {
+                if (response.Data.VnPayResponseCode == "00")
+                {
+                    isUpdated = await _saleOrderService.UpdatePaymentStatusOfSaleOrder(response.Data.OrderCode, (int)PaymentStatus.IsPaid);
+                }
+                isUpdated = await _saleOrderService.UpdatePaymentStatusOfSaleOrder(response.Data.OrderCode, (int)PaymentStatus.IsCanceled);
+            }
+            if (isUpdated)
+            {
+                return response;
+            }
+            return new ResponseDTO<PaymentResponseModel>()
+            {
+                IsSuccess = false,
+                Message = "Update Payment Status Failed"
+            };
         }
-
-        public Task<ResponseDTO<int>> ProcessCancelledRentalOrderVnPay(PaymentResponse paymentResponse)
+        public async Task<ResponseDTO<PaymentResponseModel>> PaymentRentalOrderExecute(IQueryCollection collections)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<ResponseDTO<int>> ProcessCompletedRentalOrderVnPay(PaymentResponse paymentResponse)
-        {
-            throw new NotImplementedException();
+            var pay = new VnPayLibrary();
+            var response = pay.GetFullResponseData(collections, _configuration["Vnpay:HashSecret"]);
+            var isUpdated = false;
+            if (response.IsSuccess)
+            {
+                if(response.Data.VnPayResponseCode == "00")
+                {
+                isUpdated = await _rentalOrderService.UpdatePaymentStatus(response.Data.OrderCode, (int)PaymentStatus.IsPaid);
+                }
+                isUpdated = await _rentalOrderService.UpdatePaymentStatus(response.Data.OrderCode, (int)PaymentStatus.IsCanceled);
+            }
+            if (isUpdated)
+            {
+                return response;
+            }
+            return new ResponseDTO<PaymentResponseModel>()
+            {
+                IsSuccess = false,
+                Message = "Update Payment Status Failed"
+            };
         }
     }
 }

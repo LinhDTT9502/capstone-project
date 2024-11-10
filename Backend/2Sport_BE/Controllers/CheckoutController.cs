@@ -48,8 +48,8 @@ namespace _2Sport_BE.Controllers
                 return BadRequest("Invalid PaymentMethodId. It must match PayOS payment method.");
             }
 
-            var order = await _saleOrderService.GetSaleOrderById(checkoutModel.OrderID)
-                         ?? await _saleOrderService.GetSaleOrderByCode(checkoutModel.OrderCode);
+            var order = await _saleOrderService.FindSaleOrderById(checkoutModel.OrderID)
+                         ?? await _saleOrderService.FindSaleOrderByCode(checkoutModel.OrderCode);
 
             if (order == null)
             {
@@ -147,8 +147,8 @@ namespace _2Sport_BE.Controllers
                 return BadRequest("Invalid PaymentMethodId. It must match PayOS payment method.");
             }
 
-            var order = await _rentalOrderService.GetRentalOrderById(checkoutModel.OrderID)
-                         ?? await _rentalOrderService.GetRentalOrderByOrderCode(checkoutModel.OrderCode);
+            var order = await _rentalOrderService.FindRentalOrderById(checkoutModel.OrderID)
+                         ?? await _rentalOrderService.FindRentalOrderByOrderCode(checkoutModel.OrderCode);
 
             if (order == null)
             {
