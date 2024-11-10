@@ -209,15 +209,32 @@ namespace _2Sport_BE.Controllers
         [Route("delete-category/{categoryId}")]
         public async Task<IActionResult> DeleteCategory(int categoryId)
         {
-            try
-            {
-                await _categoryService.DeleteCategoryById(categoryId);
-                return Ok("Delete category successfully!");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex);
-            }
+            //try
+            //{
+            //    var deletedCategory = await _categoryService.GetCategoryById(categoryId);
+            //    var deletedProducts = await _productService.GetProducts(_ => _.CategoryId == categoryId);
+            //    if (deletedCategory == null)
+            //    {
+            //        return BadRequest($"Cannot find category with id :{categoryId}");
+            //    }
+            //    if (deletedProducts != null)
+            //    {
+            //        foreach (var product in deletedProducts)
+            //        {
+            //            product.Category = null;
+            //            product.CategoryId = 0;
+            //            product.Status = false;
+            //            await _productService.UpdateProduct(product);
+            //        }
+            //    }
+                
+            //    await _categoryService.DeleteCategory(deletedCategory);
+            //    return Ok("Delete category successfully!");
+            //}
+            //catch (Exception ex)
+            //{
+            //    return BadRequest(ex);
+            //}
         }
     }
 }

@@ -16,6 +16,7 @@ namespace _2Sport_BE.ViewModels
     public class BlogVM : BlogDTO
     {
         public int BlogId { get; set; }
+        public DateTime CreateAt { get; set; }
         public int CreatedByStaffId { get; set; }
         public string CreatedByStaffName { get; set; }
         public string CreatedByStaffFullName { get; set; }
