@@ -45,8 +45,8 @@ namespace _2Sport_BE.Controllers
                 return BadRequest("Invalid PaymentMethodId. It must match PayOS payment method.");
             }
 
-            var order = await _saleOrderService.GetSaleOrderById(checkoutModel.OrderID)
-                         ?? await _saleOrderService.GetSaleOrderByCode(checkoutModel.OrderCode);
+            var order = await _saleOrderService.FindSaleOrderById(checkoutModel.OrderID)
+                         ?? await _saleOrderService.FindSaleOrderByCode(checkoutModel.OrderCode);
 
             if (order == null)
             {
@@ -89,63 +89,32 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(createdLink);
         }
-        /*[HttpGet("sale-order-cancel")]
-        public async Task<IActionResult> HandleSaleOrderCancelPayOs([FromQuery] PaymentResponse paymentResponse)
-        {
-            if (!ModelState.IsValid || _methodHelper.AreAnyStringsNullOrEmpty(paymentResponse))
-            {
-                return BadRequest(new ResponseModel<object>
-                {
-                    IsSuccess = false,
-                    Message = "Invalid request data.",
-                    Data = null
-                });
-            }
-
-            var result = await _payOsService.ProcessCancelledSaleOrder(paymentResponse);
-            if (result.IsSuccess)
-            {
-                var redirectUrl = "https://twosport.vercel.app/order_cancel";
-                return Redirect(redirectUrl);
-            }
-            return BadRequest(result);
-        }
         [HttpGet("sale-order-return")]
-        public async Task<IActionResult> HandleSaleOrderReturnPayOs([FromQuery] PaymentResponse paymentResponse)
+        public async Task<IActionResult> HandleSaleOrderReturnVnPay()
         {
-            if (!ModelState.IsValid || _methodHelper.AreAnyStringsNullOrEmpty(paymentResponse))
-            {
-                return BadRequest(new ResponseModel<object>
-                {
-                    IsSuccess = false,
-                    Message = "Invalid request data.",
-                    Data = null
-                });
-            }
-
-            var result = await _payOsService.ProcessCompletedSaleOrder(paymentResponse);
+            var result = await _vnPayService.PaymentSaleOrderExecute(Request.Query);
             if (result.IsSuccess)
             {
                 var redirectUrl = "https://twosport.vercel.app/order_success";
                 return Redirect(redirectUrl);
             }
-            return BadRequest(result);
+            return Redirect("https://twosport.vercel.app/order-cancel");
         }
         [HttpPost]
         [Route("checkout-rental-order")]
-        public async Task<IActionResult> CheckoutRentalOrderPayOs(CheckoutModel checkoutModel)
+        public async Task<IActionResult> CheckoutRentalOrderVNPay(CheckoutModel checkoutModel)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            if (checkoutModel.PaymentMethodID != (int)OrderMethods.PayOS)
+            if (checkoutModel.PaymentMethodID != (int)OrderMethods.VnPay)
             {
                 return BadRequest("Invalid PaymentMethodId. It must match PayOS payment method.");
             }
 
-            var order = await _rentalOrderService.GetRentalOrderById(checkoutModel.OrderID)
-                         ?? await _rentalOrderService.GetRentalOrderByOrderCode(checkoutModel.OrderCode);
+            var order = await _rentalOrderService.FindRentalOrderById(checkoutModel.OrderID)
+                         ?? await _rentalOrderService.FindRentalOrderByOrderCode(checkoutModel.OrderCode);
 
             if (order == null)
             {
@@ -157,17 +126,17 @@ namespace _2Sport_BE.Controllers
             }
             if (order.PaymentMethodId == (int)OrderMethods.COD)
             {
-                return BadRequest("PaymentStatus is not allowed to checkout because Your Order is chosing Ship COD");
+                return BadRequest("PaymentStatus is not allowed to checkout because Your Order is choosing Ship COD");
 
             }
 
-            if (order.PaymentMethodId != (int)OrderMethods.PayOS)
+            if (order.PaymentMethodId != (int)OrderMethods.VnPay)
             {
-                order.PaymentMethodId = (int)OrderMethods.PayOS;
+                order.PaymentMethodId = (int)OrderMethods.VnPay;
                 await _rentalOrderService.UpdaterRentalOrder(order);
             }
 
-            var response = await _saleOrderService.GetSaleOrderDetailByIdAsync(order.Id);
+            var response = await _rentalOrderService.GetRentalOrderByIdAsync(order.Id);
             if (!response.IsSuccess)
             {
                 return BadRequest(response);
@@ -179,7 +148,7 @@ namespace _2Sport_BE.Controllers
                 return BadRequest("Phương thức thanh toán không hợp lệ.");
             }
 
-            var createdLink = await paymentService.ProcessRentalOrderPayment(order.Id);
+            var createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext);
 
             if (createdLink.IsSuccess)
             {
@@ -188,47 +157,16 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(createdLink);
         }
-        [HttpGet("rental-order-cancel")]
-        public async Task<IActionResult> HandleRentalOrderCancelPayOs([FromQuery] PaymentResponse paymentResponse)
-        {
-            if (!ModelState.IsValid || _methodHelper.AreAnyStringsNullOrEmpty(paymentResponse))
-            {
-                return BadRequest(new ResponseModel<object>
-                {
-                    IsSuccess = false,
-                    Message = "Invalid request data.",
-                    Data = null
-                });
-            }
-
-            var result = await _payOsService.ProcessCancelledRentalOrder(paymentResponse);
-            if (result.IsSuccess)
-            {
-                var redirectUrl = "https://twosport.vercel.app/order_cancel";
-                return Redirect(redirectUrl);
-            }
-            return BadRequest(result);
-        }
         [HttpGet("rental-order-return")]
-        public async Task<IActionResult> HandleRentalOrderReturnPayOs([FromQuery] PaymentResponse paymentResponse)
+        public async Task<IActionResult> HandleRentalOrderReturnVnPay()
         {
-            if (!ModelState.IsValid || _methodHelper.AreAnyStringsNullOrEmpty(paymentResponse))
-            {
-                return BadRequest(new ResponseModel<object>
-                {
-                    IsSuccess = false,
-                    Message = "Invalid request data.",
-                    Data = null
-                });
-            }
-
-            var result = await _payOsService.ProcessCompletedRentalOrder(paymentResponse);
+            var result = await _vnPayService.PaymentRentalOrderExecute(Request.Query);
             if (result.IsSuccess)
             {
                 var redirectUrl = "https://twosport.vercel.app/order_success";
                 return Redirect(redirectUrl);
             }
-            return BadRequest(result);
-        }*/
+            return Redirect("https://twosport.vercel.app/order-cancel");
+        }
     }
 }
