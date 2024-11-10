@@ -59,7 +59,15 @@ namespace _2Sport_BE.Service.Services
 
         public async Task DeleteProductById(int id)
         {
-            await _unitOfWork.ProductRepository.DeleteAsync(id);
+            try
+            {
+                var deletedProduct = await _unitOfWork.ProductRepository.FindAsync(id);
+                deletedProduct.Status = false;
+                await _unitOfWork.ProductRepository.UpdateAsync(deletedProduct);
+            } catch(Exception ex) {
+                Console.WriteLine(ex.Message);
+            }
+            
         }
 
         public async Task<IQueryable<Product>> GetAllProducts()
