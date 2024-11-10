@@ -20,12 +20,9 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersOfUserAsync(int userId);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByDateRangeAndStatus(DateTime? fromDate, DateTime? toDate, int? orderStatus);
         //=============================================
-
-        Task<SaleOrder> GetSaleOrderByIdFromUserAsync(int SaleOrderId, int userId);
         Task<ResponseDTO<RevenueVM>> GetSaleOrdersRevenue(int? branchId, int? SaleOrderType, DateTime? from, DateTime? to, int? status);
         Task<ResponseDTO<SaleOrderVM>> GetSaleOrderBySaleOrderCode(string SaleOrderCode);
         //Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByMonthAndStatus(DateTime startDate, DateTime endDate, int status);
-        Task<IQueryable<SaleOrder>> GetAllSaleOrderQueryableAsync();
         #endregion
         #region ICreate_IUpdate_IDelete
         Task<ResponseDTO<SaleOrderVM>> CreatetSaleOrderAsync(SaleOrderCM SaleOrderCM);
@@ -34,9 +31,12 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<int>> DeleteSaleOrderAsync(int id);
         #endregion
         #region CRUD_Order
-        Task<SaleOrder> GetSaleOrderById(int orderId);
-        Task<SaleOrder> GetSaleOrderByCode(string orderCode);
+        Task<IQueryable<SaleOrder>> FindAllSaleOrderQueryableAsync();
+        Task<SaleOrder> FindSaleOrderByIdFromUserAsync(int SaleOrderId, int userId);
+        Task<SaleOrder> FindSaleOrderById(int orderId);
+        Task<SaleOrder> FindSaleOrderByCode(string orderCode);
         Task<int> UpdateSaleOrder(SaleOrder saleOrder);
+        Task<bool> UpdatePaymentStatusOfSaleOrder(string orderCode, int paymentStatus);
 
         #endregion
     }
@@ -48,7 +48,7 @@ namespace _2Sport_BE.Infrastructure.Services
         private readonly IMethodHelper _methodHelper;
         private readonly IDeliveryMethodService _deliveryMethodService;
         private readonly IMapper _mapper;
-        private INotificationService _notificationService;
+        private readonly INotificationService _notificationService;
         private readonly IMailService _mailService;
         public SaleOrderService(IUnitOfWork unitOfWork,
             ICustomerService customerDetailService,
@@ -169,7 +169,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<List<SaleOrderVM>>();
             try
             {
-                var query = await _unitOfWork.SaleOrderRepository.GetAllAsync(new string[] { "User, OrderDetails" });
+                var query = await _unitOfWork.SaleOrderRepository.GetAllAsync(new string[] { "User", "OrderDetails" });
                 if (query == null || !query.Any())
                 {
                     response.IsSuccess = false;
@@ -309,7 +309,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<SaleOrderVM>();
             try
             {
-                var saleOder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.OrderCode.Equals(SaleOrderCode), "User,OrderDetails");
+                var saleOder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.OrderCode.Equals(SaleOrderCode), new string[] { "User", "OrderDetails" });
                 if (saleOder == null)
                 {
                     response.IsSuccess = false;
@@ -380,7 +380,6 @@ namespace _2Sport_BE.Infrastructure.Services
                         Note = saleOrderCM.Note,
                         DeliveryMethod = saleOrderCM.DeliveryMethod,
                         DateOfReceipt = saleOrderCM.DateOfReceipt ?? DateTime.Now.AddDays(3),
-                        BranchId = saleOrderCM.BranchId ?? null,
                         Gender = saleOrderCM.Gender,
                     };
 
@@ -392,7 +391,6 @@ namespace _2Sport_BE.Infrastructure.Services
                         toCreate.PaymentMethodId = (int)OrderMethods.COD;
                     }
                     await _unitOfWork.SaleOrderRepository.InsertAsync(toCreate);
-
                     decimal subTotal = 0;
                     foreach (var item in saleOrderCM.SaleOrderDetailCMs)
                     {
@@ -662,37 +660,6 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
         #endregion
-       
-        private async Task<OrderDetail> UpdateSaleOrderDetailFromSaleOrderDetailUM(OrderDetail orderDetail,int saleOrderId, SaleOrderDetailUM detailUM, bool isExisted)
-        {
-
-            if (!isExisted)
-            {
-                return new OrderDetail()
-                {
-                    ProductId = detailUM.ProductId,
-                    ProductName = detailUM.ProductName,
-                    ProductCode = detailUM.ProductCode,
-                    ImgAvatarPath = detailUM.ImgAvatarPath,
-                    CreatedAt = DateTime.Now,
-                    SaleOrderId = saleOrderId,
-                    Quantity = detailUM.Quantity,
-                };
-            }
-            else
-            {
-                int difference = (int)(detailUM.Quantity - orderDetail.Quantity);
-                orderDetail.Quantity = detailUM.Quantity;
-                return orderDetail;
-            }
-            // Cập nhật kho dựa trên sự chênh lệch
-            /*bool isReturningStock = difference < 0;
-            bool stockUpdated = await UpdateStock(new SaleOrderDetailUM { ProductId = detailUM.ProductId, Quantity = Math.Abs(difference) }, branchId, isReturningStock);*/
-            /*if (!stockUpdated)
-            {
-                return false;
-            }*/
-        }
         private async Task<bool> UpdateStock(SaleOrderDetailUM detailUM, int branchId, bool isReturningStock)
         {
             var warehouse = await _unitOfWork.WarehouseRepository
@@ -728,29 +695,52 @@ namespace _2Sport_BE.Infrastructure.Services
             return true;
         }
         #region CRUD_SALE_ORDER_BASIC
-        public async Task<SaleOrder> GetSaleOrderById(int orderId)
+        public async Task<SaleOrder> FindSaleOrderById(int orderId)
         {
             return await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId);
         }
-        public async Task<SaleOrder> GetSaleOrderByCode(string orderCode)
+        public async Task<SaleOrder> FindSaleOrderByCode(string orderCode)
         {
             return await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.OrderCode == orderCode);
         }
-        public async Task<SaleOrder> GetSaleOrderByIdFromUserAsync(int SaleOrderId, int userId)
+        public async Task<SaleOrder> FindSaleOrderByIdFromUserAsync(int SaleOrderId, int userId)
         {
             return await _unitOfWork.SaleOrderRepository.GetObjectAsync(_ => _.Id == SaleOrderId && _.UserId == userId);
         }
-        public async Task<IQueryable<SaleOrder>> GetAllSaleOrderQueryableAsync()
+        public async Task<IQueryable<SaleOrder>> FindAllSaleOrderQueryableAsync()
         {
             var query = await _unitOfWork.SaleOrderRepository.GetAllAsync();
 
             return query.AsQueryable();
         }
-
         public async Task<int> UpdateSaleOrder(SaleOrder saleOrder)
         {
             await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
             return 1;
+        }
+        public async Task<bool> UpdatePaymentStatusOfSaleOrder(string orderCode, int paymentStatus)
+        {
+            bool response = false;
+
+            try
+            {
+                var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.OrderCode.Equals(orderCode));
+                if (saleOrder == null)
+                        response = false;
+                else
+                {
+                    saleOrder.PaymentStatus = paymentStatus;
+
+                    await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
+
+                    response = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                response = false;
+            }
+            return response;
         }
         #endregion
         private ResponseDTO<SaleOrderVM> GenerateErrorResponse(string message)

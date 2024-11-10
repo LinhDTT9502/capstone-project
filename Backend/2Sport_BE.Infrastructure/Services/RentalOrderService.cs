@@ -28,15 +28,15 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<RentalOrderVM>> UpdateRentalOrderAsync(int orderId, RentalOrderUM rentalOrderUM);
         Task<ResponseDTO<int>> ChangeStatusRentalOrderAsync(int orderId, int status);
         Task<ResponseDTO<int>> DeleteRentalOrderAsync(int rentalOrderId);
-
         Task<ResponseDTO<int>> CancelRentalOrderAsync(int orderId);
         Task<ResponseDTO<RentalOrderVM>> RequestExtendRentalPeriod(string orderCode, int? quantity, int period);
         Task CheckRentalOrdersForExpiration();
         Task<ResponseDTO<RentalOrderVM>> ReturnOrder(string orderCode, RentalInfor rentalInfor);
 
-        Task<RentalOrder> GetRentalOrderByOrderCode(string orderCode);
-        Task<RentalOrder> GetRentalOrderById(int orderId);
+        Task<RentalOrder> FindRentalOrderByOrderCode(string orderCode);
+        Task<RentalOrder> FindRentalOrderById(int orderId);
         Task<int> UpdaterRentalOrder(RentalOrder rentalOrder);
+        Task<bool> UpdatePaymentStatus(string orderCode, int paymentStatus);
     }
 
     public class RentalOrderService : IRentalOrderService
@@ -815,14 +815,14 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
 
-        public async Task<RentalOrder> GetRentalOrderByOrderCode(string orderCode)
+        public async Task<RentalOrder> FindRentalOrderByOrderCode(string orderCode)
         {
                 var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(
                     r => r.RentalOrderCode == orderCode
                 );
             return rentalOrder;
         }
-        public async Task<RentalOrder> GetRentalOrderById(int orderId)
+        public async Task<RentalOrder> FindRentalOrderById(int orderId)
         {
             var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(
                    r => r.Id == orderId
@@ -833,6 +833,31 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
             return 1;
+        }
+
+        public async Task<bool> UpdatePaymentStatus(string orderCode, int paymentStatus)
+        {
+            bool response = false;
+
+            try
+            {
+                var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.RentalOrderCode.Equals(orderCode));
+                if (rentalOrder == null)
+                    response = false;
+                else
+                {
+                    rentalOrder.PaymentStatus = paymentStatus;
+
+                    await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
+
+                    response = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                response = false;
+            }
+            return response;
         }
     }
 }
