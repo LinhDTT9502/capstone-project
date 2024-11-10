@@ -205,10 +205,10 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        [HttpDelete]
-        [Route("delete-category/{categoryId}")]
-        public async Task<IActionResult> DeleteCategory(int categoryId)
-        {
+        //[HttpDelete]
+        //[Route("delete-category/{categoryId}")]
+        //public async Task<IActionResult> DeleteCategory(int categoryId)
+        //{
             //try
             //{
             //    var deletedCategory = await _categoryService.GetCategoryById(categoryId);
@@ -235,6 +235,6 @@ namespace _2Sport_BE.Controllers
             //{
             //    return BadRequest(ex);
             //}
-        }
+        //}
     }
 }
