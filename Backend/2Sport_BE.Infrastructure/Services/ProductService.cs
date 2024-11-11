@@ -140,7 +140,7 @@ namespace _2Sport_BE.Service.Services
 
         public async Task<Product> GetProductById(int id)
         {
-            return (await _unitOfWork.ProductRepository.GetAsync(_ => _.Status == true && _.Id == id)).FirstOrDefault();
+            return (await _unitOfWork.ProductRepository.GetAsync(_ => _.Id == id)).FirstOrDefault();
         }
 
         public async Task<Product> GetProductByProductCode(string productCode)
