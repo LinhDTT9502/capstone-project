@@ -58,7 +58,9 @@ namespace _2Sport_BE.Repository.Models
 
         public string? PasswordResetToken { get; set; }
         public string? Token { get; set; }
-
+        [Column("ImgAvatarPath", TypeName = "varchar")]
+        [MaxLength(500)]
+        public string? ImgAvatarPath { get; set; }
         public virtual Role Role { get; set; }
         public virtual ICollection<Like> Likes { get; set; }
         public virtual ICollection<SaleOrder> SaleOrders { get; set; }
