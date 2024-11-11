@@ -15,12 +15,16 @@ namespace _2Sport_BE.Controllers
     public class SportController : ControllerBase
     {
         private readonly ISportService _sportService;
+        private readonly IProductService _productService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public SportController(ISportService sportService, IUnitOfWork unitOfWork, IMapper mapper)
+        public SportController(ISportService sportService,
+                               IProductService productService,
+                               IUnitOfWork unitOfWork, IMapper mapper)
         {
             _sportService = sportService;
+            _productService = productService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -91,16 +95,30 @@ namespace _2Sport_BE.Controllers
 
         [HttpDelete]
         [Route("delete-sport")]
-        public async Task<IActionResult> DeleteSport(int id)
+        public async Task<IActionResult> DeleteSport(int sportId)
         {
             try
             {
-                await _sportService.DeleteSportById(id);
-                return Ok("Removed successfully");
+                var deletedSport =  await _sportService.GetSportById(sportId);
+                if (deletedSport != null)
+                {
+                    deletedSport.Status = !deletedSport.Status;
+                    await _sportService.UpdateSport(deletedSport);
+                    var deletedProducts = await _productService.GetProducts(_ => _.SportId == sportId);
+                    if (deletedProducts != null)
+                    {
+                        foreach (var product in deletedProducts)
+                        {
+                            await _productService.DeleteProductById(product.Id);
+                        }
+                    }
+                    return Ok($"Delete brand with id: {sportId}!");
+                }
+                return BadRequest($"Cannot find brand with id {sportId}!");
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return StatusCode(500, ex.Message);
             }
         }
     }
