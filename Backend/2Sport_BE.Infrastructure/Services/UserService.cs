@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Nexmo.Api;
 using static System.Net.Mime.MediaTypeNames;
+using Microsoft.AspNetCore.Http;
 namespace _2Sport_BE.Infrastructure.Services
 {
     public interface IUserService
@@ -29,11 +30,13 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<User> FindUserByPhoneNumber(string phoneNumber);
         //Functions to manage managers and staffs (belong to administrator)
         Task<ResponseDTO<List<UserVM>>> GetUserByRoleIdAndBranchId(int roleId, int branchId);
+        Task<ResponseDTO<UserUM>> UpdateAvatarAsync(int userId, IFormFile formFile);
     }
     public class UserService : IUserService
     {
         private IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+       /* private readonly IImageService*/
         public UserService(
             IUnitOfWork unitOfWork,
             IMapper mapper
@@ -112,8 +115,10 @@ namespace _2Sport_BE.Infrastructure.Services
                 newUser.HashPassword = HashPassword(userCM.HashPassword);
                 newUser.CreatedAt = DateTime.Now;
                 newUser.IsActived = true;
+                newUser.EmailConfirmed = true;
 
                 await _unitOfWork.UserRepository.InsertAsync(newUser);
+                await _unitOfWork.SaveChanges();
 
                 response.IsSuccess = true;
                 response.Message = "Add user successfully";
@@ -296,7 +301,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 existingUser = user;
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
-
+                await _unitOfWork.SaveChanges();
                 response.IsSuccess = true;
                 response.Message = "User updated successfully.";
                 response.Data = true;
@@ -429,6 +434,11 @@ namespace _2Sport_BE.Infrastructure.Services
                 response.Message = $"An error occurred: {ex.Message}";
             }
             return response;
+        }
+
+        public Task<ResponseDTO<UserUM>> UpdateAvatarAsync(int userId, IFormFile formFile)
+        {
+            throw new NotImplementedException();
         }
     }
 }

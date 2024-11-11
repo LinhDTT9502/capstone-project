@@ -278,15 +278,12 @@ namespace _2Sport_BE.Services
             }
             return status;
         }
-
         public async Task<bool> SenOTPMaillAsync(string mail, string otp)
         {
             bool status = false;
             try
             {
-                //var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "Generate_OTP_Email.html");
-                var templatePath = "C:\\Users\\NguyenTuanVu\\Desktop\\Capstone\\new_brand\\capstone-project\\Backend\\2Sport_BE\\Templates\\Generate_OTP_Email.html";
-                var templateContent = await File.ReadAllTextAsync(templatePath);
+                var templateContent = await LoadEmailTemplateAsync("Generate_OTP_Email.html");
 
                 var emailContent = templateContent
                     .Replace("{{OTP}}", otp);
@@ -324,7 +321,6 @@ namespace _2Sport_BE.Services
             }
             return status;
         }
-
         public async Task<bool> SendRentalOrderInformationToCustomer(RentalOrder rentalOrder, List<RentalOrder>? rentalOrders, string emailStr)
         {
             bool status = false;

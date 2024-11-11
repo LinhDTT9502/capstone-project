@@ -8,6 +8,7 @@ using System.Net;
 using Microsoft.CodeAnalysis.Semantics;
 using _2Sport_BE.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.EntityFrameworkCore;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -18,6 +19,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<SaleOrderVM>> GetSaleOrderDetailByIdAsync(int saleOrderId);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByStatus(int? orderStatus, int? paymentStatus);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersOfUserAsync(int userId);
+        Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByBranchAsync(int branchId);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByDateRangeAndStatus(DateTime? fromDate, DateTime? toDate, int? orderStatus);
         //=============================================
         Task<ResponseDTO<RevenueVM>> GetSaleOrdersRevenue(int? branchId, int? SaleOrderType, DateTime? from, DateTime? to, int? status);
@@ -28,7 +30,10 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<SaleOrderVM>> CreatetSaleOrderAsync(SaleOrderCM SaleOrderCM);
         Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderAsync(int SaleOrderId, SaleOrderUM SaleOrderUM);
         Task<ResponseDTO<int>> UpdateSaleOrderStatusAsync(int id, int status);
+        Task<ResponseDTO<int>> UpdateBranchForSaleOrder(int orderId, int branchId);
         Task<ResponseDTO<int>> DeleteSaleOrderAsync(int id);
+        Task<ResponseDTO<SaleOrderVM>> ApproveSaleOrderAsync(int orderId);
+        Task<ResponseDTO<SaleOrderVM>> RejectSaleOrderAsync(int orderId);
         #endregion
         #region CRUD_Order
         Task<IQueryable<SaleOrder>> FindAllSaleOrderQueryableAsync();
@@ -251,7 +256,7 @@ namespace _2Sport_BE.Infrastructure.Services
             throw new NotImplementedException();
         }
         //============================
-       
+
         public async Task<ResponseDTO<RevenueVM>> GetSaleOrdersRevenue(int? branchId, int? SaleOrderType, DateTime? from, DateTime? to, int? status)
         {
             var response = new ResponseDTO<RevenueVM>();
@@ -428,7 +433,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(toCreate);
 
                     var result = MapSaleOrderToSaleOrderVM(toCreate);
-       
+
                     //Send notifications to Admmin
                     await _notificationService.NotifyForCreatingNewOrderAsync(toCreate.OrderCode);
                     await _mailService.SendSaleOrderInformationToCustomer(toCreate, toCreate.OrderDetails.ToList(), toCreate.Email);
@@ -489,22 +494,22 @@ namespace _2Sport_BE.Infrastructure.Services
             {
                 try
                 {
-                    var toUpdate = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == saleOrderId, new string[] { "OrderDetails" });
+                    var toUpdate = _unitOfWork.SaleOrderRepository.FindObject(o => o.Id == saleOrderId);
                     if (toUpdate == null)
                         return GenerateErrorResponse($"SaleOrder with id {saleOrderId} not found!");
-                    
+
                     MapSaleOrderUmToSaleOrder(saleOrderUM, toUpdate);
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(toUpdate);
 
                     var orderDetails = await _unitOfWork.OrderDetailRepository
-                        .GetAndIncludeAsync(od => od.SaleOrderId == saleOrderId);
+                        .GetAsync(od => od.SaleOrderId == saleOrderId);
                     var orderDetailUMs = saleOrderUM.SaleOrderDetailUMs;
 
                     var mapToOrderDetails = _mapper.Map<List<OrderDetail>>(orderDetailUMs);
                     var differences = GetDifferencesOrderDetail(orderDetails.ToList(), mapToOrderDetails);
                     if (differences.Any())//Xoa cac san pham ko co trong update
                     {
-                        foreach( var difference in differences)
+                        foreach (var difference in differences)
                         {
                             await _unitOfWork.OrderDetailRepository.DeleteAsync(difference);
                         }
@@ -512,9 +517,10 @@ namespace _2Sport_BE.Infrastructure.Services
                     decimal supTotal = 0;
                     foreach (var updatedItem in orderDetailUMs)
                     {
-                        OrderDetail orderDetail = orderDetails.FirstOrDefault(o => o.ProductId == updatedItem.ProductId);
+                        OrderDetail orderDetail = _unitOfWork.OrderDetailRepository
+                            .FindObject(o => o.SaleOrderId == toUpdate.Id && o.ProductId == updatedItem.ProductId);
 
-                        if(orderDetail != null)//Co san pham do roi, chi update quantity
+                        if (orderDetail != null)//Co san pham do roi, chi update quantity
                         {
                             orderDetail.UnitPrice = updatedItem.UnitPrice;
                             orderDetail.Quantity = updatedItem.Quantity;
@@ -522,7 +528,7 @@ namespace _2Sport_BE.Infrastructure.Services
                             supTotal += (decimal)orderDetail.TotalAmount;
                             await _unitOfWork.OrderDetailRepository.UpdateAsync(orderDetail);
                         }
-                        else if(orderDetail == null)//Tao moi detail, cap nhat totalAmount
+                        else if (orderDetail == null)//Tao moi detail, cap nhat totalAmount
                         {
                             var product = await _unitOfWork.ProductRepository.GetObjectAsync(p => p.Id == updatedItem.ProductId);
 
@@ -540,7 +546,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                             supTotal += (decimal)newOrderDetail.TotalAmount;
                             await _unitOfWork.OrderDetailRepository.InsertAsync(newOrderDetail);
-                        }            
+                        }
                     }
                     toUpdate.SubTotal = saleOrderUM.SubTotal != 0 ? saleOrderUM.SubTotal : supTotal;
                     toUpdate.TranSportFee = saleOrderUM.TransportFee != 0 ? saleOrderUM.TransportFee : 0;
@@ -590,7 +596,6 @@ namespace _2Sport_BE.Infrastructure.Services
             //Others info
             saleOrder.Note = saleOrderUM.Note;
             saleOrder.DeliveryMethod = saleOrderUM.DeliveryMethod;
-            saleOrder.BranchId = saleOrderUM.BranchId != 0 ? saleOrderUM.BranchId : null;
             saleOrder.PaymentMethodId = saleOrderUM.PaymentMethodId;
             saleOrder.DateOfReceipt = saleOrderUM.DateOfReceipt;
         }
@@ -635,7 +640,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<int>();
             try
             {
-                var SaleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == id);
+                var SaleOrder = _unitOfWork.SaleOrderRepository.FindObject(o => o.Id == id);
                 if (SaleOrder == null)
                 {
                     response.IsSuccess = false;
@@ -660,24 +665,6 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
         #endregion
-        private async Task<bool> UpdateStock(SaleOrderDetailUM detailUM, int branchId, bool isReturningStock)
-        {
-            var warehouse = await _unitOfWork.WarehouseRepository
-                .GetObjectAsync(w => w.ProductId == detailUM.ProductId && w.BranchId == branchId);
-
-            if (warehouse == null || warehouse.TotalQuantity < detailUM.Quantity || warehouse.AvailableQuantity < detailUM.Quantity)
-            {
-                return false;
-            }
-
-            // Cập nhật kho dựa trên loại yêu cầu
-            int quantityAdjustment = isReturningStock ? detailUM.Quantity.Value : -detailUM.Quantity.Value;
-            warehouse.AvailableQuantity += quantityAdjustment;
-            warehouse.TotalQuantity += quantityAdjustment;
-
-            await _unitOfWork.WarehouseRepository.UpdateAsync(warehouse);
-            return true;
-        }
         private async Task<bool> FindAndReduceQuantityInWarehouse(SaleOrderDetailCM saleOrderDetailCM, int branchId)
         {
             var warehouse = await _unitOfWork.WarehouseRepository
@@ -726,7 +713,7 @@ namespace _2Sport_BE.Infrastructure.Services
             {
                 var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.OrderCode.Equals(orderCode));
                 if (saleOrder == null)
-                        response = false;
+                    response = false;
                 else
                 {
                     saleOrder.PaymentStatus = paymentStatus;
@@ -751,6 +738,163 @@ namespace _2Sport_BE.Infrastructure.Services
                 Message = message,
                 Data = null
             };
+        }
+
+        public async Task<ResponseDTO<int>> UpdateBranchForSaleOrder(int orderId, int branchId)
+        {
+            var response = new ResponseDTO<int>();
+            try
+            {
+                var branch = await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == branchId);
+                if (branch is null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"Branch with id = {branchId} is not found!";
+                    response.Data = 0;
+                }
+                var SaleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId);
+                if (SaleOrder == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"SaleOrder with id = {orderId} is not found!";
+                    response.Data = 0;
+                }
+                else
+                {
+                    SaleOrder.BranchId = branchId;
+
+                    await _unitOfWork.SaleOrderRepository.UpdateAsync(SaleOrder);
+
+
+                    response.IsSuccess = true;
+                    response.Message = $"BranchId of SaleOrder with id = {orderId} updated successfully";
+                    response.Data = 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public async Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByBranchAsync(int branchId)
+        {
+                var response = new ResponseDTO<List<SaleOrderVM>>();
+            try
+            {
+                var query = await _unitOfWork.SaleOrderRepository.GetAndIncludeAsync(o => o.BranchId == branchId, new string[] { "User", "OrderDetails" });
+                if (query == null || !query.Any())
+                {
+                    response.IsSuccess = false;
+                    response.Message = "SaleOrders are not found";
+                    return response;
+                }
+                var saleOrderVMs = new List<SaleOrderVM>();
+
+                foreach (var item in query)
+                {
+                    var saleOrderVM = MapSaleOrderToSaleOrderVM(item);
+                    saleOrderVMs.Add(saleOrderVM);
+                }
+                response.IsSuccess = true;
+                response.Message = "Query successfully";
+                response.Data = saleOrderVMs;
+                return response;
+
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return response;
+            }
+        }
+
+        public async Task<ResponseDTO<SaleOrderVM>> ApproveSaleOrderAsync(int orderId)
+        {
+            var response = new ResponseDTO<SaleOrderVM>();
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var SaleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId, new string[] { "OrderDetails" });
+                    if (SaleOrder == null)
+                    {
+                        return GenerateErrorResponse($"SaleOrder with id = {orderId} is not found!");
+                    }
+                    else
+                    {
+                        if (SaleOrder.OrderStatus == (int)OrderStatus.CONFIRMED)
+                            return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
+
+                        SaleOrder.OrderStatus = (int)OrderStatus.CONFIRMED;
+
+                        foreach (var item in SaleOrder.OrderDetails)
+                        {
+                            var productInWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(item.ProductId.Value, SaleOrder.BranchId)).FirstOrDefault();
+                            if (productInWarehouse == null)
+                            {
+                                await transaction.RollbackAsync();
+                                return GenerateErrorResponse($"Failed to update stock for product {item.ProductName}");
+                            }
+                            productInWarehouse.AvailableQuantity -= item.Quantity;
+                            await _warehouseService.UpdateWarehouseAsync(productInWarehouse);
+                        }
+
+                        await _unitOfWork.SaleOrderRepository.UpdateAsync(SaleOrder);
+
+                        await transaction.CommitAsync();
+
+                        response.IsSuccess = true;
+                        response.Message = $"Approving SaleOrder with id = {orderId} successfully";
+                        response.Data = MapSaleOrderToSaleOrderVM(SaleOrder);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return GenerateErrorResponse(ex.Message);
+                }
+            }
+            return response;
+        }
+        public async Task<ResponseDTO<SaleOrderVM>> RejectSaleOrderAsync(int orderId)
+        {
+            var response = new ResponseDTO<SaleOrderVM>();
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var SaleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId, new string[] { "OrderDetails" });
+                    if (SaleOrder == null)
+                    {
+                        return GenerateErrorResponse($"SaleOrder with id = {orderId} is not found!");
+                    }
+                    else
+                    {
+                        await _notificationService.NotifyForRejectOrderOrderAsync(SaleOrder.OrderCode, SaleOrder.BranchId.Value);
+
+                        SaleOrder.OrderStatus = (int)OrderStatus.PENDING;
+                        SaleOrder.BranchId = null;
+
+                        await _unitOfWork.SaleOrderRepository.UpdateAsync(SaleOrder);
+
+                        await transaction.CommitAsync();
+
+                        response.IsSuccess = true;
+                        response.Message = $"Rejecting SaleOrder with id = {orderId} successfully";
+                        response.Data = MapSaleOrderToSaleOrderVM(SaleOrder);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return GenerateErrorResponse(ex.Message);
+                }
+            }
+            return response;
         }
     }
 }

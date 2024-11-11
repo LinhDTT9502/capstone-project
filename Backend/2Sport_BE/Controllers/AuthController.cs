@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.Facebook;
 using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Infrastructure.Helpers;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 
 namespace _2Sport_BE.Controllers
 {
@@ -115,73 +116,6 @@ namespace _2Sport_BE.Controllers
                 }
             }
             return StatusCode(500, result);
-        }
-        [Route("sign-up-mobile")]
-        [HttpPost]
-        public async Task<IActionResult> SignUpForMobile([FromBody] RegisterModel registerModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (!_mailService.IsValidEmail(registerModel.Email))
-            {
-                return BadRequest("Email is invalid!");
-            }
-
-            var result = await _identityService.SignUpAsync(registerModel);
-
-            if (result.IsSuccess)
-            {
-                var user = await _unitOfWork.UserRepository
-                           .GetObjectAsync(_ =>
-                           _.Email.ToLower().Equals(registerModel.Email.ToLower()) ||
-                           _.UserName.Equals(registerModel.Username));
-
-                var otp = _methodHelper.GenerateOTPCode();
-                user.Token = otp;
-                await _userService.UpdateUserAsync(user.Id, user);
-
-                var isSent = await _mailService.SenOTPMaillAsync(user.Email, otp);
-                if (isSent)
-                {
-                    return StatusCode(201, new { processStatus = result.Message, userId = result.Data });
-                }
-            }
-            return StatusCode(500, result);
-        }
-        [Route("verify-account-mobile")]
-        [HttpPost]
-        public async Task<IActionResult> VerifyForMobile([FromBody] VerifyOTPModel verifyOTPModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (!_mailService.IsValidEmail(verifyOTPModel.Email))
-            {
-                return BadRequest("Email is invalid!");
-            }
-
-            var user = await _unitOfWork.UserRepository
-                       .GetObjectAsync(_ =>
-                       _.Email.ToLower().Equals(verifyOTPModel.Email.ToLower()) &&
-                       _.UserName.Equals(verifyOTPModel.Username));
-
-            if (user != null)
-            {
-                user.Token = null;
-                user.EmailConfirmed = true;
-                await _userService.UpdateUserAsync(user.Id, user);
-
-                return StatusCode(200, "Verify successfully");
-            }
-            else
-            {
-                return StatusCode(500, "Your account is not found!");
-            }
         }
         [Route("refresh-token")]
         [HttpPost]
@@ -314,6 +248,144 @@ namespace _2Sport_BE.Controllers
             }
 
             return Ok(result.Message);
+        }
+        [Route("sign-up-mobile")]
+        [HttpPost]
+        public async Task<IActionResult> SignUpForMobile([FromBody] RegisterModel registerModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _identityService.SignUpAsync(registerModel);
+
+            if (result.IsSuccess)
+            {
+                var user = await _unitOfWork.UserRepository
+                           .GetObjectAsync(_ =>
+                           _.Email.ToLower().Equals(registerModel.Email.ToLower()) ||
+                           _.UserName.Equals(registerModel.Username));
+
+                var otp = _methodHelper.GenerateOTPCode();
+                user.Token = otp;
+                await _userService.UpdateUserAsync(user.Id, user);
+
+                var isSent = await _mailService.SenOTPMaillAsync(user.Email, otp);
+                if (isSent)
+                {
+                    return StatusCode(201, new { processStatus = result.Message, userId = result.Data });
+                }
+            }
+            return StatusCode(500, result);
+        }
+        [Route("verify-account-mobile")]
+        [HttpPost]
+        public async Task<IActionResult> VerifyForMobile([FromBody] VerifyOTPMobile verifyOTPModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = await _unitOfWork.UserRepository
+                       .GetObjectAsync(_ =>
+                       _.Email.ToLower().Equals(verifyOTPModel.Email.ToLower()) &&
+                       _.UserName.Equals(verifyOTPModel.Username));
+            if (user is null) return NotFound($"User with {verifyOTPModel.Email} not found");
+            if (!user.Token.Equals(verifyOTPModel.OtpCode))
+                return BadRequest("The otp is wrong, try again");
+
+            user.Token = null;
+            user.EmailConfirmed = true;
+            await _userService.UpdateUserAsync(user.Id, user);
+
+            return StatusCode(200, "Verify successfully");
+        }
+        [HttpPost("forgot-password-request-mobile")]
+        public async Task<IActionResult> SendResetPasswordByEmailForMobile([FromBody] SendEmailRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Email))
+            {
+                return BadRequest("Email and Token are required.");
+            }
+
+            if (!_mailService.IsValidEmail(request.Email))
+            {
+                return BadRequest("Email is invalid!");
+            }
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(request.Email))).FirstOrDefault();
+            if (user is null)
+            {
+                return BadRequest("Email is not found!");
+            }
+            var otp = _methodHelper.GenerateOTPCode();
+            user.PasswordResetToken = otp;
+            await _userService.UpdateUserAsync(user.Id, user);
+
+            var isSent = await _mailService.SenOTPMaillAsync(user.Email, otp);
+
+            if (isSent)
+            {
+                return Ok(new { Message = "Reset password OTP email sent successfully." });
+            }
+            return StatusCode(500, "Unable to send reset password OTP email. Please try again later.");
+        }
+        [Route("reset-password-mobile")]
+        [HttpPost]
+        public async Task<IActionResult>ResetPasswordForMobile([FromBody] ResetPasswordMobile resetPassword)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (!_mailService.IsValidEmail(resetPassword.Email))
+            {
+                return BadRequest("Email is invalid!");
+            }
+
+            var user = await _unitOfWork.UserRepository
+                       .GetObjectAsync(_ =>
+                       _.Email.ToLower().Equals(resetPassword.Email.ToLower()));
+            if (user is null) return NotFound($"User with {resetPassword.Email} not found");
+            if (!user.PasswordResetToken.Equals(resetPassword.OtpCode))
+                return BadRequest("The otp is wrong, try again");
+
+            user.PasswordResetToken = null;
+            user.HashPassword = _methodHelper.HashPassword(resetPassword.NewPassword);
+            var isUpdated = await _userService.UpdateUserAsync(user.Id, user);
+            if(isUpdated.IsSuccess) return StatusCode(200, "Password reset successfully");
+            return BadRequest("Password reset failed");
+        }
+        [HttpPost("send-otp-request-mobile")]
+        public async Task<IActionResult> SendOTPByEmailForMobile([FromBody] SendEmailRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Email))
+            {
+                return BadRequest("Email and Token are required.");
+            }
+
+            if (!_mailService.IsValidEmail(request.Email))
+            {
+                return BadRequest("Email is invalid!");
+            }
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(request.Email))).FirstOrDefault();
+            if (user is null)
+            {
+                return BadRequest("Email is not found!");
+            }
+            var otp = _methodHelper.GenerateOTPCode();
+            user.Token = otp;
+            await _userService.UpdateUserAsync(user.Id, user);
+
+            var isSent = await _mailService.SenOTPMaillAsync(user.Email, otp);
+
+            if (isSent)
+            {
+                return Ok(new { Message = "Reset password OTP email sent successfully." });
+            }
+            return StatusCode(500, "Unable to send reset password OTP email. Please try again later.");
         }
     }
 }

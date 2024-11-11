@@ -6,6 +6,8 @@ namespace _2Sport_BE.Infrastructure.Services
     public interface INotificationService
     {
         Task NotifyForCreatingNewOrderAsync(string orderCode);
+        Task NotifyForRejectOrderOrderAsync(string orderCode, int branchId);
+
         Task SendRentalOrderExpirationNotificationAsync(string customerId, string orderId, DateTime rentalEndDate);
     }
     public class NotificationService : INotificationService
@@ -20,7 +22,11 @@ namespace _2Sport_BE.Infrastructure.Services
             var message = $"A new order has been created with order code: {orderCode}";
             await _notificationHubContext.Clients.Group("Coordinator").SendAsync("ReceiveOrderCreated", message);
         }
-
+        public async Task NotifyForRejectOrderOrderAsync(string orderCode, int branchId)
+        {
+            var message = $"A order has been rejected with order code: {orderCode} by branch {branchId}";
+            await _notificationHubContext.Clients.Group("Coordinator").SendAsync("ReceiveOrderRejected", message);
+        }
         public async Task SendRentalOrderExpirationNotificationAsync(string customerId, string orderId, DateTime rentalEndDate)
         {
             var message = $"Your rental order #{orderId} is about to expire on {rentalEndDate.ToShortDateString()}";
