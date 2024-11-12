@@ -368,7 +368,7 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest("Email is invalid!");
             }
-            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(email) && _.UserName.Equals(email))).FirstOrDefault();
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(email) && _.Email.Equals(email))).FirstOrDefault();
             if (user is null)
             {
                 return BadRequest("Email or Username is not found!");
