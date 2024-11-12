@@ -236,6 +236,16 @@ namespace _2Sport_BE.Controllers
 
             return Ok(response);
         }
+        [HttpPost]
+        public async Task<IActionResult> UpdateAvatar(AvatarModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            return BadRequest(model);
+        }
         [NonAction]
         protected int GetCurrentUserIdFromToken()
         {

@@ -16,7 +16,8 @@ namespace _2Sport_BE.Services
             return paymentMethod switch
             {
                 2 => _serviceProvider.GetService<PayOsPaymentService>(),
-                3 => _serviceProvider.GetService<PaypalPaymentService>(),
+                3 => _serviceProvider.GetService<VnPayPaymentService>(),
+                4 => _serviceProvider.GetService<PaypalPaymentService>(),
                 _ => throw new ArgumentException("Phương thức thanh toán không hợp lệ.")
             };
         }

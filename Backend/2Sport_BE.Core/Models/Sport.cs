@@ -18,6 +18,7 @@ public class Sport
     [Column("Name", TypeName = "nvarchar")]
     [MaxLength(50)]
     public string Name { get; set; }
+    public bool Status { get; set; }
 
     public virtual ICollection<Product> Products { get; set; }
 }

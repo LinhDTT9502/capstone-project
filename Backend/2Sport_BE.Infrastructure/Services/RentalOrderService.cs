@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.SignalR;
 using _2Sport_BE.Service.Enums;
 using Hangfire.Server;
 using _2Sport_BE.Services;
+using Microsoft.IdentityModel.Tokens;
 
 
 namespace _2Sport_BE.Infrastructure.Services
@@ -27,12 +28,15 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<RentalOrderVM>> UpdateRentalOrderAsync(int orderId, RentalOrderUM rentalOrderUM);
         Task<ResponseDTO<int>> ChangeStatusRentalOrderAsync(int orderId, int status);
         Task<ResponseDTO<int>> DeleteRentalOrderAsync(int rentalOrderId);
-
         Task<ResponseDTO<int>> CancelRentalOrderAsync(int orderId);
         Task<ResponseDTO<RentalOrderVM>> RequestExtendRentalPeriod(string orderCode, int? quantity, int period);
         Task CheckRentalOrdersForExpiration();
         Task<ResponseDTO<RentalOrderVM>> ReturnOrder(string orderCode, RentalInfor rentalInfor);
 
+        Task<RentalOrder> FindRentalOrderByOrderCode(string orderCode);
+        Task<RentalOrder> FindRentalOrderById(int orderId);
+        Task<int> UpdaterRentalOrder(RentalOrder rentalOrder);
+        Task<bool> UpdatePaymentStatus(string orderCode, int paymentStatus);
     }
 
     public class RentalOrderService : IRentalOrderService
@@ -71,10 +75,9 @@ namespace _2Sport_BE.Infrastructure.Services
             foreach (var order in expiringOrders)
             {
                 await _notificationService.SendRentalOrderExpirationNotificationAsync(order.UserId.ToString(), order.RentalOrderCode, (DateTime)order.RentalEndDate);
-                await _mailService.SendEMailAsync(order.Email, $"Your rental order {order.RentalOrderCode} will expire soon. Please return it on time or contact us if you need to extend.");
+                //await _mailService.SendEMailAsync(order.Email, $"Your rental order {order.RentalOrderCode} will expire soon. Please return it on time or contact us if you need to extend.");
             }
         }
-
         public async Task<ResponseDTO<RentalOrderVM>> CreateRentalOrderAsync(RentalOrderCM rentalOrderCM)
         {
             var response = new ResponseDTO<RentalOrderVM>();
@@ -164,13 +167,14 @@ namespace _2Sport_BE.Infrastructure.Services
                         rentalOrder.SubTotal = subTotal;
                         rentalOrder.TranSportFee = 0;
                         rentalOrder.TotalAmount = (decimal)(rentalOrder.SubTotal + rentalOrder.TranSportFee);
-
-                        await transaction.CommitAsync();
+                        await _unitOfWork.RentalOrderRepository.InsertAsync(rentalOrder);
+                        await _unitOfWork.SaveChanges();
                         //Send notifications to Admmin
                         await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode);
-
+                        await _mailService.SendRentalOrderInformationToCustomer(rentalOrder, null, rentalOrder.Email);
                         // Return success response
                         response = GenerateSuccessResponse(rentalOrder,null, "Rental order created successfully");
+                        await transaction.CommitAsync();
                     }
                     else if( rentalOrderCM.rentalOrderItemCMs.Count > 1 )//Parent order and child order
                     {
@@ -236,12 +240,14 @@ namespace _2Sport_BE.Infrastructure.Services
                         parentRentalOrder.TotalAmount = (decimal)(parentRentalOrder.SubTotal + parentRentalOrder.TranSportFee);
                         await _unitOfWork.RentalOrderRepository.UpdateAsync(parentRentalOrder);
 
-                        await transaction.CommitAsync();
                         //Send notifications to Admmin
                         await _notificationService.NotifyForCreatingNewOrderAsync(parentRentalOrder.RentalOrderCode);
+
                         var listChild = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.ParentOrderCode.Equals(parentRentalOrder.RentalOrderCode));
+                        await _mailService.SendRentalOrderInformationToCustomer(parentRentalOrder, listChild.ToList(), parentRentalOrder.Email);
                         // Return success response
                         response = GenerateSuccessResponse(parentRentalOrder, listChild.ToList(), "Rental order inserted successfully");
+                        await transaction.CommitAsync();
                     }
                     else
                     {
@@ -429,28 +435,6 @@ namespace _2Sport_BE.Infrastructure.Services
                 PaymentStatus = (int)PaymentStatus.IsWating,
             };
         }
-        private RentalOrder CreateChildRentalOrder(RentalOrderCM rentalOrderCM, string parentCode)
-        {
-            return new RentalOrder()
-            {
-                RentalOrderCode = _methodHelper.GenerateOrderCode(),
-                ParentOrderCode = parentCode,
-
-                Address = rentalOrderCM.Address,
-                FullName = rentalOrderCM.FullName,
-                Gender = rentalOrderCM.Gender,
-                Email = rentalOrderCM.Email,
-                ContactPhone = rentalOrderCM.ContactPhone,
-
-                DeliveryMethod = rentalOrderCM.DeliveryMethod,
-                DateOfReceipt = rentalOrderCM.DateOfReceipt ?? DateTime.Now.AddDays(3),
-                
-                CreatedAt = DateTime.Now,
-                Note = rentalOrderCM.Note,
-                OrderStatus = (int?)OrderStatus.PENDING,
-                PaymentStatus = (int)PaymentStatus.IsWating,
-            };
-        }
         private ResponseDTO<RentalOrderVM> GenerateSuccessResponse(RentalOrder order, List<RentalOrder>? listChild, string messagge)
         {
             var result = _mapper.Map<RentalOrderVM>(order);
@@ -459,10 +443,16 @@ namespace _2Sport_BE.Infrastructure.Services
             result.PaymentMethod = order.PaymentMethodId.HasValue
                                ? Enum.GetName(typeof(OrderMethods), order.PaymentMethodId.Value)
                                : "Unknown PaymentMethod";
+            
             result.Id = order.Id;
-            if (listChild.Any())
+            if (listChild == null || !listChild.Any())
+            {
+                // Handle the case where the list is null or empty
+            }
+            else
             {
                 result.listChild = _mapper.Map<List<RentalOrderVM>>(listChild);
+
             }
             return new ResponseDTO<RentalOrderVM>
             {
@@ -509,7 +499,6 @@ namespace _2Sport_BE.Infrastructure.Services
 
             return response;
         }
-
         public async Task<ResponseDTO<RentalOrderVM>> GetRentalOrderByIdAsync(int rentalOrderId)
         {
             var response = new ResponseDTO<RentalOrderVM>();
@@ -553,15 +542,11 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 if (rentalOrder != null)
                 {
-                    var result = _mapper.Map<RentalOrderVM>(rentalOrder);
-                    response.IsSuccess = true;
-                    response.Message = "Rental order found";
-                    response.Data = result;
+                    response = GenerateSuccessResponse(rentalOrder, null, "Rental order found");
                 }
                 else
                 {
-                    response.IsSuccess = false;
-                    response.Message = $"Rental order with Order Code = {orderCode} not found";
+                    response = GenerateErrorResponse($"Rental order with Order Code = {orderCode} not found");
                 }
             }
             catch (Exception ex)
@@ -827,6 +812,51 @@ namespace _2Sport_BE.Infrastructure.Services
                 response.Message = $"Error: {ex.Message}";
             }
 
+            return response;
+        }
+
+        public async Task<RentalOrder> FindRentalOrderByOrderCode(string orderCode)
+        {
+                var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(
+                    r => r.RentalOrderCode == orderCode
+                );
+            return rentalOrder;
+        }
+        public async Task<RentalOrder> FindRentalOrderById(int orderId)
+        {
+            var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(
+                   r => r.Id == orderId
+               );
+            return rentalOrder;
+        }
+        public async Task<int> UpdaterRentalOrder(RentalOrder rentalOrder)
+        {
+            await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
+            return 1;
+        }
+
+        public async Task<bool> UpdatePaymentStatus(string orderCode, int paymentStatus)
+        {
+            bool response = false;
+
+            try
+            {
+                var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.RentalOrderCode.Equals(orderCode));
+                if (rentalOrder == null)
+                    response = false;
+                else
+                {
+                    rentalOrder.PaymentStatus = paymentStatus;
+
+                    await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
+
+                    response = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                response = false;
+            }
             return response;
         }
     }

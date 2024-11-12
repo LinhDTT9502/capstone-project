@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 namespace _2Sport_BE.Infrastructure.DTOs
@@ -28,7 +29,6 @@ namespace _2Sport_BE.Infrastructure.DTOs
         [Required]
         public int RoleId { get; set; }
 
-        public bool EmailConfirmed { get; set; } = false;
     }
     public class UserCM : UserDTO
     {
@@ -120,5 +120,32 @@ namespace _2Sport_BE.Infrastructure.DTOs
         [Required(ErrorMessage = "NewPassword is required")]
 
         public string NewPassword { get; set; }
+    }
+    public class VerifyOTPMobile
+    {
+        [Required(ErrorMessage = "Username is required")]
+        public string Username { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        public string Email { get; set; }
+        [Required(ErrorMessage = "OtpCode is required")]
+        public string OtpCode { get; set; }
+    }
+    public class ResetPasswordMobile
+    {
+        [Required(ErrorMessage = "OtpCode is required")]
+        public string OtpCode { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "NewPassword is required")]
+
+        public string NewPassword { get; set; }
+    }
+    public class AvatarModel
+    {
+        public int userId { get; set; }
+        public IFormFile Avatar { get; set; }
     }
 }

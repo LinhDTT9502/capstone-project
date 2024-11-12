@@ -12,6 +12,7 @@ using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Text.Encodings.Web;
 
 
 namespace _2Sport_BE.Services
@@ -35,8 +36,10 @@ namespace _2Sport_BE.Services
         Task<bool> SendForgotPasswordEmailAsync(string resetLink, string email);
         Task<string> GenerateEmailVerificationTokenAsync(string email);
         Task<bool> SendSaleOrderInformationToCustomer(SaleOrder saleOrder, List<OrderDetail> orderDetails, string emailStr);
+        Task<bool> SendRentalOrderInformationToCustomer(RentalOrder rentalOrder, List<RentalOrder> rentalOrders, string emailStr);
+
         bool IsValidEmail(string email);
-        Task<bool> SendEMailAsync(string email, string content);
+        Task<bool> SenOTPMaillAsync(string email, string content);
     }
 
     public class MailService : IMailService
@@ -44,6 +47,7 @@ namespace _2Sport_BE.Services
         private const string VERIFY_EMAIL_CONSTANT = "Verify Your Mail";
         private const string FORGOT_PASSWORD_CONSTANT = "Reset Your Password";
         private const string ORDER_INFORMAION_CONSTANT = "SaleOrder Information";
+        private const string RENTAL_ORDER_INFORMAION_CONSTANT = "RentalOrder Information";
 
         private readonly IConfiguration _configuration;
         private readonly ILogger<MailService> _logger;
@@ -70,12 +74,19 @@ namespace _2Sport_BE.Services
             };
             _unitOfWork = unitOfWork;
         }
+
         public bool IsValidEmail(string email)
         {
             string regex = @"^[^@\s]+@[^@\s]+\.(com|net|org|gov)$";
 
             return Regex.IsMatch(email, regex, RegexOptions.IgnoreCase);
         }
+        private async Task<string> LoadEmailTemplateAsync(string templateFileName)
+        {
+            var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", templateFileName);
+            return await File.ReadAllTextAsync(templatePath);
+        }
+
         public async Task<string> GenerateEmailVerificationTokenAsync(string email)
         {
             try
@@ -114,8 +125,7 @@ namespace _2Sport_BE.Services
             bool status = false;
             try
             {
-                var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "Forgot_Password_Email.html");
-                var templateContent = await File.ReadAllTextAsync(templatePath);
+                var templateContent = await LoadEmailTemplateAsync("Forgot_Password_Email.html");
 
                 var emailContent = templateContent
                     .Replace("{{ChangePasswordLink}}", resetLink);
@@ -158,8 +168,7 @@ namespace _2Sport_BE.Services
             bool status = false;
             try
             {
-                var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "Verify_Email.html");
-                var templateContent = await File.ReadAllTextAsync(templatePath);
+                var templateContent = await LoadEmailTemplateAsync("Verify_Email.html");
 
                 var emailContent = templateContent
                     .Replace("{{VerifyLink}}", verifyLink);
@@ -205,41 +214,37 @@ namespace _2Sport_BE.Services
             bool status = false;
             try
             {
-                var templatePath = "C:\\Users\\NguyenTuanVu\\Desktop\\Capstone\\new_brand\\capstone-project\\Backend\\2Sport_BE\\Templates\\Order_Email.html";
-                var templateContent = await File.ReadAllTextAsync(templatePath);
+                var templateContent = await LoadEmailTemplateAsync("Order_Email.html");
 
                 templateContent = templateContent
-                    .Replace("{{OrderCode}}", saleOrder.OrderCode);
-                templateContent = templateContent
-                    .Replace("{{CreatedAt}}", saleOrder.CreatedAt.ToString());
-                templateContent = templateContent
-                    .Replace("{{TotalAmount}}", FormatCurrency(saleOrder.TotalAmount));
-                templateContent = templateContent
-                    .Replace("{{FullName}}", saleOrder.FullName);
-                templateContent = templateContent
-                    .Replace("{{Address}}", saleOrder.Address);
-                templateContent = templateContent
-                    .Replace("{{ContactPhone}}", saleOrder.ContactPhone);
-                templateContent = templateContent
-                   .Replace("{{Count}}", orderDetails.Count.ToString());
-                templateContent = templateContent
-                   .Replace("{{SubTotal}}", FormatCurrency((decimal)saleOrder.SubTotal));
-                templateContent = templateContent
+                    .Replace("{{OrderCode}}", saleOrder.OrderCode)
+                    .Replace("{{CreatedAt}}", saleOrder.CreatedAt.ToString())
+                    .Replace("{{TotalAmount}}", FormatCurrency(saleOrder.TotalAmount))
+                    .Replace("{{FullName}}", saleOrder.FullName)
+                    .Replace("{{Address}}", saleOrder.Address)
+                    .Replace("{{ContactPhone}}", saleOrder.ContactPhone)
+                    .Replace("{{Count}}", orderDetails.Count.ToString())
+                    .Replace("{{SubTotal}}", FormatCurrency((decimal)saleOrder.SubTotal))
                     .Replace("{{TransportFee}}", saleOrder.TranSportFee.ToString());
+
                 StringBuilder filledHtml = new StringBuilder();
                 foreach (var item in orderDetails)
                 {
-                    string productHtml = templateContent;
+                    string orderDetailHtml = $@"
+                                <tr>
+                                    <td width='60' valign='top' style='padding: 10px 0;'>
+                                        <img src='{item.ImgAvatarPath}' alt='{item.ProductName}' style='width: 50px; height: auto;'>
+                                    </td>
+                                    <td valign='top' style='padding: 10px 5px;'>
+                                        <p><strong>{item.ProductName}</strong></p>
+                                        <p>Qty: {item.Quantity}</p>
+                                    </td>
+                                    <td align='right' style='padding: 10px; font-weight: bold;'>{FormatCurrency((decimal)item.UnitPrice)}</td>
+                                </tr>";
 
-                    // Replace the placeholders with actual product data
-                    templateContent = templateContent.Replace("{{ProductImage}}", item.ImgAvatarPath)
-                                             .Replace("{{ProductName}}", item.ProductName)
-                                             .Replace("{{Quantity}}", item.Quantity.ToString())
-                                             .Replace("{{UnitPrice}}", FormatCurrency((decimal)item.UnitPrice));
-
-                    // Append this product's HTML to the final HTML
-                    filledHtml.Append(templateContent);
+                    filledHtml.Append(orderDetailHtml);
                 }
+                templateContent = templateContent.Replace("{{OrderDetails}}", filledHtml.ToString());
                 var email = new MimeMessage();
                 email.From.Add(MailboxAddress.Parse(_mailSettings.Mail));
                 email.To.Add(MailboxAddress.Parse(emailStr));
@@ -273,22 +278,20 @@ namespace _2Sport_BE.Services
             }
             return status;
         }
-
-        public async Task<bool> SendEMailAsync(string email, string content)
+        public async Task<bool> SenOTPMaillAsync(string mail, string otp)
         {
             bool status = false;
-            /*try
+            try
             {
-                var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "Forgot_Password_Email.html");
-                var templateContent = await File.ReadAllTextAsync(templatePath);
+                var templateContent = await LoadEmailTemplateAsync("Generate_OTP_Email.html");
 
                 var emailContent = templateContent
-                    .Replace("{{ChangePasswordLink}}", resetLink);
+                    .Replace("{{OTP}}", otp);
 
                 var email = new MimeMessage();
                 email.From.Add(MailboxAddress.Parse(_mailSettings.Mail));
                 email.To.Add(MailboxAddress.Parse(mail));
-                email.Subject = FORGOT_PASSWORD_CONSTANT;
+                email.Subject = VERIFY_EMAIL_CONSTANT;
                 email.Body = new TextPart("html") { Text = emailContent };
 
                 using (var client = new MailKit.Net.Smtp.SmtpClient())
@@ -315,8 +318,91 @@ namespace _2Sport_BE.Services
                 };
                 await _unitOfWork.ErrorLogRepository.InsertAsync(errorLog);
                 await _unitOfWork.SaveChanges();
-            }*/
+            }
             return status;
+        }
+        public async Task<bool> SendRentalOrderInformationToCustomer(RentalOrder rentalOrder, List<RentalOrder>? rentalOrders, string emailStr)
+        {
+            bool status = false;
+            try
+            {
+                var templateContent = await LoadEmailTemplateAsync("Rental_Order_Email.html");
+
+                if (rentalOrders == null)
+                {
+                    rentalOrders = new List<RentalOrder> { rentalOrder };
+                }
+                templateContent = templateContent
+                    .Replace("{{OrderCode}}", rentalOrder.ParentOrderCode)
+                    .Replace("{{CreatedAt}}", rentalOrder.CreatedAt.ToString())
+                    .Replace("{{TotalAmount}}", FormatCurrency(rentalOrder.TotalAmount))
+                    .Replace("{{FullName}}", rentalOrder.FullName)
+                    .Replace("{{Address}}", rentalOrder.Address)
+                    .Replace("{{ContactPhone}}", rentalOrder.ContactPhone)
+                    .Replace("{{Count}}", rentalOrders.Count.ToString())
+                    .Replace("{{SubTotal}}", FormatCurrency((decimal)rentalOrder.SubTotal))
+                    .Replace("{{TransportFee}}", rentalOrder.TranSportFee.ToString());
+
+                string orderDetailHtml = "";
+
+                orderDetailHtml = GenerateRentalDetailsHtml(rentalOrders);
+
+                templateContent = templateContent.Replace("{{OrderDetails}}", orderDetailHtml.ToString());
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse(_mailSettings.Mail));
+                email.To.Add(MailboxAddress.Parse(emailStr));
+                email.Subject = RENTAL_ORDER_INFORMAION_CONSTANT;
+                email.Body = new TextPart("html") { Text = templateContent };
+
+                using (var client = new MailKit.Net.Smtp.SmtpClient())
+                {
+                    await client.ConnectAsync(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTlsWhenAvailable);
+                    client.AuthenticationMechanisms.Remove("XOAUTH2");
+                    await client.AuthenticateAsync(_mailSettings.Mail, _mailSettings.SecrectKey);
+                    await client.SendAsync(email);
+                    await client.DisconnectAsync(true);
+                }
+                status = true;
+
+            }
+            catch (Exception ex)
+            {
+                status = false;
+                _logger.LogError($"Error sending email: {ex.Message}");
+                var errorLog = new ErrorLog
+                {
+                    ErrorMessage = ex.Message,
+                    StackTrace = ex.StackTrace,
+                    InnerException = ex.InnerException?.Message,
+                    Source = ex.Source
+                };
+                await _unitOfWork.ErrorLogRepository.InsertAsync(errorLog);
+                await _unitOfWork.SaveChanges();
+            }
+            return status;
+        }
+        private string GenerateRentalDetailsHtml(List<RentalOrder> rentalOrders)
+        {
+            StringBuilder filledHtml = new StringBuilder();
+
+            foreach (var item in rentalOrders)
+            {
+                filledHtml.Append($@"
+            <tr>
+                <td width='60' valign='top' style='padding: 10px 0;'>
+                    <img src='{HtmlEncoder.Default.Encode(item.ImgAvatarPath)}' alt='{HtmlEncoder.Default.Encode(item.ProductName)}' style='width: 50px; height: auto;'>
+                </td>
+                <td valign='top' style='padding: 10px 5px;'>
+                    <p><strong>{HtmlEncoder.Default.Encode(item.ProductName)}</strong></p>
+                    <p>Qty: {item.Quantity}</p>
+                    <p><i>Ngày bắt đầu: {item.RentalStartDate:dd-MM-yyyy}</i></p>
+                    <p><i>Ngày kết thúc: {item.RentalEndDate:dd-MM-yyyy}</i></p>
+                </td>
+                <td align='right' style='padding: 10px; font-weight: bold;'>{FormatCurrency((decimal)item.RentPrice)}</td>
+            </tr>");
+            }
+
+            return filledHtml.ToString();
         }
     }
 

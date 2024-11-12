@@ -24,6 +24,7 @@ namespace _2Sport_BE.Service.Services
         Task AddCategories(IEnumerable<Category> categories);
         Task AddCategory(Category category);
         Task DeleteCategoryById(int id);
+        Task DeleteCategory(Category category);
         Task UpdateCategory(Category newCategory);
         Task<IQueryable<Category>> GetCategoryByName(string categoryName);
     }
@@ -102,6 +103,11 @@ namespace _2Sport_BE.Service.Services
             var query = await _unitOfWork.CategoryRepository.GetAsync(_ => _.CategoryName.ToLower()
                                                                     .Equals(categoryName.ToLower()));
             return query.AsQueryable();
+        }
+
+        public async Task DeleteCategory(Category category)
+        {
+            await _unitOfWork.CategoryRepository.DeleteAsync(category);
         }
     }
 }

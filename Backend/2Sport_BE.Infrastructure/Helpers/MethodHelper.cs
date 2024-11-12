@@ -1,15 +1,40 @@
 ﻿using _2Sport_BE.Infrastructure.DTOs;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace _2Sport_BE.Infrastructure.Helpers
 {
     public interface IMethodHelper
     {
         string GenerateOrderCode();
+        string GenerateOTPCode();
+
         bool AreAnyStringsNullOrEmpty(PaymentResponse response);
         bool CheckValidOfRentalDate(DateTime? from, DateTime? to);
+        string HashPassword(string password);
     }
     public class MethodHelper : IMethodHelper
     {
+        public string HashPassword(string password)
+        {
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
+
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                return builder.ToString();
+            }
+        }
+        public string GenerateOTPCode()
+        {
+            Random random = new Random();
+            string randomPart = random.Next(100000, 999999).ToString();
+            return randomPart;
+        }
         public string GenerateOrderCode()
         {
             string datePart = DateTime.UtcNow.ToString("yyMMdd");
@@ -40,7 +65,6 @@ namespace _2Sport_BE.Infrastructure.Helpers
             isIncrease = change >= 0;
             return change;
         }
-
         public bool CheckValidOfRentalDate(DateTime? from, DateTime? to)
         {
             if (from == null || to == null) return false;

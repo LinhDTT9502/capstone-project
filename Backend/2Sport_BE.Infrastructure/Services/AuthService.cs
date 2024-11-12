@@ -12,6 +12,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Security.Claims;
 using _2Sport_BE.Services;
+using _2Sport_BE.Infrastructure.Helpers;
 
 
 namespace _2Sport_BE.Infrastructure.Services
@@ -38,6 +39,8 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<TokenModel>> RefreshTokenAsync(TokenModel request);
         Task<ResponseDTO<string>> SignUpAsync(RegisterModel registerModel);
         Task<ResponseDTO<string>> HandleResetPassword(ResetPasswordRequest resetPasswordRequest);
+        Task<ResponseDTO<string>> SignUpMobileAsync(RegisterModel registerModel);
+
     }
     public class AuthService : IAuthService
     {
@@ -47,12 +50,14 @@ namespace _2Sport_BE.Infrastructure.Services
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMailService _mailService;
-
+        private readonly IMethodHelper _methodHelper;
         public AuthService(TwoSportCapstoneDbContext context,
             IUserService userService,
             IConfiguration configuration,
             TokenValidationParameters tokenValidationParameters,
-            IUnitOfWork unitOfWork
+            IUnitOfWork unitOfWork,
+            IMethodHelper methodHelper,
+            IMailService mailService
             )
         {
             _context = context;
@@ -60,6 +65,8 @@ namespace _2Sport_BE.Infrastructure.Services
             _configuration = configuration;
             _tokenValidationParameters = tokenValidationParameters;
             _unitOfWork = unitOfWork;
+            _methodHelper = methodHelper;
+            _mailService = mailService;
         }
         private string HashPassword(string password)
         {
@@ -81,7 +88,7 @@ namespace _2Sport_BE.Infrastructure.Services
             try
             {
                 var loginUser = await _unitOfWork.UserRepository
-                    .GetObjectAsync(_ => _.UserName == requestUser.UserName 
+                    .GetObjectAsync(_ => _.UserName == requestUser.UserName
                     && _.HashPassword == HashPassword(requestUser.Password));
 
                 if (loginUser == null)
@@ -360,9 +367,9 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 result.IsSuccess = true;
                 result.Message = "Login successfully!";
-                
+
             }
-            
+
 
             return result;
         }
@@ -450,7 +457,75 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 response.IsSuccess = true;
                 response.Message = "Password reset successful.";
-            }          
+            }
+            return response;
+        }
+
+        public async Task<ResponseDTO<string>> SignUpMobileAsync(RegisterModel registerModel)
+        {
+            var response = new ResponseDTO<string>();
+
+            var checkExist = await _unitOfWork.UserRepository
+                .GetObjectAsync(_ =>
+                _.Email.ToLower().Equals(registerModel.Email.ToLower()) ||
+                _.UserName.Equals(registerModel.Username));
+
+            if (checkExist != null)
+            {
+                response.IsSuccess = false;
+                response.Message = "Already have an account!";
+                response.Data = "";
+            }
+            else
+            {
+                using (var transaction = await _unitOfWork.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        var user = new User()
+                        {
+                            UserName = registerModel.Username,
+                            HashPassword = HashPassword(registerModel.Password),
+                            Email = registerModel.Email,
+                            FullName = registerModel.FullName,
+                            EmailConfirmed = false,
+                            RoleId = (int)UserRole.Customer,
+                            IsActived = true,
+                            CreatedAt = DateTime.Now,
+                            Token = _methodHelper.GenerateOTPCode()
+                        };
+
+                        await _unitOfWork.UserRepository.InsertAsync(user);
+                        await _unitOfWork.SaveChanges();
+
+                        var isSent = await _mailService.SenOTPMaillAsync(user.Email, user.Token);
+                        if (!isSent)
+                        {
+                            await transaction.RollbackAsync();
+                            response.IsSuccess = false;
+                            response.Message = "Cannot sent email";
+                            response.Data = "";
+                        }
+                            
+                        await transaction.CommitAsync();
+                        response.IsSuccess = true;
+                        response.Message = "Sign Up Successfully, Please check email to verify account";
+                        response.Data = $"UserId = {user.Id}";
+                    }
+                    catch (DbUpdateException)
+                    {
+                        await transaction.RollbackAsync();
+                        response.IsSuccess = false;
+                        response.Message = "Db exception";
+                    }
+                    catch (Exception ex)
+                    {
+                        await transaction.RollbackAsync();
+                        response.IsSuccess = false;
+                        response.Message = ex.Message;
+                    }
+                }
+            }
             return response;
         }
     }

@@ -67,10 +67,21 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
         [HttpGet]
-        [Route("get-orders-by-code")]
+        [Route("get-order-by-code")]
         public async Task<IActionResult> GetOrdersByOrderCode(string orderCode)
         {
             var response = await _orderService.GetSaleOrderBySaleOrderCode(orderCode);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpGet]
+        [Route("get-orders-by-branch")]
+        public async Task<IActionResult> GetOrdersByBranchId(int branchId)
+        {
+            var response = await _orderService.GetSaleOrdersByBranchAsync(branchId);
             if (response.IsSuccess)
             {
                 return Ok(response);
@@ -206,6 +217,41 @@ namespace _2Sport_BE.Controllers
                     }
                     return BadRequest(response);
                 }*/
+        [HttpPut]
+        [Route("assign-branch")]
+        public async Task<IActionResult> AssignBranch(int orderId, int branchId)
+        {
+            var response = await _orderService.UpdateBranchForSaleOrder(orderId, branchId);
+
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+
+        }
+        [HttpPost]
+        [Route("{orderId}/approve")]
+        public async Task<IActionResult> ApproveSaleOrder(int orderId)
+        {
+            var response = await _orderService.ApproveSaleOrderAsync(orderId);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpPost]
+        [Route("{orderId}/reject")]
+        public async Task<IActionResult> RejectSaleOrder(int orderId)
+        {
+            var response = await _orderService.RejectSaleOrderAsync(orderId);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
 
         [NonAction]
         public int GetCurrentUserIdFromToken()

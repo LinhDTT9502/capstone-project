@@ -84,10 +84,9 @@ namespace _2Shipment_BE.Controllers
                     FullName = shipmentDetailCM.FullName,
                     Email = shipmentDetailCM.Email,
                     UserId = userId,
-                    User = await GetUserFromToken()
                 };
                 await _shipmentDetailService.AddShipmentDetail(newShipmentDetail);
-
+                
                 ShipmentDetailVM detailVM = new ShipmentDetailVM()
                 {
                     UserId = (int)newShipmentDetail.UserId,
@@ -128,15 +127,17 @@ namespace _2Shipment_BE.Controllers
                     checkExist.FullName = shipmentDetailUM.FullName;
                     checkExist.PhoneNumber = shipmentDetailUM.PhoneNumber;
                     checkExist.Address = shipmentDetailUM.Address;
-
+                    checkExist.Email = shipmentDetailUM.Email;
                     await _shipmentDetailService.UpdateShipmentDetail(checkExist);
+
                     ShipmentDetailVM detailVM = new ShipmentDetailVM()
                     {
                         Id = checkExist.Id,
                         UserId = userId,
-                        FullName = shipmentDetailUM.FullName,
-                        Address = shipmentDetailUM.Address,
-                        PhoneNumber = shipmentDetailUM.PhoneNumber,
+                        FullName = checkExist.FullName,
+                        Address = checkExist.Address,
+                        PhoneNumber = checkExist.PhoneNumber,
+                        Email = checkExist.Email
                     };
 
                     ResponseModel<ShipmentDetailVM> response = new ResponseModel<ShipmentDetailVM>()

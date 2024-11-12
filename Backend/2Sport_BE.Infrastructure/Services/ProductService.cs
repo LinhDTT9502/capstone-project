@@ -59,7 +59,37 @@ namespace _2Sport_BE.Service.Services
 
         public async Task DeleteProductById(int id)
         {
-            await _unitOfWork.ProductRepository.DeleteAsync(id);
+            try
+            {
+                var deletedProduct = await _unitOfWork.ProductRepository.FindAsync(id);
+                deletedProduct.Status = false;
+                await _unitOfWork.ProductRepository.UpdateAsync(deletedProduct);
+
+                //delete warehouses include deleted products
+                var warehouses = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                foreach (var item in warehouses)
+                {
+                    item.AvailableQuantity = 0;
+                    item.TotalQuantity = 0;
+                    await _unitOfWork.WarehouseRepository.UpdateAsync(item);
+                }
+
+                //delete likes include deleted products
+                var likes = await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                await _unitOfWork.LikeRepository.DeleteRangeAsync(likes);
+
+                //delete reviews include deleted products
+                var reviews = await _unitOfWork.ReviewRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                await _unitOfWork.ReviewRepository.DeleteRangeAsync(reviews);
+
+                //delete imagesVideos include deleted products
+                var imagesVideos = await _unitOfWork.ImagesVideoRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                await _unitOfWork.ImagesVideoRepository.DeleteRangeAsync(imagesVideos);
+
+            } catch(Exception ex) {
+                Console.WriteLine(ex.Message);
+            }
+            
         }
 
         public async Task<IQueryable<Product>> GetAllProducts()
@@ -146,7 +176,7 @@ namespace _2Sport_BE.Service.Services
 
         public async Task<Product> GetProductById(int id)
         {
-            return (await _unitOfWork.ProductRepository.GetAsync(_ => _.Status == true && _.Id == id)).FirstOrDefault();
+            return (await _unitOfWork.ProductRepository.GetAsync(_ => _.Id == id)).FirstOrDefault();
         }
 
         public async Task<Product> GetProductByProductCode(string productCode)

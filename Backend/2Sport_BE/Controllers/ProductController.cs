@@ -162,7 +162,7 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var query = await _productService.GetProducts(_ => _.Status == true, null, "", defaultSearch.currentPage, defaultSearch.perPage);
+                var query = await _productService.GetProducts(_ => _.Id != null , null, "", defaultSearch.currentPage, defaultSearch.perPage);
                 var products = query.ToList();
                 foreach (var product in products)
                 {
