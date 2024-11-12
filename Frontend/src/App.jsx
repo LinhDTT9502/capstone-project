@@ -12,7 +12,6 @@ import NotFoundPage from './pages/NotFoundPage';
 import ProductList from './pages/ProductList';
 import ProductRoutes from './routes/ProductRoutes';
 import Checkout from './pages/Checkout';
-import UserCart from './pages/UserCart';
 import { useSelector } from 'react-redux';
 import { selectUser } from './redux/slices/authSlice';
 import UserShipment from './components/User/UserShipment';
@@ -28,6 +27,9 @@ import Warehouse from './components/Staff/Warehouse'
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoutes from './routes/AdminRoutes';
 import PlacedOrder from './components/Order/PlacedOrder';
+import Cart from './pages/Cart';
+import GuestOrder from './pages/GuestOrder';
+import GuestOrderDetail from './pages/GuestOrderDetail';
 
 
 
@@ -46,8 +48,10 @@ function App() {
             <Route path="/manage-account/*" element={<UserRoutes />} />
             {/* <Route path="/productv2" element={<Productv2Page />} /> */}
             <Route path="/product/*" element={<ProductRoutes />} />
-            <Route path="/cart" element={<UserCart />} />
+            <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<PlacedOrder />} />
+            <Route path="/guest-order" element={<GuestOrder />} />
+            <Route path="/guest-order/:orderId" element={<GuestOrderDetail />} />
             <Route path="/shipment" element={<UserShipment />} />
 
             {/* <Route path="/dashboard" element={<Dashboard />} /> */}

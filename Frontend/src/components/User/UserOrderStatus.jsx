@@ -31,7 +31,12 @@ export default function UserOrderStatus() {
         try {
           const token = localStorage.getItem("token");
           const response = await fetchUserOrders(user.UserId, token);
+          const test = response.flatMap(item => item.saleOrderDetailVMs);
           setOrders(response); 
+          console.log(test);
+          console.log(response);
+          
+          
         } catch (error) {
           setError(err.message || "Failed to fetch orders");
         } finally {
@@ -45,7 +50,7 @@ export default function UserOrderStatus() {
   const filteredOrders =
     selectedStatus === "Tất cả"
       ? orders
-      : orders.filter((order) => t(order.status_key) === selectedStatus);
+      : orders.filter((order) => t(order.orderStatus) === selectedStatus);
 
   const renderOrderStatusButton = (statusKey) => {
     const status = t(statusKey);

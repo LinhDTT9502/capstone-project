@@ -41,7 +41,7 @@ export const fetchProductsFiltered = async (
 export const fetchProductById = async (id) => {
   try {
     const response = await getProductById(id);
-    return response.data;
+    return response.data.$values;
   } catch (error) {
     console.error(`Error fetching product with id ${id}:`, error);
     throw error;

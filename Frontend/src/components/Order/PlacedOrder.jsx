@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@material-tailwind/react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { selectedShipment } from "../../redux/slices/shipmentSlice";
 import { useTranslation } from "react-i18next";
 import { selectUser } from "../../redux/slices/authSlice";
 import OrderMethod from "./OrderMethod";
 import { placedOrder } from "../../services/Checkout/checkoutService";
+import { addGuestOrder } from "../../redux/slices/guestOrderSlice";
 
 const PlacedOrder = () => {
   const user = useSelector(selectUser);
   const { t } = useTranslation();
+  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const shipment = useSelector(selectedShipment);
@@ -44,8 +46,6 @@ const PlacedOrder = () => {
   };
 
   const handleOrder = async () => {
-    console.log(branchId);
-    
     try {
       const token = localStorage.getItem("token");
       const data = {
@@ -74,13 +74,22 @@ const PlacedOrder = () => {
 
       if (response) {
         console.log(response);
+        console.log(response.data);
         
+  
+        // Check if user is a guest (no token)
+        if (!token) {
+          // Save the response to Redux store for guest users
+          dispatch(addGuestOrder(response.data));
+          
+        }
+  
         setOrderSuccess(true);
         navigate("/order_success", {
-            state: {
-              orderID: response.data.saleOrderId,
-              orderCode: response.data.orderCode,
-            },
+          state: {
+            orderID: response.data.saleOrderId,
+            orderCode: response.data.orderCode,
+          },
         });
       }
     } catch (error) {

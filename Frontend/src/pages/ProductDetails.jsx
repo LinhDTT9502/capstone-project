@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchProductById } from "../services/productService";
-import AddToCart from "../components/Product/AddToCart";
-import { Rating } from "@material-tailwind/react";
+import { Input, Rating } from "@material-tailwind/react";
 import { useTranslation } from "react-i18next";
+import AddToCart from "../components/Product/AddToCart";
 
 const ProductDetails = () => {
   const { productId } = useParams();
@@ -11,12 +11,15 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { t } = useTranslation();
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     const getProduct = async () => {
       try {
         const productData = await fetchProductById(productId);
-        setProduct(productData);
+        if (productData.length > 0) {
+          setProduct(productData[0]);
+        }
         setLoading(false);
       } catch (error) {
         setError(error);
@@ -26,6 +29,23 @@ const ProductDetails = () => {
 
     getProduct();
   }, [productId]);
+
+  const handleIncrease = () => {
+    setQuantity(prev => prev + 1);
+  };
+
+  // Function to handle quantity decrease
+  const handleDecrease = () => {
+    if (quantity > 1) {
+      setQuantity(prev => prev - 1);
+    }
+  };
+
+  // Function to handle manual input
+  const handleInputChange = (e) => {
+    const value = Math.max(1, Number(e.target.value)); // Prevent negative or zero values
+    setQuantity(value);
+  };
 
   if (loading) {
     return <div>{t("product_details.loading")}</div>;
@@ -40,49 +60,50 @@ const ProductDetails = () => {
       {product && (
         <div className="flex flex-col justify-center items-center md:flex-row gap-1">
           <div className="md:w-1/2">
-            <h4 className="text-lg text-orange-500">Shoes</h4>
-            <h2 className="text-3xl font-bold text-black mt-2">
-              {product.productName}
-            </h2>
+            <h4 className="text-lg text-orange-500">{product.categoryName}</h4>
+            <h2 className="text-3xl font-bold text-black mt-2">{product.productName}</h2>
+            <p className="text-gray-600 my-4">{product.description || "No description available"}</p>
+
             <div className="flex items-center mt-4">
               <Rating unratedColor="amber" ratedColor="amber" className="pt-5" value={5} readonly />
               <span className="text-gray-600 ml-2">(15)</span>
             </div>
-            <p className="text-gray-600 my-4">Describe product's details. Lorem Ipsum...</p>
-            <div className="flex  items-center mt-6 space-x-20">
-              <div>
-                <h4 className="text-lg font-bold text-black">Size</h4>
-                <select className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
-                  <option>{product.size}</option>
-                </select>
-              </div>
-              {/* <div>
-                <h4 className="text-lg font-bold text-black">Stock</h4>
-                <span className="text-black">15 Available</span>
-              </div> */}
+
+            <div className="my-4 text-gray-800">
+              <p><strong>Brand:</strong> {product.brandName}</p>
+              <p><strong>Color:</strong> {product.color}</p>
+              <p><strong>Condition:</strong> {product.condition}%</p>
+              <p><strong>Sport:</strong> {product.sportName}</p>
+              <p><strong>Price:</strong> {product.price ? `${product.price} VND` : "N/A"}</p>
+              <p><strong>Rent Price:</strong> {product.rentPrice ? `${product.rentPrice} VND` : "N/A"}</p>
+              <button
+                onClick={handleDecrease}
+                className="px-3 py-1 border rounded-md"
+              >
+                -
+              </button>
+              <Input
+                type="number"
+                value={quantity}
+                onChange={handleInputChange}
+                className="w-16 text-center"
+                min="1"
+              />
+              <button
+                onClick={handleIncrease}
+                className="px-3 py-1 border rounded-md"
+              >
+                +
+              </button>
+
             </div>
-            <div className="flex  items-center space-x-5 mt-4">
-              <div className="flex items-center">
-                <button className="text-xl p-2 bg-gray-200 rounded-md">-</button>
-                <span className="text-xl mx-4">1</span>
-                <button className="text-xl p-2 bg-gray-200 rounded-md">+</button>
-              </div>
-            </div>
+
             <div className="flex items-center mt-4 space-x-4">
-              <button className="bg-black text-white px-6 py-2 text-lg font-semibold rounded-md">
-                Add to Cart
-              </button>
-              <button className="bg-blue-500 text-white px-6 py-2 text-lg font-semibold rounded-md">
-                Rent
-              </button>
+              <AddToCart product={product} quantity={quantity} />
             </div>
           </div>
           <div className="md:w-1/2 flex justify-center items-center">
-            <img
-              src={product.imgAvatarPath}
-              alt={product.imgAvatarName}
-              className="w-1/2 h-auto object-cover rounded-lg"
-            />
+            <img src={product.imgAvatarPath} alt={product.imgAvatarName || "Product Image"} className="w-1/2 h-auto object-cover rounded-lg" />
           </div>
         </div>
       )}

@@ -9,14 +9,14 @@ import {
   removeCartItem,
   addToCart,
   updateCartItemQuantity,
-} from "../services/cartService";
+} from "../../services/cartService";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
-import { selectCartItems, removeFromCart, decreaseQuantity, addCart } from "../redux/slices/cartSlice"; 
-import { addCusCart, decreaseCusQuantity, removeFromCusCart, selectCustomerCartItems } from "../redux/slices/customerCartSlice";
+import { selectCartItems, removeFromCart, decreaseQuantity, addCart } from "../../redux/slices/cartSlice"; 
+import { addCusCart, decreaseCusQuantity, removeFromCusCart, selectCustomerCartItems } from "../../redux/slices/customerCartSlice";
 
-const UserCart = () => {
+const GuestCart = () => {
   const { t } = useTranslation();
   const [cartData, setCartData] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -24,24 +24,17 @@ const UserCart = () => {
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
   const guestCartItems = useSelector(selectCartItems); 
-  const customerCartItems = useSelector(selectCustomerCartItems);
 
   useEffect(() => {
     const getCart = async () => {
-      if (token) {
-       setCartData(customerCartItems);
-       console.log(cartData);
-       
-      } else {
-       
+      if (!token) {
         setCartData(guestCartItems);
         console.log(cartData);
-        
-      }
+      } 
     };
 
     getCart();
-  }, [token, guestCartItems, customerCartItems]);
+  }, [token, guestCartItems]);
 
   const handleRemoveFromCart = async (itemId) => {
     if (token) {
@@ -236,4 +229,4 @@ const UserCart = () => {
   );
 };
 
-export default UserCart;
+export default GuestCart;
