@@ -89,7 +89,7 @@ namespace _2Sport_BE.Controllers
                     productVM.SportName = sport.Name;
                     var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
                     productVM.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikeOfProduct(productId);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(productId);
                     productVM.Likes = numOfLikes;
                 }
                 
@@ -191,7 +191,7 @@ namespace _2Sport_BE.Controllers
                 {
                     var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
                     product.Likes = numOfLikes;
                 }
                 return Ok(new { total = result.Count, data = result });
@@ -262,7 +262,7 @@ namespace _2Sport_BE.Controllers
                 {
                     var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
                     product.Likes = numOfLikes;
                 }
 
@@ -299,7 +299,7 @@ namespace _2Sport_BE.Controllers
                 {
                     var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
                     product.Likes = numOfLikes;
                 }
 
@@ -344,7 +344,7 @@ namespace _2Sport_BE.Controllers
                 {
                     var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
                     product.Likes = numOfLikes;
                 }
 

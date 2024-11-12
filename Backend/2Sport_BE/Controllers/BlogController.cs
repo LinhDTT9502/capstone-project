@@ -2,8 +2,10 @@
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
+using _2Sport_BE.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -18,15 +20,21 @@ namespace _2Sport_BE.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IBlogService _blogService;
         private readonly IUserService _userService;
+        private readonly IImageService _imageService;
+        private readonly ILikeService _likeService;
 
         public BlogController(IMapper mapper, IUnitOfWork unitOfWork, 
                               IBlogService blogService,
+                              IImageService imageService,
+                              ILikeService likeService,
                               IUserService userService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _blogService = blogService;
             _userService = userService;
+            _likeService = likeService;
+            _imageService = imageService;
         }
 
         [HttpPost]
@@ -40,6 +48,22 @@ namespace _2Sport_BE.Controllers
                 if (userId == 0)
                 {
                     return Unauthorized("You are not allowed to do this method!");
+                }
+                if (blogCM.CoverImage != null)
+                {
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(blogCM.CoverImage);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        blog.CoverImgPath = uploadResult.SecureUrl.AbsoluteUri;
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
+                else
+                {
+                    blog.CoverImgPath = "";
                 }
                 var isSuccess = await _blogService.CreateBlog(userId, blog);
                 if (isSuccess == -1)
@@ -70,8 +94,10 @@ namespace _2Sport_BE.Controllers
                         var editedStaffAccount = await _userService.GetUserById((int)blog.EditedByStaff.UserId);
                         blog.CreatedByStaff.User = editedStaffAccount;
                     }
+
                 }
                 var result = _mapper.Map<List<BlogVM>>(blogs.ToList());
+
                 return Ok(new { total = result.Count, data = result });
             } catch (Exception ex)
             {
@@ -118,7 +144,20 @@ namespace _2Sport_BE.Controllers
                 {
                     return NotFound($"Cannot find the blog with id: {blogId}");
                 }
+                if (blogUM.CoverImage != null)
+                {
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(blogUM.CoverImage);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        toEditeBlog.CoverImgPath = uploadResult.SecureUrl.AbsoluteUri;
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
                 toEditeBlog.Title = blogUM.Title;
+                toEditeBlog.SubTitle = blogUM.Title;
                 toEditeBlog.Content = blogUM.Content;
                 var editedBlog = await _blogService.EditBlog(userId, toEditeBlog);
                 if (editedBlog == null)
