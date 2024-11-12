@@ -103,12 +103,23 @@ namespace _2Sport_BE.Controllers
 
         [HttpGet]
         [Route("get-product-by-product-code/{productCode}")]
-        public async Task<IActionResult> GetProductByProductCode(string productCode)
+        public async Task<IActionResult> GetProductByProductCode(string productCode, string? color, string? size, int? condition)
         {
             try
             {
                 var productsSameProductCode = await _productService.GetProductsByProductCode(productCode);
-
+                if (!string.IsNullOrEmpty(color))
+                {
+                    productsSameProductCode = productsSameProductCode.Where(_ => _.Color.ToLower().Equals(color.ToLower()));
+                }
+                if (!string.IsNullOrEmpty(size))
+                {
+                    productsSameProductCode = productsSameProductCode.Where(_ => _.Size.ToLower().Equals(size.ToLower()));
+                }
+                if (condition > -1)
+                {
+                    productsSameProductCode = productsSameProductCode.Where(_ => _.Condition == condition);
+                }
                 var productVMs = _mapper.Map<List<ProductVM>>(productsSameProductCode.ToList());
                 foreach (var productVM in productVMs)
                 {
@@ -140,13 +151,6 @@ namespace _2Sport_BE.Controllers
             return Ok(new { total = colors.Count, data = colors }); 
         }
 
-        [HttpGet]
-        [Route("list-conditions-of-product/{productCode}")]
-        public async Task<IActionResult> GetConditionsOfProduct(string productCode, string color, string size)
-        {
-            var conditions = await _productService.GetConditionsOfProduct(productCode, color, size);
-            return Ok(new { total = conditions.Count, data = conditions });
-        }
 
         [HttpGet]
         [Route("list-sizes-of-product/{productCode}")]
@@ -157,12 +161,21 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpGet]
+        [Route("list-conditions-of-product/{productCode}")]
+        public async Task<IActionResult> GetConditionsOfProduct(string productCode, string color, string size)
+        {
+            var conditions = await _productService.GetConditionsOfProduct(productCode, color, size);
+            return Ok(new { total = conditions.Count, data = conditions });
+        }
+
+
+        [HttpGet]
         [Route("list-products")]
         public async Task<IActionResult> GetProducts([FromQuery] DefaultSearch defaultSearch)
         {
             try
             {
-                var query = await _productService.GetProducts(_ => _.Id != null , null, "", defaultSearch.currentPage, defaultSearch.perPage);
+                var query = await _productService.GetProducts(_ => _.Id > 0 , null, "", defaultSearch.currentPage, defaultSearch.perPage);
                 var products = query.ToList();
                 foreach (var product in products)
                 {
@@ -362,7 +375,7 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
 
-                var managerDetail = await _managerService.GetManagerDetailByIdAsync(userId);
+                var managerDetail = await _managerService.GetManagerDetailByUserIdAsync(userId);
 
 
                 if (existedProduct == null)
