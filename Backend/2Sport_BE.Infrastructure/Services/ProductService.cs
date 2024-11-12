@@ -36,6 +36,7 @@ namespace _2Sport_BE.Service.Services
         Task<List<ColorStatusDTO>> GetColorsOfProduct(string productCode);
         Task<List<SizeStatusDTO>> GetSizesOfProduct(string productCode, string color);
         Task<List<ConditionStatusDTO>> GetConditionsOfProduct(string productCode, string color, string size);
+        Task<IQueryable<Product>> GetProductByProductCodeAndColor(string productCode, string color);
     }
     public class ProductService : IProductService
     {
@@ -242,5 +243,12 @@ namespace _2Sport_BE.Service.Services
             await _unitOfWork.ProductRepository.UpdateAsync(newProduct);
         }
 
+        public async Task<IQueryable<Product>> GetProductByProductCodeAndColor(string productCode, string color)
+        {
+            var query = await _unitOfWork.ProductRepository.GetAsync(_ => _.Status == true && _.ProductCode
+                                                       .ToLower().Equals(productCode.ToLower()) &&
+                                                       _.Color.ToLower().Equals(color.ToLower()));
+            return query.AsQueryable();
+        }
     }
 }
