@@ -789,10 +789,6 @@ namespace _2Sport_BE.Controllers
                                         BrandName = brandValue,
                                         Logo = uploadResult.SecureUrl.AbsoluteUri,
                                     };
-                                    var newBrandBranch = new BrandBranch()
-                                    {
-                                        BranchId = managerDetail.Data.BranchId
-                                    };
                                     await _brandService.CreateANewBrandAsync(newBrand);
                                 }
                                 else

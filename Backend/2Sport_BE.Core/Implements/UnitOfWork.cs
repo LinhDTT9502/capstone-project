@@ -16,7 +16,6 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<Blog> _blogRepository;
         private IGenericRepository<Brand> _brandRepository;
         private IGenericRepository<Branch> _branchRepository;
-        private IGenericRepository<BrandBranch> _brandBranchRepository;
         private IGenericRepository<Comment> _commentRepository;
         private IGenericRepository<Category> _categoryRepository;
         private IGenericRepository<Cart> _cartRepository;
@@ -108,18 +107,6 @@ namespace _2Sport_BE.Repository.Implements
             }
         }
 
-
-        public IGenericRepository<BrandBranch> BrandBranchRepository
-        {
-            get
-            {
-                if (_brandBranchRepository == null)
-                {
-                    _brandBranchRepository = new GenericRepository<BrandBranch>(_dbContext);
-                }
-                return _brandBranchRepository;
-            }
-        }
         public IGenericRepository<Category> CategoryRepository
         {
             get
