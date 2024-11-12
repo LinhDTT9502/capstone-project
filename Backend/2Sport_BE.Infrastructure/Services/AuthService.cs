@@ -89,7 +89,7 @@ namespace _2Sport_BE.Infrastructure.Services
             {
                 var loginUser = await _unitOfWork.UserRepository
                     .GetObjectAsync(_ => _.UserName == requestUser.UserName
-                    && _.HashPassword == HashPassword(requestUser.Password));
+                    && _.HashPassword == HashPassword(requestUser.Password), new string[] { "Staffs", "Managers" });
 
                 if (loginUser == null)
                 {
@@ -141,6 +141,8 @@ namespace _2Sport_BE.Infrastructure.Services
                 var symmetricKey = Encoding.UTF8.GetBytes(_configuration.GetSection("ServiceConfiguration:JwtSettings:Secret").Value);
 
                 var role = await _unitOfWork.RoleRepository.GetObjectAsync(_ => _.Id == user.RoleId);
+                var staff = user.Staffs.FirstOrDefault();
+                var manager = user.Managers.FirstOrDefault();
 
                 var Subject = new List<Claim>
                     {
@@ -152,10 +154,18 @@ namespace _2Sport_BE.Infrastructure.Services
                     new Claim("Gender",user.Gender==null?"":user.Gender),
                     new Claim("Address",user.Address==null?"":user.Address),
                     new Claim("DOB",user.DOB.ToString()==null?"":user.DOB.ToString()),
+                    new Claim("StaffId", staff != null ? staff.StaffId.ToString() : ""),
+                    new Claim("ManagerId", manager != null ? manager.Id.ToString() : ""),
                     new Claim(ClaimTypes.Role, role.RoleName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     };
+                var branchId = staff != null ? staff.BranchId : manager.BranchId;
+                if (branchId != null)
+                {
+                Subject.Add(new Claim("BranchId", branchId.ToString()));
+                }
+
 
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
@@ -460,7 +470,6 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             return response;
         }
-
         public async Task<ResponseDTO<string>> SignUpMobileAsync(RegisterModel registerModel)
         {
             var response = new ResponseDTO<string>();

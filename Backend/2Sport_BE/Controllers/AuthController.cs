@@ -318,6 +318,17 @@ namespace _2Sport_BE.Controllers
             }
             return StatusCode(500, "Unable to send reset password OTP email. Please try again later.");
         }
+        [HttpGet("validate-reset-token-mobile")]
+        public async Task<IActionResult> ValidateResetPasswordTokenMobile(string token, string email)
+        {
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(email) && _.PasswordResetToken.Equals(token))).FirstOrDefault();
+            if (user is null)
+            {
+                return BadRequest("Invalid or expired token.");
+            }
+
+            return Ok("Token is valid.");
+        }
         [Route("reset-password-mobile")]
         [HttpPost]
         public async Task<IActionResult>ResetPasswordForMobile([FromBody] ResetPasswordMobile resetPassword)
@@ -346,21 +357,21 @@ namespace _2Sport_BE.Controllers
             return BadRequest("Password reset failed");
         }
         [HttpPost("send-otp-request-mobile")]
-        public async Task<IActionResult> SendOTPByEmailForMobile([FromBody] SendEmailRequest request)
+        public async Task<IActionResult> SendOTPByEmailForMobile(string userName, string email)
         {
-            if (string.IsNullOrEmpty(request.Email))
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(userName))
             {
                 return BadRequest("Email and Token are required.");
             }
 
-            if (!_mailService.IsValidEmail(request.Email))
+            if (!_mailService.IsValidEmail(email))
             {
                 return BadRequest("Email is invalid!");
             }
-            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(request.Email))).FirstOrDefault();
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(email) && _.UserName.Equals(email))).FirstOrDefault();
             if (user is null)
             {
-                return BadRequest("Email is not found!");
+                return BadRequest("Email or Username is not found!");
             }
             var otp = _methodHelper.GenerateOTPCode();
             user.Token = otp;

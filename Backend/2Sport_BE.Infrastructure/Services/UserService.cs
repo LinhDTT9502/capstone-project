@@ -30,7 +30,6 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<User> FindUserByPhoneNumber(string phoneNumber);
         //Functions to manage managers and staffs (belong to administrator)
         Task<ResponseDTO<List<UserVM>>> GetUserByRoleIdAndBranchId(int roleId, int branchId);
-        Task<ResponseDTO<UserUM>> UpdateAvatarAsync(int userId, IFormFile formFile);
     }
     public class UserService : IUserService
     {
@@ -434,11 +433,6 @@ namespace _2Sport_BE.Infrastructure.Services
                 response.Message = $"An error occurred: {ex.Message}";
             }
             return response;
-        }
-
-        public Task<ResponseDTO<UserUM>> UpdateAvatarAsync(int userId, IFormFile formFile)
-        {
-            throw new NotImplementedException();
         }
     }
 }

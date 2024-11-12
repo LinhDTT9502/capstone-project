@@ -6,6 +6,8 @@ using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
 using IMailService = _2Sport_BE.Services.IMailService;
 using _2Sport_BE.Infrastructure.DTOs;
+using Hangfire.Common;
+using CloudinaryDotNet.Actions;
 
 namespace _2Sport_BE.Controllers
 {
@@ -18,16 +20,18 @@ namespace _2Sport_BE.Controllers
 
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IMailService _mailService;
-
+        private readonly IImageService _imageService;
         public UserController(
             IUserService userService,
             IRefreshTokenService refreshTokenService,
-            IMailService mailService
+            IMailService mailService,
+            IImageService imageService
             )
         {
             _userService = userService;
             _refreshTokenService = refreshTokenService;
             _mailService = mailService;
+            _imageService = imageService;
         }
         [HttpGet]
         [Route("get-all-users")]
@@ -237,13 +241,35 @@ namespace _2Sport_BE.Controllers
             return Ok(response);
         }
         [HttpPost]
+        [Route("upload-avatar")]
         public async Task<IActionResult> UpdateAvatar(AvatarModel model)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-
+            var user = await _userService.GetUserById(model.userId);
+            if (user != null)
+            {
+                if(model.Avatar != null)
+                {
+                var uploadResult = await _imageService.UploadImageToCloudinaryAsync(model.Avatar);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        user.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
+                        await _userService.UpdateUserAsync(user.Id, user);
+                        return Ok("Upload avatar successfully");
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
+                else
+                {
+                    user.ImgAvatarPath = "";
+                }
+            }
             return BadRequest(model);
         }
         [NonAction]
