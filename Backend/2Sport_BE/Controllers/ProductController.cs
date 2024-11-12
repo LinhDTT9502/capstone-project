@@ -360,7 +360,8 @@ namespace _2Sport_BE.Controllers
         [Route("import-product")]
         public async Task<IActionResult> ImportProduct([FromForm] ProductCM productCM)
         {
-            var existedProduct = await _productService.GetProductByProductCode(productCM.ProductCode);
+            var existedProduct = (await _productService.GetProductByProductCodeAndColor(productCM.ProductCode,
+                                                                                       productCM.Color)).FirstOrDefault();
 
 
             var product = _mapper.Map<Product>(productCM);
@@ -513,7 +514,9 @@ namespace _2Sport_BE.Controllers
             {
                 foreach (var productCM in productList)
                 {
-                    var existedProduct = await _productService.GetProductByProductCode(productCM.ProductCode);
+                    var existedProduct = (await _productService.GetProductByProductCodeAndColor
+                                                            (productCM.ProductCode,
+                                                             productCM.Color)).FirstOrDefault();
 
 
                     var product = _mapper.Map<Product>(productCM);
