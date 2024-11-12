@@ -64,6 +64,28 @@ namespace _2Sport_BE.Service.Services
                 var deletedProduct = await _unitOfWork.ProductRepository.FindAsync(id);
                 deletedProduct.Status = false;
                 await _unitOfWork.ProductRepository.UpdateAsync(deletedProduct);
+
+                //delete warehouses include deleted products
+                var warehouses = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                foreach (var item in warehouses)
+                {
+                    item.AvailableQuantity = 0;
+                    item.TotalQuantity = 0;
+                    await _unitOfWork.WarehouseRepository.UpdateAsync(item);
+                }
+
+                //delete likes include deleted products
+                var likes = await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                await _unitOfWork.LikeRepository.DeleteRangeAsync(likes);
+
+                //delete reviews include deleted products
+                var reviews = await _unitOfWork.ReviewRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                await _unitOfWork.ReviewRepository.DeleteRangeAsync(reviews);
+
+                //delete imagesVideos include deleted products
+                var imagesVideos = await _unitOfWork.ImagesVideoRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                await _unitOfWork.ImagesVideoRepository.DeleteRangeAsync(imagesVideos);
+
             } catch(Exception ex) {
                 Console.WriteLine(ex.Message);
             }

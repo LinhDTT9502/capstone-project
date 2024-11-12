@@ -183,23 +183,32 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpPost]
-        [Route("active-deactive-brand/{brandId}")]
-        public async Task<IActionResult> ActiveDeactiveBrand(int brandId)
+        [Route("delete-brand/{brandId}")]
+        public async Task<IActionResult> DeleteBrand(int brandId)
         {
-            var deletedBrand = await (await _brandService.GetBrandById(brandId)).FirstOrDefaultAsync();
-            if (deletedBrand != null)
+            try
             {
-                if (deletedBrand.Status == true)
+                var deletedBrand = await (await _brandService.GetBrandById(brandId)).FirstOrDefaultAsync();
+                if (deletedBrand != null)
                 {
-                    deletedBrand.Status = false;
+                    deletedBrand.Status = !deletedBrand.Status;
+                    await _brandService.UpdateBrandAsync(deletedBrand);
+                    var deletedProducts = await _productService.GetProducts(_ => _.BrandId == brandId);
+                    if (deletedProducts != null)
+                    {
+                        foreach (var product in deletedProducts)
+                        {
+                            await _productService.DeleteProductById(product.Id);
+                        }
+                    }
+                    return Ok($"Delete brand with id: {brandId}!");
                 }
-                else
-                {
-                    deletedBrand.Status = true;
-                }
-                return Ok($"Delete brand with id: {brandId}!");
+                return BadRequest($"Cannot find brand with id {brandId}!");
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
             }
-            return BadRequest($"Cannot find brand with id {brandId}!");
+            
         }
 
         protected int GetCurrentUserIdFromToken()
