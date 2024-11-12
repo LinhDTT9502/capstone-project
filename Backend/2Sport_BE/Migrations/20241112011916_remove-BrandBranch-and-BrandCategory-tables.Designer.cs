@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241112011916_remove-BrandBranch-and-BrandCategory-tables")]
+    partial class removeBrandBranchandBrandCategorytables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,12 +38,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar(MAX)")
                         .HasColumnName("Content");
 
-                    b.Property<string>("CoverImgPath")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar")
-                        .HasColumnName("CoverImgPath");
-
                     b.Property<DateTime?>("CreateAt")
                         .HasColumnType("datetime2");
 
@@ -54,12 +51,6 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
-
-                    b.Property<string>("SubTitle")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("SubTitle");
 
                     b.Property<string>("Title")
                         .IsRequired()

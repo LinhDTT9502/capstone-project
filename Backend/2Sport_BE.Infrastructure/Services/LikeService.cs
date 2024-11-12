@@ -12,11 +12,12 @@ namespace _2Sport_BE.Service.Services
 {
 	public interface ILikeService
 	{
-		Task AddLike(Like like);
-		Task<int> CountLikeOfProduct(int productId);
+		Task LikeProduct(Like like);
+		Task<int> CountLikesOfProduct(int productId);
         Task<int> CountLikeOfProductByProductCode(string productCode);
-        Task<IQueryable<Like>> GetLikes();
-	}
+        Task<IQueryable<Like>> GetLikesOfProduct();
+		Task DeleteLikes(IEnumerable<Like> likes);
+    }
 
     public class LikeService : ILikeService
 	{
@@ -29,16 +30,14 @@ namespace _2Sport_BE.Service.Services
 			_context = context;
 		}
 
-		public async Task<IQueryable<Like>> GetLikes()
+		public async Task<IQueryable<Like>> GetLikesOfProduct()
 		{
-			var likes = (await _unitOfWork.LikeRepository.GetAllAsync()).ToList().AsQueryable();
-			return likes;
+			return (await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductId > 0)).ToList().AsQueryable();
 		}
-
-		public async Task AddLike(Like like)
-		{
-			try
-			{
+        public async Task LikeProduct(Like like)
+        {
+            try
+            {
                 var liked = (await _unitOfWork.LikeRepository.GetAsync(_ => _.UserId == like.UserId
                                                                 && _.ProductId == like.ProductId)).FirstOrDefault();
                 if (liked != null)
@@ -49,14 +48,14 @@ namespace _2Sport_BE.Service.Services
                 {
                     await _unitOfWork.LikeRepository.InsertAsync(like);
                 }
-            } catch (Exception ex)
-			{
-				Console.WriteLine(ex.Message);
-			}
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
 
-		}
-
-		public async Task<int> CountLikeOfProduct(int productId)
+        public async Task<int> CountLikesOfProduct(int productId)
 		{
 			try
 			{
@@ -68,6 +67,19 @@ namespace _2Sport_BE.Service.Services
 				return 0;
 			}
 		}
+
+
+        public async Task DeleteLikes(IEnumerable<Like> likes)
+        {
+			try
+			{
+				await _unitOfWork.LikeRepository.DeleteRangeAsync(likes);
+			} catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
+			}
+        }
+
 
         public async Task<int> CountLikeOfProductByProductCode(string productCode)
         {

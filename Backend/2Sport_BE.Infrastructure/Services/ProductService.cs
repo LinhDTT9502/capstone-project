@@ -34,8 +34,8 @@ namespace _2Sport_BE.Service.Services
         Task<IQueryable<Product>> GetProductByProductCodeSizeColorCondition(string productCode, string size, string color, int condition);
         Task<IQueryable<Product>> GetProductsByProductCode(string productCode);
         Task<List<ColorStatusDTO>> GetColorsOfProduct(string productCode);
-        Task<List<ConditionStatusDTO>> GetConditionsOfProduct(string productCode);
-        Task<List<SizeStatusDTO>> GetSizesOfProduct(string productCode);
+        Task<List<SizeStatusDTO>> GetSizesOfProduct(string productCode, string color);
+        Task<List<ConditionStatusDTO>> GetConditionsOfProduct(string productCode, string color, string size);
     }
     public class ProductService : IProductService
     {
@@ -101,7 +101,8 @@ namespace _2Sport_BE.Service.Services
         public async Task<List<ColorStatusDTO>> GetColorsOfProduct(string productCode)
         {
             var query = (await _unitOfWork.ProductRepository.GetAsync(_ => _.ProductCode
-                                                       .ToLower().Equals(productCode.ToLower()))).ToList();
+                                                       .ToLower().Equals(productCode.ToLower())));
+            
             var listColorsAndStatus = new List<ColorStatusDTO>();
 
             foreach (var product in query)
@@ -116,11 +117,20 @@ namespace _2Sport_BE.Service.Services
 
         }
 
-        public async Task<List<ConditionStatusDTO>> GetConditionsOfProduct(string productCode)
+        public async Task<List<ConditionStatusDTO>> GetConditionsOfProduct(string productCode, string color, string size)
         {
             var query = (await _unitOfWork.ProductRepository
-                .GetAsync(_ => _.ProductCode.ToLower().Equals(productCode.ToLower())))
-                .ToList();
+                .GetAsync(_ => _.ProductCode.ToLower().Equals(productCode.ToLower())));
+
+            if (!string.IsNullOrEmpty(color))
+            {
+                query = query.Where(_ => _.Color.ToLower().Equals(color.ToLower()));
+            }
+
+            if (!string.IsNullOrEmpty(size))
+            {
+                query = query.Where(_ => _.Color.ToLower().Equals(color.ToLower()));
+            }
 
             var listConditions = new List<ConditionStatusDTO>();
 
@@ -138,11 +148,15 @@ namespace _2Sport_BE.Service.Services
         }
 
 
-        public async Task<List<SizeStatusDTO>> GetSizesOfProduct(string productCode)
+        public async Task<List<SizeStatusDTO>> GetSizesOfProduct(string productCode, string color)
         {
             var query = (await _unitOfWork.ProductRepository
-                .GetAsync(_ => _.ProductCode.ToLower().Equals(productCode.ToLower())))
-                .ToList();
+                .GetAsync(_ => _.ProductCode.ToLower().Equals(productCode.ToLower())));
+
+            if (!string.IsNullOrEmpty(color))
+            {
+                query = query.Where(_ => _.Color.ToLower().Equals(color.ToLower()));
+            }
 
             var listSizes = new List<SizeStatusDTO>();
 

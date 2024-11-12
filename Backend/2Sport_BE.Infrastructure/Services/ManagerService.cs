@@ -13,6 +13,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<List<ManagerVM>>> GetAllManagerAsync();
         Task<ResponseDTO<ManagerVM>> GetManagerByBranchIdAsync(int branchId);
         Task<ResponseDTO<ManagerVM>> GetManagerDetailByIdAsync(int managerId);
+        Task<ResponseDTO<ManagerVM>> GetManagerDetailByUserIdAsync(int userId);
     }
     public class ManagerService : IManagerService
     {
@@ -174,6 +175,37 @@ namespace _2Sport_BE.Infrastructure.Services
             try
             {
                 var query = await _unitOfWork.ManagerRepository.GetObjectAsync(m => m.Id == managerId, new string[] { "User" });
+                if (query != null)
+                {
+                    var managerVM = _mapper.Map<ManagerVM>(query);
+                    var userVM = _mapper.Map<UserVM>(query.User);
+                    managerVM.UserVM = userVM;
+
+                    response.IsSuccess = true;
+                    response.Message = "Query Successfully";
+                    response.Data = managerVM;
+                }
+                else
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Query failed";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+
+            }
+            return response;
+        }
+
+        public async Task<ResponseDTO<ManagerVM>> GetManagerDetailByUserIdAsync(int userId)
+        {
+            var response = new ResponseDTO<ManagerVM>();
+            try
+            {
+                var query = await _unitOfWork.ManagerRepository.GetObjectAsync(m => m.UserId == userId, new string[] { "User" });
                 if (query != null)
                 {
                     var managerVM = _mapper.Map<ManagerVM>(query);

@@ -24,9 +24,6 @@ public class Brand
 
     public bool? Status { get; set; }
 
-    public virtual ICollection<BrandCategory> BrandCategories { get; set; }
-
     public virtual ICollection<Product> Products { get; set; }
-    public virtual ICollection<BrandBranch> BrandBranches { get; set; }
 
 }

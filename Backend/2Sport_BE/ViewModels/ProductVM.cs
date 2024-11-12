@@ -59,17 +59,12 @@ namespace _2Sport_BE.ViewModels
         [Required]
         public bool IsRent { get; set; }
 
-
         public IFormFile? MainImage { get; set; }
 
         public IFormFile[]? ProductImages { get; set; }
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
         public int Quantity { get; set; }
-        [Required]
-        public string LotCode { get; set; }
-        [Required]
-        public int? BranchId { get; set; }
     }
 
     public class ProductUM : ProductDTO
@@ -78,8 +73,6 @@ namespace _2Sport_BE.ViewModels
         public int? CategoryId { get; set; }
         [Required]
         public int? BrandId { get; set; }
-        [Required]
-        public int? BranchId { get; set; }
         [Required]
         public int? SportId { get; set; }
         [Required]
@@ -94,8 +87,6 @@ namespace _2Sport_BE.ViewModels
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
         public int Quantity { get; set; }
-        [Required]
-        public string LotCode { get; set; }
     }
 
 

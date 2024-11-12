@@ -89,7 +89,7 @@ namespace _2Sport_BE.Controllers
                     productVM.SportName = sport.Name;
                     var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
                     productVM.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikeOfProduct(productId);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(productId);
                     productVM.Likes = numOfLikes;
                 }
                 
@@ -103,12 +103,23 @@ namespace _2Sport_BE.Controllers
 
         [HttpGet]
         [Route("get-product-by-product-code/{productCode}")]
-        public async Task<IActionResult> GetProductByProductCode(string productCode)
+        public async Task<IActionResult> GetProductByProductCode(string productCode, string? color, string? size, int? condition)
         {
             try
             {
                 var productsSameProductCode = await _productService.GetProductsByProductCode(productCode);
-
+                if (!string.IsNullOrEmpty(color))
+                {
+                    productsSameProductCode = productsSameProductCode.Where(_ => _.Color.ToLower().Equals(color.ToLower()));
+                }
+                if (!string.IsNullOrEmpty(size))
+                {
+                    productsSameProductCode = productsSameProductCode.Where(_ => _.Size.ToLower().Equals(size.ToLower()));
+                }
+                if (condition > -1)
+                {
+                    productsSameProductCode = productsSameProductCode.Where(_ => _.Condition == condition);
+                }
                 var productVMs = _mapper.Map<List<ProductVM>>(productsSameProductCode.ToList());
                 foreach (var productVM in productVMs)
                 {
@@ -140,21 +151,23 @@ namespace _2Sport_BE.Controllers
             return Ok(new { total = colors.Count, data = colors }); 
         }
 
-        [HttpGet]
-        [Route("list-conditions-of-product/{productCode}")]
-        public async Task<IActionResult> GetConditionsOfProduct(string productCode)
-        {
-            var conditions = await _productService.GetConditionsOfProduct(productCode);
-            return Ok(new { total = conditions.Count, data = conditions });
-        }
 
         [HttpGet]
         [Route("list-sizes-of-product/{productCode}")]
-        public async Task<IActionResult> GetSizesOfProduct(string productCode)
+        public async Task<IActionResult> GetSizesOfProduct(string productCode, string color)
         {
-            var sizes = await _productService.GetSizesOfProduct(productCode);
+            var sizes = await _productService.GetSizesOfProduct(productCode, color);
             return Ok(new { total = sizes.Count, data = sizes });
         }
+
+        [HttpGet]
+        [Route("list-conditions-of-product/{productCode}")]
+        public async Task<IActionResult> GetConditionsOfProduct(string productCode, string color, string size)
+        {
+            var conditions = await _productService.GetConditionsOfProduct(productCode, color, size);
+            return Ok(new { total = conditions.Count, data = conditions });
+        }
+
 
         [HttpGet]
         [Route("list-products")]
@@ -162,7 +175,7 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var query = await _productService.GetProducts(_ => _.Id != null , null, "", defaultSearch.currentPage, defaultSearch.perPage);
+                var query = await _productService.GetProducts(_ => _.Id > 0 , null, "", defaultSearch.currentPage, defaultSearch.perPage);
                 var products = query.ToList();
                 foreach (var product in products)
                 {
@@ -178,7 +191,7 @@ namespace _2Sport_BE.Controllers
                 {
                     var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
                     product.Likes = numOfLikes;
                 }
                 return Ok(new { total = result.Count, data = result });
@@ -249,7 +262,7 @@ namespace _2Sport_BE.Controllers
                 {
                     var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
                     product.Likes = numOfLikes;
                 }
 
@@ -286,7 +299,7 @@ namespace _2Sport_BE.Controllers
                 {
                     var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
                     product.Likes = numOfLikes;
                 }
 
@@ -331,7 +344,7 @@ namespace _2Sport_BE.Controllers
                 {
                     var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikeOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
                     product.Likes = numOfLikes;
                 }
 
@@ -345,7 +358,7 @@ namespace _2Sport_BE.Controllers
 
         [HttpPost]
         [Route("import-product")]
-        public async Task<IActionResult> ImportProduct(ProductCM productCM)
+        public async Task<IActionResult> ImportProduct([FromForm] ProductCM productCM)
         {
             var existedProduct = await _productService.GetProductByProductCode(productCM.ProductCode);
 
@@ -362,7 +375,7 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
 
-                var managerDetail = await _managerService.GetManagerDetailByIdAsync(userId);
+                var managerDetail = await _managerService.GetManagerDetailByUserIdAsync(userId);
 
 
                 if (existedProduct == null)
@@ -789,10 +802,6 @@ namespace _2Sport_BE.Controllers
                                         BrandName = brandValue,
                                         Logo = uploadResult.SecureUrl.AbsoluteUri,
                                     };
-                                    var newBrandBranch = new BrandBranch()
-                                    {
-                                        BranchId = managerDetail.Data.BranchId
-                                    };
                                     await _brandService.CreateANewBrandAsync(newBrand);
                                 }
                                 else
@@ -1043,6 +1052,13 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
+
                 var updatedProduct = await _productService.GetProductById(productId);
                 if (updatedProduct == null)
                 {
@@ -1050,13 +1066,6 @@ namespace _2Sport_BE.Controllers
                 }
                 else
                 {
-                    var userId = GetCurrentUserIdFromToken();
-
-                    if (userId == 0)
-                    {
-                        return Unauthorized();
-                    }
-
                     if (productUM.MainImage != null)
                     {
                         var uploadResult = await _imageService.UploadImageToCloudinaryAsync(productUM.MainImage);
@@ -1104,7 +1113,8 @@ namespace _2Sport_BE.Controllers
 
 
                     //Save import history
-                    var importedBranch = await _branchService.GetBranchById(productUM.BranchId);
+                    var manager = await _managerService.GetManagerDetailByIdAsync(userId);
+                    var importedBranch = await _branchService.GetBranchById(manager.Data.BranchId);
                     var importHistory = new ImportHistory()
                     {
                         StaffId = userId,

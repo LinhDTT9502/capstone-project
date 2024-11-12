@@ -25,7 +25,5 @@ public class Category
     public int? SportId { get; set; }
     public Sport Sport { get; set; }
 
-    public virtual ICollection<BrandCategory> BrandCategories { get; set; }
-
     public virtual ICollection<Product> Products { get; set; }
 }
