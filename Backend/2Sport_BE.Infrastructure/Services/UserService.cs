@@ -291,7 +291,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<bool>();
             try
             {
-                var existingUser = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == id);
+                var existingUser = _unitOfWork.UserRepository.FindObject(u => u.Id == id);
                 if (existingUser == null)
                 {
                     response.IsSuccess = false;
@@ -300,7 +300,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
 
                 existingUser = user;
-                await _unitOfWork.UserRepository.UpdateAsync(existingUser);
+                await _unitOfWork.UserRepository.UpdateAsync(user);
                 await _unitOfWork.SaveChanges();
                 response.IsSuccess = true;
                 response.Message = "User updated successfully.";

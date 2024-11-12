@@ -258,24 +258,11 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _identityService.SignUpAsync(registerModel);
+            var result = await _identityService.SignUpMobileAsync(registerModel);
 
             if (result.IsSuccess)
             {
-                var user = await _unitOfWork.UserRepository
-                           .GetObjectAsync(_ =>
-                           _.Email.ToLower().Equals(registerModel.Email.ToLower()) ||
-                           _.UserName.Equals(registerModel.Username));
-
-                var otp = _methodHelper.GenerateOTPCode();
-                user.Token = otp;
-                await _userService.UpdateUserAsync(user.Id, user);
-
-                var isSent = await _mailService.SenOTPMaillAsync(user.Email, otp);
-                if (isSent)
-                {
-                    return StatusCode(201, new { processStatus = result.Message, userId = result.Data });
-                }
+                return StatusCode(201, new { processStatus = result.Message, userId = result.Data });
             }
             return StatusCode(500, result);
         }
