@@ -38,13 +38,16 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<StaffVM>();
             try
             {
-                var staff = await _unitOfWork.StaffRepository
+                var isExisted = await _unitOfWork.StaffRepository
                     .GetObjectAsync(m => m.UserId == staffCM.UserId);
-                if (staff == null)
+                var manager = await _unitOfWork.ManagerRepository
+                    .GetObjectAsync(m => m.Id == staffCM.ManagerId);
+                
+                if (isExisted == null)
                 {
-                    staff = new Staff()
+                    var staff = new Staff()
                     {
-                        ManagerId = staffCM.ManagerId,
+                        ManagerId = manager != null ? manager.Id : null,
                         BranchId = staffCM.BranchId,
                         StartDate = DateTime.Now,
                         EndDate = staffCM.EndDate,
@@ -64,7 +67,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 else
                 {
                     response.IsSuccess = false;
-                    response.Message = "Error inserted";
+                    response.Message = $"Staff with userId{staffCM.UserId} is existed";
                 }
             }
             catch (Exception ex)
