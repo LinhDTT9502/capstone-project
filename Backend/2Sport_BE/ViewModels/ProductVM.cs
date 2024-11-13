@@ -43,6 +43,7 @@ namespace _2Sport_BE.ViewModels
         public string ProductCode { get; set; }
         public bool? Status { get; set; }
         public string ImgAvatarPath { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
     public class ProductCM : ProductDTO
