@@ -160,10 +160,13 @@ namespace _2Sport_BE.Infrastructure.Services
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     };
-                var branchId = staff != null ? staff.BranchId : manager.BranchId;
-                if (branchId != null)
+                if(staff != null)
                 {
-                Subject.Add(new Claim("BranchId", branchId.ToString()));
+                Subject.Add(new Claim("BranchId", staff.BranchId.ToString()));
+                }
+                if (manager != null)
+                {
+                 Subject.Add(new Claim("BranchId", staff.BranchId.ToString()));
                 }
 
 
