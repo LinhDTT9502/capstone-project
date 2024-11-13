@@ -38,6 +38,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
     public class UserVM : UserDTO
     {
         public int UserId { get; set; }
+        public bool EmailConfirmed { get; set; }
         public CustomerVM? CustomerDetail { get; set; }
         public StaffVM? StaffDetail { get; set; }
         public ManagerVM? ManagerDetail { get; set; }

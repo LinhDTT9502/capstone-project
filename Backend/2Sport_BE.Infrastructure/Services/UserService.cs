@@ -152,6 +152,10 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
 
                 var result = _mapper.Map<User, UserVM>(query);
+                result.UserId = query.Id;
+                result.StaffDetail = query.Staffs != null ? _mapper.Map<Staff, StaffVM>(query.Staffs.FirstOrDefault()) : null;
+                result.ManagerDetail = query.Managers != null ? _mapper.Map<Manager, ManagerVM>(query.Managers.FirstOrDefault()) : null;
+                result.CustomerDetail = query.Customers != null ? _mapper.Map<Customer, CustomerVM>(query.Customers.FirstOrDefault()) : null;
 
                 response.IsSuccess = true;
                 response.Message = "Query Successfully";
