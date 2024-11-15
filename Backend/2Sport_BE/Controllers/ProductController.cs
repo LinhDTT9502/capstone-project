@@ -90,7 +90,7 @@ namespace _2Sport_BE.Controllers
                 var numOfLikes = await _likeService.CountLikesOfProduct(productId);
                 productVM.Likes = numOfLikes;
                 
-                return Ok(productVMs);
+                return Ok(productVM);
             }
             catch (Exception ex)
             {
