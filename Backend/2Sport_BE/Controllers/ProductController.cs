@@ -76,22 +76,19 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var product = await _productService.GetProductById(productId);
-                var productsSameProductCode = await _productService.GetProductsByProductCode(product.ProductCode);
 
-                var productVMs = _mapper.Map<List<ProductVM>>(productsSameProductCode.ToList());
-                foreach (var productVM in productVMs)
-                {
-                    var brand = await _brandService.GetBrandById(productVM.BrandId);
-                    productVM.BrandName = brand.FirstOrDefault().BrandName;
-                    var category = await _categoryService.GetCategoryById(productVM.CategoryID);
-                    productVM.CategoryName = category.CategoryName;
-                    var sport = await _sportService.GetSportById(productVM.SportId);
-                    productVM.SportName = sport.Name;
-                    var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
-                    productVM.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikesOfProduct(productId);
-                    productVM.Likes = numOfLikes;
-                }
+                var productVM = _mapper.Map<ProductVM>(product);
+
+                var brand = await _brandService.GetBrandById(productVM.BrandId);
+                productVM.BrandName = brand.FirstOrDefault().BrandName;
+                var category = await _categoryService.GetCategoryById(productVM.CategoryID);
+                productVM.CategoryName = category.CategoryName;
+                var sport = await _sportService.GetSportById(productVM.SportId);
+                productVM.SportName = sport.Name;
+                var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                productVM.Reviews = reviews.ToList();
+                var numOfLikes = await _likeService.CountLikesOfProduct(productId);
+                productVM.Likes = numOfLikes;
                 
                 return Ok(productVMs);
             }
