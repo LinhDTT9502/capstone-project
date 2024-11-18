@@ -1,4 +1,5 @@
 ﻿using _2Sport_BE.Infrastructure.DTOs;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -10,11 +11,20 @@ namespace _2Sport_BE.Infrastructure.Helpers
         string GenerateOTPCode();
 
         bool AreAnyStringsNullOrEmpty(PaymentResponse response);
-        bool CheckValidOfRentalDate(DateTime? from, DateTime? to);
+        bool CheckValidOfRentalDate(DateTime startDate, DateTime endDate, DateTime receivedDate);
         string HashPassword(string password);
+        public string GetFormattedDateInGMT7(DateTime date);
     }
     public class MethodHelper : IMethodHelper
     {
+        public string GetFormattedDateInGMT7(DateTime date)
+        {
+            // Chuyển đổi thời gian sang GMT+7
+            DateTime dateInGmt7 = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(date, "SE Asia Standard Time");
+
+            // Format ngày theo định dạng `yyyyMMddHHmmss`
+            return dateInGmt7.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+        }
         public string HashPassword(string password)
         {
             using (SHA256 sha256Hash = SHA256.Create())
@@ -65,12 +75,17 @@ namespace _2Sport_BE.Infrastructure.Helpers
             isIncrease = change >= 0;
             return change;
         }
-        public bool CheckValidOfRentalDate(DateTime? from, DateTime? to)
+        public bool CheckValidOfRentalDate(DateTime startDate, DateTime endDate, DateTime receivedDate)
         {
-            if (from == null || to == null) return false;
-
-            if (from.Value.Date < DateTime.Now.Date || to.Value.Date < DateTime.Now.Date) return false;
-            if (from.Value.Date >= to.Value.Date) return false;
+            
+            if (startDate > endDate)
+            {
+                return false; // Ngày bắt đầu thuê không thể lớn hơn ngày kết thúc
+            }
+            if (receivedDate < startDate || receivedDate > endDate)
+            {
+                return false; // Ngày nhận sản phẩm phải nằm trong khoảng thời gian thuê
+            }
 
             return true;
         }

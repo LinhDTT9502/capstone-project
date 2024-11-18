@@ -26,6 +26,9 @@ namespace _2Sport_BE.Repository.Models
         [DataType(DataType.DateTime)]
         public DateTime? EndDate { get; set; }
 
+        [Column("IsActive")]
+        public bool IsActive { get; set; }
+
         public virtual Branch Branch { get; set; }
         public virtual User User { get; set; }
     }

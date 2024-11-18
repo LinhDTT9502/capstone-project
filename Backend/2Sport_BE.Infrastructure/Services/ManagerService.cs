@@ -2,6 +2,8 @@
 using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Repository.Models;
 using AutoMapper;
+using _2Sport_BE.Infrastructure.Enums;
+using Microsoft.CodeAnalysis.Semantics;
 namespace _2Sport_BE.Infrastructure.Services
 {
     public interface IManagerService
@@ -14,6 +16,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<ManagerVM>> GetManagerByBranchIdAsync(int branchId);
         Task<ResponseDTO<ManagerVM>> GetManagerDetailByIdAsync(int managerId);
         Task<ResponseDTO<ManagerVM>> GetManagerDetailByUserIdAsync(int userId);
+        Task<ResponseDTO<ManagerVM>> ConvertStaffToManager(int userId, int roleId, int branchId);
     }
     public class ManagerService : IManagerService
     {
@@ -41,6 +44,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         BranchId = managerCM.BranchId,
                         StartDate = managerCM.StartDate,
                         EndDate = managerCM.EndDate ?? null,
+                        IsActive = true
                     };
                     await _unitOfWork.ManagerRepository.InsertAsync(manager);
                     await _unitOfWork.SaveChanges();
@@ -263,6 +267,49 @@ namespace _2Sport_BE.Infrastructure.Services
                 response.Message = ex.Message;
             }
             return response;
+        }
+
+        public async Task<ResponseDTO<ManagerVM>> ConvertStaffToManager(int userId, int roleId, int branchId)
+        {
+            var response = new ResponseDTO<ManagerVM>();
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var user = _unitOfWork.UserRepository.FindObject(_ => _.Id == userId);
+                    user.RoleId = roleId;
+                    await _unitOfWork.UserRepository.UpdateAsync(user);
+
+                    if (roleId == (int)UserRole.Staff)
+                    {
+                        var staff = _unitOfWork.StaffRepository.FindObject(_ => _.UserId == user.Id && _.BranchId == branchId);
+                        var branch = _unitOfWork.BranchRepository.FindObject(_ => _.Id == branchId);
+                        if (staff != null) await _unitOfWork.StaffRepository.DeleteAsync(staff);
+
+                        Manager manager = new Manager()
+                        {
+                            UserId = user.Id,
+                            BranchId = branch.Id,
+                            StartDate = DateTime.Now,
+                            IsActive = true,
+                            
+                        };
+                        await _unitOfWork.ManagerRepository.InsertAsync(manager);
+                        await _unitOfWork.SaveChanges();
+
+                        var result = _mapper.Map<ManagerVM>(manager);
+                        response.IsSuccess = true;
+                        response.Message = "Inserted successfully";
+                        response.Data = result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    response.IsSuccess = false;
+                    response.Message = ex.Message;
+                }
+                return response;
+            }
         }
     }
 }

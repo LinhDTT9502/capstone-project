@@ -1,12 +1,14 @@
 ﻿using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Infrastructure.Enums;
+using _2Sport_BE.Infrastructure.Helpers;
 using _2Sport_BE.Repository.Interfaces;
-using MailKit.Search;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
 using Net.payOS.Types;
+using Newtonsoft.Json;
+using System.Net;
+using System.Text;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -30,6 +32,8 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<int>> ProcessCancelledRentalOrder(PaymentResponse paymentResponse);
         Task<ResponseDTO<int>> ProcessCompletedRentalOrder(PaymentResponse paymentResponse);
         #endregion
+        Task<ResponseDTO<PaymentLinkInformation>> GetPaymentLinkInformation(string orderCode);
+
     }
     public class PayOsPaymentService : IPaymentService, IPayOsService
     {
@@ -347,6 +351,26 @@ namespace _2Sport_BE.Infrastructure.Services
                 return response;
             }
         }
+
+        public async Task<ResponseDTO<PaymentLinkInformation>> GetPaymentLinkInformation(string orderCode)
+        {
+            var response = new ResponseDTO<PaymentLinkInformation>();
+            try
+            {
+                PaymentLinkInformation paymentLinkInformation = await _payOs.getPaymentLinkInformation(long.Parse(orderCode));
+
+                response.IsSuccess = true;
+                response.Message = $"Query succesffully";
+                response.Data = paymentLinkInformation;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return response;
+            }
+        }
         #endregion
 
     }
@@ -378,22 +402,32 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<PaymentResponseModel>> PaymentRentalOrderExecute(IQueryCollection collections);
         Task<ResponseDTO<PaymentResponseModel>> PaymentSaleOrderExecute(IQueryCollection collections);
 
+        public string QueryTransaction(string orderCode, DateTime payDate, HttpContext context);
     }
     public class VnPayPaymentService : IPaymentService, IVnPayService
     {
+        public class QueryRequest
+        {
+            public string OrderId { get; set; }
+            public string PayDate { get; set; }
+        }
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
         private readonly ISaleOrderService _saleOrderService;
         private readonly IRentalOrderService _rentalOrderService;
+        private readonly IMethodHelper _methodHelper;
         public VnPayPaymentService(IUnitOfWork unitOfWork,
             IConfiguration configuration,
             ISaleOrderService saleOrderService,
-            IRentalOrderService rentalOrderService)
+            IRentalOrderService rentalOrderService,
+            IMethodHelper methodHelper)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _saleOrderService = saleOrderService;
             _rentalOrderService = rentalOrderService;
+            _methodHelper = methodHelper;
         }
 
         public async Task<ResponseDTO<string>> ProcessSaleOrderPayment(int orderId, HttpContext context)
@@ -506,5 +540,57 @@ namespace _2Sport_BE.Infrastructure.Services
                 Message = "Update Payment Status Failed"
             };
         }
+        public string QueryTransaction(string orderCode, DateTime payDate, HttpContext context)
+        {
+            var pay = new VnPayLibrary();
+            var vnp_Api = _configuration["Vnpay:vnp_Api"];
+
+            var vnp_HashSecret = _configuration["Vnpay:HashSecret"];
+
+            var vnp_RequestId = DateTime.Now.Ticks.ToString();
+            var vnp_Version = _configuration["Vnpay:Version"]; 
+            var vnp_Command = "querydr";
+            var vnp_TmnCode = _configuration["Vnpay:TmnCode"];
+            var vnp_TxnRef = orderCode;
+            var vnp_OrderInfo = $"Thanh toan don hang mua: {orderCode}";
+            var vnp_TransactionDate = _methodHelper.GetFormattedDateInGMT7(payDate);
+            var vnp_CreateDate = DateTime.Now.ToString("yyyyMMddHHmmss");
+            var vnp_IpAddr = pay.GetIpAddress(context);
+
+            var signData = $"{vnp_RequestId}|{vnp_Version}|{vnp_Command}|{vnp_TmnCode}|{vnp_TxnRef}|{vnp_TransactionDate}|{vnp_CreateDate}|{vnp_IpAddr}|{vnp_OrderInfo}";
+            var vnp_SecureHash = pay.HmacSha512(vnp_HashSecret, signData);
+
+            var qdrData = new
+            {
+                vnp_RequestId,
+                vnp_Version,
+                vnp_Command,
+                vnp_TmnCode,
+                vnp_TxnRef,
+                vnp_OrderInfo,
+                vnp_TransactionDate,
+                vnp_CreateDate,
+                vnp_IpAddr,
+                vnp_SecureHash
+            };
+
+            var jsonData = JsonConvert.SerializeObject(qdrData);
+
+            var httpWebRequest = (HttpWebRequest)WebRequest.Create(vnp_Api);
+            httpWebRequest.ContentType = "application/json";
+            httpWebRequest.Method = "POST";
+
+            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+            {
+                streamWriter.Write(jsonData);
+            }
+
+            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                return streamReader.ReadToEnd();
+            }
+        }
+      
     }
 }

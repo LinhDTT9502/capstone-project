@@ -57,13 +57,11 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<bool>();
             try
             {
-                var order = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId);
-                if (order == null)
+                var order = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId, new string[] {"User"});
+                if (order.UserId == null || order.User is null)
                 {
                     response.IsSuccess = false;
-                    response.Message = $"Order with id = {orderId} is not found!";
-                    response.Data = false;
-
+                    response.Message = $"UserId is null for updating the loyal point!";
                     return response;
                 }
                 var customerDetail = await _unitOfWork.CustomerDetailRepository.GetObjectAsync(cd => cd.UserId == order.UserId);
@@ -86,7 +84,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 await _unitOfWork.CustomerDetailRepository.UpdateAsync(customerDetail);
 
                 response.IsSuccess = true;
-                response.Message = "Update successfully!";
+                response.Message = "Updated The Loyal Point successfully!";
                 return response;
             }
             catch (Exception ex)

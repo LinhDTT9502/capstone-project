@@ -37,7 +37,7 @@ namespace _2Sport_BE.Services
         Task<string> GenerateEmailVerificationTokenAsync(string email);
         Task<bool> SendSaleOrderInformationToCustomer(SaleOrder saleOrder, List<OrderDetail> orderDetails, string emailStr);
         Task<bool> SendRentalOrderInformationToCustomer(RentalOrder rentalOrder, List<RentalOrder> rentalOrders, string emailStr);
-
+        Task<bool> SendRentalOrderReminder(RentalOrder rentalOrder, string email);
         bool IsValidEmail(string email);
         Task<bool> SenOTPMaillAsync(string email, string content);
     }
@@ -48,7 +48,7 @@ namespace _2Sport_BE.Services
         private const string FORGOT_PASSWORD_CONSTANT = "Reset Your Password";
         private const string ORDER_INFORMAION_CONSTANT = "SaleOrder Information";
         private const string RENTAL_ORDER_INFORMAION_CONSTANT = "RentalOrder Information";
-
+        private const string RENTAL_ORDER_REMINDER_CONSTANT = "Information About Expired RentalOrder";
         private readonly IConfiguration _configuration;
         private readonly ILogger<MailService> _logger;
         private readonly MailSettings _mailSettings;
@@ -403,6 +403,53 @@ namespace _2Sport_BE.Services
             }
 
             return filledHtml.ToString();
+        }
+
+        public async Task<bool> SendRentalOrderReminder(RentalOrder rentalOrder, string emailstr)
+        {
+            bool status = false;
+            try
+            {
+                var templateContent = await LoadEmailTemplateAsync("Invoice_Reminder_Email.html");
+
+
+                templateContent = templateContent
+                    .Replace("{{OrderCode}}", rentalOrder.RentalOrderCode)
+                    .Replace("{{RentalEndDate}}", rentalOrder.RentalEndDate.ToString())
+                    .Replace("{{FullName}}", rentalOrder.FullName);
+
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse(_mailSettings.Mail));
+                email.To.Add(MailboxAddress.Parse(emailstr));
+                email.Subject = RENTAL_ORDER_REMINDER_CONSTANT;
+                email.Body = new TextPart("html") { Text = templateContent };
+
+                using (var client = new MailKit.Net.Smtp.SmtpClient())
+                {
+                    await client.ConnectAsync(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTlsWhenAvailable);
+                    client.AuthenticationMechanisms.Remove("XOAUTH2");
+                    await client.AuthenticateAsync(_mailSettings.Mail, _mailSettings.SecrectKey);
+                    await client.SendAsync(email);
+                    await client.DisconnectAsync(true);
+                }
+                status = true;
+
+            }
+            catch (Exception ex)
+            {
+                status = false;
+                _logger.LogError($"Error sending email: {ex.Message}");
+                var errorLog = new ErrorLog
+                {
+                    ErrorMessage = ex.Message,
+                    StackTrace = ex.StackTrace,
+                    InnerException = ex.InnerException?.Message,
+                    Source = ex.Source
+                };
+                await _unitOfWork.ErrorLogRepository.InsertAsync(errorLog);
+                await _unitOfWork.SaveChanges();
+            }
+            return status;
         }
     }
 

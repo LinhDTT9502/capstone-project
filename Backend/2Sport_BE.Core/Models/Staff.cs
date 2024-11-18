@@ -36,6 +36,9 @@ namespace _2Sport_BE.Repository.Models
         [MaxLength(100)]
         public string Position { get; set; }
 
+        [Column("IsActive")]
+        public bool IsActive { get; set; } = true;
+
         public virtual Branch Branch { get; set; }
         public virtual User User { get; set; }
 

@@ -70,6 +70,18 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(response);
         }
+        [HttpPut]
+        [Route("convert-manager-to-staff")]
+        public async Task<IActionResult> ConvertManagerToStaff(int userId, int roleId, int branchId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var result = await _staffService.ConvertManagerToStaff(userId, roleId, branchId);
+            if (result.IsSuccess) return Ok(result);
+            return BadRequest(result);
+        }
         [HttpDelete]
         [Route("delete-admin")]
         public async Task<ActionResult<User>> DeleteStaff([FromQuery] int staffId)

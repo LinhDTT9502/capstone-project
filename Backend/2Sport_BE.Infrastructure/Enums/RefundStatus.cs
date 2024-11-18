@@ -4,9 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace _2Sport_BE.Repository.Models
+namespace _2Sport_BE.Service.Enums
 {
-    internal class RefundData
+    public enum RefundStatus : int
     {
+        Pending = 1,
+        Completed = 2,
+        Rejected = 3,
     }
 }

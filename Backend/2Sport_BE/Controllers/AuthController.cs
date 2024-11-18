@@ -125,7 +125,7 @@ namespace _2Sport_BE.Controllers
             return Ok(result);
         }
 
-        [HttpGet("signin-google")]
+        [HttpGet("sign-in-google")]
         public IActionResult GoogleLogin()
         {
             var props = new AuthenticationProperties { RedirectUri = "api/Auth/google-response" };
@@ -137,22 +137,44 @@ namespace _2Sport_BE.Controllers
             var response = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             if (response.Principal == null) return BadRequest();
 
+            var email = response.Principal.FindFirst(ClaimTypes.Email);
 
-            var result = await _identityService.HandleLoginGoogle(response.Principal);
-            var token = result.Data.Token;
-            var refreshToken = result.Data.RefreshToken;
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(email.Value))).FirstOrDefault();
 
+            if (user != null && !user.EmailConfirmed)
+            {
+                var verifyToken = await _mailService.GenerateEmailVerificationTokenAsync(user.Email);
+                user.Token = verifyToken;
+                await _userService.UpdateUserAsync(user.Id, user);
 
-            var script = $@"
+                var verificationLink = Url.Action("VerifyEmail", "User", new { token = verifyToken, email = user.Email }, Request.Scheme);
+                var isSent = await _mailService.SendVerifyEmailAsync(verificationLink, user.Email);
+                if (isSent)
+                {
+                    return Ok(new { Message = "Your account is not verified. A verification email has been sent. Please check." });
+                }
+                else
+                {
+
+                return BadRequest("Sending verification email is failed!");
+                }
+            }
+            else
+            {
+                var result = await _identityService.HandleLoginGoogle(response.Principal);
+                var token = result.Data.Token;
+                var refreshToken = result.Data.RefreshToken;
+                var script = $@"
                 <script>
                     window.opener.postMessage({{
                         token: '{token}',
                         refreshToken: '{refreshToken}'
-                    }}, 'http://localhost:5173');
+                    }}, 'https://twosportshop.vercel.app/');
                     window.close();
                 </script>";
 
-            return Content(script, "text/html");
+                return Content(script, "text/html");
+            }
         }
 
         //Login Facebook chua xong     
