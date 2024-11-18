@@ -9,8 +9,11 @@ import { toast } from "react-toastify";
 import LoginGoogle from "./LoginGoogle";
 import { signUpUser } from "../../services/authService";
 import { useTranslation } from "react-i18next";
+import ReCAPTCHA from "react-google-recaptcha"
 
 export default function SignUpModal({ isOpen, closeModal, openSignInModal }) {
+  const [captcha, setCaptcha] = useState(null);
+  const siteKey = import.meta.env.VITE_SITE_KEY_CAPTCHA
   const { t } = useTranslation();
   const {
     register,
@@ -45,7 +48,7 @@ export default function SignUpModal({ isOpen, closeModal, openSignInModal }) {
   };
 
   const handleSignInClick = () => {
-    closeModal();z
+
     openSignInModal();
   };
 
@@ -201,9 +204,15 @@ export default function SignUpModal({ isOpen, closeModal, openSignInModal }) {
                    {t("SignUpModal.notmatch_confirmPassword")}
                         </p>
                       )}
+                      <ReCAPTCHA
+                      sitekey={siteKey}
+                      onChange={(val) => setCaptcha(val)}
+                      onExpired={() => setCaptcha(null)}
+                      />
                     <button
                       type="submit"
                       className="bg-orange-500 font-alfa text-white rounded-lg px-10 py-2 w-full"
+                      disabled={!captcha}
                     >
                           {t("SignUpModal.Signup")}
                     </button>

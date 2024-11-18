@@ -206,11 +206,9 @@ export default function SignInModal() {
                       >
                         {t("signin.forgot_password")}
                       </label>
-
                       <button
                         type="submit"
                         className="bg-orange-500 font-alfa text-white rounded-lg px-10 py-2 w-full"
-                        onClick={closeSignInModal}
                       >
                         {t("signin.signin")}
                       </button>

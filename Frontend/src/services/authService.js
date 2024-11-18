@@ -53,7 +53,7 @@ export const checkAndRefreshToken = async () => {
 
   if (decoded.exp < currentTime) {
     try {
-      const response = await refreshTokenAPI(token, refreshToken);
+      const response = await refreshTokenAPI(token, refreshToken, decoded.userId);
       // console.log(response);
       const newToken = response.data.data.token;
       const newRefreshToken = response.data.data.refreshToken;

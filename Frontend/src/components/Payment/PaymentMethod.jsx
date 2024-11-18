@@ -9,7 +9,7 @@ const PaymentMethod = ({ selectedOption, handleOptionChange }) => {
       <h3 className="text-2xl font-bold pt-1">{t("payment.payment_method")}</h3>
       <div className="flex pt-3">
         <form className="bg-white p-6 rounded shadow-md w-full border border-black">
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <label className="inline-flex items-center">
               <input
                 type="radio"
@@ -25,7 +25,7 @@ const PaymentMethod = ({ selectedOption, handleOptionChange }) => {
                 {t("payment.cash_on_delivery_description")}
               </p>
             )}
-          </div>
+          </div> */}
           <div className="mb-4">
             <label className="inline-flex items-center">
               <input
@@ -38,6 +38,23 @@ const PaymentMethod = ({ selectedOption, handleOptionChange }) => {
               <span className="ml-2">{t("payment.bank_transfer")}</span>
             </label>
             {selectedOption === "2" && (
+              <p className="mt-4 text-sm text-black bg-gray-300 p-2 rounded text-wrap">
+                {t("payment.bank_transfer_description")}
+              </p>
+            )}
+          </div>
+          <div className="mb-4">
+            <label className="inline-flex items-center">
+              <input
+                type="radio"
+                name="option"
+                value="3"
+                className="form-radio text-[#FA7D0B]"
+                onChange={handleOptionChange}
+              />
+              <span className="ml-2">VNPay</span>
+            </label>
+            {selectedOption === "3" && (
               <p className="mt-4 text-sm text-black bg-gray-300 p-2 rounded text-wrap">
                 {t("payment.bank_transfer_description")}
               </p>

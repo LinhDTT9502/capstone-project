@@ -1,22 +1,20 @@
 import { addToCartAPI, getCartAPI, reduceCartItemAPI, remmoveCartItemAPI, updateCartItemQuantityAPI } from '../api/apiCart';
 import { toast } from "react-toastify";
-
-export const addToCart = async (productId, quantityToAdd, token) => {
-  // console.log(quantity, token, productId);
+ 
+export const addToCart = async (token, productId, quantity) => {
   try {
-    const response = await addToCartAPI(productId, quantityToAdd, token);
-    // toast.success("Product added to cart successfully");
+    const response = await addToCartAPI(token, productId, quantity);
+  
     return response.data;
   } catch (error) {
     console.error('Add to cart failed', error);
-    toast.error("Chỉ còn 1 sản phẩm!");
     throw error;
   }
 };
 
-export const getUserCart = async (sortBy = '') => {
+export const getUserCart = async (token) => {
   try {
-    const response = await getCartAPI(sortBy);
+    const response = await getCartAPI(token);
     return response.data.data.$values;
   } catch (error) {
     // console.error('Error fetching cart:', error);

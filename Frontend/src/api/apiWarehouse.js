@@ -9,3 +9,13 @@ export const getWarehouse = () => {
     }
   });
 };
+
+
+export const getProductofBranchAPI = (branchId) => {
+  const url = `${API_BASE_URL}/list-products-of-branch/${branchId}`;
+  return axios.get(url, {
+    headers: {
+      'accept': '*/*'
+    }
+  });
+};

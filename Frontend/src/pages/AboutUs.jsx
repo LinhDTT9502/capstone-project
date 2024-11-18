@@ -31,32 +31,7 @@ const members = [
     name: "Dương Thị Trúc Linh",
     specialisations: "CHRO",
     image: "/assets/images/aboutus/shark-linh.jpg",
-  },
-  {
-    name: "Hà Thị Phương Thảo",
-    specialisations: "CIO",
-    image: "/assets/images/aboutus/sep-thao.jpg",
-  },
-  {
-    name: "Võ Nguyễn Hoàng Quân",
-    specialisations: "CFO",
-    image: "/assets/images/aboutus/sep-quan.jpg",
-  },
-  {
-    name: "Võ Hoài Nhật",
-    specialisations: "CCO",
-    image: "/assets/images/aboutus/sep-nhat.jpg",
-  },
-  {
-    name: "Hà Anh Tài",
-    specialisations: "CMO",
-    image: "/assets/images/aboutus/sep-tai.jpg",
-  },
-  {
-    name: "Lê Thanh Minh Nhật",
-    specialisations: "Design Manager",
-    image: "/assets/images/aboutus/nhat-gd.jpg",
-  },
+  }
 ];
 
 const AboutUs = () => {
