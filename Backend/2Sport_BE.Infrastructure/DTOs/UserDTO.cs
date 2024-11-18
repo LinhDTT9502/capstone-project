@@ -28,7 +28,6 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         [Required]
         public int RoleId { get; set; }
-
     }
     public class UserCM : UserDTO
     {
@@ -37,8 +36,9 @@ namespace _2Sport_BE.Infrastructure.DTOs
     }
     public class UserVM : UserDTO
     {
-        public int UserId { get; set; }
+        public int Id { get; set; }
         public bool EmailConfirmed { get; set; }
+        public string? ImgAvatarPath { get; set; }
         public CustomerVM? CustomerDetail { get; set; }
         public StaffVM? StaffDetail { get; set; }
         public ManagerVM? ManagerDetail { get; set; }

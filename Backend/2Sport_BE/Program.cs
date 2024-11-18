@@ -127,6 +127,7 @@ builder.Services.AddCors(options =>
                         "http://demo-api.ap-southeast-2.elasticbeanstalk.com")
            .AllowAnyMethod()
            .AllowAnyHeader()
+           .AllowCredentials()
     );
 });
 //builder.Services.AddHttpsRedirection(options =>
@@ -148,7 +149,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
+    
 // Configure the HTTP request pipeline.
 
     app.UseSwagger();
@@ -165,11 +166,12 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
     endpoints.MapHub<NotificationHub>("/notificationHub");
+
 });
 
 app.MapGet("/", () => Results.Redirect("/swagger"));
 app.UseHangfireServer();
-app.UseHangfireDashboard("/hangfireDasboard", new DashboardOptions
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
     DashboardTitle = "Hangfire for 2Sport",
     DarkModeEnabled = false,
@@ -198,4 +200,4 @@ using (var scope = app.Services.CreateScope())
     });
 }
 
-app.Run();
+    app.Run();

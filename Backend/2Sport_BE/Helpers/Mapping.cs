@@ -2,6 +2,7 @@
 using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
+using _2Sport_BE.Service.DTOs;
 
 namespace _2Sport_BE.Helpers
 {
