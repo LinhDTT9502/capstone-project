@@ -26,6 +26,24 @@ export const getProductById = (id) => {
   });
 };
 
+export const getProductByProductCode = (productCode) => {
+  const url = `${API_BASE_URL}/get-product-by-product-code/${productCode}`;
+  return axios.get(url, {
+    headers: {
+      'accept': '*/*'
+    }
+  });
+};
+
+export const getProductColor = (productCode) => {
+  const url = `${API_BASE_URL}/list-colors-of-product/${productCode}`;
+  return axios.get(url, {
+    headers: {
+      'accept': '*/*'
+    }
+  });
+};
+
 export const getProductFilterBy = ( sortBy, isAscending, brandIds, categoryIds, minPrice, maxPrice) => {
   const url = `${API_BASE_URL}/filter-sort-products`;
   const params = {perPage};

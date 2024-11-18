@@ -108,6 +108,10 @@ function Header() {
                 <FontAwesomeIcon icon={faCartShopping} className="pr-1" />{" "}
                 {t("header.cart")}
               </Link>
+              <Link to="/guest-order">
+               
+                Đơn mua
+              </Link>
             </div>
           </div>
           <motion.div

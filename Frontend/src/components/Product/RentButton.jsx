@@ -9,22 +9,20 @@ import {
   Button,
 
 } from "@material-tailwind/react";
-import { addToCart } from '../../services/cartService';
 
-const AddToCart = ({ product, quantity}) => {
+const RentButton = ({ product, warehouseId, initialQuantity = 0 }) => {
+  const [quantity, setQuantity] = useState(initialQuantity);
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (quantityToAdd = 1) => {
     const token = localStorage.getItem('token');
     if (!token) {
       dispatch(addCart(product));
       toast.info('Added to cart');
       return;
     } else {
-      const response = await addToCart(token, product.id, quantity)
-      console.log(response);
-      
+      dispatch(addCusCart(product));
       toast.success(`${product.productName} has been added to the cart!`);
     }
   };
@@ -35,9 +33,9 @@ const AddToCart = ({ product, quantity}) => {
       className="py-4"
       onClick={() => handleAddToCart()}
     >
-      {t("product_list.add_to_cart")}
+     Thuê 
     </Button>
   );
 };
 
-export default AddToCart;
+export default RentButton;

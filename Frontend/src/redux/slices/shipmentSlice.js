@@ -8,8 +8,10 @@ const shipmentPersistConfig = {
 };
 
 const initialState = {
-  shipment: [],
-  selectedShipments: null,
+    shipment: [],
+    selectedShipments: null,
+    wardCode: null,
+    districtId: null,
 };
 
 const shipmentSlice = createSlice({
@@ -18,6 +20,8 @@ const shipmentSlice = createSlice({
     reducers: {
         setShipment: (state, action) => {
             state.shipment = action.payload;
+            state.wardCode = action.payload.wardCode;
+            state.districtId = action.payload.districtId;
         },
         selectShipments: (state, action) => {
             state.selectedShipments = action.payload;
@@ -31,6 +35,7 @@ const shipmentSlice = createSlice({
         addShipment: (state, action) => {
             state.shipment.push(action.payload);
         },
+
         deleteShipment: (state, action) => {
             state.shipment = state.shipment.filter(shipment => shipment.id !== action.payload);
         },
