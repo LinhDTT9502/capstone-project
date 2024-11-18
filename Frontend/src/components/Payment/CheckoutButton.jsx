@@ -6,23 +6,31 @@ import { selectUser } from "../../redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const CheckoutButton = ({ orderID, orderCode }) => {
+const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
 
   const handleCheckout = async () => {
+    if (!selectedOrder || paymentMethodID !== "3") {
+      alert("Please select a valid payment method.");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       const userId = token ? user.UserId : 0;
+
+      // Prepare the API request payload
       const data = {
-        paymentMethodID: 2,
-        orderID,
-        orderCode,
+        paymentMethodID: 3,
+        orderID: selectedOrder.saleOrderId,
+        orderCode: selectedOrder.orderCode,
         userId,
       };
 
+      // Call the API for VNPay checkout
       const response = await axios.post(
-        "https://twosportapi-295683427295.asia-southeast2.run.app/api/Checkout/checkout-by-payOs",
+        "https://twosportapi-295683427295.asia-southeast2.run.app/api/VnPay/checkout-sale-order",
         data,
         {
           headers: {
@@ -31,15 +39,15 @@ const CheckoutButton = ({ orderID, orderCode }) => {
           },
         }
       );
-
-      if (response.data.isSuccess && response.data.data.paymentLink) {
-        // Redirect to the payment link
-        window.location.href = response.data.data.paymentLink;
-      } else {
-        console.error("Checkout failed:", response.data.message);
-      }
+      console.log(response);
+      
+        const paymentLink = response.data.data.paymentLink;
+        console.log(paymentLink);
+        window.location.href = paymentLink;
+     
     } catch (error) {
       console.error("Error during checkout:", error);
+      alert("An error occurred during checkout. Please try again later.");
     }
   };
 

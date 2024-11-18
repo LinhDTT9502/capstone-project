@@ -92,7 +92,7 @@ const GuestCart = () => {
     const selectedProducts = cartData.filter((item) =>
       selectedItems.includes(item.id)
     );
-    navigate("/checkout", { state: { selectedProducts } });
+    navigate("/placed-order", { state: { selectedProducts } });
   };
 
   return (

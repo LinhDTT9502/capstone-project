@@ -29,10 +29,11 @@ export const signOut = (data) => {
   });
 };
 
-export const refreshTokenAPI = (token, refreshToken) => {
+export const refreshTokenAPI = (token, refreshToken, userId) => {
   return axios.post(`${API_BASE_URL}/refresh-token`, {
     token,
     refreshToken,
+    userId
   }, {
     headers: {
       'Content-Type': 'application/json'

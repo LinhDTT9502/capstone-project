@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchProductById } from "../services/productService";
+import { fetchProductByProductCode, fetchProductColor } from "../services/productService";
 import { Input, Rating } from "@material-tailwind/react";
 import { useTranslation } from "react-i18next";
 import AddToCart from "../components/Product/AddToCart";
 
 const ProductDetails = () => {
-  const { productId } = useParams();
+  const { productCode } = useParams();
   const [product, setProduct] = useState(null);
+  const [color, setColor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { t } = useTranslation();
@@ -16,7 +17,9 @@ const ProductDetails = () => {
   useEffect(() => {
     const getProduct = async () => {
       try {
-        const productData = await fetchProductById(productId);
+        const productData = await fetchProductByProductCode(productCode);
+        // const colorData = await fetchProductColor(productCode)
+        // setColor(colorData.color)
         if (productData.length > 0) {
           setProduct(productData[0]);
         }
@@ -28,7 +31,7 @@ const ProductDetails = () => {
     };
 
     getProduct();
-  }, [productId]);
+  }, [productCode]);
 
   const handleIncrease = () => {
     setQuantity(prev => prev + 1);
@@ -71,7 +74,7 @@ const ProductDetails = () => {
 
             <div className="my-4 text-gray-800">
               <p><strong>Brand:</strong> {product.brandName}</p>
-              <p><strong>Color:</strong> {product.color}</p>
+              <p><strong>Color:</strong> {color}</p>
               <p><strong>Condition:</strong> {product.condition}%</p>
               <p><strong>Sport:</strong> {product.sportName}</p>
               <p><strong>Price:</strong> {product.price ? `${product.price} VND` : "N/A"}</p>

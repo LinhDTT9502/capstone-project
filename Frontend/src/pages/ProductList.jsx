@@ -60,7 +60,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
         {products?.map(product => (
           <div key={product.id} className="bg-white border hover:drop-shadow-lg hover:bg-blue-100 p-2">
             <div className="relative">
-              <Link to={`/product/${product.id}`}>
+              <Link to={`/product/${product.productCode}`}>
                 <div className="bg-white">
                   <img src={product.imgAvatarPath} alt={product.mainImageName} className="object-scale-down h-48 w-96 mb-4" />
                 </div>
@@ -71,7 +71,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
                 </button>
               )}
             </div>
-            <Link to={`/product/${product.id}`}>
+            <Link to={`/product/${product.productCode}`}>
               <p className="text-orange-500 mb-2 ">{product.categoryName} - {product.brandName}</p>
               <h2 className="text-xl font-semibold ">{product.productName}</h2>
               <p className="text-gray-700 mb-2">{product.price.toLocaleString()} VND</p>

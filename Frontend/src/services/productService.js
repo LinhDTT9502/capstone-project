@@ -1,6 +1,6 @@
 // src/services/productService.js
 import { toast } from 'react-toastify';
-import { getProductList, getProductById, getProductFilterBy } from '../api/apiProduct';
+import { getProductList, getProductById, getProductFilterBy, getProductByProductCode, getProductColor } from '../api/apiProduct';
 
 export const fetchProducts = async (currentPage) => {
   try {
@@ -41,6 +41,26 @@ export const fetchProductsFiltered = async (
 export const fetchProductById = async (id) => {
   try {
     const response = await getProductById(id);
+    return response.data.$values;
+  } catch (error) {
+    console.error(`Error fetching product with id ${id}:`, error);
+    throw error;
+  }
+};
+
+export const fetchProductByProductCode = async (productCode) => {
+  try {
+    const response = await getProductByProductCode(productCode);
+    return response.data.$values;
+  } catch (error) {
+    console.error(`Error fetching product with id ${id}:`, error);
+    throw error;
+  }
+};
+
+export const fetchProductColor = async (productCode) => {
+  try {
+    const response = await getProductColor(productCode);
     return response.data.$values;
   } catch (error) {
     console.error(`Error fetching product with id ${id}:`, error);

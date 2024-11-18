@@ -15,13 +15,13 @@ const OrderSuccess = () => {
       <h1 className="text-2xl font-bold mt-4">Order Placed Successfully!</h1>
       <p className="mt-2">Thank you for your order.</p>
       
-      <div className="mt-6">
+      {/* <div className="mt-6">
         {orderID && orderCode ? (
           <CheckoutButton orderID={orderID} orderCode={orderCode} />
         ) : (
           <p className="text-red-500">Error: Missing order information.</p>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };

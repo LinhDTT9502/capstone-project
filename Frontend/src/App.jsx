@@ -49,7 +49,8 @@ function App() {
             {/* <Route path="/productv2" element={<Productv2Page />} /> */}
             <Route path="/product/*" element={<ProductRoutes />} />
             <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<PlacedOrder />} />
+            <Route path="/placed-order" element={<PlacedOrder />} />
+            <Route path="/checkout" element={<Checkout />} />
             <Route path="/guest-order" element={<GuestOrder />} />
             <Route path="/guest-order/:orderId" element={<GuestOrderDetail />} />
             <Route path="/shipment" element={<UserShipment />} />

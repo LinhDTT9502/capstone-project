@@ -40,12 +40,14 @@ const PlacedOrder = () => {
 
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
-    if (event.target.value === "STORE_PICKUP") {
-      // Logic to handle branch selection can be added here if necessary
-    }
+    // if (event.target.value === "STORE_PICKUP") {
+     
+    // }
   };
 
   const handleOrder = async () => {
+    console.log(userData);
+    
     try {
       const token = localStorage.getItem("token");
       const data = {
