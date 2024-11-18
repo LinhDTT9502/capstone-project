@@ -99,6 +99,7 @@ namespace _2Sport_BE.Service.Services
                 comment.UserId = userId;
                 comment.ProductId = productId;
                 comment.ParentCommentId = parentCommentId;
+                comment.CreatedAt = DateTime.Now;
                 await _unitOfWork.CommentRepository.InsertAsync(comment);
                 await _unitOfWork.SaveChanges();
                 return 1;
