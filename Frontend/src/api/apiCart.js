@@ -3,7 +3,7 @@ import axiosInstance from './axiosInstance';
 
 const API_BASE_URL = 'https://twosportapi-295683427295.asia-southeast2.run.app/api/Cart';
 
-export const addToCartAPI = (productId, quantity, token) => {
+export const addToCartAPI = (token, productId, quantity) => {
 
   return axiosInstance.post(`${API_BASE_URL}/add-to-cart`, {
     productId,
@@ -17,20 +17,21 @@ export const addToCartAPI = (productId, quantity, token) => {
   });
 };
 
-export const getCartAPI = (sortBy = '') => {
+export const getCartAPI = (token) => {
   const url = `${API_BASE_URL}/get-cart`;
-  const data = {
-    perPage: 2,
-    currentPage: 0,
-    sortBy: sortBy,
-    isAscending: true
-  };
+  // const data = {
+  //   perPage: 2,
+  //   currentPage: 0,
+  //   sortBy: sortBy,
+  //   isAscending: true
+  // };
   return axiosInstance.get(url, {
     headers: {
       'Accept': '*/*',
+      "Authorization": `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
-    data: JSON.stringify(data)
+    // data: JSON.stringify(data)
   });
 };
 
@@ -54,8 +55,8 @@ export const reduceCartItemAPI = (id, token) => {
   });
 };
 
-export const remmoveCartItemAPI = (id, token) => {
-  const url = `${API_BASE_URL}/delete-cart-item/${id}`;
+export const remmoveCartItemAPI = (cartItemId , token) => {
+  const url = `${API_BASE_URL}/delete-cart-item/${cartItemId }`;
   return axiosInstance.delete(url, {
     headers: {
       'accept': '*/*',

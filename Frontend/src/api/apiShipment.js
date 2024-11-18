@@ -1,6 +1,6 @@
 import axiosInstance from './axiosInstance';
 
-const API_BASE_URL = 'http://demo-api.ap-southeast-2.elasticbeanstalk.com';
+const API_BASE_URL = 'https://twosportapi-295683427295.asia-southeast2.run.app/';
 
 export const getShipmentDetails = ( token) => {
 

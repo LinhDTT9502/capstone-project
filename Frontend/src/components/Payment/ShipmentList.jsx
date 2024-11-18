@@ -1,4 +1,4 @@
-import { useState,useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectShipment,
@@ -40,7 +40,7 @@ export default function ShipmentList() {
   }, [dispatch]);
 
   useEffect(() => {
-  }, [shipments,dispatch]);
+  }, [shipments, dispatch]);
 
   const refreshShipments = async () => {
     try {
@@ -81,16 +81,16 @@ export default function ShipmentList() {
 
   return (
     <>
-    <button
-            type="button"
-            onClick={openModal}
-            className="border-r-2 pr-4 text-orange-500"
-          >
-           Địa chỉ đã lưu trữ
-          </button>
+      <button
+        type="button"
+        onClick={openModal}
+        className="pr-4 text-orange-500"
+      >
+        Địa chỉ đã lưu trữ
+      </button>
       {isShipmentListOpen && (
         <div className="mb-4">
-          
+
           <Transition appear show={isShipmentListOpen} as={Fragment}>
             <Dialog as="div" className="relative z-10" onClose={closeModal}>
               <Transition.Child
@@ -161,7 +161,7 @@ export default function ShipmentList() {
                             </div>
                           ))}
                           <AddShipment
-                          refreshShipments={refreshShipments}
+                            refreshShipments={refreshShipments}
                           />
                         </div>
                       )}

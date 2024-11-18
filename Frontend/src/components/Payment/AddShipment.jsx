@@ -18,11 +18,17 @@ export default function AddShipment({ refreshShipments }) {
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
   const { t } = useTranslation();
+  const [wardCode, setWardCode] = useState(null); // State to hold ward code
+  const [districtId, setDistrictId] = useState(null);
 
   const handleAddShipment = async () => {
     try {
       const newShipment = await addUserShipmentDetail(token, { ...formData, address });
-      dispatch(addShipment(newShipment.data));
+      dispatch(addShipment({
+        ...newShipment.data, 
+        wardCode, 
+        districtId 
+      }));
       refreshShipments();
       closeModal();
     } catch (error) {
@@ -37,10 +43,11 @@ export default function AddShipment({ refreshShipments }) {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleAddressChange = (newAddress) => {
+  const handleAddressChange = (newAddress, wardCode, districtId) => {
     setAddress(newAddress);
+    setWardCode(wardCode);
+    setDistrictId(districtId);
   };
-
   const openModal = () => {
     setIsOpen(true);
   };
