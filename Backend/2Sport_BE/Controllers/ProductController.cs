@@ -89,7 +89,7 @@ namespace _2Sport_BE.Controllers
                 productVM.Reviews = reviews.ToList();
                 var numOfLikes = await _likeService.CountLikesOfProduct(productId);
                 productVM.Likes = numOfLikes;
-                
+
                 return Ok(productVM);
             }
             catch (Exception ex)
@@ -145,7 +145,7 @@ namespace _2Sport_BE.Controllers
         public async Task<IActionResult> GetColorsOfProduct(string productCode)
         {
             var colors = await _productService.GetColorsOfProduct(productCode);
-            return Ok(new { total = colors.Count, data = colors }); 
+            return Ok(new { total = colors.Count, data = colors });
         }
 
 
@@ -172,7 +172,7 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var query = await _productService.GetProducts(_ => _.Id > 0 , null, "", defaultSearch.currentPage, defaultSearch.perPage);
+                var query = await _productService.GetProducts(_ => _.Id > 0, null, "", defaultSearch.currentPage, defaultSearch.perPage);
                 var products = query.ToList();
                 foreach (var product in products)
                 {
@@ -1148,7 +1148,8 @@ namespace _2Sport_BE.Controllers
                 editedProduct.Description = description;
                 await _productService.UpdateProduct(editedProduct);
                 return Ok("Save successfully!");
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
