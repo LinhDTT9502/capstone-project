@@ -177,7 +177,7 @@ namespace _2Sport_BE.Service.Services
 
         public async Task<Product> GetProductById(int id)
         {
-            return (await _unitOfWork.ProductRepository.GetAsync(_ => _.Id == id)).FirstOrDefault();
+            return (await _unitOfWork.ProductRepository.GetAsync(_ => _.Id == id, "ImagesVideos")).FirstOrDefault();
         }
 
         public async Task<Product> GetProductByProductCode(string productCode)
@@ -234,7 +234,7 @@ namespace _2Sport_BE.Service.Services
         public async Task<IQueryable<Product>> GetProductsByProductCode(string productCode)
         {
             var query = await _unitOfWork.ProductRepository.GetAsync(_ =>_.Status == true && _.ProductCode
-                                                       .ToLower().Equals(productCode.ToLower()));
+                                                       .ToLower().Equals(productCode.ToLower()), "ImagesVideos");
             return query.AsQueryable();
         }
 

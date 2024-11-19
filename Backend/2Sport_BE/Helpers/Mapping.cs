@@ -112,7 +112,8 @@ namespace _2Sport_BE.Helpers
                 .ForMember(dest => dest.BrandName, opt => opt.MapFrom(src => src.Brand.BrandName))
 				.ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.CategoryName))
 				.ForMember(dest => dest.SportName, opt => opt.MapFrom(src => src.Sport.Name))
-				.ForMember(dest => dest.Likes, opt => opt.MapFrom(src => src.Likes.Count)).ReverseMap();
+				.ForMember(dest => dest.ListImages, opt => opt.MapFrom(src => src.ImagesVideos.Select(_ => _.ImageUrl)))
+                .ForMember(dest => dest.Likes, opt => opt.MapFrom(src => src.Likes.Count)).ReverseMap();
             CreateMap<Product, ProductCM>().ReverseMap();
             CreateMap<Product, ProductUM>().ReverseMap();
             #endregion
