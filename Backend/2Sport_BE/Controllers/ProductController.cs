@@ -89,7 +89,8 @@ namespace _2Sport_BE.Controllers
                 productVM.Reviews = reviews.ToList();
                 var numOfLikes = await _likeService.CountLikesOfProduct(productId);
                 productVM.Likes = numOfLikes;
-
+                productVM.ListImages.Add(productVM.ImgAvatarPath);
+                productVM.ListImages.Reverse();
                 return Ok(productVM);
             }
             catch (Exception ex)
@@ -130,6 +131,8 @@ namespace _2Sport_BE.Controllers
                     productVM.Reviews = reviews.ToList();
                     var numOfLikes = await _likeService.CountLikeOfProductByProductCode(productCode);
                     productVM.Likes = numOfLikes;
+                    productVM.ListImages.Add(productVM.ImgAvatarPath);
+                    productVM.ListImages.Reverse();
                 }
 
                 return Ok(productVMs);
@@ -172,7 +175,7 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var query = await _productService.GetProducts(_ => _.Id > 0, null, "", defaultSearch.currentPage, defaultSearch.perPage);
+                var query = await _productService.GetProducts(_ => _.Id > 0 , null, "ImagesVideos", defaultSearch.currentPage, defaultSearch.perPage);
                 var products = query.ToList();
                 foreach (var product in products)
                 {
@@ -190,6 +193,8 @@ namespace _2Sport_BE.Controllers
                     product.Reviews = reviews.ToList();
                     var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
                     product.Likes = numOfLikes;
+                    product.ListImages.Add(product.ImgAvatarPath);
+                    product.ListImages.Reverse();
                 }
                 return Ok(new { total = result.Count, data = result });
             }
