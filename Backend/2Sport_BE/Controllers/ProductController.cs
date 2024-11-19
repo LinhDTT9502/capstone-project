@@ -148,7 +148,7 @@ namespace _2Sport_BE.Controllers
         public async Task<IActionResult> GetColorsOfProduct(string productCode)
         {
             var colors = await _productService.GetColorsOfProduct(productCode);
-            return Ok(new { total = colors.Count, data = colors });
+            return Ok(new { total = colors.Count, data = colors }); 
         }
 
 
@@ -1153,8 +1153,7 @@ namespace _2Sport_BE.Controllers
                 editedProduct.Description = description;
                 await _productService.UpdateProduct(editedProduct);
                 return Ok("Save successfully!");
-            }
-            catch (Exception ex)
+            } catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
