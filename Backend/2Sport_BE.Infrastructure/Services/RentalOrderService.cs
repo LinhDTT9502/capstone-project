@@ -183,7 +183,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         {
                             parentRentalOrder.PaymentMethodId = (int)OrderMethods.COD;
                         }
-
+                        parentRentalOrder.BranchId = rentalOrderCM.BranchId.HasValue ? rentalOrderCM.BranchId : null;
                         await _unitOfWork.RentalOrderRepository.InsertAsync(parentRentalOrder);
                         decimal childSubTotal = 0;
                         decimal parentSubtotal = 0;
