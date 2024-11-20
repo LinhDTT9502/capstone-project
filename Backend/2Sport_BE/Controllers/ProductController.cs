@@ -118,6 +118,19 @@ namespace _2Sport_BE.Controllers
                 {
                     productsSameProductCode = productsSameProductCode.Where(_ => _.Condition == condition);
                 }
+                var trueCount = 0;
+                foreach (var product in productsSameProductCode)
+                {
+                    if (product.Status == true)
+                    {
+                        trueCount++;
+                        break;
+                    }
+                }
+                if (trueCount == 0)
+                {
+                    return Ok("Sold out!");
+                }
                 var productVMs = _mapper.Map<List<ProductVM>>(productsSameProductCode.ToList());
                 foreach (var productVM in productVMs)
                 {
@@ -129,7 +142,7 @@ namespace _2Sport_BE.Controllers
                     productVM.SportName = sport.Name;
                     var reviews = await _reviewService.GetReviewsOfProductByProductCode(productCode);
                     productVM.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikeOfProductByProductCode(productCode);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(productVM.Id);
                     productVM.Likes = numOfLikes;
                     productVM.ListImages.Add(productVM.ImgAvatarPath);
                     productVM.ListImages.Reverse();
