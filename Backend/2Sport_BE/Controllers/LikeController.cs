@@ -46,8 +46,8 @@ namespace _2Sport_BE.Controllers
 		}
 
         [HttpPost]
-		[Route("like-product/{productId}")]
-		public async Task<IActionResult> LikeProduct(int productId)
+		[Route("like-product/{productCode}")]
+		public async Task<IActionResult> LikeProduct(string productCode)
 		{
 			try
 			{
@@ -58,17 +58,21 @@ namespace _2Sport_BE.Controllers
 					return Unauthorized();
 				}
 				var user = await _userService.GetUserById(userId);
-				var product = await _productService.GetProductById(productId);
-				var addedLike = new Like
+				var products = await _productService.GetProductsByProductCode(productCode);
+				foreach (var product in products)
 				{
-					UserId = userId,
-					ProductId = productId,
-					//User = user,
-					//Product = product,
-				};
-				await _likeService.LikeProduct(addedLike);
-				_unitOfWork.Save();
-				return Ok(addedLike);
+                    var addedLike = new Like
+                    {
+                        UserId = userId,
+                        ProductId = product.Id,
+                        //User = user,
+                        //Product = product,
+                    };
+					await _likeService.LikeProduct(addedLike);
+                }
+
+                _unitOfWork.Save();
+				return Ok("Like product successfully!");
 
 			}
 			catch (Exception ex)
