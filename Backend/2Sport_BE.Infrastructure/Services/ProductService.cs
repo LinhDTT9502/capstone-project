@@ -236,12 +236,20 @@ namespace _2Sport_BE.Service.Services
                                                     IOrderedQueryable<Product>> orderBy = null, string includeProperties = "",
                                                     int? pageIndex = null, int? pageSize = null)
         {
-            var query = await _unitOfWork.ProductRepository.GetAsync(filter, orderBy, includeProperties, pageIndex, pageSize);
-            // Group by ProductCode and ProductName, then select the first item in each group
-            var distinctProducts = query
-                .GroupBy(p => new { p.ProductCode, p.ProductName })
-                .Select(g => g.First());
-            return distinctProducts.AsQueryable();
+            try
+            {
+                var query = await _unitOfWork.ProductRepository.GetAsync(filter, orderBy, includeProperties, pageIndex, pageSize);
+                // Group by ProductCode and ProductName, then select the first item in each group
+                var distinctProducts = query
+                    .GroupBy(p => new { p.ProductCode, p.ProductName })
+                    .Select(g => g.First());
+                return distinctProducts.AsQueryable();
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+            
         }
 
         public async Task<IQueryable<Product>> GetProducts(Expression<Func<Product, bool>> filter = null,
