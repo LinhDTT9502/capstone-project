@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241120123708_modify_refundRequestTable")]
+    partial class modify_refundRequestTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -602,10 +605,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text")
                         .HasColumnName("Description");
-
-                    b.Property<int>("Discount")
-                        .HasColumnType("int")
-                        .HasColumnName("Discount");
 
                     b.Property<string>("ImgAvatarPath")
                         .IsRequired()

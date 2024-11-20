@@ -386,6 +386,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         DeliveryMethod = saleOrderCM.DeliveryMethod,
                         DateOfReceipt = saleOrderCM.DateOfReceipt ?? DateTime.Now.AddDays(3),
                         Gender = saleOrderCM.Gender,
+                        BranchId = saleOrderCM.BranchId.HasValue ? saleOrderCM.BranchId : null,
                     };
 
                     if (user != null && shipmentDetail != null)

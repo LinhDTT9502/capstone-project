@@ -10,6 +10,12 @@ namespace _2Sport_BE.Helpers
     {
         public Mapping()
         {
+            #region RefundRequest
+            CreateMap<RefundRequest, RefundRequestCM>();
+            CreateMap<RefundRequest, RefundRequestVM>();
+            CreateMap<RefundRequest, RefundRequestUM>();
+            CreateMap<RefundRequestUM, RefundRequest>();
+            #endregion
             #region RentalOrder
             CreateMap<RentalOrder, RentalOrderVM>();
             #endregion
