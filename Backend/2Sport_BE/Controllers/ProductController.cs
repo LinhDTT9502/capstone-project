@@ -89,7 +89,8 @@ namespace _2Sport_BE.Controllers
                 productVM.Reviews = reviews.ToList();
                 var numOfLikes = await _likeService.CountLikesOfProduct(productId);
                 productVM.Likes = numOfLikes;
-                
+                productVM.ListImages.Add(productVM.ImgAvatarPath);
+                productVM.ListImages.Reverse();
                 return Ok(productVM);
             }
             catch (Exception ex)
@@ -117,6 +118,19 @@ namespace _2Sport_BE.Controllers
                 {
                     productsSameProductCode = productsSameProductCode.Where(_ => _.Condition == condition);
                 }
+                var trueCount = 0;
+                foreach (var product in productsSameProductCode)
+                {
+                    if (product.Status == true)
+                    {
+                        trueCount++;
+                        break;
+                    }
+                }
+                if (trueCount == 0)
+                {
+                    return Ok("Sold out!");
+                }
                 var productVMs = _mapper.Map<List<ProductVM>>(productsSameProductCode.ToList());
                 foreach (var productVM in productVMs)
                 {
@@ -128,8 +142,10 @@ namespace _2Sport_BE.Controllers
                     productVM.SportName = sport.Name;
                     var reviews = await _reviewService.GetReviewsOfProductByProductCode(productCode);
                     productVM.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikeOfProductByProductCode(productCode);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(productVM.Id);
                     productVM.Likes = numOfLikes;
+                    productVM.ListImages.Add(productVM.ImgAvatarPath);
+                    productVM.ListImages.Reverse();
                 }
 
                 return Ok(productVMs);
@@ -172,7 +188,7 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var query = await _productService.GetProducts(_ => _.Id > 0 , null, "", defaultSearch.currentPage, defaultSearch.perPage);
+                var query = await _productService.GetProducts(_ => _.Id > 0 , null, "ImagesVideos", defaultSearch.currentPage, defaultSearch.perPage);
                 var products = query.ToList();
                 foreach (var product in products)
                 {
@@ -190,6 +206,8 @@ namespace _2Sport_BE.Controllers
                     product.Reviews = reviews.ToList();
                     var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
                     product.Likes = numOfLikes;
+                    product.ListImages.Add(product.ImgAvatarPath);
+                    product.ListImages.Reverse();
                 }
                 return Ok(new { total = result.Count, data = result });
             }

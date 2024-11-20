@@ -38,6 +38,10 @@ public class Product
     [MaxLength]
     public string? Offers { get; set; }
 
+    [Column("Discount", TypeName = "int")]
+    [MaxLength]
+    public int Discount { get; set; }
+
     //public int? ReviewId { get; set; }
     [Column("CategoryId")]
     public int CategoryId { get; set; }
