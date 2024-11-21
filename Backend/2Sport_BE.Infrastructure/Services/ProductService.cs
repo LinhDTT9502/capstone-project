@@ -50,8 +50,16 @@ namespace _2Sport_BE.Service.Services
 
         public async Task<Product> AddProduct(Product product)
         {
-            await _unitOfWork.ProductRepository.InsertAsync(product);
-            return product;
+            try
+            {
+                await _unitOfWork.ProductRepository.InsertAsync(product);
+                return product;
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+
         }
 
         public async Task AddProducts(IEnumerable<Product> products)
