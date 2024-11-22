@@ -40,6 +40,8 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<Customer> _customerDetailRepository;
         private IGenericRepository<ErrorLog> _errorLogRepository;
         private IGenericRepository<RentalOrder> _rentalOrderRepository;
+        private IGenericRepository<RefundRequest> _refundRequestRepository;
+
         public IGenericRepository<RentalOrder> RentalOrderRepository
         {
             get
@@ -328,6 +330,18 @@ namespace _2Sport_BE.Repository.Implements
                     _employeeRepository = new GenericRepository<Staff>(_dbContext);
                 }
                 return _employeeRepository;
+            }
+        }
+
+        public IGenericRepository<RefundRequest> RefundRequestRepository
+        {
+            get
+            {
+                if (_refundRequestRepository == null)
+                {
+                    _refundRequestRepository = new GenericRepository<RefundRequest>(_dbContext);
+                }
+                return _refundRequestRepository;
             }
         }
 

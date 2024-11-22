@@ -154,19 +154,20 @@ namespace _2Sport_BE.Infrastructure.Services
                     new Claim("Gender",user.Gender==null?"":user.Gender),
                     new Claim("Address",user.Address==null?"":user.Address),
                     new Claim("DOB",user.DOB.ToString()==null?"":user.DOB.ToString()),
+                    new Claim("EmailConfirmed",user.EmailConfirmed==null?"":user.EmailConfirmed.ToString()),
                     new Claim("StaffId", staff != null ? staff.StaffId.ToString() : ""),
                     new Claim("ManagerId", manager != null ? manager.Id.ToString() : ""),
                     new Claim(ClaimTypes.Role, role.RoleName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     };
-                if(staff != null)
+                if (staff != null)
                 {
-                Subject.Add(new Claim("BranchId", staff.BranchId.ToString()));
+                    Subject.Add(new Claim("BranchId", staff.BranchId.ToString()));
                 }
                 if (manager != null)
                 {
-                 Subject.Add(new Claim("BranchId", staff.BranchId.ToString()));
+                    Subject.Add(new Claim("BranchId", staff.BranchId.ToString()));
                 }
 
 
@@ -345,15 +346,29 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             try
             {
-                var user = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.GoogleId == googleId.Value || _.Email == email.Value);
-                //Check user if it is not exist
-                if (user == null)
+                var isExisted = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Email == email.Value, new string[] { "Staffs", "Managers" });
+                if (isExisted != null)
                 {
-                    user = new User()
+                    if (isExisted.GoogleId == null)
+                    {
+                        isExisted.GoogleId = googleId.Value;
+                        await _unitOfWork.UserRepository.UpdateAsync(isExisted);
+                    }
+                    if (isExisted.EmailConfirmed)
+                    {
+                        result.IsSuccess = true;
+                        result.Message = "Login successfully!";
+                        result.Data = await LoginGoogleAsync(isExisted);
+                        return result;
+                    }
+                }
+                else
+                {
+                    User user = new User()
                     {
                         FullName = email.Value,
                         Email = email.Value,
-                        PhoneNumber = phone.Value ?? "",
+                        PhoneNumber = phone != null ? phone.Value : "UNKNOWN",
                         RoleId = (int)UserRole.Customer,
                         GoogleId = googleId.Value,
                         EmailConfirmed = true,
@@ -363,27 +378,19 @@ namespace _2Sport_BE.Infrastructure.Services
 
                     };
                     await _unitOfWork.UserRepository.InsertAsync(user);
-                }
-                else
-                {
-                    user.EmailConfirmed = true;
-                    user.UpdatedAt = DateTime.Now;
-                    await _unitOfWork.UserRepository.UpdateAsync(user);
-                }
+                    await _unitOfWork.SaveChanges();
 
-                result.IsSuccess = true;
-                result.Message = "Login successfully!";
-                result.Data = await LoginGoogleAsync(user);
+                    result.IsSuccess = true;
+                    result.Message = "Login successfully!";
+                    result.Data = await LoginGoogleAsync(user);
+                    return result;
+                }
             }
             catch (Exception)
             {
-
                 result.IsSuccess = true;
                 result.Message = "Login successfully!";
-
             }
-
-
             return result;
         }
         public async Task<TokenModel> LoginGoogleAsync(User login)
@@ -518,7 +525,7 @@ namespace _2Sport_BE.Infrastructure.Services
                             response.Message = "Cannot sent email";
                             response.Data = "";
                         }
-                            
+
                         await transaction.CommitAsync();
                         response.IsSuccess = true;
                         response.Message = "Sign Up Successfully, Please check email to verify account";

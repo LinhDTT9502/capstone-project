@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241120123708_modify_refundRequestTable")]
+    partial class modify_refundRequestTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -391,14 +394,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<DateTime?>("ImportDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("ManagerId")
-                        .HasColumnType("int")
-                        .HasColumnName("ManagerId");
-
-                    b.Property<decimal?>("Price")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("Price");
-
                     b.Property<string>("ProductCode")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -418,21 +413,16 @@ namespace _2Sport_BE.Migrations
                     b.Property<int?>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("RentPrice")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("RentPrice");
-
                     b.Property<string>("Size")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar")
                         .HasColumnName("Size");
 
-                    b.Property<int?>("StaffId")
-                        .HasColumnType("int");
+                    b.Property<int>("StaffId")
+                        .HasColumnType("int")
+                        .HasColumnName("StaffId");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ManagerId");
 
                     b.HasIndex("ProductId");
 
@@ -615,10 +605,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text")
                         .HasColumnName("Description");
-
-                    b.Property<int>("Discount")
-                        .HasColumnType("int")
-                        .HasColumnName("Discount");
 
                     b.Property<string>("ImgAvatarPath")
                         .IsRequired()
@@ -1466,25 +1452,21 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ImportHistory", b =>
                 {
-                    b.HasOne("_2Sport_BE.Repository.Models.Manager", "Manager")
-                        .WithMany()
-                        .HasForeignKey("ManagerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
                         .WithMany("ImportHistories")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("_2Sport_BE.Repository.Models.Staff", null)
+                    b.HasOne("_2Sport_BE.Repository.Models.Staff", "Staff")
                         .WithMany("ImportHistories")
-                        .HasForeignKey("StaffId");
-
-                    b.Navigation("Manager");
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Product");
+
+                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Like", b =>

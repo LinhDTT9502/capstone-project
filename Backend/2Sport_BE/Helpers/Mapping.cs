@@ -2,6 +2,7 @@
 using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
+using _2Sport_BE.Service.DTOs;
 
 namespace _2Sport_BE.Helpers
 {
@@ -9,6 +10,12 @@ namespace _2Sport_BE.Helpers
     {
         public Mapping()
         {
+            #region RefundRequest
+            CreateMap<RefundRequest, RefundRequestCM>();
+            CreateMap<RefundRequest, RefundRequestVM>();
+            CreateMap<RefundRequest, RefundRequestUM>();
+            CreateMap<RefundRequestUM, RefundRequest>();
+            #endregion
             #region RentalOrder
             CreateMap<RentalOrder, RentalOrderVM>();
             #endregion
@@ -112,7 +119,8 @@ namespace _2Sport_BE.Helpers
                 .ForMember(dest => dest.BrandName, opt => opt.MapFrom(src => src.Brand.BrandName))
 				.ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.CategoryName))
 				.ForMember(dest => dest.SportName, opt => opt.MapFrom(src => src.Sport.Name))
-				.ForMember(dest => dest.Likes, opt => opt.MapFrom(src => src.Likes.Count)).ReverseMap();
+				.ForMember(dest => dest.ListImages, opt => opt.MapFrom(src => src.ImagesVideos.Select(_ => _.ImageUrl)))
+                .ForMember(dest => dest.Likes, opt => opt.MapFrom(src => src.Likes.Count)).ReverseMap();
             CreateMap<Product, ProductCM>().ReverseMap();
             CreateMap<Product, ProductUM>().ReverseMap();
             #endregion

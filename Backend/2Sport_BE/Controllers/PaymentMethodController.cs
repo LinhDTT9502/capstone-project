@@ -1,5 +1,6 @@
 ﻿using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Models;
+using _2Sport_BE.Service.DTOs;
 using _2Sport_BE.Service.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
@@ -48,7 +49,7 @@ namespace _2Sport_BE.Controllers
         {
             var paymentMethod = new PaymentMethod()
             {
-                PaymentMethodName = paymentMethodCM.Name
+                PaymentMethodName = paymentMethodCM.PaymentMethodName
             };
             var createdPaymentMethod = await _paymentMethodService.AddPaymentMethodAsync(paymentMethod);
             if (createdPaymentMethod == null)

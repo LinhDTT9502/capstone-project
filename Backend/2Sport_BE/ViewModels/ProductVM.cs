@@ -37,7 +37,7 @@ namespace _2Sport_BE.ViewModels
 		public string SportName { get; set; }
         public int? CategoryID { get; set; }
 		public string CategoryName { get; set; }
-		public ICollection<ImagesVideo> ImagesVideos { get; set; }
+		public List<string> ListImages { get; set; }
         public int Likes { get; set; }
         public ICollection<Review> Reviews { get; set; }
         public string ProductCode { get; set; }

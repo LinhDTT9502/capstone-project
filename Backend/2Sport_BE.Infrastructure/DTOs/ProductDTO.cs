@@ -10,19 +10,19 @@ namespace _2Sport_BE.Service.DTOs
     public class ColorStatusDTO
     {
         public string? Color { get; set; }
-        public bool? Status { get; set; }
+        public bool Status { get; set; }
     }
 
     public class ConditionStatusDTO
     {
         public int? Condition { get; set; }
-        public bool? Status { get; set; }
+        public bool Status { get; set; }
     }
 
 
     public class SizeStatusDTO
     {
         public string? Size { get; set; }
-        public bool? Status { get; set; }
+        public bool Status { get; set; }
     }
 }

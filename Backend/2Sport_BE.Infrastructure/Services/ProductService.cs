@@ -3,6 +3,7 @@ using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.DTOs;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -49,8 +50,16 @@ namespace _2Sport_BE.Service.Services
 
         public async Task<Product> AddProduct(Product product)
         {
-            await _unitOfWork.ProductRepository.InsertAsync(product);
-            return product;
+            try
+            {
+                await _unitOfWork.ProductRepository.InsertAsync(product);
+                return product;
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+
         }
 
         public async Task AddProducts(IEnumerable<Product> products)
@@ -102,16 +111,28 @@ namespace _2Sport_BE.Service.Services
         public async Task<List<ColorStatusDTO>> GetColorsOfProduct(string productCode)
         {
             var query = (await _unitOfWork.ProductRepository.GetAsync(_ => _.ProductCode
-                                                       .ToLower().Equals(productCode.ToLower())));
+                                                       .ToLower().Equals(productCode.ToLower())))
+                                                            .GroupBy(_ => _.Color)
+                                                            .Select(_ => _.First());
             
             var listColorsAndStatus = new List<ColorStatusDTO>();
 
             foreach (var product in query)
             {
+                var sizes = await GetSizesOfProduct(productCode, product.Color);
+                var status = false;
+                foreach (var size in sizes)
+                {
+                    if (size.Status)
+                    {
+                        status = true;
+                        break;
+                    }
+                }
                 if (!string.IsNullOrEmpty(product.Color) && 
                     !listColorsAndStatus.Any(cs => cs.Color == product.Color && cs.Status == product.Status))
                 {
-                    listColorsAndStatus.Add(new ColorStatusDTO() { Color = product.Color, Status = product.Status});
+                    listColorsAndStatus.Add(new ColorStatusDTO() { Color = product.Color, Status = status });
                 }
             }
             return listColorsAndStatus;
@@ -121,23 +142,22 @@ namespace _2Sport_BE.Service.Services
         public async Task<List<ConditionStatusDTO>> GetConditionsOfProduct(string productCode, string color, string size)
         {
             var query = (await _unitOfWork.ProductRepository
-                .GetAsync(_ => _.ProductCode.ToLower().Equals(productCode.ToLower())));
-
-            if (!string.IsNullOrEmpty(color))
-            {
-                query = query.Where(_ => _.Color.ToLower().Equals(color.ToLower()));
-            }
-
-            if (!string.IsNullOrEmpty(size))
-            {
-                query = query.Where(_ => _.Color.ToLower().Equals(color.ToLower()));
-            }
+                .GetAsync(_ => _.ProductCode.ToLower().Equals(productCode.ToLower())
+                            && _.Color.ToLower().Equals(color.ToLower())
+                            && _.Size.ToLower().Equals(size.ToLower())));
 
             var listConditions = new List<ConditionStatusDTO>();
 
             foreach (var product in query)
             {
-                var conditionStatusPair = new ConditionStatusDTO() { Status = product.Status, Condition = product.Condition };
+                var warehouse = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.ProductId == product.Id);
+
+                var status = true;
+                if (warehouse.FirstOrDefault().AvailableQuantity == 0)
+                {
+                    status = false;
+                }
+                var conditionStatusPair = new ConditionStatusDTO() { Status = status, Condition = product.Condition };
                 if (!listConditions.Any(cs => cs.Condition == conditionStatusPair.Condition &&
                                               cs.Status == conditionStatusPair.Status))
                 {
@@ -152,18 +172,27 @@ namespace _2Sport_BE.Service.Services
         public async Task<List<SizeStatusDTO>> GetSizesOfProduct(string productCode, string color)
         {
             var query = (await _unitOfWork.ProductRepository
-                .GetAsync(_ => _.ProductCode.ToLower().Equals(productCode.ToLower())));
-
-            if (!string.IsNullOrEmpty(color))
-            {
-                query = query.Where(_ => _.Color.ToLower().Equals(color.ToLower()));
-            }
+                .GetAsync(_ => _.ProductCode.ToLower().Equals(productCode.ToLower())
+                            && _.Color.ToLower().Equals(color.ToLower())))
+                .GroupBy(_ => _.Size)
+                .Select(_ => _.First());
 
             var listSizes = new List<SizeStatusDTO>();
 
             foreach (var product in query)
             {
-                var sizeStatusPair = new SizeStatusDTO() { Status = product.Status, Size = product.Size };
+                var condiditions = await GetConditionsOfProduct(productCode, color, product.Size);
+                var status = false;
+                foreach (var condition in condiditions)
+                {
+                    if (condition.Status)
+                    {
+                        status = true;
+                        break;
+                    }
+                }
+                
+                var sizeStatusPair = new SizeStatusDTO() { Status = status, Size = product.Size };
                 if (!listSizes.Any(ss => ss.Size == sizeStatusPair.Size &&
                                          ss.Status == sizeStatusPair.Status))
                 {
@@ -177,7 +206,7 @@ namespace _2Sport_BE.Service.Services
 
         public async Task<Product> GetProductById(int id)
         {
-            return (await _unitOfWork.ProductRepository.GetAsync(_ => _.Id == id)).FirstOrDefault();
+            return (await _unitOfWork.ProductRepository.GetAsync(_ => _.Id == id, "ImagesVideos")).FirstOrDefault();
         }
 
         public async Task<Product> GetProductByProductCode(string productCode)
@@ -215,12 +244,20 @@ namespace _2Sport_BE.Service.Services
                                                     IOrderedQueryable<Product>> orderBy = null, string includeProperties = "",
                                                     int? pageIndex = null, int? pageSize = null)
         {
-            var query = await _unitOfWork.ProductRepository.GetAsync(filter, orderBy, includeProperties, pageIndex, pageSize);
-            // Group by ProductCode and ProductName, then select the first item in each group
-            var distinctProducts = query
-                .GroupBy(p => new { p.ProductCode, p.ProductName })
-                .Select(g => g.First());
-            return distinctProducts.AsQueryable();
+            try
+            {
+                var query = await _unitOfWork.ProductRepository.GetAsync(filter, orderBy, includeProperties, pageIndex, pageSize);
+                // Group by ProductCode and ProductName, then select the first item in each group
+                var distinctProducts = query
+                    .GroupBy(p => new { p.ProductCode, p.ProductName })
+                    .Select(g => g.First());
+                return distinctProducts.AsQueryable();
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+            
         }
 
         public async Task<IQueryable<Product>> GetProducts(Expression<Func<Product, bool>> filter = null,
@@ -234,7 +271,7 @@ namespace _2Sport_BE.Service.Services
         public async Task<IQueryable<Product>> GetProductsByProductCode(string productCode)
         {
             var query = await _unitOfWork.ProductRepository.GetAsync(_ =>_.Status == true && _.ProductCode
-                                                       .ToLower().Equals(productCode.ToLower()));
+                                                       .ToLower().Equals(productCode.ToLower()), "ImagesVideos");
             return query.AsQueryable();
         }
 

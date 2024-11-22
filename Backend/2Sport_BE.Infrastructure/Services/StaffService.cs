@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using _2Sport_BE.Infrastructure.Enums;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -18,6 +20,8 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<List<StaffVM>>> GetAllStaffsAsync();
         Task<ResponseDTO<StaffVM>> GetStaffDetailAsync(int staffId);
         Task<ResponseDTO<List<StaffVM>>> GetStaffsByBranchId(int branchId);
+
+        Task<ResponseDTO<StaffVM>> ConvertManagerToStaff(int userId, int roleId, int branchId);
     }
     public class StaffService : IStaffService
     {
@@ -25,12 +29,55 @@ namespace _2Sport_BE.Infrastructure.Services
         private readonly IMapper _mapper;
         public StaffService()
         {
-            
+
         }
         public StaffService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+        }
+
+        public async Task<ResponseDTO<StaffVM>> ConvertManagerToStaff(int userId, int roleId, int branchId)
+        {
+            var response = new ResponseDTO<StaffVM>();
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var user = _unitOfWork.UserRepository.FindObject(_ => _.Id == userId);
+                    user.RoleId = roleId;
+                    await _unitOfWork.UserRepository.UpdateAsync(user);
+
+                    if (roleId == (int)UserRole.Staff)
+                    {
+                        var manager = _unitOfWork.ManagerRepository.FindObject(_ => _.UserId == user.Id && _.BranchId == branchId);
+                        var branch = _unitOfWork.BranchRepository.FindObject(_ => _.Id == branchId);
+                        if (manager != null) await _unitOfWork.ManagerRepository.DeleteAsync(manager);
+
+                        Staff staff = new Staff()
+                        {
+                            BranchId = branchId,
+                            UserId = userId,
+                            StartDate = DateTime.Now,
+                            IsActive = true,
+                            Position = $"{Enum.GetName(typeof(UserRole), roleId)} of {branch.BranchName}"
+                        };
+                        await _unitOfWork.StaffRepository.InsertAsync(staff);
+                        await _unitOfWork.SaveChanges();
+
+                        var result = _mapper.Map<StaffVM>(staff);
+                        response.IsSuccess = true;
+                        response.Message = "Inserted successfully";
+                        response.Data = result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    response.IsSuccess = false;
+                    response.Message = ex.Message;
+                }
+                return response;
+            }
         }
 
         public async Task<ResponseDTO<StaffVM>> CreateStaffAsync(StaffCM staffCM)
@@ -42,7 +89,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     .GetObjectAsync(m => m.UserId == staffCM.UserId);
                 var manager = await _unitOfWork.ManagerRepository
                     .GetObjectAsync(m => m.Id == staffCM.ManagerId);
-                
+
                 if (isExisted == null)
                 {
                     var staff = new Staff()
@@ -53,6 +100,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         EndDate = staffCM.EndDate,
                         Position = staffCM.Position,
                         UserId = staffCM.UserId,
+                        IsActive = true
                     };
                     await _unitOfWork.StaffRepository.InsertAsync(staff);
                     await _unitOfWork.SaveChanges();

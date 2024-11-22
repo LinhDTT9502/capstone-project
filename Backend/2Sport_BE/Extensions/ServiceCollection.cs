@@ -73,6 +73,7 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<PaymentFactory>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IDeliveryMethodService, DeliveryMethodService>();
+            services.AddScoped<IRefundRequestService, RefundRequestService>();
 
             #endregion
         }

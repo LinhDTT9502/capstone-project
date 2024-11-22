@@ -70,12 +70,12 @@ namespace _2Sport_BE.Infrastructure.Services
         }
         public async Task CheckRentalOrdersForExpiration()
         {
-            var expiringOrders = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.RentalEndDate >= DateTime.Now.Date.AddDays(1));
+            var expiringOrders = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.RentalEndDate >= DateTime.Now.Date.AddDays(1) && o.ParentOrderCode == null);
 
             foreach (var order in expiringOrders)
             {
                 await _notificationService.SendRentalOrderExpirationNotificationAsync(order.UserId.ToString(), order.RentalOrderCode, (DateTime)order.RentalEndDate);
-                //await _mailService.SendEMailAsync(order.Email, $"Your rental order {order.RentalOrderCode} will expire soon. Please return it on time or contact us if you need to extend.");
+                await _mailService.SendRentalOrderReminder(order ,order.Email);
             }
         }
         public async Task<ResponseDTO<RentalOrderVM>> CreateRentalOrderAsync(RentalOrderCM rentalOrderCM)
@@ -131,8 +131,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         foreach (var item in rentalOrderCM.rentalOrderItemCMs)
                         {
                             //Set rentalPeriod
-                            if (!_methodHelper.CheckValidOfRentalDate(item.RentalStartDate, item.RentalEndDate) ||
-                                !_methodHelper.CheckValidOfRentalDate(rentalOrderCM.DateOfReceipt.Value, item.RentalStartDate))
+                            if (!_methodHelper.CheckValidOfRentalDate(item.RentalStartDate, item.RentalEndDate, rentalOrderCM.DateOfReceipt.Value))
                                 return GenerateErrorResponse("Rental period or Date of receipt are invalid");
 
                             rentalOrder.RentalEndDate = item.RentalEndDate;
@@ -184,7 +183,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         {
                             parentRentalOrder.PaymentMethodId = (int)OrderMethods.COD;
                         }
-
+                        parentRentalOrder.BranchId = rentalOrderCM.BranchId.HasValue ? rentalOrderCM.BranchId : null;
                         await _unitOfWork.RentalOrderRepository.InsertAsync(parentRentalOrder);
                         decimal childSubTotal = 0;
                         decimal parentSubtotal = 0;
@@ -199,8 +198,7 @@ namespace _2Sport_BE.Infrastructure.Services
                                 SetOrderUserDetails(childRentalOrder, user, shipmentDetail);
                             }
 
-                            if (!_methodHelper.CheckValidOfRentalDate(item.RentalStartDate, item.RentalEndDate) ||
-                                 !_methodHelper.CheckValidOfRentalDate(rentalOrderCM.DateOfReceipt.Value, item.RentalStartDate))
+                            if (!_methodHelper.CheckValidOfRentalDate(item.RentalStartDate, item.RentalEndDate, rentalOrderCM.DateOfReceipt.Value))
                                 return GenerateErrorResponse("Rental period or Date of receipt are invalid");
 
                             childRentalOrder.RentalEndDate = item.RentalEndDate;
