@@ -2,6 +2,7 @@
 {
     public enum Errors
     {
+        Verified = -4,
         Failed = -3,
         NotFoundUser = -2,
         NotExcepted = -1,

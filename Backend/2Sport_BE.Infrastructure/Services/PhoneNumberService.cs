@@ -38,12 +38,18 @@ namespace _2Sport_BE.Service.Services
                 {
                     return (int)Errors.NotFoundUser;
                 }
+                if (user.PhoneNumber.Equals(phoneNumber) && user.PhoneNumberConfirmed == true)
+                {
+                    return (int)Errors.Verified;
+                }
                 if (!user.PhoneNumber.Equals(phoneNumber))
                 {
                     user.PhoneNumber = phoneNumber;
+                    user.PhoneNumberConfirmed = false;
                 }
 
                 user.OTP = otp;
+                
 
                 phoneNumber = ConvertToInternationalFormat(phoneNumber);
 
