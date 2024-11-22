@@ -100,7 +100,7 @@ namespace _2Sport_BE.Controllers
                     }
                     return BadRequest(response);
                 }*/
-        [HttpPost("create-rental-order")]
+        [HttpPost("create")]
         public async Task<IActionResult> CreateOrder([FromBody] RentalOrderCM rentalOrderCM)
         {
             if (!ModelState.IsValid)
@@ -114,22 +114,21 @@ namespace _2Sport_BE.Controllers
             }
             return Ok(response);
         }
-        [HttpPost("create-extend-request")]
-        public async Task<IActionResult> CreateOrder([FromBody] ExtendRentalModel extendRentalModel)
+        [HttpPut("request-extend")]
+        public async Task<IActionResult> RequestExtendRentalPeriod([FromBody] ExtendRentalModel extendRentalModel)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid request data.");
             }
-            var response = await _rentalOrderServices
-                .RequestExtendRentalPeriod(extendRentalModel.orderCode, extendRentalModel.quantity, extendRentalModel.quantity.Value);
+            var response = await _rentalOrderServices.ProcessExtendRentalPeriod(extendRentalModel);
             if (!response.IsSuccess)
             {
                 return StatusCode(500, response);
             }
             return Ok(response);
         }
-        [HttpPut("update-rental-order")]
+        [HttpPut("update")]
         public async Task<IActionResult> UpdateRentalOrder([FromQuery] int orderId, [FromBody] RentalOrderUM orderUM)
         {
             if (!ModelState.IsValid)
@@ -143,6 +142,21 @@ namespace _2Sport_BE.Controllers
             }
             return Ok(response);
         }
+        [HttpPut("return")]
+        public async Task<IActionResult> ProcessReturn([FromBody] ParentOrderReturnModel returnData)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            var response = await _rentalOrderServices.ReturnOrder(returnData);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+
         [HttpPut("update-rental-order-status")]
         public async Task<IActionResult> ChangeOrderStatus(int orderId, int status)
         {

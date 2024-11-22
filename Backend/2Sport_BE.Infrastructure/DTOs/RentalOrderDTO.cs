@@ -38,14 +38,25 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public string ContactPhone { get; set; }
         public string Address { get; set; }
     }
-
-    public class RentalInfor
+    public class ChildOrderReturnModel
     {
-        public DateTime ReturnDate { get; set; }
-        public bool IsRestocked { get; set; }
-        public bool IsInspected { get; set; }
-        public decimal LateFee { get; set; }
-        public decimal DamageFee { get; set; }
+        public int OrderId { get; set; }           // ID của child order
+        public DateTime ReturnDate { get; set; }   // Ngày trả hàng
+        public decimal LateFee { get; set; }       // Phí trễ hạn
+        public decimal DamageFee { get; set; }     // Phí hư hỏng
+        public bool IsRestocked { get; set; }      // Đã nhập kho lại chưa
+        public bool IsInspected { get; set; }      // Đã kiểm tra chưa
+    }
+    public class ParentOrderReturnModel
+    {
+        public int ParentOrderId { get; set; }            // ID của parent order
+        public List<ChildOrderReturnModel> ChildOrders { get; set; }  // Danh sách child orders
+
+        // Thông tin tổng hợp
+        public decimal TotalLateFee { get; set; }         // Tổng phí trễ hạn
+        public decimal TotalDamageFee { get; set; }       // Tổng phí hư hỏng
+        public bool IsRestocked { get; set; }             // Tổng trạng thái nhập kho
+        public bool IsInspected { get; set; }             // Tổng trạng thái kiểm tra
     }
     public class RentalOrderCM : RentalOrderDTO
     {
@@ -70,7 +81,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public decimal TotalAmount { get; set; }
         public int? OrderStatus { get; set; }
         public int? PaymentStatus { get; set; }
-        public int? BranchId { get; set; }
+        public int BranchId { get; set; }
 
 
         [Required]
@@ -89,9 +100,12 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public int? Quantity { get; set; }
         public DateTime? RentalStartDate { get; set; }
         public DateTime? RentalEndDate { get; set; }
+        public int RentalDays { get; set; }
         public decimal? SubTotal { get; set; }
         public decimal? TranSportFee { get; set; }
         public decimal? TotalAmount { get; set; }
+        public int? DepositStatus { get; set; }
+        public decimal? DepositAmount { get; set; }
         public string? DeliveryMethod { get; set; }
         public string? PaymentMethod { get; set; }
         public string? Note { get; set; }
@@ -100,12 +114,15 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public DateTime? CreatedAt { get; set; }
         public string? ImgAvatarPath { get; set; }
         public string? PaymentLink { get; set; }
+        public bool? IsExtended { get; set; } = false;
+        public int? ExtensionDays { get; set; } = 0;
+        public decimal? ExtensionCost { get; set; } = decimal.Zero;
+
         public List<RentalOrderVM>? listChild { get; set; }
     }
     public class ExtendRentalModel
     {
-        public string orderCode { get; set; }
-        public int? quantity { get; set; }
-        public int period { get; set; }
+        public int ChildOrderId { get; set; }
+        public int ExtensionDays { get; set; }
     }
-}   
+}
