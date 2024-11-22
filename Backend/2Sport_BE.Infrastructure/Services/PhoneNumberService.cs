@@ -16,6 +16,7 @@ namespace _2Sport_BE.Service.Services
     public interface IPhoneNumberService
     {
         Task<int> SendSmsToPhoneNumber(int userId, string phoneNumber);
+        Task<int> VerifyPhoneNumber(int userId, int otp);
     }
     public class PhoneNumberService : IPhoneNumberService
     {
@@ -70,6 +71,34 @@ namespace _2Sport_BE.Service.Services
             
         }
 
+
+        public async Task<int> VerifyPhoneNumber(int userId, int otp)
+        {
+            try
+            {
+                var user = await _unitOfWork.UserRepository.FindAsync(userId);
+                if (user == null)
+                {
+                    return (int)Errors.NotFoundUser;
+                }
+                
+                if (user.OTP != otp)
+                {
+                    return (int)Errors.Failed;
+                } else {
+                    user.PhoneNumberConfirmed = true;
+                    user.OTP = 0;
+                    await _unitOfWork.UserRepository.UpdateAsync(user);
+                    return 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return (int)Errors.NotExcepted;
+            }
+        }
+
         private int GenerateOTP()
         {
             Random random = new Random();
@@ -85,5 +114,6 @@ namespace _2Sport_BE.Service.Services
             }
             return phoneNumber; // Return the original if it doesn't start with 0
         }
+
     }
 }

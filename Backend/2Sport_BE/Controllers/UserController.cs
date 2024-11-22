@@ -251,6 +251,27 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("verify-phone-number/{otp}")]
+        public async Task<IActionResult> VerifyPhoneNumber(int otp)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
+
+                await _phoneNumberService.VerifyPhoneNumber(userId, otp);
+                return Ok("Verify phone number successfully!");
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail(string token, string email)
         {
