@@ -42,7 +42,7 @@ function ManageAccount() {
           <li className="text-gray-500">My Wishlist</li> */}
         </ul>
 
-        <h1 className="font-semibold	" style={{ fontSize: "18px" }}>
+        <h1 className="font-semibold" style={{ fontSize: "18px" }}>
           {t("my_order")}
         </h1>
         <ul className="space-y-4 font-poppins px-5 py-1">
@@ -58,10 +58,34 @@ function ManageAccount() {
           </NavLink>
 
         </ul>
+        <ul className="space-y-4 font-poppins px-5 py-1">
+          <NavLink
+            to="/manage-account/user-rental"
+            className={({ 
+              isActive
+             }) =>
+              isActive ? "text-orange-500" : "text-zinc-800"
+            }
+          >
+            <li>Kiểm tra đơn thuê</li>
+          </NavLink>
+        </ul>
         
         <h1 className="font-semibold	" style={{ fontSize: "18px" }}>
-          {t("my_wishlist")}
+          Gửi yêu cầu
         </h1>
+        <ul className="space-y-4 font-poppins px-5 py-1">
+          <NavLink
+            to="/manage-account/refund-request"
+            className={({ 
+              isActive
+             }) =>
+              isActive ? "text-orange-500" : "text-zinc-800"
+            }
+          >
+            <li>Trả hàng/Hoàn tiền</li>
+          </NavLink>
+        </ul>
       </nav>
       <div className="md:w-4/5	">
         <Outlet />

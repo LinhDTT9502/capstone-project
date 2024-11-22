@@ -13,8 +13,9 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
-import { selectCartItems, removeFromCart, decreaseQuantity, addCart } from "../../redux/slices/cartSlice"; 
+import { selectCartItems, removeFromCart, decreaseQuantity, addCart } from "../../redux/slices/cartSlice";
 import { addCusCart, decreaseCusQuantity, removeFromCusCart, selectCustomerCartItems } from "../../redux/slices/customerCartSlice";
+// import { ProductType } from "../Product/ProductType";
 
 const GuestCart = () => {
   const { t } = useTranslation();
@@ -23,14 +24,14 @@ const GuestCart = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
-  const guestCartItems = useSelector(selectCartItems); 
+  const guestCartItems = useSelector(selectCartItems);
 
   useEffect(() => {
     const getCart = async () => {
       if (!token) {
         setCartData(guestCartItems);
         console.log(cartData);
-      } 
+      }
     };
 
     getCart();
@@ -38,17 +39,17 @@ const GuestCart = () => {
 
   const handleRemoveFromCart = async (itemId) => {
     if (token) {
-      dispatch(removeFromCusCart(itemId)); 
+      dispatch(removeFromCusCart(itemId));
     } else {
-      dispatch(removeFromCart(itemId)); 
+      dispatch(removeFromCart(itemId));
     }
   };
 
   const handleReduceQuantity = async (id) => {
     if (token) {
-      dispatch(decreaseCusQuantity(id)); 
+      dispatch(decreaseCusQuantity(id));
     } else {
-      dispatch(decreaseQuantity(id)); 
+      dispatch(decreaseQuantity(id));
     }
   };
 
@@ -93,6 +94,20 @@ const GuestCart = () => {
       selectedItems.includes(item.id)
     );
     navigate("/placed-order", { state: { selectedProducts } });
+  };
+
+  const handleRental = () => {
+    if (selectedItems.length === 0) {
+      toast.error("Please select at least one item to checkout.");
+      return;
+    }
+
+    const selectedProducts = cartData.filter((item) =>
+      selectedItems.includes(item.id)
+    );
+
+    navigate("/rental-order", { state: { selectedProducts } });
+
   };
 
   return (
@@ -159,6 +174,14 @@ const GuestCart = () => {
                   >
                     {item.productName}
                   </Link>
+                  <div>
+                    {/* <ProductType
+                      productCode={item.productCode}
+                      color={item.color}
+                      size={item.size}
+                      condition={item.condition} /> */}
+                    <p>{item.color}, {item.size}, {item.condition}%</p>
+                  </div>
                 </div>
                 <div className="w-2/12 text-center flex items-center justify-center">
                   <button
@@ -215,12 +238,20 @@ const GuestCart = () => {
                 {totalPrice.toLocaleString()} {t("user_cart.vnd")}
               </p>
 
-              <button
-                className="bg-orange-500 text-white px-4 py-2 mt-2"
-                onClick={handleCheckout}
-              >
-               Đặt hàng
-              </button>
+              <div className="flex space-x-5">
+                <button
+                  className="bg-orange-500 text-white px-4 py-2 mt-2"
+                  onClick={handleCheckout}
+                >
+                  Đặt hàng
+                </button>
+                <button
+                  className="bg-rose-800 text-white px-4 py-2 mt-2"
+                  onClick={handleRental}
+                >
+                  Thuê sản phẩm
+                </button>
+              </div>
             </div>
           </div>
         </div>

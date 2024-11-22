@@ -95,7 +95,7 @@ export default function SignInModal() {
       </div>
 
       <Transition appear show={isSignInOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={closeSignInModal}>
+        <Dialog as="div" className="relative z-10 max-h-[70vh] overflow-y-auto" onClose={closeSignInModal}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"

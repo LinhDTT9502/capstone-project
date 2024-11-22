@@ -70,7 +70,7 @@ const AddressForm = ({ onAddressChange }) => {
     };
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-2 bg-white">
             <Input
                 type="text"
                 name="street"

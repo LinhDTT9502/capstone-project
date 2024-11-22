@@ -30,6 +30,9 @@ import PlacedOrder from './components/Order/PlacedOrder';
 import Cart from './pages/Cart';
 import GuestOrder from './pages/GuestOrder';
 import GuestOrderDetail from './pages/GuestOrderDetail';
+import BranchSystem from './components/BranchButton';
+import ListBranchs from './pages/ListBranchs';
+import RentalOrder from './components/Rental/RentalOrder';
 
 
 
@@ -39,9 +42,16 @@ function App() {
     user && (user.role === "staff" || user.role === "Admin");
   return (
     <>
-      {!isStaffOrAdmin && (
+      {/* {!isStaffOrAdmin && ( */}
         <div>
           <Header />
+          <div className="z-50 relative">
+            <div className="fixed bottom-0 left-0 mb-4 ml-4">
+              <div className="bg-blue-500 text-white py-2 px-4 rounded">
+                <BranchSystem />
+              </div>
+            </div>
+          </div>
           {/* <BreadcrumbsDefault/> */}
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -50,10 +60,12 @@ function App() {
             <Route path="/product/*" element={<ProductRoutes />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/placed-order" element={<PlacedOrder />} />
+            <Route path="/rental-order" element={<RentalOrder />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/guest-order" element={<GuestOrder />} />
             <Route path="/guest-order/:orderId" element={<GuestOrderDetail />} />
             <Route path="/shipment" element={<UserShipment />} />
+            <Route path="/branch-system" element={<ListBranchs />} />
 
             {/* <Route path="/dashboard" element={<Dashboard />} /> */}
             <Route path="/manage-user" element={<ManageUser />} />
@@ -66,19 +78,19 @@ function App() {
           </Routes>
           <Footer />
         </div>
-      )}
+      {/* )}
       <Routes>
         <Route
           path="/admin/*"
           element={
             <PrivateRoute
-            allowedRoles={['Admin']}
+              allowedRoles={['Admin']}
             >
               <AdminRoutes />
             </PrivateRoute>
           }
         />
-      </Routes>
+      </Routes> */}
     </>
   );
 }

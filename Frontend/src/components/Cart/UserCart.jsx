@@ -15,6 +15,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
 import { selectCartItems, removeFromCart, decreaseQuantity, addCart } from "../../redux/slices/cartSlice";
 import { addCusCart, decreaseCusQuantity, removeFromCusCart, selectCustomerCartItems } from "../../redux/slices/customerCartSlice";
+// import { ProductType } from "../Product/ProductType";
 
 const UserCart = () => {
     const { t } = useTranslation();
@@ -51,19 +52,19 @@ const UserCart = () => {
     };
 
     const handleIncreaseQuantity = async (item) => {
-       const response = await addToCart(token, item.productId, 1)
-       console.log(response);
-       getCart();
-       
+        const response = await addToCart(token, item.productId, 1)
+        console.log(response);
+        getCart();
+
     };
 
     const handleQuantityChange = async (item, quantity) => {
-        const response = await updateCartItemQuantity( item.id, quantity, token)
+        const response = await updateCartItemQuantity(item.id, quantity, token)
         console.log(response);
         getCart();
-        
-     };
-     
+
+    };
+
     const handleSelectItem = (productId) => {
         setSelectedItems((prevSelected) =>
             prevSelected.includes(productId)
@@ -157,11 +158,20 @@ const UserCart = () => {
                                         className="w-16 h-16 object-cover mr-4"
                                     />
                                     <Link
-                                        to={`/product/${item.productId}`}
+                                        to={`/product/${item.productCode}`}
                                         className="text-sm font-poppins font-bold text-wrap w-1/2"
                                     >
                                         {item.productName}
                                     </Link>
+                                    <div>
+                                        {/* <ProductType
+                                            productCode={item.productCode}
+                                            color={item.color}
+                                            size={item.size}
+                                            condition={item.condition} /> */}
+                                        <p>{item.color}, {item.size}, {item.condition}%</p>
+                                    </div>
+
                                 </div>
                                 <div className="w-2/12 text-center flex items-center justify-center">
                                     <button
@@ -180,14 +190,14 @@ const UserCart = () => {
                                         min="1"
                                     />
                                     <button
-                                        className="px-2 py-1 "  
+                                        className="px-2 py-1 "
                                         onClick={() => handleIncreaseQuantity(item)}
                                     >
                                         +
                                     </button>
                                 </div>
                                 <div className="w-1/12 text-center">
-                                    {(item.totalPrice/item.quantity).toLocaleString()}{" "}
+                                    {(item.totalPrice / item.quantity).toLocaleString()}{" "}
                                     {t("user_cart.vnd")}
                                 </div>
                                 <div className="w-2/12 text-center">
@@ -217,13 +227,20 @@ const UserCart = () => {
                                 {t("user_cart.total")} ({selectedItems.length} {t("user_cart.items")}):{" "}
                                 {totalPrice.toLocaleString()} {t("user_cart.vnd")}
                             </p>
-
-                            <button
-                                className="bg-orange-500 text-white px-4 py-2 mt-2"
-                                onClick={handleCheckout}
-                            >
-                                Đặt hàng
-                            </button>
+                            <div className="flex">
+                                <button
+                                    className="bg-orange-500 text-white px-4 py-2 mt-2"
+                                    onClick={handleCheckout}
+                                >
+                                    Đặt hàng
+                                </button>
+                                <button
+                                    className="bg-orange-500 text-white px-4 py-2 mt-2"
+                                    onClick={handleCheckout}
+                                >
+                                   Thuê sản phẩm
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

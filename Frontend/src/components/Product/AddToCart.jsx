@@ -11,7 +11,7 @@ import {
 } from "@material-tailwind/react";
 import { addToCart } from '../../services/cartService';
 
-const AddToCart = ({ product, quantity}) => {
+const AddToCart = ({ product, quantity, isFormValid}) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
@@ -34,6 +34,7 @@ const AddToCart = ({ product, quantity}) => {
     <Button
       className="py-4"
       onClick={() => handleAddToCart()}
+      disabled={!isFormValid}
     >
       {t("product_list.add_to_cart")}
     </Button>
