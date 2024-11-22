@@ -14,8 +14,8 @@ public class ImportHistory
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    [Column("StaffId")]
-    public int StaffId { get; set; }
+    [Column("ManagerId")]
+    public int ManagerId { get; set; }
 
     [Column("Action", TypeName = "nvarchar")]
     [MaxLength(500)]
@@ -31,6 +31,12 @@ public class ImportHistory
     [Column("ProductCode", TypeName = "nvarchar")]
     [MaxLength(255)]
     public string ProductCode { get; set; }
+
+    [Column("Price")]
+    public decimal? Price { get; set; }
+
+    [Column("RentPrice")]
+    public decimal? RentPrice { get; set; }
 
     [Column("Size", TypeName = "nvarchar")]
     [MaxLength(50)]
@@ -50,5 +56,5 @@ public class ImportHistory
     public DateTime? ImportDate { get; set; }
 
     public virtual Product Product { get; set; }
-    public virtual Staff Staff { get; set; }
+    public virtual Manager Manager { get; set; }
 }

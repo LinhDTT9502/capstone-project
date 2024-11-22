@@ -503,8 +503,15 @@ namespace _2Sport_BE.Controllers
                 var importedBranch = await _branchService.GetBranchById(managerDetail.Data.BranchId);
                 var importHistory = new ImportHistory()
                 {
-                    StaffId = userId,
+                    ManagerId = managerDetail.Data.Id,
                     ProductId = product.Id,
+                    ProductName = product.ProductName,
+                    ProductCode = product.ProductCode,
+                    Price = product.Price,
+                    RentPrice = product.RentPrice,
+                    Color = product.Color,
+                    Size = product.Size,
+                    Condition = product.Condition,
                     Action = $@"{importedBranch.BranchName}: Import {productCM.Quantity} {productCM.ProductName} ({productCM.ProductCode})",
                     ImportDate = DateTime.Now,
                     Quantity = productCM.Quantity,
@@ -546,7 +553,7 @@ namespace _2Sport_BE.Controllers
                             return Unauthorized();
                         }
 
-                        var managerDetail = await _managerService.GetManagerDetailByIdAsync(userId);
+                        var managerDetail = await _managerService.GetManagerDetailByUserIdAsync(userId);
 
 
                         if (existedProduct == null)
@@ -656,8 +663,15 @@ namespace _2Sport_BE.Controllers
                         var importedBranch = await _branchService.GetBranchById(managerDetail.Data.BranchId);
                         var importHistory = new ImportHistory()
                         {
-                            StaffId = userId,
+                            ManagerId = managerDetail.Data.Id,
                             ProductId = product.Id,
+                            ProductName = product.ProductName,
+                            ProductCode = product.ProductCode,
+                            Price = product.Price,
+                            RentPrice =  product.RentPrice,
+                            Color = product.Color,
+                            Size = product.Size,
+                            Condition = product.Condition,
                             Action = $@"{importedBranch.BranchName}: Import {productCM.Quantity} {productCM.ProductName} ({productCM.ProductCode})",
                             ImportDate = DateTime.Now,
                             Quantity = productCM.Quantity,
@@ -770,15 +784,13 @@ namespace _2Sport_BE.Controllers
                     var productNameValue = reader.GetValue(5)?.ToString();
                     var productCodeValue = reader.GetValue(6)?.ToString();
                     var quantityValue = reader.GetValue(7)?.ToString();
-                    var lotCodeValue = reader.GetValue(8)?.ToString();
-                    var listedPriceValue = reader.GetValue(9)?.ToString();
-                    var priceValue = reader.GetValue(10)?.ToString();
-                    var rentPriceValue = reader.GetValue(11)?.ToString();
-                    var sizeValue = reader.GetValue(12)?.ToString();
-                    var colorValue = reader.GetValue(13)?.ToString();
-                    var conditionValue = reader.GetValue(14)?.ToString();
-                    var avaImgValue = reader.GetValue(16)?.ToString();
-                    var isRent = reader.GetValue(15)?.ToString();
+                    var priceValue = reader.GetValue(8)?.ToString();
+                    var rentPriceValue = reader.GetValue(9)?.ToString();
+                    var sizeValue = reader.GetValue(10)?.ToString();
+                    var colorValue = reader.GetValue(11)?.ToString();
+                    var conditionValue = reader.GetValue(12)?.ToString();
+                    var avaImgValue = reader.GetValue(14)?.ToString();
+                    var isRent = reader.GetValue(13)?.ToString();
 
                     // Check for null or empty mandatory fields
                     if (string.IsNullOrEmpty(brandValue) ||
@@ -787,8 +799,6 @@ namespace _2Sport_BE.Controllers
                         string.IsNullOrEmpty(productNameValue) ||
                         string.IsNullOrEmpty(productCodeValue) ||
                         string.IsNullOrEmpty(quantityValue) ||
-                        string.IsNullOrEmpty(lotCodeValue) ||
-                        string.IsNullOrEmpty(listedPriceValue) ||
                         string.IsNullOrEmpty(priceValue) ||
                         string.IsNullOrEmpty(sizeValue) ||
                         string.IsNullOrEmpty(colorValue) ||
@@ -801,12 +811,13 @@ namespace _2Sport_BE.Controllers
 
                     try
                     {
-                        var managerDetail = await _managerService.GetManagerDetailByIdAsync(managerId);
+                        var managerDetail = await _managerService.GetManagerDetailByUserIdAsync(managerId);
+
 
                         //Check if brand is not exist, add new brand
                         #region Add new brand
                         var existedBrand = await _brandService.GetBrandsAsync(brandValue);
-                        if (existedBrand == null)
+                        if (existedBrand.FirstOrDefault() == null)
                         {
                             var brandImg = reader.GetValue(2)?.ToString();
                             var brandImgFile = ConvertToIFormFile(brandImg);
@@ -867,16 +878,16 @@ namespace _2Sport_BE.Controllers
                             Color = colorValue,
                             Condition = int.Parse(conditionValue),
                             RentPrice = 0,
+                            CreateAt = DateTime.Now,
+                            Status = true,
                         };
                         if (existedProduct == null)
                         {
                             if (!string.IsNullOrEmpty(avaImgValue))
                             {
-                                var avaImgFile = ConvertToIFormFile(avaImgValue);
-                                var uploadResult = await _imageService.UploadImageToCloudinaryAsync(avaImgFile);
-                                if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                                {
-                                    product.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
+                                var imgURL = await UploadAvaImgFile(avaImgValue);
+                                if (imgURL != null) {
+                                    product.ImgAvatarPath = imgURL;
                                 }
                                 else
                                 {
@@ -887,8 +898,6 @@ namespace _2Sport_BE.Controllers
                             {
                                 return (int)ProductErrors.NullError;
                             }
-
-
 
                             if (isRent.ToLower().Equals("yes"))
                             {
@@ -906,56 +915,17 @@ namespace _2Sport_BE.Controllers
                             await _productService.AddProduct(product);
 
                             //Add product's images into ImageVideo table
-                            var listProductImages = new List<string>();
-                            var firstImgValue = reader.GetValue(17)?.ToString();
-                            var secondImgValue = reader.GetValue(18)?.ToString();
-                            var thirdImgValue = reader.GetValue(19)?.ToString();
-                            var fourthImgValue = reader.GetValue(20)?.ToString();
-                            var fifthImgValue = reader.GetValue(21)?.ToString();
-                            if (!string.IsNullOrEmpty(firstImgValue))
+                            var firstImgValue = reader.GetValue(15)?.ToString();
+                            var secondImgValue = reader.GetValue(16)?.ToString();
+                            var thirdImgValue = reader.GetValue(17)?.ToString();
+                            var fourthImgValue = reader.GetValue(18)?.ToString();
+                            var fifthImgValue = reader.GetValue(19)?.ToString();
+                            var isSuccess = await UploadProductImages(product.Id,firstImgValue, secondImgValue, thirdImgValue,
+                                                        fourthImgValue, fifthImgValue);
+                            
+                            if (!isSuccess)
                             {
-                                listProductImages.Add(firstImgValue);
-                            }
-                            if (!string.IsNullOrEmpty(secondImgValue))
-                            {
-                                listProductImages.Add(secondImgValue);
-                            }
-                            if (!string.IsNullOrEmpty(thirdImgValue))
-                            {
-                                listProductImages.Add(thirdImgValue);
-                            }
-                            if (!string.IsNullOrEmpty(fourthImgValue))
-                            {
-                                listProductImages.Add(fourthImgValue);
-                            }
-                            if (!string.IsNullOrEmpty(fifthImgValue))
-                            {
-                                listProductImages.Add(fifthImgValue);
-                            }
-
-                            if (listProductImages.Count > 0)
-                            {
-                                foreach (var imagePath in listProductImages)
-                                {
-                                    var imageFile = ConvertToIFormFile(imagePath);
-                                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(imageFile);
-                                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                                    {
-                                        var imageObject = new ImagesVideo()
-                                        {
-                                            ProductId = product.Id,
-                                            ImageUrl = uploadResult.SecureUri.AbsoluteUri,
-                                            CreateAt = DateTime.Now,
-                                            VideoUrl = null,
-                                        };
-                                        await _imageVideosService.AddImage(imageObject);
-                                    }
-                                    else
-                                    {
-                                        return (int)ProductErrors.NotExcepted;
-
-                                    }
-                                }
+                                return (int)ProductErrors.NotExcepted;
                             }
 
                             //Import product into warehouse
@@ -977,15 +947,52 @@ namespace _2Sport_BE.Controllers
                                                                         sizeValue,
                                                                         colorValue,
                                                                         int.Parse(conditionValue))).FirstOrDefault();
-                            if (existedProductWithSizeColorCodition == null)
+                                                                     if (existedProductWithSizeColorCodition == null)
                             {
                                 var newProduct = existedProduct;
+
+                                if (!existedProduct.Color.Equals(colorValue))
+                                {
+                                    if (!string.IsNullOrEmpty(avaImgValue))
+                                    {
+                                        var imgURL = await UploadAvaImgFile(avaImgValue);
+                                        if (imgURL != null)
+                                        {
+                                            newProduct.ImgAvatarPath = imgURL;
+                                        }
+                                        else
+                                        {
+                                            return (int)ProductErrors.NotExcepted;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return (int)ProductErrors.NullError;
+                                    }
+                                }
                                 newProduct.Id = 0;
                                 newProduct.Size = sizeValue;
                                 newProduct.Color = colorValue;
                                 newProduct.Condition = int.Parse(conditionValue);
                                 newProduct.Price = decimal.Parse(priceValue);
-                                await _productService.AddProduct(newProduct);
+                                newProduct = await _productService.AddProduct(newProduct);
+
+                                if (!existedProduct.Color.Equals(colorValue))
+                                {
+                                    //Add product's images into ImageVideo table
+                                    var firstImgValue = reader.GetValue(15)?.ToString();
+                                    var secondImgValue = reader.GetValue(16)?.ToString();
+                                    var thirdImgValue = reader.GetValue(17)?.ToString();
+                                    var fourthImgValue = reader.GetValue(18)?.ToString();
+                                    var fifthImgValue = reader.GetValue(19)?.ToString();
+                                    var isSuccess = await UploadProductImages(product.Id, firstImgValue, secondImgValue, thirdImgValue,
+                                                                fourthImgValue, fifthImgValue);
+
+                                    if (!isSuccess)
+                                    {
+                                        return (int)ProductErrors.NotExcepted;
+                                    }
+                                }
 
                                 var warehouse = new Warehouse()
                                 {
@@ -1015,12 +1022,19 @@ namespace _2Sport_BE.Controllers
                         }
 
                         //Save import history
-                        var manager = await _managerService.GetManagerDetailByIdAsync(managerId);
+                        var manager = await _managerService.GetManagerDetailByUserIdAsync(managerId);
                         var importedBranch = await _branchService.GetBranchById(manager.Data.BranchId);
                         var importHistory = new ImportHistory()
                         {
-                            StaffId = managerId,
+                            ManagerId = manager.Data.Id,
                             ProductId = product.Id,
+                            ProductName = product.ProductName,
+                            ProductCode = product.ProductCode,
+                            Price = product.Price,
+                            RentPrice = product.RentPrice,
+                            Color = product.Color,
+                            Size = product.Size,
+                            Condition = product.Condition,
                             Action = $@"{importedBranch.BranchName}: Import {int.Parse(quantityValue)} {productNameValue} ({productCodeValue})",
                             ImportDate = DateTime.Now,
                             Quantity = int.Parse(quantityValue),
@@ -1046,6 +1060,75 @@ namespace _2Sport_BE.Controllers
             //}
 
             return 1;
+        }
+
+        [NonAction]
+        private async Task<bool> UploadProductImages(int productId, string? firstImgValue, 
+                        string? secondImgValue, string? thirdImgValue, string? fourthImgValue, string? fifthImgValue)
+        {
+            var listProductImages = new List<string>();
+            if (!string.IsNullOrEmpty(firstImgValue))
+            {
+                listProductImages.Add(firstImgValue);
+            }
+            if (!string.IsNullOrEmpty(secondImgValue))
+            {
+                listProductImages.Add(secondImgValue);
+            }
+            if (!string.IsNullOrEmpty(thirdImgValue))
+            {
+                listProductImages.Add(thirdImgValue);
+            }
+            if (!string.IsNullOrEmpty(fourthImgValue))
+            {
+                listProductImages.Add(fourthImgValue);
+            }
+            if (!string.IsNullOrEmpty(fifthImgValue))
+            {
+                listProductImages.Add(fifthImgValue);
+            }
+
+            if (listProductImages.Count > 0)
+            {
+                foreach (var imagePath in listProductImages)
+                {
+                    var imageFile = ConvertToIFormFile(imagePath);
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(imageFile);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        var imageObject = new ImagesVideo()
+                        {
+                            ProductId = productId,
+                            ImageUrl = uploadResult.SecureUri.AbsoluteUri,
+                            CreateAt = DateTime.Now,
+                            VideoUrl = null,
+                        };
+                        await _imageVideosService.AddImage(imageObject);
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+
+                    }
+                }
+            }
+            return true;
+        }
+
+        [NonAction]
+        private async Task<string> UploadAvaImgFile(string avaImgValue)
+        {
+            var avaImgFile = ConvertToIFormFile(avaImgValue);
+            var uploadResult = await _imageService.UploadImageToCloudinaryAsync(avaImgFile);
+            if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                return uploadResult.SecureUrl.AbsoluteUri;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         [NonAction]
@@ -1135,7 +1218,7 @@ namespace _2Sport_BE.Controllers
                     var importedBranch = await _branchService.GetBranchById(manager.Data.BranchId);
                     var importHistory = new ImportHistory()
                     {
-                        StaffId = userId,
+                        ManagerId = manager.Data.Id,
                         ProductId = updatedProduct.Id,
                         Action = $@"{importedBranch.BranchName}: Updated {productUM.ProductName} ({productUM.ProductCode})",
                         ImportDate = DateTime.Now,
