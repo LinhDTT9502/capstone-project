@@ -195,6 +195,7 @@ using (var scope = app.Services.CreateScope())
         recurringJobs.AddOrUpdate(
         "CheckRentalExpiration",
         () => services.CheckRentalOrdersForExpiration(),
+                
         Cron.Daily
     );
     });

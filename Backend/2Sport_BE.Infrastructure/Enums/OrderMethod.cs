@@ -4,6 +4,7 @@
     {
         COD = 1,
         PayOS = 2,
-        VnPay = 3
+        VnPay = 3,
+        BankTransfer = 4
     }
 }

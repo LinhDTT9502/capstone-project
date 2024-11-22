@@ -55,7 +55,7 @@ namespace _2Sport_BE.Repository.Models
         public string? ProductName { get; set; }
 
         [Column("ProductCode")]
-        public string? ProductCode { get; set; } //Them ProductCode
+        public string? ProductCode { get; set; }
 
         [Column("RentPrice", TypeName = "decimal")]
         public decimal? RentPrice { get; set; }
@@ -75,6 +75,9 @@ namespace _2Sport_BE.Repository.Models
         [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
         [DataType(DataType.DateTime)]
         public DateTime? RentalEndDate { get; set; }
+
+        [Column("RentalDays")]
+        public int RentalDays { get; set; }
 
         [Column("SubTotal", TypeName = "decimal")]
         public decimal? SubTotal { get; set; }
@@ -98,20 +101,27 @@ namespace _2Sport_BE.Repository.Models
         [Column("PaymentStatus")]
         public int? PaymentStatus { get; set; }
 
+        [Column("DepositStatus")]
+        public int? DepositStatus { get; set; }
+
+        [Column("DepositAmount", TypeName = "decimal")]
+        public decimal? DepositAmount { get; set; } = decimal.Zero;
+
         [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
         [DataType(DataType.DateTime)]
-        public DateTime? ReturnDate { get; set; }
+        public DateTime? ReturnDate { get; set; } = null;
 
         [Column("LateFee", TypeName = "decimal")]
-        public decimal? LateFee { get; set; }
+        public decimal? LateFee { get; set; } = decimal.Zero;
+
         [Column("IsRestocked")]
-        public bool? IsRestocked { get; set; } // Track if the product has been restocked
+        public bool? IsRestocked { get; set; } = false;
 
         [Column("IsInspected")]
-        public bool? IsInspected { get; set; } // Track if the product is inspected upon return
+        public bool? IsInspected { get; set; } = false;
 
         [Column("DamageFee", TypeName = "decimal")]
-        public decimal? DamageFee { get; set; }
+        public decimal? DamageFee { get; set; } = decimal.Zero;
 
         [Column("ImgAvatarPath", TypeName = "varchar")]
         [MaxLength(500)]
@@ -127,8 +137,14 @@ namespace _2Sport_BE.Repository.Models
         [Column("UpdatedAt")]
         public DateTime? UpdatedAt { get; set; }
 
-        [Column("IsExtendRentalOrder")]
-        public bool? IsExtendRentalOrder { get; set; }
+        [Column("IsExtended")]
+        public bool? IsExtended { get; set; } = false;
+
+        [Column("ExtensionDays")]
+        public int? ExtensionDays { get; set; } = 0;
+        [Column("ExtensionCost")]
+        public decimal? ExtensionCost {  get; set; } = decimal.Zero;
+
         public virtual PaymentMethod PaymentMethod { get; set; }
         public virtual User User { get; set; }
         public virtual Branch Branch { get; set; }

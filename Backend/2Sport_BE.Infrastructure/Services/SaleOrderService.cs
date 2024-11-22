@@ -392,10 +392,10 @@ namespace _2Sport_BE.Infrastructure.Services
                     if (user != null && shipmentDetail != null)
                         MapUserToSaleOrder(user, shipmentDetail, toCreate);
 
-                    if (DeliveryMethod.Equals("HOME_DELIVERY"))
+                    /*if (DeliveryMethod.Equals("HOME_DELIVERY"))
                     {
                         toCreate.PaymentMethodId = (int)OrderMethods.COD;
-                    }
+                    }*/
                     await _unitOfWork.SaleOrderRepository.InsertAsync(toCreate);
                     decimal subTotal = 0;
                     foreach (var item in saleOrderCM.SaleOrderDetailCMs)
