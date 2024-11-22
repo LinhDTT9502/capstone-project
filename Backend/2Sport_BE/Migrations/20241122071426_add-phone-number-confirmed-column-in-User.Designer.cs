@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241122071426_add-phone-number-confirmed-column-in-User")]
+    partial class addphonenumberconfirmedcolumninUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1254,43 +1257,6 @@ namespace _2Sport_BE.Migrations
                     b.ToTable("Staffs");
                 });
 
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.TwilioAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccountSId")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("AccountSId");
-
-                    b.Property<string>("AuthToken")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("AuthToken");
-
-                    b.Property<string>("FromNumber")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("FromNumber");
-
-                    b.Property<string>("ToNumber")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("ToNumber");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TwilioAccounts");
-                });
-
             modelBuilder.Entity("_2Sport_BE.Repository.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -1345,10 +1311,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<bool?>("IsActived")
                         .HasColumnType("bit")
                         .HasColumnName("IsActived");
-
-                    b.Property<int>("OTP")
-                        .HasColumnType("int")
-                        .HasColumnName("OTP");
 
                     b.Property<string>("PasswordResetToken")
                         .HasColumnType("nvarchar(max)");

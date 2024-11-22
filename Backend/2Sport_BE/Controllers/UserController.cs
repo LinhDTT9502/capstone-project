@@ -8,6 +8,7 @@ using IMailService = _2Sport_BE.Services.IMailService;
 using _2Sport_BE.Infrastructure.DTOs;
 using Hangfire.Common;
 using CloudinaryDotNet.Actions;
+using _2Sport_BE.Enums;
 
 namespace _2Sport_BE.Controllers
 {
@@ -21,17 +22,20 @@ namespace _2Sport_BE.Controllers
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IMailService _mailService;
         private readonly IImageService _imageService;
+        private readonly IPhoneNumberService _phoneNumberService;
         public UserController(
             IUserService userService,
             IRefreshTokenService refreshTokenService,
             IMailService mailService,
-            IImageService imageService
+            IImageService imageService,
+            IPhoneNumberService phoneNumberService
             )
         {
             _userService = userService;
             _refreshTokenService = refreshTokenService;
             _mailService = mailService;
             _imageService = imageService;
+            _phoneNumberService = phoneNumberService;
         }
         [HttpGet]
         [Route("get-all-users")]
@@ -216,6 +220,37 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest("Can not create mail");
         }
+
+        [HttpPut]
+        [Route("send-sms-otp/{phoneNumber}")]
+        public async Task<IActionResult> SendSmsOTP (string phoneNumber)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
+
+                var isSuccess = await _phoneNumberService.SendSmsToPhoneNumber(userId, phoneNumber);
+                if (isSuccess == (int)Errors.NotFoundUser)
+                {
+                    return BadRequest("Not found user!");
+                }
+                if (isSuccess == (int)Errors.NotExcepted)
+                {
+                    return StatusCode(500, "Something wrong!");
+                }
+                return Ok("Send OTP to your number");
+
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail(string token, string email)
         {
