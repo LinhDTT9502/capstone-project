@@ -37,6 +37,7 @@ namespace _2Sport_BE.Repository.Implements
 
         private IGenericRepository<Manager> _managerRepository;
         private IGenericRepository<Staff> _employeeRepository;
+        private IGenericRepository<TwilioAccount> _twilioAccountRepository;
         private IGenericRepository<Customer> _customerDetailRepository;
         private IGenericRepository<ErrorLog> _errorLogRepository;
         private IGenericRepository<RentalOrder> _rentalOrderRepository;
@@ -342,6 +343,18 @@ namespace _2Sport_BE.Repository.Implements
                     _refundRequestRepository = new GenericRepository<RefundRequest>(_dbContext);
                 }
                 return _refundRequestRepository;
+            }
+        }
+
+        public IGenericRepository<TwilioAccount> TwilioRepository
+        {
+            get
+            {
+                if (_twilioAccountRepository == null)
+                {
+                    _twilioAccountRepository = new GenericRepository<TwilioAccount>(_dbContext);
+                }
+                return _twilioAccountRepository;
             }
         }
 

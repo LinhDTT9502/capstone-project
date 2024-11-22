@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241122080118_add-OTP-column-in-User")]
+    partial class addOTPcolumninUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -837,26 +840,10 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("DeliveryMethod");
 
-                    b.Property<decimal?>("DepositAmount")
-                        .HasColumnType("decimal")
-                        .HasColumnName("DepositAmount");
-
-                    b.Property<int?>("DepositStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("DepositStatus");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("Email");
-
-                    b.Property<decimal?>("ExtensionCost")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("ExtensionCost");
-
-                    b.Property<int?>("ExtensionDays")
-                        .HasColumnType("int")
-                        .HasColumnName("ExtensionDays");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -873,9 +860,9 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("varchar")
                         .HasColumnName("ImgAvatarPath");
 
-                    b.Property<bool?>("IsExtended")
+                    b.Property<bool?>("IsExtendRentalOrder")
                         .HasColumnType("bit")
-                        .HasColumnName("IsExtended");
+                        .HasColumnName("IsExtendRentalOrder");
 
                     b.Property<bool?>("IsInspected")
                         .HasColumnType("bit")
@@ -930,10 +917,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<decimal?>("RentPrice")
                         .HasColumnType("decimal")
                         .HasColumnName("RentPrice");
-
-                    b.Property<int>("RentalDays")
-                        .HasColumnType("int")
-                        .HasColumnName("RentalDays");
 
                     b.Property<DateTime?>("RentalEndDate")
                         .HasColumnType("datetime2");

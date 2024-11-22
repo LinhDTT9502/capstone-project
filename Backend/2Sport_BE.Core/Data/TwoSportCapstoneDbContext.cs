@@ -35,6 +35,7 @@ namespace _2Sport_BE.Repository.Data
         public virtual DbSet<Sport> Sport { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Staff> Staffs { get; set; }
+        public virtual DbSet<TwilioAccount> TwilioAccount { get; set; }
         public virtual DbSet<Warehouse> Warehouses { get; set; }
         public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
         public virtual DbSet<RentalOrder> RentalOrders { get; set; }
