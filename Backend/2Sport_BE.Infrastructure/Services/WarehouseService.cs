@@ -1,6 +1,7 @@
 using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
+using _2Sport_BE.Service.DTOs;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -16,7 +17,7 @@ namespace _2Sport_BE.Infrastructure.Services
     {
         Task<IQueryable<Warehouse>> ListAllAsync();
         Task<IQueryable<Warehouse>> GetWarehouse(Expression<Func<Warehouse, bool>> filter = null);
-        Task<IQueryable<Warehouse>> GetAvailableWarehouse();
+        Task<IQueryable<WarehouseDTO>> GetAvailableWarehouse();
         Task<IQueryable<Warehouse>> GetWarehouseById(int? id);
         Task<IQueryable<Warehouse>> GetWarehouseByProductId(int? productId);
         Task CreateANewWarehouseAsync(Warehouse warehouse);
@@ -138,11 +139,32 @@ namespace _2Sport_BE.Infrastructure.Services
             return listProductByBranchId.AsQueryable();
         }
 
-        public async Task<IQueryable<Warehouse>> GetAvailableWarehouse()
+        public async Task<IQueryable<WarehouseDTO>> GetAvailableWarehouse()
         {
-            var warehouses = (await _unitOfWork.WarehouseRepository.GetAllAsync())
-                                                                   .GroupBy(_ => _.ProductId);
-            return (IQueryable<Warehouse>)warehouses;
+            try
+            {
+                var warehouses = (await _unitOfWork.WarehouseRepository
+                        .GetAsync(_ => _.ProductId > 0));// Ensures that the warehouse has a related product
+
+                foreach (var warehouse in warehouses)
+                {
+                    warehouse.Product = await _unitOfWork.ProductRepository.FindAsync(warehouse.ProductId);
+                }
+                var warehouseDTOs = warehouses.GroupBy(w => new { w.Product.ProductCode, w.Product.ProductName })
+                            .Select(group => new WarehouseDTO
+                            {
+                                ProductCode = group.Key.ProductCode,
+                                ProductName = group.Key.ProductName,
+                                TotalQuantity = group.Sum(w => w.TotalQuantity ?? 0),
+                                AvailableQuantity = group.Sum(w => w.AvailableQuantity ?? 0)
+                            }).ToList();
+                return warehouseDTOs.AsQueryable();
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+            
         }
     }
 }
