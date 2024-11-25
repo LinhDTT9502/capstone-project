@@ -65,7 +65,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
     {
         public decimal? SubTotal { get; set; }
         public decimal? TranSportFee { get; set; }
-        public decimal TotalAmount { get; set; }
+        public decimal? TotalAmount { get; set; }
     }
     public class RentalOrderInformation
     {

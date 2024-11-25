@@ -128,7 +128,7 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             rentalOrder.SubTotal = productInformation.RentalCosts.SubTotal ?? (decimal)(productInformation.RentPrice * productInformation.Quantity * productInformation.RentalDates.RentalDays);
             rentalOrder.TranSportFee = productInformation.RentalCosts.TranSportFee ?? 0;
-            rentalOrder.TotalAmount = productInformation.RentalCosts.TotalAmount != null ? productInformation.RentalCosts.TotalAmount : CalculateTotalAmount(rentalOrder.SubTotal, rentalOrder.TranSportFee);
+            rentalOrder.TotalAmount = productInformation.RentalCosts.TotalAmount.Value != null ? productInformation.RentalCosts.TotalAmount.Value : CalculateTotalAmount(rentalOrder.SubTotal, rentalOrder.TranSportFee);
         }
         private void AssignCustomerInformation(RentalOrder rentalOrder, CustomerInformation customerInformation)
         {
@@ -159,7 +159,7 @@ namespace _2Sport_BE.Infrastructure.Services
             // Cập nhật kho dựa trên loại yêu cầu
             int quantityAdjustment = isReturningStock ? productInformation.Quantity.Value : -productInformation.Quantity.Value;
             warehouse.AvailableQuantity += quantityAdjustment;
-            warehouse.TotalQuantity += quantityAdjustment;
+            //warehouse.TotalQuantity += quantityAdjustment;
 
             await _unitOfWork.WarehouseRepository.UpdateAsync(warehouse);
             return true;
@@ -513,8 +513,8 @@ namespace _2Sport_BE.Infrastructure.Services
 
                     if (childList.Any())
                     {
-                        var subTotalOfParent = rentalOrderUM.ParentSubTotal ?? childList.Sum(_ => _.SubTotal);
-                        var transportFee = rentalOrderUM.ParentTranSportFee ?? childList.Sum(_ => _.TranSportFee);
+                        decimal? subTotalOfParent = rentalOrderUM.ParentSubTotal ?? childList.Sum(_ => _.SubTotal);
+                        decimal? transportFee = rentalOrderUM.ParentTranSportFee ?? childList.Sum(_ => _.TranSportFee);
                         parentOrder.SubTotal = subTotalOfParent;
                         parentOrder.TranSportFee = transportFee;
                         parentOrder.TotalAmount = (decimal)(subTotalOfParent + transportFee);
@@ -652,17 +652,11 @@ namespace _2Sport_BE.Infrastructure.Services
                 var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(
                     r => r.Id == rentalOrderId
                 );
-
+                var listChild = await _unitOfWork.RentalOrderRepository.GetAsync(r => r.ParentOrderCode == rentalOrder.RentalOrderCode);
                 if (rentalOrder != null)
                 {
-                    var result = _mapper.Map<RentalOrderVM>(rentalOrder);
-                    result.DepositStatus = Enum.GetName(typeof(DepositStatus), rentalOrder.DepositStatus);
-                    result.OrderStatus = Enum.GetName(typeof(OrderStatus), rentalOrder.OrderStatus);
-                    result.PaymentStatus = Enum.GetName(typeof(PaymentStatus), rentalOrder.PaymentStatus);
-
-                    response.IsSuccess = true;
-                    response.Message = "Rental order found";
-                    response.Data = result;
+                    if(listChild.Count() > 0) response = GenerateSuccessResponse(rentalOrder, listChild.ToList(), "Query Successfully");
+                    else response = GenerateSuccessResponse(rentalOrder, null, "Query Successfully");
                 }
                 else
                 {
@@ -687,10 +681,12 @@ namespace _2Sport_BE.Infrastructure.Services
                 var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(
                     r => r.RentalOrderCode == orderCode
                 );
-
+                    
+                var listChild = await _unitOfWork.RentalOrderRepository.GetAsync(r => r.ParentOrderCode == rentalOrder.RentalOrderCode);
                 if (rentalOrder != null)
                 {
-                    response = GenerateSuccessResponse(rentalOrder, null, "Rental order found");
+                    if (listChild.Count() > 0) response = GenerateSuccessResponse(rentalOrder, listChild.ToList(), "Query Successfully");
+                    else response = GenerateSuccessResponse(rentalOrder, null, "Query Successfully");
                 }
                 else
                 {
