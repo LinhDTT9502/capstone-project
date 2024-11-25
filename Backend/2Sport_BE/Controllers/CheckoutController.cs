@@ -54,10 +54,10 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest("Order not found.");
             }
-            if(order.PaymentStatus != (int)PaymentStatus.IsWating || (order.PaymentStatus == (int)PaymentStatus.IsCanceled && order.OrderStatus == (int)OrderStatus.CANCELLED))
+            /*if(order.PaymentStatus != (int)PaymentStatus.IsWating || (order.PaymentStatus == (int)PaymentStatus.IsCanceled && order.OrderStatus == (int)OrderStatus.CANCELLED))
             {
                 return BadRequest("PaymentStatus is not allowed to checkout.");
-            }
+            }*/
 
             if (checkoutModel.PaymentMethodID == (int)OrderMethods.PayOS || checkoutModel.PaymentMethodID == (int)OrderMethods.VnPay)
             {
@@ -165,10 +165,10 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest("Rental Order not found.");
             }
-            if (order.PaymentStatus != (int)PaymentStatus.IsWating || (order.PaymentStatus == (int)PaymentStatus.IsCanceled && order.OrderStatus == (int)OrderStatus.CANCELLED))
+            /*if (order.PaymentStatus != (int)PaymentStatus.IsWating || (order.PaymentStatus == (int)PaymentStatus.IsCanceled && order.OrderStatus == (int)OrderStatus.CANCELLED))
             {
                 return BadRequest("PaymentStatus is not allowed to checkout.");
-            }
+            }*/
 
             if (checkoutModel.PaymentMethodID == (int)OrderMethods.PayOS || checkoutModel.PaymentMethodID == (int)OrderMethods.VnPay)
             {
