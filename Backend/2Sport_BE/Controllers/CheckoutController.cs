@@ -107,7 +107,7 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest("Unsupported payment method.");
         }
-        [HttpGet("sale-order-cancel")]
+        [HttpGet("sale-order-cancel-payos")]
         public async Task<IActionResult> HandleSaleOrderCancelPayOs([FromQuery] PaymentResponse paymentResponse)
         {
             if (!ModelState.IsValid || _methodHelper.AreAnyStringsNullOrEmpty(paymentResponse))
@@ -128,7 +128,7 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(result);
         }
-        [HttpGet("sale-order-return")]
+        [HttpGet("sale-order-return-payos")]
         public async Task<IActionResult> HandleSaleOrderReturnPayOs([FromQuery] PaymentResponse paymentResponse)
         {
             if (!ModelState.IsValid || _methodHelper.AreAnyStringsNullOrEmpty(paymentResponse))

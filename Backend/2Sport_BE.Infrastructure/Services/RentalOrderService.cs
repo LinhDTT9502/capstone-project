@@ -106,7 +106,7 @@ namespace _2Sport_BE.Infrastructure.Services
         }
         private void AssignRentalDates(RentalOrder rentalOrder, RentalDates rentalDates)
         {
-            rentalDates.DateOfReceipt = rentalDates.DateOfReceipt;
+            rentalOrder.DateOfReceipt = rentalDates.DateOfReceipt;
             rentalOrder.RentalStartDate = rentalDates.RentalStartDate;
             rentalOrder.RentalEndDate = rentalDates.RentalEndDate;
             rentalOrder.RentalDays = rentalDates.RentalDays ?? CalculateTotalRentalDays(rentalOrder);
@@ -138,6 +138,7 @@ namespace _2Sport_BE.Infrastructure.Services
             rentalOrder.Gender = customerInformation.Gender;
             rentalOrder.FullName = customerInformation.FullName;
             rentalOrder.ContactPhone = customerInformation.ContactPhone;
+            rentalOrder.Address = customerInformation.Address;
         }
         private void AssignBranchInformation(RentalOrder rentalOrder, Branch branch)
         {
@@ -147,7 +148,7 @@ namespace _2Sport_BE.Infrastructure.Services
         //Update For creating or returning
         private async Task<bool> UpdateStock(ProductInformation productInformation, int branchId, bool isReturningStock)
         {
-            var warehouse = await _unitOfWork.WarehouseRepository
+            var warehouse = await  _unitOfWork.WarehouseRepository
                 .GetObjectAsync(w => w.ProductId == productInformation.ProductId && w.BranchId == branchId);
 
             if (warehouse == null || warehouse.TotalQuantity < productInformation.Quantity || warehouse.AvailableQuantity < productInformation.Quantity)
@@ -237,6 +238,9 @@ namespace _2Sport_BE.Infrastructure.Services
                     rentalOrder.RentalOrderCode = _methodHelper.GenerateOrderCode();
                     rentalOrder.Note = rentalOrderCM.Note;
                     rentalOrder.CreatedAt = DateTime.Now;
+                    rentalOrder.DeliveryMethod = DeliveryMethod;
+                    rentalOrder.OrderStatus = (int)OrderStatus.PENDING;
+
                     //ParentCode For Child Orders
                     string parentOrderCode = rentalOrder.RentalOrderCode;
 
@@ -272,48 +276,55 @@ namespace _2Sport_BE.Infrastructure.Services
                         await _unitOfWork.RentalOrderRepository.InsertAsync(rentalOrder);
 
                         await _unitOfWork.SaveChanges();
-                        await transaction.CommitAsync();
 
                         await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode);
                         await _mailService.SendRentalOrderInformationToCustomer(rentalOrder, null, rentalOrder.Email);
                         response = GenerateSuccessResponse(rentalOrder, null, "Rental order created successfully");
+                        await transaction.CommitAsync();
                     }
                     else if (rentalOrderCM.ProductInformations.Count > 1)//Parent order and child order
                     {
-                        
-                        rentalOrder.BranchId = rentalOrderCM.BranchId ?? null;
+                        var branch = rentalOrderCM.BranchId != null ? await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == rentalOrderCM.BranchId) : null;
+                        if(branch != null)
+                        {
+                            AssignBranchInformation (rentalOrder, branch);
+                        }
 
                         decimal? parentSubtotal = 0;
                         decimal? parentTransportFee = 0;
                         var childOrders = new List<RentalOrder>();
-                        foreach (var item in rentalOrderCM.ProductInformations)
+                        for (var i = 0; i < rentalOrderCM.ProductInformations.Count; i++)
                         {
+                            var itemCM = rentalOrderCM.ProductInformations[i];
+
                             var childRentalOrder = new RentalOrder();
                             AssignCustomerInformation(childRentalOrder, rentalOrderCM.CustomerInformation);
                             childRentalOrder.ParentOrderCode = parentOrderCode;
+                            childRentalOrder.RentalOrderCode = _methodHelper.GenerateOrderCode();
+                            childRentalOrder.CreatedAt = DateTime.Now;
+                            childRentalOrder.OrderStatus = (int)OrderStatus.PENDING;
+                            childRentalOrder.DeliveryMethod = rentalOrderCM.DeliveryMethod;
+                            var product = await _unitOfWork.ProductRepository.GetObjectAsync(p => p.Id == itemCM.ProductId);
+                            if (product == null) return GenerateErrorResponse($"The product with id {itemCM.ProductId} are not found");
 
-                            var product = await _unitOfWork.ProductRepository.GetObjectAsync(p => p.Id == item.ProductId);
-                            if (product == null) return GenerateErrorResponse($"The product with id {item.ProductId} are not found");
-
-                            if (!_methodHelper.CheckValidOfRentalDate(item.RentalDates.RentalStartDate, item.RentalDates.RentalEndDate, item.RentalDates.DateOfReceipt))
+                            if (!_methodHelper.CheckValidOfRentalDate(itemCM.RentalDates.RentalStartDate, itemCM.RentalDates.RentalEndDate, itemCM.RentalDates.DateOfReceipt))
                                 return GenerateErrorResponse("Rental period or Date of receipt are invalid");
 
-                            AssignRentalProduct(item, childRentalOrder);
-                            AssignRentalDates(childRentalOrder, item.RentalDates);
+                            AssignRentalProduct(itemCM, childRentalOrder);
+                            AssignRentalDates(childRentalOrder, itemCM.RentalDates);
  
-                            var branch = await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == rentalOrderCM.BranchId);
                             if (branch != null)
                             {
                                 AssignBranchInformation(childRentalOrder, branch);
 
-                                var reduceInWarehouse = await UpdateStock(item, branch.Id, false);
+                                var reduceInWarehouse = await UpdateStock(itemCM, rentalOrderCM.BranchId.Value, false);
                                 if (!reduceInWarehouse)
                                 {
                                     await transaction.RollbackAsync();
-                                    return GenerateErrorResponse($"Failed to update stock for product {item.ProductName}");
+                                    return GenerateErrorResponse($"Failed to update stock for product {itemCM.ProductName}");
                                 }
                             }
-                            AssignRentalCost(childRentalOrder, item);
+                            AssignRentalCost(childRentalOrder, itemCM);
                             parentSubtotal += childRentalOrder.SubTotal.Value;
                             parentTransportFee += childRentalOrder.TranSportFee.Value;
 
@@ -326,15 +337,14 @@ namespace _2Sport_BE.Infrastructure.Services
                         rentalOrder.TotalAmount = CalculateTotalAmount(rentalOrder.SubTotal, rentalOrder.TranSportFee);
 
                         await _unitOfWork.RentalOrderRepository.InsertAsync(rentalOrder);
-                        await transaction.CommitAsync();
 
                         //Send notifications to Coordinator
                         var listChild = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.ParentOrderCode.Equals(rentalOrder.RentalOrderCode));
                         await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode);
-
                         await _mailService.SendRentalOrderInformationToCustomer(rentalOrder, listChild.ToList(), rentalOrder.Email);
 
                         response = GenerateSuccessResponse(rentalOrder, listChild.ToList(), "Rental order inserted successfully");
+                        await transaction.CommitAsync();
                     }
                     else
                     {
@@ -559,11 +569,17 @@ namespace _2Sport_BE.Infrastructure.Services
         private ResponseDTO<RentalOrderVM> GenerateSuccessResponse(RentalOrder order, List<RentalOrder>? listChild, string messagge)
         {
             var result = _mapper.Map<RentalOrderVM>(order);
-            result.OrderStatus = Enum.GetName((OrderStatus)order.OrderStatus);
-            result.PaymentStatus = Enum.GetName((PaymentStatus)order.PaymentStatus);
-            result.PaymentMethod = order.PaymentMethodId.HasValue
-                               ? Enum.GetName(typeof(OrderMethods), order.PaymentMethodId.Value)
-                               : "Unknown PaymentMethod";
+            result.OrderStatus = result.OrderStatus != null
+                     ? Enum.GetName(typeof(OrderStatus), order.OrderStatus)
+                     : "Unknown Status";
+
+            result.PaymentStatus = result.PaymentStatus != null
+                                 ? Enum.GetName(typeof(PaymentStatus), order.PaymentStatus)
+                                 : "Unknown PaymentStatus";
+
+            result.PaymentMethod = order.PaymentMethodId != null 
+                                 ? Enum.GetName(typeof(OrderMethods), order.PaymentMethodId.Value)
+                                 : "Unknown PaymentMethod";
 
             result.Id = order.Id;
             if (listChild == null || !listChild.Any())

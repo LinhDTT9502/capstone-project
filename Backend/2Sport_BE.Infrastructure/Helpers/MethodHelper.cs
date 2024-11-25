@@ -82,9 +82,9 @@ namespace _2Sport_BE.Infrastructure.Helpers
             {
                 return false; // Ngày bắt đầu thuê không thể lớn hơn ngày kết thúc
             }
-            if (receivedDate < startDate || receivedDate > endDate)
+            if (receivedDate > startDate || receivedDate > endDate)
             {
-                return false; // Ngày nhận sản phẩm phải nằm trong khoảng thời gian thuê
+                return false; // Ngày nhận sản phẩm phải trước hoặc bằng ngày bắt đầu thuê, và không được sau ngày kết thúc
             }
 
             return true;
