@@ -10,10 +10,10 @@
     }
     public class SaleOrderDetailCM : SaleOrderDetailDTO
     {
+        public int CartItemId { get; set; }
     }
     public class SaleOrderDetailUM : SaleOrderDetailDTO
     {
-        public string? ImgAvatarPath { get; set; }
     }
     public class SaleOrderDetailVM : SaleOrderDetailDTO
     {
