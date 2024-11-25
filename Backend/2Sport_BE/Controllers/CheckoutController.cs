@@ -37,7 +37,7 @@ namespace _2Sport_BE.Controllers
 
         [HttpPost]
         [Route("checkout-sale-order")]
-        public async Task<IActionResult> CheckoutSaleOrderPayOs(CheckoutModel checkoutModel)
+        public async Task<IActionResult> CheckoutSaleOrder(CheckoutModel checkoutModel)
         {
             if (!ModelState.IsValid)
             {
@@ -92,12 +92,9 @@ namespace _2Sport_BE.Controllers
                 if (order.PaymentMethodId != checkoutModel.PaymentMethodID)
                 {
                     order.PaymentMethodId = checkoutModel.PaymentMethodID;
+                    order.PaymentStatus = (int)PaymentStatus.IsWating;
                     await _saleOrderService.UpdateSaleOrder(order);
                 }
-
-                order.PaymentStatus = (int)PaymentStatus.IsWating;
-                await _saleOrderService.UpdateSaleOrder(order);
-
                 var response = await _saleOrderService.GetSaleOrderDetailByIdAsync(order.Id);
                 if (!response.IsSuccess)
                 {
@@ -151,15 +148,11 @@ namespace _2Sport_BE.Controllers
         }
         [HttpPost]
         [Route("checkout-rental-order")]
-        public async Task<IActionResult> CheckoutRentalOrderPayOs(CheckoutModel checkoutModel)
+        public async Task<IActionResult> CheckoutRentalOrder(CheckoutModel checkoutModel)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            }
-            if (checkoutModel.PaymentMethodID != (int)OrderMethods.PayOS)
-            {
-                return BadRequest("Invalid PaymentMethodId. It must match PayOS payment method.");
             }
 
             var order = await _rentalOrderService.FindRentalOrderById(checkoutModel.OrderID)
@@ -167,44 +160,61 @@ namespace _2Sport_BE.Controllers
 
             if (order == null)
             {
-                return BadRequest("Order not found.");
+                return BadRequest("Rental Order not found.");
             }
             if (order.PaymentStatus != (int)PaymentStatus.IsWating || (order.PaymentStatus == (int)PaymentStatus.IsCanceled && order.OrderStatus == (int)OrderStatus.CANCELLED))
             {
                 return BadRequest("PaymentStatus is not allowed to checkout.");
             }
-            if (order.PaymentMethodId == (int)OrderMethods.COD)
+
+            if (checkoutModel.PaymentMethodID == (int)OrderMethods.PayOS || checkoutModel.PaymentMethodID == (int)OrderMethods.VnPay)
             {
-                return BadRequest("PaymentStatus is not allowed to checkout because Your Order is chosing Ship COD");
+                var paymentService = _paymentFactory.GetPaymentService(checkoutModel.PaymentMethodID);
+                if (paymentService == null)
+                {
+                    return BadRequest("Phương thức thanh toán không hợp lệ.");
+                }
 
-            }
+                var createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext);
+                if (!createdLink.IsSuccess)
+                {
+                    return BadRequest(createdLink.Message ?? "Failed to create payment link.");
+                }
 
-            if (order.PaymentMethodId != (int)OrderMethods.PayOS)
-            {
-                order.PaymentMethodId = (int)OrderMethods.PayOS;
-                await _rentalOrderService.UpdaterRentalOrder(order);
-            }
 
-            var response = await _rentalOrderService.GetRentalOrderByIdAsync(order.Id);
-            if (!response.IsSuccess)
-            {
-                return BadRequest(response);
-            }
-            var paymentService = _paymentFactory.GetPaymentService(checkoutModel.PaymentMethodID);
+                if (order.PaymentMethodId != checkoutModel.PaymentMethodID)
+                {
+                    order.PaymentMethodId = checkoutModel.PaymentMethodID;
+                    await _rentalOrderService.UpdaterRentalOrder(order);
+                }
 
-            if (paymentService == null)
-            {
-                return BadRequest("Phương thức thanh toán không hợp lệ.");
-            }
+                var response = await _rentalOrderService.GetRentalOrderByIdAsync(order.Id);
+                if (!response.IsSuccess)
+                {
+                    return BadRequest(response.Message ?? "Failed to retrieve order details.");
+                }
 
-            var createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext);
-
-            if (createdLink.IsSuccess)
-            {
                 response.Data.PaymentLink = createdLink.Data;
                 return Ok(response);
             }
-            return BadRequest(createdLink);
+            else if (checkoutModel.PaymentMethodID == (int)OrderMethods.COD || checkoutModel.PaymentMethodID == (int)OrderMethods.BankTransfer)
+            {
+
+                if (order.PaymentMethodId != checkoutModel.PaymentMethodID)
+                {
+                    order.PaymentMethodId = checkoutModel.PaymentMethodID;
+                    order.PaymentStatus = (int)PaymentStatus.IsWating;
+                    await _rentalOrderService.UpdaterRentalOrder(order);
+                }
+
+                var response = await _rentalOrderService.GetRentalOrderByIdAsync(order.Id);
+                if (!response.IsSuccess)
+                {
+                    return BadRequest(response.Message ?? "Failed to retrieve order details.");
+                }
+                return Ok(response);
+            }
+            return BadRequest("Unsupported payment method.");
         }
         [HttpGet("rental-order-cancel")]
         public async Task<IActionResult> HandleRentalOrderCancelPayOs([FromQuery] PaymentResponse paymentResponse)

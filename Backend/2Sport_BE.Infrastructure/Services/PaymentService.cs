@@ -2,6 +2,7 @@
 using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Infrastructure.Helpers;
 using _2Sport_BE.Repository.Interfaces;
+using _2Sport_BE.Service.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
@@ -474,7 +475,7 @@ namespace _2Sport_BE.Infrastructure.Services
             pay.AddRequestData("vnp_Version", _configuration["Vnpay:Version"]);
             pay.AddRequestData("vnp_Command", _configuration["Vnpay:Command"]);
             pay.AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"]);
-            pay.AddRequestData("vnp_Amount", ((int)model.TotalAmount * 100).ToString());
+            pay.AddRequestData("vnp_Amount", ((int)model.TotalAmount/2 * 100).ToString());
             pay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
             pay.AddRequestData("vnp_CurrCode", _configuration["Vnpay:CurrCode"]);
             pay.AddRequestData("vnp_IpAddr", pay.GetIpAddress(context));
@@ -526,9 +527,9 @@ namespace _2Sport_BE.Infrastructure.Services
             {
                 if(response.Data.VnPayResponseCode == "00")
                 {
-                isUpdated = await _rentalOrderService.UpdatePaymentStatus(response.Data.OrderCode, (int)PaymentStatus.IsPaid);
+                isUpdated = await _rentalOrderService.UpdateRentalOrderAfterCheckout(response.Data.OrderCode,(int)DepositStatus.Partially_Paid, response.Data.Amount, (int)PaymentStatus.IsDeposited);
                 }
-                isUpdated = await _rentalOrderService.UpdatePaymentStatus(response.Data.OrderCode, (int)PaymentStatus.IsCanceled);
+                isUpdated = await _rentalOrderService.UpdateRentalOrderAfterCheckout(response.Data.OrderCode, (int)DepositStatus.Not_Paid, decimal.Zero, (int)PaymentStatus.IsCanceled);
             }
             if (isUpdated)
             {

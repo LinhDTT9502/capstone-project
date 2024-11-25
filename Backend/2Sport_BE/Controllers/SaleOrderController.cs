@@ -96,7 +96,7 @@ namespace _2Sport_BE.Controllers
                 return BadRequest("Invalid request data.");
             }
             //Tao order
-            var response = await _orderService.CreatetSaleOrderAsync(orderCM);
+            var response = await _orderService.CreateSaleOrderAsync(orderCM);
             if (!response.IsSuccess)
             {
                 return StatusCode(500, response);

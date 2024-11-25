@@ -26,8 +26,9 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<SaleOrderVM>> GetSaleOrderBySaleOrderCode(string SaleOrderCode);
         //Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByMonthAndStatus(DateTime startDate, DateTime endDate, int status);
         #endregion
+
         #region ICreate_IUpdate_IDelete
-        Task<ResponseDTO<SaleOrderVM>> CreatetSaleOrderAsync(SaleOrderCM SaleOrderCM);
+        Task<ResponseDTO<SaleOrderVM>> CreateSaleOrderAsync(SaleOrderCM SaleOrderCM);
         Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderAsync(int SaleOrderId, SaleOrderUM SaleOrderUM);
         Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderStatusAsync(int id, int status);
         Task<ResponseDTO<int>> UpdateBranchForSaleOrder(int orderId, int branchId);
@@ -35,6 +36,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<SaleOrderVM>> ApproveSaleOrderAsync(int orderId);
         Task<ResponseDTO<SaleOrderVM>> RejectSaleOrderAsync(int orderId);
         #endregion
+
         #region CRUD_Order
         Task<IQueryable<SaleOrder>> FindAllSaleOrderQueryableAsync();
         Task<SaleOrder> FindSaleOrderByIdFromUserAsync(int SaleOrderId, int userId);
@@ -44,6 +46,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<bool> UpdatePaymentStatusOfSaleOrder(string orderCode, int paymentStatus);
 
         #endregion
+
     }
     public class SaleOrderService : ISaleOrderService
     {
@@ -339,7 +342,7 @@ namespace _2Sport_BE.Infrastructure.Services
         #endregion
         #region Create_Update_Delete_SaleOrder
 
-        public async Task<ResponseDTO<SaleOrderVM>> CreatetSaleOrderAsync(SaleOrderCM saleOrderCM)
+        public async Task<ResponseDTO<SaleOrderVM>> CreateSaleOrderAsync(SaleOrderCM saleOrderCM)
         {
             var response = new ResponseDTO<SaleOrderVM>();
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
