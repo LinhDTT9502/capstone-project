@@ -1,6 +1,7 @@
 using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace _2Sport_BE.Infrastructure.Services
     {
         Task<IQueryable<Warehouse>> ListAllAsync();
         Task<IQueryable<Warehouse>> GetWarehouse(Expression<Func<Warehouse, bool>> filter = null);
+        Task<IQueryable<Warehouse>> GetAvailableWarehouse();
         Task<IQueryable<Warehouse>> GetWarehouseById(int? id);
         Task<IQueryable<Warehouse>> GetWarehouseByProductId(int? productId);
         Task CreateANewWarehouseAsync(Warehouse warehouse);
@@ -134,6 +136,13 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             var listProductByBranchId = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.BranchId == branchId);
             return listProductByBranchId.AsQueryable();
+        }
+
+        public async Task<IQueryable<Warehouse>> GetAvailableWarehouse()
+        {
+            var warehouses = (await _unitOfWork.WarehouseRepository.GetAllAsync())
+                                                                   .GroupBy(_ => _.ProductId);
+            return (IQueryable<Warehouse>)warehouses;
         }
     }
 }

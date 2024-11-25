@@ -49,7 +49,7 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var brands = await _brandService.ListAllAsync();
-                var warehouses = (await _warehouseService.GetWarehouse(_ => _.TotalQuantity > 0)).Include(_ => _.Product).ToList();
+                var warehouses = (await _warehouseService.GetAvailableWarehouse();
                 foreach (var item in warehouses)
                 {
                     item.Product = await _productService.GetProductById((int)item.ProductId);
