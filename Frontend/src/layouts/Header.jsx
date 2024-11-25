@@ -18,6 +18,7 @@ import SignInModal from "../components/Auth/SignInModal";
 import { motion, useScroll } from "framer-motion";
 import { BreadcrumbsDefault } from "./BreadcrumbsDefault";
 import SearchBar from "../components/Product/SearchBar";
+import BranchSystem from "../components/BranchButton";
 
 function Header() {
   const { scrollYProgress } = useScroll();
@@ -44,6 +45,10 @@ function Header() {
               <FontAwesomeIcon icon={faLocationDot} />
               {/* <p>Ho Chi Minh, Viet Nam</p> */}
               <GetCurrentLocation />
+              <div className=" pl-5">
+              <BranchSystem  />
+              </div>
+            
               {/* <Switch
                                 checked={enabled}
                                 onChange={() => {

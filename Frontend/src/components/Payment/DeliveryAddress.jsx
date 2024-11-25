@@ -25,7 +25,7 @@ const DeliveryAddress = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const user = useSelector(selectUser);
   const shipments = useSelector(selectShipment);
-  console.log(shipments);
+  // console.log(shipments);
   
   const shipment = useSelector(selectedShipment);
   const token = localStorage.getItem("token");
@@ -53,6 +53,7 @@ const DeliveryAddress = ({
       setUserData((prevData) => ({
         ...prevData,
         fullName: shipment?.fullName || prevData.fullName,
+        email: shipment?.email || prevData.email,
         address: shipment?.address || prevData.address,
         phoneNumber: shipment?.phoneNumber || prevData.phoneNumber,
         shipmentDetailID: shipment?.id
@@ -61,9 +62,9 @@ const DeliveryAddress = ({
   }, [user, shipment, setUserData]);
 
   // Monitor changes in userData
-  useEffect(() => {
-    console.log("Updated userData:", userData);
-  }, [userData]);
+  // useEffect(() => {
+  //   console.log("Updated userData:", userData);
+  // }, [userData]);
 
   const handleSaveClick = async (data) => {
     setIsSubmitting(true);
@@ -85,20 +86,16 @@ const DeliveryAddress = ({
     navigate("/cart");
   };
 
-  const handleAddressChange = (fullAddress) => {
-    setUserData((prevData) => ({ ...prevData, address: fullAddress }));
-  };
+  // const handleAddressChange = (fullAddress) => {
+  //   setUserData((prevData) => ({ ...prevData, address: fullAddress }));
+  // };
 
   const handleGenderChange = (e) => {
     setUserData((prevData) => ({ ...prevData, gender: e.target.value }));
   };
 
   return (
-    <div className="">
-      <div className="flex justify-between items-center">
-      </div>
-
-     
+ 
         <div className="w-full bg-white border border-gray-200 rounded-lg shadow-md p-6 space-y-2">
           <h3 className="text-sm font-bold">Thông tin khách hàng</h3>
           <div className="flex gap-10 ">
@@ -117,16 +114,9 @@ const DeliveryAddress = ({
           checked={userData.gender === "Female"}
         />
           </div>
-          <Input
-            type="text"
-            label="Email"
-            name="email"
-            value={userData.email}
-            onChange={(e) => setUserData((prevData) => ({ ...prevData, email: e.target.value }))}
-            required
-          />
+          
           {!user ? (
-            <div>
+            <div className="space-y-2">
           <Input
             type="text"
             label={t("payment.full_name")}
@@ -135,7 +125,14 @@ const DeliveryAddress = ({
             onChange={(e) => setUserData((prevData) => ({ ...prevData, fullName: e.target.value }))}
             required
           />
-          
+          <Input
+            type="text"
+            label="Email"
+            name="email"
+            value={userData.email}
+            onChange={(e) => setUserData((prevData) => ({ ...prevData, email: e.target.value }))}
+            required
+          />
           <Input
             type="text"
             label={t("payment.phone_number")}
@@ -145,18 +142,22 @@ const DeliveryAddress = ({
             required
           />
 
-          <AddressForm onAddressChange={handleAddressChange} />
+          {/* <AddressForm onAddressChange={handleAddressChange} /> */}
         </div>
       ) : (
         shipments.length > 0 ? (
           <>
            
             {shipment && (
-              <div className="w-fit bg-white border border-gray-200 rounded-lg shadow-md p-6 my-4 space-y-2 ">
+              <div className="w-full bg-white border border-gray-200 rounded-lg shadow-md p-6 my-4 space-y-2 ">
                 <h4 className="text-lg font-semibold mb-4">{t("payment.selected_shipment")}:</h4>
                 <p className="text-gray-700">
                   <span className="font-semibold">{t("payment.full_name")}:</span>{" "}
                   {shipment.fullName}
+                </p>
+                <p className="text-gray-700">
+                  <span className="font-semibold">email:</span>{" "}
+                  {shipment.email}
                 </p>
                 <p className="text-gray-70">
                   <span className="font-semibold">{t("payment.address")}:</span>{" "}
@@ -168,7 +169,10 @@ const DeliveryAddress = ({
                 </p>
               </div>
             )}
-             <ShipmentList />
+            <div className="">
+            <ShipmentList />
+            </div>
+             
           </>
         ) : (
           <AddShipment
@@ -180,7 +184,7 @@ const DeliveryAddress = ({
         )
       )}
 </div>
-    </div>
+
   );
 };
 

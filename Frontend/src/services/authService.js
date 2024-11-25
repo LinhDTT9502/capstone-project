@@ -53,8 +53,9 @@ export const checkAndRefreshToken = async () => {
 
   if (decoded.exp < currentTime) {
     try {
-      const response = await refreshTokenAPI(token, refreshToken, decoded.userId);
-      // console.log(response);
+      const response = await refreshTokenAPI(token, refreshToken, decoded.UserId);
+      console.log(token);
+      console.log(refreshToken);
       const newToken = response.data.data.token;
       const newRefreshToken = response.data.data.refreshToken;
       localStorage.setItem('token', newToken);

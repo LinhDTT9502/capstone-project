@@ -4,14 +4,13 @@ import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { selectUser } from "../../redux/slices/authSlice";
-import { fetchUserOrders } from "../../services/userOrderService";
 import { useNavigate } from "react-router-dom";
 
-export default function UserOrderStatus() {
+export default function UserListRental() {
   const { t } = useTranslation();
   const user = useSelector(selectUser);
   const [selectedStatus, setSelectedStatus] = useState("All");
-  const [orders, setOrders] = useState([]);
+  const [rentalOrders, setRentalOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isProductModalOpen, setProductModalOpen] = useState(false);
@@ -25,59 +24,67 @@ export default function UserOrderStatus() {
   const closeProductModal = () => setProductModalOpen(false);
 
   const statusList = [
-    "Tất cả",
-    "Đang chờ",
-    "Đã xác nhận",
-    "Đã thanh toán",
-    "Đang đóng gói",
-    "Đang vận chuyển",
-    "Thành công",
-    "Tạm hoãn",
+    "All",
+    "PENDING",
+    "CONFIRMED",
+    "PAID",
+    "PROCESSING",
+    "SHIPPED",
+    "DELAYED",
+    "COMPLETED",
   ];
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchRentalOrders = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetchUserOrders(user.UserId, token);
-        setOrders(response);
+        const response = await axios.get(
+          `https://twosportapi-295683427295.asia-southeast2.run.app/api/RentalOrder/get-rental-order-by-user?userId=${user.UserId}`,
+          {
+            headers: {
+              accept: "*/*",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (response.data.isSuccess) {
+          setRentalOrders(response.data.data.$values);
+        } else {
+          setError("Failed to fetch rental orders");
+        }
       } catch (err) {
-        setError(err.message || "Failed to fetch orders");
+        setError(err.message || "Failed to fetch rental orders");
       } finally {
         setIsLoading(false);
       }
     };
-    fetchOrders();
+    fetchRentalOrders();
   }, [user.UserId]);
 
-  const filteredOrders =
-    selectedStatus === "Tất cả"
-      ? orders
-      : orders.filter((order) => order.orderStatus === selectedStatus);
+  const filteredRentalOrders =
+    selectedStatus === "All"
+      ? rentalOrders
+      : rentalOrders.filter((order) => order.orderStatus === selectedStatus);
 
-      const renderOrderStatusButton = (order) => {
-        // console.log(order);
-        
-        if (order.paymentStatus === "IsWating" && order.deliveryMethod !== "HOME_DELIVERY") {
-          return (
-            <Button
-              className="bg-purple-500 text-white text-sm rounded-full py-2 px-4"
-              onClick={() => navigate("/checkout", { state: { selectedOrder: order } })}
-            >
-              Checkout
-            </Button>
-          );
-        }
-    
-      
-      };
+  const renderRentalOrderStatusButton = (order) => {
+    if (order.paymentStatus === "IsWating" && order.deliveryMethod !== "HOME_DELIVERY") {
+      return (
+        <Button
+          className="bg-purple-500 text-white text-sm rounded-full py-2 px-4"
+          onClick={() => navigate("/checkout", { state: { selectedOrder: order } })}
+        >
+          Checkout
+        </Button>
+      );
+    }
+  };
 
-  if (isLoading) return <p>Loading orders...</p>;
+  if (isLoading) return <p>Loading rental orders...</p>;
   if (error) return <p>Error: {error}</p>;
 
   return (
     <>
-      <div className="container mx-auto max-h-[70vh] overflow-y-auto">
+      <div className="container mx-auto">
         {/* Status Filter Tabs */}
         <div className="text-sm font-medium text-center text-gray-500 border-b border-gray-200">
           <ul className="flex flex-wrap -mb-px justify-center">
@@ -98,34 +105,29 @@ export default function UserOrderStatus() {
           </ul>
         </div>
 
-        {/* Order List */}
-        {filteredOrders.map((order) => (
+        {/* Rental Order List */}
+        {filteredRentalOrders.map((order) => (
           <div
-            key={order.saleOrderId}
+            key={order.id}
             className="p-4 border border-gray-200 rounded-lg shadow-sm mt-4"
           >
             <div className="flex justify-between">
               <div className="flex">
                 <img
-                  src={
-                    order.saleOrderDetailVMs.$values[0]?.imgAvatarPath
-                  }
-                  alt={order.saleOrderDetailVMs.$values[0]?.productName}
+                  src={order.imgAvatarPath || "default-image.jpg"} // Use a default image if no avatar exists
+                  alt={order.productName || "Product"}
                   className="w-24 h-24 object-cover rounded cursor-pointer"
                   onClick={() => openProductModal(order)}
                 />
                 <div className="ml-4">
                   <h4 className="font-semibold text-lg">
-                    Mã đơn hàng: {order.orderCode}
+                    Rental Order Code: {order.rentalOrderCode}
                   </h4>
-                  {/* <p className="text-gray-500">
-                    Delivery: {order.deliveryMethod}
-                  </p> */}
                   <p className="text-gray-500">
-                    {/* Payment: {order.paymentMethod} */}
+                    Delivery: {order.deliveryMethod}
                   </p>
                   <p className="text-gray-500">
-                    Trạng thái đơn hàng: {order.orderStatus}
+                    Status: {order.orderStatus}
                   </p>
                   <p className="mt-2 font-bold">
                     Total: ${order.totalAmount}
@@ -133,7 +135,7 @@ export default function UserOrderStatus() {
                 </div>
               </div>
               <div className="flex flex-col justify-between items-end">
-                {renderOrderStatusButton(order)}
+                {renderRentalOrderStatusButton(order)}
                 <p className="mt-4 font-semibold text-lg">
                   Total Amount:{" "}
                   <span className="text-orange-500">${order.totalAmount}</span>
@@ -141,18 +143,13 @@ export default function UserOrderStatus() {
               </div>
             </div>
 
-            {/* Product Details */}
+            {/* Rental Product Details */}
             <div className="mt-4">
-              {order.saleOrderDetailVMs.$values.map((item) => (
-                <div key={item.productId} className="flex justify-between">
-                  <p className="text-gray-600">
-                    {item.productName} (x{item.quantity})
-                  </p>
-                  <p className="text-gray-500">
-                    Unit Price: ${item.unitPrice}
-                  </p>
-                </div>
-              ))}
+              <p className="text-gray-600">{order.note}</p>
+              <div className="mt-2">
+                <p className="text-gray-500">Rental Start: {order.rentalStartDate}</p>
+                <p className="text-gray-500">Rental End: {order.rentalEndDate}</p>
+              </div>
             </div>
           </div>
         ))}
@@ -174,9 +171,7 @@ export default function UserOrderStatus() {
             >
               &#x2715;
             </button>
-            <h2 className="text-2xl font-bold text-orange-500">
-              Product Details
-            </h2>
+            <h2 className="text-2xl font-bold text-orange-500">Rental Product Details</h2>
             <p>{selectedProduct?.productName}</p>
           </div>
         </div>

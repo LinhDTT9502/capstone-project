@@ -26,8 +26,8 @@ export const getProductById = (id) => {
   });
 };
 
-export const getProductByProductCode = (productCode) => {
-  const url = `${API_BASE_URL}/get-product-by-product-code/${productCode}`;
+export const getProductByProductCode = (productCode, color, size, condition) => {
+  const url = `${API_BASE_URL}/get-product-by-product-code/${productCode}?color=${color}&size=${size}&condition=${condition}`;
   return axios.get(url, {
     headers: {
       'accept': '*/*'
@@ -37,6 +37,24 @@ export const getProductByProductCode = (productCode) => {
 
 export const getProductColor = (productCode) => {
   const url = `${API_BASE_URL}/list-colors-of-product/${productCode}`;
+  return axios.get(url, {
+    headers: {
+      'accept': '*/*'
+    }
+  });
+};
+
+export const getProductSize = (productCode, color) => {
+  const url = `${API_BASE_URL}/list-sizes-of-product/${productCode}?color=${color}`;
+  return axios.get(url, {
+    headers: {
+      'accept': '*/*'
+    }
+  });
+};
+
+export const getProductCondition = (productCode, color, size) => {
+  const url = `${API_BASE_URL}/list-conditions-of-product/${productCode}?color=${color}&size=${size}`;
   return axios.get(url, {
     headers: {
       'accept': '*/*'

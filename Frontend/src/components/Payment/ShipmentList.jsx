@@ -84,15 +84,15 @@ export default function ShipmentList() {
       <button
         type="button"
         onClick={openModal}
-        className="pr-4 text-orange-500"
+        className="pt-2 pl-2 text-orange-500"
       >
-        Địa chỉ đã lưu trữ
+        Thay đổi thông tin
       </button>
       {isShipmentListOpen && (
         <div className="mb-4">
 
           <Transition appear show={isShipmentListOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-10" onClose={closeModal}>
+            <Dialog as="div" className="" onClose={closeModal}>
               <Transition.Child
                 as={Fragment}
                 enter="ease-out duration-300"
@@ -105,7 +105,7 @@ export default function ShipmentList() {
                 <Dialog.Overlay className="fixed inset-0 bg-black opacity-50" />
               </Transition.Child>
 
-              <div className="fixed inset-0 overflow-y-auto">
+              <div className="fixed inset-0 max-h-[100vh] overflow-y-auto pt-20">
                 <div className="flex items-center justify-center min-h-screen">
                   <Transition.Child
                     as={Fragment}

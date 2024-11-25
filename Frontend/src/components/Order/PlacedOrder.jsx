@@ -13,9 +13,9 @@ const PlacedOrder = () => {
   const user = useSelector(selectUser);
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const location = useLocation();
   const navigate = useNavigate();
   const shipment = useSelector(selectedShipment);
+  const location = useLocation();
   const { selectedProducts } = location.state || { selectedProducts: [] };
   const [branchId, setBranchId] = useState(null); // Change this to null
   const [selectedOption, setSelectedOption] = useState("");
@@ -54,8 +54,8 @@ const PlacedOrder = () => {
         fullName: userData.fullName,
         email: userData.email,
         contactPhone: userData.phoneNumber,
-        address: userData.address,
-        userID: token ? user.UserId : 0, // If user is not logged in, userID is 0
+        address: userData.address ,
+        userID: token ? user.UserId : 0,
         shipmentDetailID: userData.shipmentDetailID, 
         deliveryMethod: selectedOption,
         gender: userData.gender,
@@ -70,13 +70,14 @@ const PlacedOrder = () => {
           unitPrice: item.price,
         })),
       };
+// console.log(data);
 
       // Call the placedOrder function to make the API request
       const response = await placedOrder(data);
 
       if (response) {
-        console.log(response);
-        console.log(response.data);
+        // console.log(response);
+        // console.log(response.data);
         
   
         // Check if user is a guest (no token)

@@ -56,6 +56,11 @@ namespace _2Sport_BE.Repository.Models
         [Column("IsEmailConfirmed")]
         public bool EmailConfirmed { get; set; }
 
+        [Column("IsPhoneNumberConfirmed")]
+        public bool PhoneNumberConfirmed { get; set; }
+
+        [Column("OTP")]
+        public int OTP { get; set; }
         public string? PasswordResetToken { get; set; }
         public string? Token { get; set; }
         [Column("ImgAvatarPath", TypeName = "varchar")]

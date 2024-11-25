@@ -6,6 +6,8 @@ import ManageAccount from '../pages/ManageAccount';
 import NotFoundPage from '../pages/NotFoundPage';
 import UserChangePassword from '../components/User/UserChangePassword';
 import UserOrderStatus from '../components/User/UserOrderStatus';
+import UserListRental from '../components/User/UserListRental';
+import RefundForm from '../components/Refund/RefundForm';
 
 const UserRoutes = () => {
   return (
@@ -15,6 +17,8 @@ const UserRoutes = () => {
         <Route path="shipment" element={<UserShipment />} />
         <Route path="change-password" element={<UserChangePassword />} />
         <Route path="order-status" element={<UserOrderStatus />} />
+        <Route path="user-rental" element={<UserListRental />} />
+        <Route path="refund-request" element={<RefundForm />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

@@ -4,11 +4,15 @@ import DeliveryAddress from "../Payment/DeliveryAddress";
 import { fetchBranchs } from "../../services/branchService";
 import { Avatar, Card, List, ListItem, ListItemPrefix, Typography, Radio } from "@material-tailwind/react";
 import { fetchProductsbyBranch } from "../../services/warehouseService";
+import AddressForm from "../AddressForm";
+import { useSelector } from "react-redux";
+import { selectUser } from "../../redux/slices/authSlice";
 
 const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange, selectedBranchId, setSelectedBranchId }) => {
     const { t } = useTranslation();
     const [branches, setBranches] = useState([]);
     const [branchStatus, setBranchStatus] = useState({});
+    const user = useSelector(selectUser);
 
     useEffect(() => {
         // Load branches and their availability statuses
@@ -45,14 +49,16 @@ const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange
         setSelectedBranchId(branchId);
         console.log("Selected Branch ID:", branchId);
     };
-
+    const handleAddressChange = (fullAddress) => {
+        setUserData((prevData) => ({ ...prevData, address: fullAddress }));
+      };
     return (
         <div className="pl-20 py-10">
-            <h3 className="text-2xl font-bold pt-1">Phương thức nhận hàng</h3>
             <div className="flex pt-3">
-                <form className="bg-white p-6 rounded shadow-md w-full border border-black">
+                <form className="bg-white p-6 w-full">
                     <div className="mb-4">
-                        <label className="inline-flex items-center">
+                    <h3 className="text-xl font-bold pt-1">Phương thức nhận hàng</h3>
+                        <label className="inline-flex items-center pt-4">
                             <input
                                 type="radio"
                                 name="option"
@@ -62,10 +68,14 @@ const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange
                             />
                             <span className="ml-2">Giao tận nơi</span>
                         </label>
-                        {selectedOption === "HOME_DELIVERY" && (
-                            <div className="text-sm text-black bg-gray-300 p-2 rounded text-wrap">
-                                <DeliveryAddress userData={userData} setUserData={setUserData} />
+                        {selectedOption === "HOME_DELIVERY" && ( <>
+                            {!user && <div className="text-sm text-black bg-gray-300 p-2 rounded text-wrap">
+                                {/* <DeliveryAddress userData={userData} setUserData={setUserData} /> */}
+                               <AddressForm onAddressChange={handleAddressChange} />
                             </div>
+                            }  
+                        </>
+                            
                         )}
                     </div>
                     <div className="mb-4">
@@ -123,6 +133,7 @@ const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange
                             </div>
                         )}
                     </div>
+                    <DeliveryAddress userData={userData} setUserData={setUserData} />
                 </form>
             </div>
         </div>
