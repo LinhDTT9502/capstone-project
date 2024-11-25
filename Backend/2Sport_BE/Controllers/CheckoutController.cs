@@ -17,6 +17,7 @@ namespace _2Sport_BE.Controllers
     public class CheckoutController : ControllerBase
     {
         private readonly IPayOsService _payOsService;
+        private readonly IVnPayService _vnPayService;
         private readonly IMethodHelper _methodHelper;
         private readonly ISaleOrderService _saleOrderService;
         private readonly IRentalOrderService _rentalOrderService;
@@ -26,13 +27,15 @@ namespace _2Sport_BE.Controllers
             IRentalOrderService rentalOrderService,
             IPaymentService paymentService,
             IMethodHelper methodHelper,
-            PaymentFactory paymentFactory)
+            PaymentFactory paymentFactory,
+            IVnPayService vnPayService)
         {
             _payOsService = payOsService;
             _methodHelper = methodHelper;
             _saleOrderService = saleOrderService;
             _paymentFactory = paymentFactory;
             _rentalOrderService = rentalOrderService;
+            _vnPayService = vnPayService;
         }
 
         [HttpPost]
@@ -216,7 +219,7 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest("Unsupported payment method.");
         }
-        [HttpGet("rental-order-cancel")]
+        [HttpGet("rental-order-cancel-payos")]
         public async Task<IActionResult> HandleRentalOrderCancelPayOs([FromQuery] PaymentResponse paymentResponse)
         {
             if (!ModelState.IsValid || _methodHelper.AreAnyStringsNullOrEmpty(paymentResponse))
@@ -237,7 +240,7 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(result);
         }
-        [HttpGet("rental-order-return")]
+        [HttpGet("rental-order-return-payos")]
         public async Task<IActionResult> HandleRentalOrderReturnPayOs([FromQuery] PaymentResponse paymentResponse)
         {
             if (!ModelState.IsValid || _methodHelper.AreAnyStringsNullOrEmpty(paymentResponse))
@@ -281,6 +284,28 @@ namespace _2Sport_BE.Controllers
             {
                 return UserId;
             }
+        }
+        [HttpGet("sale-order-return-vnpay")]
+        public async Task<IActionResult> HandleSaleOrderReturnVnPay()
+        {
+            var result = await _vnPayService.PaymentSaleOrderExecute(Request.Query);
+            if (result.IsSuccess)
+            {
+                var redirectUrl = "https://twosport.vercel.app/order_success";
+                return Redirect(redirectUrl);
+            }
+            return Redirect("https://twosport.vercel.app/order-cancel");
+        }
+        [HttpGet("rental-order-return-vnpay")]
+        public async Task<IActionResult> HandleRentalOrderReturnVnPay()
+        {
+            var result = await _vnPayService.PaymentRentalOrderExecute(Request.Query);
+            if (result.IsSuccess)
+            {
+                var redirectUrl = "https://twosport.vercel.app/order_success";
+                return Redirect(redirectUrl);
+            }
+            return Redirect("https://twosport.vercel.app/order-cancel");
         }
     }
 }

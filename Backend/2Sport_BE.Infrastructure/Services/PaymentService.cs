@@ -93,11 +93,15 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 string content = $"Mã đơn hàng: {order.OrderCode}";
                 int expiredAt = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (60 * 5));
+
+                var returnStr = _configuration["PayOSSettings:ReturnUrlSaleOrder"];
+                var cancelStr = _configuration["PayOSSettings:CancelUrlSaleOrder"];
+
                 PaymentData data = new PaymentData(Convert.ToInt64(order.OrderCode),
                         Int32.Parse(order.TotalAmount.ToString()),
                         content, orders,
-                        "https://localhost:7276/api/Checkout/sale-order-cancel",
-                        "https://localhost:7276/api/Checkout/sale-order-return",
+                        cancelStr,
+                        returnStr,
                         null, order.FullName,
                         order.Email, order.ContactPhone,
                         order.Address,
@@ -157,11 +161,15 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 string content = $"Hoa Don Thue: {order.RentalOrderCode}";
                 int expiredAt = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (60 * 5));
+
+                var returnStr = _configuration["PayOSSettings:ReturnUrlRentalOrder"];
+                var cancelStr = _configuration["PayOSSettings:CancelUrlRentalOrder"];
+
                 PaymentData data = new PaymentData(Convert.ToInt64(order.RentalOrderCode),
                         Int32.Parse(order.TotalAmount.ToString()),
                         content, orders,
-                        "https://localhost:7276/api/Checkout/rental-order-cancel",
-                        "https://localhost:7276/api/Checkout/rental-order-return",
+                        cancelStr,
+                        returnStr,
                         null, order.FullName,
                         order.Email, order.ContactPhone,
                         order.Address,
@@ -198,7 +206,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         response.Data = 0;
                         return response;
                     }
-                    saleOrder.OrderStatus = (int)OrderStatus.CANCELLED;
+                    //SaleOrder.OrderStatus = (int)OrderStatus.CANCELLED;
                     saleOrder.PaymentStatus = (int)PaymentStatus.IsCanceled;
 
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);

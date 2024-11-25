@@ -115,7 +115,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 newUser.CreatedAt = DateTime.Now;
                 newUser.IsActived = true;
                 newUser.EmailConfirmed = true;
-
+                newUser.ImgAvatarPath = "";
                 await _unitOfWork.UserRepository.InsertAsync(newUser);
                 await _unitOfWork.SaveChanges();
 

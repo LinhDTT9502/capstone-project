@@ -213,46 +213,6 @@ namespace _2Sport_BE.Infrastructure.Services
                 return response;
             }
         }
-        public async Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByMonth(DateTime month)
-        {
-            var response = new ResponseDTO<List<SaleOrderVM>>();
-            int targetMonth = month.Month;
-            int targetYear = month.Year;
-            try
-            {
-                var query = await _unitOfWork.SaleOrderRepository
-                    .GetAsync(o => o.CreatedAt.HasValue &&
-                        o.CreatedAt.Value.Month == targetMonth &&
-                        o.CreatedAt.Value.Year == targetYear,
-                        "User,OrderDetails");
-                if (query == null || !query.Any())
-                {
-                    response.IsSuccess = false;
-                    response.Message = "SaleOrders are not found";
-                    return response;
-                }
-
-                var saleOrderVMs = new List<SaleOrderVM>();
-
-                foreach (var item in query)
-                {
-                    var saleOrderVM = MapSaleOrderToSaleOrderVM(item);
-                    saleOrderVMs.Add(saleOrderVM);
-                }
-
-                response.IsSuccess = true;
-                response.Message = "Query successfully";
-                response.Data = saleOrderVMs;
-                return response;
-
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-                return response;
-            }
-        }
         public async Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByDateRangeAndStatus(DateTime? fromDate, DateTime? toDate, int? orderStatus)
         {
 

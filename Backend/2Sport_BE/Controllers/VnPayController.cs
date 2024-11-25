@@ -89,17 +89,7 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(createdLink);
         }
-        [HttpGet("sale-order-return")]
-        public async Task<IActionResult> HandleSaleOrderReturnVnPay()
-        {
-            var result = await _vnPayService.PaymentSaleOrderExecute(Request.Query);
-            if (result.IsSuccess)
-            {
-                var redirectUrl = "https://twosport.vercel.app/order_success";
-                return Redirect(redirectUrl);
-            }
-            return Redirect("https://twosport.vercel.app/order-cancel");
-        }
+
         [HttpPost]
         [Route("checkout-rental-order")]
         public async Task<IActionResult> CheckoutRentalOrderVNPay(CheckoutModel checkoutModel)
@@ -157,16 +147,6 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(createdLink);
         }
-        [HttpGet("rental-order-return")]
-        public async Task<IActionResult> HandleRentalOrderReturnVnPay()
-        {
-            var result = await _vnPayService.PaymentRentalOrderExecute(Request.Query);
-            if (result.IsSuccess)
-            {
-                var redirectUrl = "https://twosport.vercel.app/order_success";
-                return Redirect(redirectUrl);
-            }
-            return Redirect("https://twosport.vercel.app/order-cancel");
-        }
+
     }
 }
