@@ -42,7 +42,7 @@ const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
       console.log(response);
       
         const paymentLink = response.data.data.paymentLink;
-        console.log(paymentLink);
+        // console.log(paymentLink);
         window.location.href = paymentLink;
      
     } catch (error) {

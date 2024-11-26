@@ -44,7 +44,7 @@ function ParallaxText({ children, baseVelocity = 100 }) {
   return (
     <div
       className="parallax overflow-x-auto"
-      style={{ scrollbarWidth: "none", "-ms-overflow-style": "none" }}
+      style={{ scrollbarWidth: "none", "msOverflowStyle": "none" }}
     >
       <motion.div className="scroller " style={{ x }}>
         <span className="w-full justify-self-center ">{children} </span>
@@ -75,7 +75,7 @@ export default function Brands() {
       <p className="font-alfa text-orange-500 text-3xl pt-2">
         {t("brand.name")}
       </p>
-      <ParallaxText baseVelocity={-3}>
+      <ParallaxText baseVelocity={-5}>
         <div className="flex space-x-5 px-3 items-center pt-5">
           {brands.map((brand) =>
             brand.logo ? (

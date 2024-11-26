@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import OrderMethod from "../Order/OrderMethod";
 
-const RentalOrder = () => {
+const RentalPlacedOrder = () => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { selectedProducts } = location.state || {}; // Get selectedProducts from state
   const [branchId, setBranchId] = useState(null);
   const [selectedOption, setSelectedOption] = useState("");
   const [discountCode, setDiscountCode] = useState("");
@@ -23,12 +25,8 @@ const RentalOrder = () => {
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [apiResponse, setApiResponse] = useState(null);
-  // console.log(selectedOption);
-  
 
   const token = localStorage.getItem("token");
-
-  const rentalData = JSON.parse(localStorage.getItem("rentalData"));
 
   const handleStartDateChange = (e) => setStartDate(e.target.value);
   const handleEndDateChange = (e) => setEndDate(e.target.value);
@@ -40,7 +38,7 @@ const RentalOrder = () => {
   };
 
   const handleCreateRentalOrder = async () => {
-    if (!rentalData || !rentalData.product) {
+    if (!selectedProducts || selectedProducts.length === 0) {
       alert("No product selected for rental.");
       return;
     }
@@ -55,12 +53,6 @@ const RentalOrder = () => {
       return;
     }
 
-    const dateOfReceipt = new Date(startDate);
-    dateOfReceipt.setDate(dateOfReceipt.getDate() + 1);
-
-    // Assuming rentalData.product contains a single product object
-    const product = rentalData.product;
-
     const payload = {
       customerInformation: {
         userId: token ? user.UserId : 0,
@@ -70,32 +62,30 @@ const RentalOrder = () => {
         contactPhone: userData.phoneNumber,
         address: userData.address,
       },
-      note: note || null,
+      note: "Test",
       deliveryMethod: selectedOption,
       branchId: selectedOption === "STORE_PICKUP" ? branchId : null,
-      productInformations: [
-        {
-          cartItemId: null,
-          productId: product.id,
-          productCode: product.productCode,
-          productName: product.productName,
-          quantity: rentalData.quantity,
-          rentPrice: product.rentPrice,
-          rentalDates: {
-            dateOfReceipt: new Date(new Date(startDate).setDate(new Date(startDate).getDate() - 1)).toISOString(),
-            rentalStartDate: new Date(startDate).toISOString(),
-            rentalEndDate: new Date(endDate).toISOString(),
-            rentalDays: (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24) + 1,  // Dividing by milliseconds in a day
-          },          
-          rentalCosts: {
-            subTotal: product.rentPrice * rentalData.quantity,
-            tranSportFee: 0, // Assuming no transport fee; adjust if needed
-            totalAmount: product.rentPrice * rentalData.quantity,
-          },
+      productInformations: selectedProducts.map(product => ({
+        cartItemId: product.id,  // Use the ID from selectedProducts
+        productId: product.productId,
+        productCode: product.productCode,
+        productName: product.productName,
+        quantity: product.quantity,
+        rentPrice: 120000, // Adjust according to your data structure
+        rentalDates: {
+          dateOfReceipt: new Date(startDate).toISOString(),
+          rentalStartDate: new Date(startDate).toISOString(),
+          rentalEndDate: new Date(endDate).toISOString(),
+          rentalDays: (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24) + 1,
         },
-      ],
+        rentalCosts: {
+          subTotal: 120000 * product.quantity,
+          tranSportFee: 0,
+          totalAmount: 120000 * product.quantity,
+        },
+      })),
     };
-// console.log(payload);
+console.log(payload);
 
     try {
       setLoading(true);
@@ -125,15 +115,11 @@ const RentalOrder = () => {
     }
   };
 
-  
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
-    // if (event.target.value === "STORE_PICKUP") {
-     
-    // }
   };
 
-  if (!rentalData || !rentalData.product) {
+  if (!selectedProducts || selectedProducts.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-200">
         <p className="text-gray-600 text-lg font-medium">
@@ -148,10 +134,14 @@ const RentalOrder = () => {
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg">
         {/* Product Details */}
         <div className="p-6">
-          <h2 className="text-xl font-bold text-gray-800">{rentalData.product.productName}</h2>
-          <p>Code: {rentalData.product.productCode}</p>
-          <p>Quantity: {rentalData.quantity}</p>
-          <p>Rent Price: {rentalData.product.rentPrice}</p>
+          {selectedProducts.map((product) => (
+            <div key={product.id}>
+              <h2 className="text-xl font-bold text-gray-800">{product.productName}</h2>
+              <p>Code: {product.productCode}</p>
+              <p>Quantity: {product.quantity}</p>
+              <p>Rent Price: {product.rentPrice}</p>
+            </div>
+          ))}
         </div>
 
         {/* Date Pickers */}
@@ -197,4 +187,4 @@ const RentalOrder = () => {
   );
 };
 
-export default RentalOrder;
+export default RentalPlacedOrder;

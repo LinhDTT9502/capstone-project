@@ -77,7 +77,7 @@ export default function FeatureProductSlide() {
                 <Link className=" flex flex-col " to={`/product/${product.id}`}>
                   <div className="bg-white">
                     <img
-                      src={product.mainImagePath}
+                      src={product.imgAvatarPath}
                       alt={`image ${index + 1}`}
                       className="object-scale-down h-48 w-96 shadow-lg "
                     />

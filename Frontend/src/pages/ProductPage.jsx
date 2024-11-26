@@ -25,7 +25,7 @@ function ProductPage() {
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(3000000);
+  const [maxPrice, setMaxPrice] = useState(10000000);
   const products = useSelector(selectProducts);
 
   useEffect(() => {
@@ -70,7 +70,7 @@ function ProductPage() {
     setSelectedBrands([]);
     setSelectedCategories([]);
     setMinPrice(0);
-    setMaxPrice(3000000);
+    setMaxPrice(10000000);
   };
 
   const handleBrandChange = (e) => {
@@ -92,7 +92,7 @@ function ProductPage() {
   };
 
   return (
-    <div className="pt-10 bg-zinc-50">
+    <div className="pt-10 bg-slate-50">
       <div className="w-full px-20">
         <div className="flex justify-between items-center"></div>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-2">
@@ -190,10 +190,10 @@ function ProductPage() {
           </div>
           <div className="w-full lg:col-span-3">
             <div className="py-6">
-              <div className="flex justify-between items-center border-b pb-4 mb-4">
+              <div className="flex justify-between items-center border-b-2 border-zinc-200 pb-4 mb-4">
                 <div className="text-sm text-gray-600">
-                  {t("productv2.showing")} {products.total}{" "}
-                  {t("productv2.results")}
+                  {/* {t("productv2.showing")} {products.total}{" "}
+                  {t("productv2.results")} */}
                 </div>
                 <div className="flex items-center">
                   <span className="mr-2 text-sm text-gray-600">
@@ -204,7 +204,7 @@ function ProductPage() {
                     value={sortBy}
                     onChange={handleSortChange}
                   >
-                    <option value="">None</option>
+                    <option value="">Chọn</option>
                     <option value="price">Giá tiền</option>
                   </select>
                   {sortBy ? (

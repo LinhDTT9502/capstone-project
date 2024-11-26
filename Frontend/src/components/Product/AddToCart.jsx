@@ -19,12 +19,13 @@ const AddToCart = ({ product, quantity, isFormValid}) => {
     const token = localStorage.getItem('token');
     if (!token) {
       dispatch(addCart(product));
+      alert(`${product.productName} đã được thêm vào giỏ hàng`)
       toast.info('Added to cart');
       return;
     } else {
       const response = await addToCart(token, product.id, quantity)
       console.log(response);
-      
+      alert(`${product.productName} đã được thêm vào giỏ hàng`)
       toast.success(`${product.productName} has been added to the cart!`);
     }
   };
@@ -32,7 +33,7 @@ const AddToCart = ({ product, quantity, isFormValid}) => {
   return (
 
     <Button
-      className="py-4"
+      className=""
       onClick={() => handleAddToCart()}
       disabled={!isFormValid}
     >

@@ -33,6 +33,8 @@ import GuestOrderDetail from './pages/GuestOrderDetail';
 import BranchSystem from './components/BranchButton';
 import ListBranchs from './pages/ListBranchs';
 import RentalOrder from './components/Rental/RentalOrder';
+import Invoice from './pages/Invoice/Invoice';
+import RentalPlacedOrder from './components/Rental/RentalPlacedOrder';
 
 
 
@@ -61,7 +63,9 @@ function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/placed-order" element={<PlacedOrder />} />
             <Route path="/rental-order" element={<RentalOrder />} />
+            <Route path="/rental-placed-order" element={<RentalPlacedOrder />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/invoice" element={<Invoice />} />
             <Route path="/guest-order" element={<GuestOrder />} />
             <Route path="/guest-order/:orderId" element={<GuestOrderDetail />} />
             <Route path="/shipment" element={<UserShipment />} />

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -19,11 +19,27 @@ import { motion, useScroll } from "framer-motion";
 import { BreadcrumbsDefault } from "./BreadcrumbsDefault";
 import SearchBar from "../components/Product/SearchBar";
 import BranchSystem from "../components/BranchButton";
+import { getUserCart } from "../services/cartService";
 
 function Header() {
   const { scrollYProgress } = useScroll();
   const { t } = useTranslation("translation");
   const [enabled, setEnabled] = useState(true);
+  const [cartCount, setCartCount] = useState(0);
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      
+      if (token) {
+        const cartData = await getUserCart(token);
+        const count = cartData.reduce((total, item) => total + item.quantity, 0);
+        setCartCount(count);
+      }
+    };
+
+    fetchCart();
+  }, []);
 
   const changeLanguage = () => {
     const languageValue = enabled ? "eng" : "vie";
@@ -46,9 +62,9 @@ function Header() {
               {/* <p>Ho Chi Minh, Viet Nam</p> */}
               <GetCurrentLocation />
               <div className=" pl-5">
-              <BranchSystem  />
+                <BranchSystem />
               </div>
-            
+
               {/* <Switch
                                 checked={enabled}
                                 onChange={() => {
@@ -109,12 +125,16 @@ function Header() {
             </div>
             <div className="flex space-x-4">
               <SignInModal />
-              <Link to="/cart">
-                <FontAwesomeIcon icon={faCartShopping} className="pr-1" />{" "}
-                {t("header.cart")}
+              <Link to="/cart" className="relative">
+                <FontAwesomeIcon icon={faCartShopping} className="pr-1" />
+                {cartCount > 0 && token && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-fit px-1.5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
               <Link to="/guest-order">
-               
+
                 Đơn mua
               </Link>
             </div>

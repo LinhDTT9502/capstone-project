@@ -66,14 +66,18 @@ const UserShipment = () => {
 
   return (
     <div className="container mx-auto px-20 py-5 bg-white blur-none shadow-xl rounded-lg">
+      <div className="flex items-center justify-between">
+            <h2 className="font-alfa text-2xl">{t("user_shipment.address")}</h2>
+            <AddShipment refreshShipments={refreshShipments} />
+          </div>
       {shipments.length === 0 ? (
         <p>{t("user_shipment.empty")}</p>
       ) : (
         <div>
-          <div className="flex items-center justify-between">
+          {/* <div className="flex items-center justify-between">
             <h2 className="font-alfa text-2xl">{t("user_shipment.address")}</h2>
             <AddShipment refreshShipments={refreshShipments} />
-          </div>
+          </div> */}
           {shipments.map((shipment) => (
             <div
               className="p-4 border-b flex justify-between"

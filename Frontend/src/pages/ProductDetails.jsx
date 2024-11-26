@@ -8,6 +8,7 @@ import RentalButton from "../components/Rental/RentalButton";
 import { ProductColor } from "../components/Product/ProductColor";
 import { ProductSize } from "../components/Product/ProductSize";
 import { ProductCondition } from "../components/Product/ProductCondition";
+import {HashLoader} from "react-spinners"
 
 const ProductDetails = () => {
   const { productCode } = useParams();
@@ -82,14 +83,18 @@ const ProductDetails = () => {
   useEffect(() => {
     if (!selectedColor || !selectedSize || !selectedCondition) {
       setIsFormValid(false);
-      setWarning("Please select color, size, and condition before proceeding.");
+      setWarning("Vui lòng chọn màu sắc, kích cỡ và tình trạng của sản phẩm");
     } else {
       setIsFormValid(true);
       setWarning("");
     }
   }, [selectedColor, selectedSize, selectedCondition]);
   if (loading) {
-    return <div>{t("product_details.loading")}</div>;
+    return <div className="flex justify-center items-center h-screen flex-col space-y-20">
+    <HashLoader color="#ff6800" size={80} />
+    <p>Đang tải chi tiết sản phẩm, vui lòng chờ một chút...</p>
+  </div>
+  
   }
 
   if (error) {
@@ -97,7 +102,7 @@ const ProductDetails = () => {
   }
 
   const handleRentalClick = () => {
-    const rentalData = { product, quantity };
+    const rentalData = { product, quantity }; 
     localStorage.setItem("rentalData", JSON.stringify(rentalData));
     navigate("/rental-order");
   };
@@ -110,7 +115,7 @@ const ProductDetails = () => {
             <img
               src={displayImage}
               alt={product.imgAvatarName || "Product Image"}
-              className="w-1/2 h-auto object-cover rounded-lg"
+              className="w-1/2 h-auto object-contain rounded-lg"
             />
           </div>
           <div className="md:w-1/2">
@@ -166,7 +171,7 @@ const ProductDetails = () => {
              
             </div>
 
-            <div className="flex items-center mt-4 space-x-4">
+            <div className="flex items-center mt-4 space-x-2">
             {warning && <div className="text-red-500 text-sm">{warning}</div>}
 
               <AddToCart product={product} quantity={quantity} isFormValid={isFormValid}/>

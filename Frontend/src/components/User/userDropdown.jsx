@@ -5,8 +5,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../redux/slices/authSlice";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faRightFromBracket, faCaretDown, faUser } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faRightFromBracket, faCaretDown, faCaretUp, faUser } from '@fortawesome/free-solid-svg-icons';
 import Logout from "../Auth/Logout";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +18,7 @@ const itemVariants = {
     },
     closed: { opacity: 0, y: 20, transition: { duration: 0.2 } }
 };
+
 export default function UserDropdown() {
     const { t } = useTranslation();
     const user = useSelector(selectUser);
@@ -27,7 +28,7 @@ export default function UserDropdown() {
 
     const handleManageAccount = () => {
         navigate("/manage-account/profile");
-    }
+    };
 
     const handleLogout = () => {
         document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
@@ -36,35 +37,33 @@ export default function UserDropdown() {
         navigate("/");
     };
 
-    function closeDropModal() {
-        setIsOpen(false)
-    }
-
     return (
         <motion.nav
             initial={false}
             animate={isOpen ? "open" : "closed"}
             className="menu"
+           
         >
-            <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setIsOpen(!isOpen)}
-                className="justify-between flex text-left items-center"
-            >
+            <div 
+              onMouseEnter={() => setIsOpen(true)} 
+            className="justify-between flex text-left items-center">
+                <button>
                 <FontAwesomeIcon icon={faUser} className="pr-1" />
-                {t("user_dropdown.hi")} {user.FullName}
+                {user.FullName}
+                </button>
+                
                 <motion.div
-                    variants={{
-                        open: { rotate: 180 },
-                        closed: { rotate: 0 }
-                    }}
                     transition={{ duration: 0.2 }}
                 >
-                    <FontAwesomeIcon icon={faCaretDown} className="pl-2" />
+                    {isOpen ? (
+                        <FontAwesomeIcon icon={faCaretUp} className="pl-2" />
+                    ) : (
+                        <FontAwesomeIcon icon={faCaretDown} className="pl-2" />
+                    )}
                 </motion.div>
-            </motion.button>
+            </div>
             <motion.ul
-                className="absolute"
+                className="absolute m-5  backdrop-blur-lg text-white bg-gradient-to-r from-zinc-600/80 to-zinc-900/80"
                 variants={{
                     open: {
                         clipPath: "inset(0% 0% 0% 0% round 10px)",
@@ -87,28 +86,24 @@ export default function UserDropdown() {
                 }}
                 style={{ pointerEvents: isOpen ? "auto" : "none" }}
             >
-
                 <motion.li
                     variants={itemVariants}
-                    className="bg-white p-3 text-black"
+                    className="p-3  border-b-2 border-white"
                     onClick={handleManageAccount}
                 >
                     <button>
-                    <FontAwesomeIcon icon={faUser} className="pr-1" />
-                    {t("user_dropdown.manage_my_account")}  
+                        <FontAwesomeIcon icon={faUser} className="pr-1" />
+                        {t("user_dropdown.manage_my_account")}
                     </button>
-                </motion.li>
+                </motion.li>    
                 <motion.li
                     variants={itemVariants}
-                    className="bg-white p-3 text-black"
-                    // onClick={handleLogout}
+                    className=" p-3 "
+                    onMouseLeave={() => setIsOpen(false)} 
                 >
-
-                    {/* <button><FontAwesomeIcon className="" icon={faRightFromBracket} /> Logout</button> */}
-<Logout/>
+                    <Logout />
                 </motion.li>
             </motion.ul>
         </motion.nav>
-    )
+    );
 }
-
