@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Input } from '@material-tailwind/react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import { fetchBranchs } from '../services/branchService';
 
 const ListBranchs = () => {
@@ -9,20 +11,23 @@ const ListBranchs = () => {
   const [filteredBranches, setFilteredBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [map, setMap] = useState(null);
+  const [marker, setMarker] = useState(null); // To track the active marker
+  const geocodeCache = new Map(); // Cache for geocoded results
 
   // Initialize Mapbox
   useEffect(() => {
-    // Check if Mapbox GL is available
-    if (mapboxgl) {
-      mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY;
-      const mapInstance = new mapboxgl.Map({
-        container: 'map', // The ID of the div where the map should render
-        style: 'mapbox://styles/mapbox/streets-v11', // Map style
-        center: [106.6297, 10.8231], // Default location (Ho Chi Minh City)
-        zoom: 15,
-      });
-      setMap(mapInstance);
-    }
+    const token = "pk.eyJ1IjoiYWlvbmlhYWEiLCJhIjoiY20zc2l4OTNqMDk5dTJqc2U2aXF2cWZvaSJ9.dM3Z4hHnaD-tTioBrl6_Dg";
+
+    mapboxgl.accessToken = token;
+
+    const mapInstance = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [106.6297, 10.8231], // Default center (Ho Chi Minh City)
+      zoom: 12,
+    });
+
+    setMap(mapInstance);
   }, []);
 
   // Fetch all branches
@@ -54,26 +59,75 @@ const ListBranchs = () => {
     setFilteredBranches(filtered);
   };
 
+  // Geocode the branch location
+  const geocodeLocation = async (location) => {
+    if (geocodeCache.has(location)) {
+      return geocodeCache.get(location); // Return cached result
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${mapboxgl.accessToken}`
+      );
+      const data = await response.json();
+
+      if (data.features.length > 0) {
+        const coordinates = data.features[0].geometry.coordinates;
+        geocodeCache.set(location, coordinates); // Cache the result
+        return coordinates;
+      } else {
+        console.warn(`No coordinates found for location: ${location}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error geocoding location:', error);
+      return null;
+    }
+  };
+
   // Handle branch selection
-  const handleBranchClick = (branch) => {
+  const handleBranchClick = async (branch) => {
     setSelectedBranch(branch);
+
     if (map) {
-      // Using Mapbox Geocoding API to get coordinates
-      fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(branch.location)}.json?access_token=${mapboxgl.accessToken}`)
-        .then(response => response.json())
-        .then(data => {
-          const [longitude, latitude] = data.features[0]?.geometry.coordinates || [];
-          if (longitude && latitude) {
-            map.setCenter([longitude, latitude]);
-            new mapboxgl.Marker()
-              .setLngLat([longitude, latitude])
-              .setPopup(new mapboxgl.Popup().setHTML(`<h3>${branch.branchName}</h3><p>${branch.location}</p>`))
-              .addTo(map);
-          }
-        })
-        .catch(error => {
-          console.error('Error geocoding branch location:', error);
-        });
+      const coordinates = await geocodeLocation(branch.location);
+
+      if (coordinates) {
+        console.log(`Branch: ${branch.branchName}, Coordinates: ${coordinates}`); // Debugging
+
+        // Center map and add marker
+        map.flyTo({ center: coordinates, zoom: 15 });
+
+        // Remove existing marker
+        if (marker) {
+          marker.remove();
+        }
+
+        // Create a custom marker element
+        const markerElement = document.createElement('div');
+        markerElement.innerHTML = `<div style="color: red; font-size: 24px;">
+          <i class="fa-solid fa-location-dot"></i>
+        </div>`;
+        markerElement.style.cursor = 'pointer';
+
+        // Add the custom marker
+        const newMarker = new mapboxgl.Marker({ element: markerElement })
+          .setLngLat(coordinates)
+          .setPopup(
+            new mapboxgl.Popup().setHTML(
+              `<h3>${branch.branchName}</h3><p>${branch.location}</p>`
+            )
+          )
+          .addTo(map);
+
+        setMarker(newMarker); // Update the marker state
+
+        console.log('Marker added successfully.');
+      } else {
+        console.error('No coordinates found for this branch location.');
+      }
+    } else {
+      console.error('Map instance is not ready.');
     }
   };
 
@@ -114,8 +168,8 @@ const ListBranchs = () => {
       </div>
 
       {/* Right Column: Map */}
-      <div className="w-2/3">
-        <div id="map" className="w-full h-full"></div>
+      <div className="w-2/3 h-fit">
+        <div id="map" className=""></div>
       </div>
     </div>
   );

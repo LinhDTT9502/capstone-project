@@ -119,8 +119,9 @@ export default function SignInModal() {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="flex justify-between w-1/2 transform overflow-hidden rounded-md shadow-xl transition-all">
-                  <div className="flex-col flex py-20 px-10 space-y-5 bg-zinc-700 text-white items-center w-1/2">
+                <Dialog.Panel className="flex flex-col md:flex-row justify-between w-full md:w-1/2 transform overflow-hidden rounded-md shadow-xl transition-all">
+                  {/* Left part */}
+                  <div className="flex-col flex py-10 px-5 md:py-20 md:px-10 space-y-5 bg-zinc-700 text-white items-center w-full md:w-1/2">
                     <h1 className="font-alfa text-lg text-orange-500">
                       {t("signin.welcome_back")}
                     </h1>
@@ -140,10 +141,12 @@ export default function SignInModal() {
                       </p>
                     </button>
                   </div>
-                  <div className="bg-white w-1/2 px-20 text-black flex-col flex font-poppins justify-center">
+
+                  {/* Right part */}
+                  <div className="bg-white w-full md:w-2/3 px-5 md:px-20 text-black flex-col flex font-poppins justify-center">
                     <form
                       onSubmit={handleSubmit(onSubmit)}
-                      className=" text-black flex-col flex font-poppins justify-center pb-5"
+                      className="text-black flex-col flex font-poppins justify-center pb-5"
                     >
                       <label className="font-alfa text-xl items-center text-center mb-2">
                         {t("signin.signin")}
@@ -175,7 +178,6 @@ export default function SignInModal() {
                             {t("signin.username_pattern")}
                           </p>
                         )}
-
                       <label className="">{t("signin.password")}</label>
                       <div className="relative">
                         <input
@@ -217,6 +219,7 @@ export default function SignInModal() {
                     <LoginGoogle setIsSignInOpen={setIsSignInOpen} />
                   </div>
                 </Dialog.Panel>
+
               </Transition.Child>
             </div>
           </div>

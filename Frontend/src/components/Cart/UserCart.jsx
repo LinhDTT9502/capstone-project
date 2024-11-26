@@ -86,6 +86,7 @@ const UserCart = () => {
         const item = cartData.find((item) => item.id === id);
         return acc + item.totalPrice;
     }, 0);
+console.log(cartData);
 
     const handleCheckout = () => {
         if (selectedItems.length === 0) {
@@ -98,6 +99,20 @@ const UserCart = () => {
         );
         navigate("/placed-order", { state: { selectedProducts } });
     };
+
+    const handleRental = () => {
+        if (selectedItems.length === 0) {
+            toast.error("Please select at least one item to checkout.");
+            return;
+        }
+
+        const selectedProducts = cartData.filter((item) =>
+            selectedItems.includes(item.id)
+        );
+        console.log(selectedProducts);
+        
+        navigate("/rental-placed-order", { state: { selectedProducts } });
+    }
 
     return (
         <div className="container mx-auto px-20 py-10">
@@ -236,7 +251,7 @@ const UserCart = () => {
                                 </button>
                                 <button
                                     className="bg-orange-500 text-white px-4 py-2 mt-2"
-                                    onClick={handleCheckout}
+                                    onClick={handleRental}
                                 >
                                    Thuê sản phẩm
                                 </button>

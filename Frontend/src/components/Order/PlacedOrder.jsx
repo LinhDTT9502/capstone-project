@@ -163,7 +163,7 @@ const PlacedOrder = () => {
                 {totalPrice.toLocaleString()} VND
               </p>
             </div>
-            <div className="flex justify-between items-center pt-1 border rounded mt-4">
+            {/* <div className="flex justify-between items-center pt-1 border rounded mt-4">
               <label className="block text-lg font-semibold">Mã ưu đãi</label>
               <input
                 type="text"
@@ -172,7 +172,7 @@ const PlacedOrder = () => {
                 onChange={(e) => setDiscountCode(e.target.value)}
                 placeholder="nhập mã ưu đãi tại đây"
               />
-            </div>
+            </div> */}
             <div className="flex justify-between items-center pt-1 border rounded mt-4">
               <label className="block text-lg font-semibold">Ghi chú</label>
               <input

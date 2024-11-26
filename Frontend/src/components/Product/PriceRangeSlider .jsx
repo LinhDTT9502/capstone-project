@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import './PriceRangeSlider.css'; 
+import './PriceRangeSlider.css';
 
 const PriceRangeSlider = ({ minPrice, maxPrice, setMinPrice, setMaxPrice }) => {
   const min = 0;
-  const max = 3000000;
+  const max = 10000000;
 
-  // const [minPrice, setMinPrice] = useState(1000);
-  // const [maxPrice, setMaxPrice] = useState(7000);
   const [minThumb, setMinThumb] = useState(0);
   const [maxThumb, setMaxThumb] = useState(0);
-// console.log(minPrice, maxPrice);
+
   useEffect(() => {
     minTrigger();
     maxTrigger();
@@ -22,21 +20,23 @@ const PriceRangeSlider = ({ minPrice, maxPrice, setMinPrice, setMaxPrice }) => {
   };
 
   const maxTrigger = () => {
-    const newMaxPrice = Math.max(maxPrice, minPrice + 10000);
+    const newMaxPrice = Math.max(maxPrice, minPrice + 1000);
     setMaxPrice(newMaxPrice);
     setMaxThumb(100 - (((newMaxPrice - min) / (max - min)) * 100));
   };
 
   const handleMinChange = (e) => {
     const value = Number(e.target.value);
-    if (value <= maxPrice - 1000) {
+    // Prevent value less than 0
+    if (value >= 0 && value <= maxPrice - 1000) {
       setMinPrice(value);
     }
   };
 
   const handleMaxChange = (e) => {
     const value = Number(e.target.value);
-    if (value >= minPrice + 1000) {
+    // Prevent value greater than max and less than minPrice + 1000
+    if (value <= max && value >= minPrice + 1000) {
       setMaxPrice(value);
     }
   };
@@ -70,37 +70,38 @@ const PriceRangeSlider = ({ minPrice, maxPrice, setMinPrice, setMaxPrice }) => {
               style={{ right: `${maxThumb}%`, left: `${minThumb}%` }}
             ></div>
             <div
-              className="absolute z-30 w-5 h-5 top-0 bg-orange-500 rounded-full -mt-2 -ml-1"
+              className="absolute z-30 w-5 h-5 top-0 bg-orange-500 border-rose-700 border-2 rounded-full -mt-2 -ml-1"
               style={{ left: `${minThumb}%` }}
             ></div>
             <div
-              className="absolute z-30 w-5 h-5 top-0 bg-orange-500 rounded-full -mt-2 -mr-3"
+              className="absolute z-30 w-5 h-5 top-0 bg-orange-500 rounded-full border-rose-700 border-2 -mt-2 -mr-3"
               style={{ right: `${maxThumb}%` }}
             ></div>
           </div>
         </div>
         <div className="flex justify-between items-center space-x-5 py-5">
-        <div className="flex py-2 px-2 rounded border justify-between w-1/2">
-          <input
-            type="text"
-            maxLength="7"
-            value={minPrice}
-            onChange={(e) => setMinPrice(Number(e.target.value))}
-            className="w-2/3 text-center"
-          />
-          VND
+          <div className="flex py-2 px-2 rounded border justify-between w-1/2">
+            <input
+              type="number"
+              maxLength="8"
+              value={minPrice}
+              onChange={handleMinChange}
+              className="w-2/3 text-center"
+              min="0" // Adding the min attribute for the input
+            />
+            VND
           </div>
           <div className="flex py-2 px-2 rounded border justify-between w-1/2">
-          <input
-            type="text"
-            maxLength="7"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(Number(e.target.value))}
-            className="w-2/3 text-center"
-          />
-          VND
+            <input
+              type="number"
+              maxLength="8"
+              value={maxPrice}
+              onChange={handleMaxChange}
+              className="w-2/3 text-center"
+              max={max} // Adding the max attribute for the input
+            />
+            VND
           </div>
-          
         </div>
       </div>
     </div>

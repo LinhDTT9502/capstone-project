@@ -97,7 +97,7 @@ export default function AddShipment({ refreshShipments }) {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="bg-white p-6 rounded-md shadow-xl max-w-md w-full mx-4">
+                <Dialog.Panel className="bg-white p-6 rounded-md shadow-xl w-fit">
                   <Dialog.Title className="text-lg font-bold">Thêm địa chỉ mới</Dialog.Title>
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700">
