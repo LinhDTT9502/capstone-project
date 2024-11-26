@@ -4,29 +4,6 @@ using System.Runtime.CompilerServices;
 
 namespace _2Sport_BE.Infrastructure.DTOs
 {
-    public class RentalOrderItemDTO
-    {
-        public int? ProductId { get; set; }
-        public string? ProductCode { get; set; }
-        public string? ProductName { get; set; }
-        public int? Quantity { get; set; }
-        public decimal? RentPrice { get; set; }
-        public DateTime RentalStartDate { get; set; }
-        public DateTime RentalEndDate { get; set; }
-    }
-    public class RentalOrderItemCM : RentalOrderItemDTO
-    {
-
-    }
-    public class RentalOrderItemVM : RentalOrderItemDTO
-    {
-        public string? ImgAvatarPath { get; set; }
-
-    }
-    public class RentalOrderItemUM : RentalOrderItemDTO
-    {
-        public decimal? TransportFee { get; set; }
-    }
     public class CustomerInformation
     {
         public int? UserId { get; set; }
@@ -67,19 +44,6 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public decimal? TranSportFee { get; set; }
         public decimal? TotalAmount { get; set; }
     }
-    public class RentalOrderInformation
-    {
-        public DateTime? DateOfReceipt { get; set; }
-        public DateTime? RentalStartDate { get; set; }
-        public DateTime? RentalEndDate { get; set; }
-        public int RentalDays { get; set; }
-        public decimal? SubTotal { get; set; }
-        public decimal? TranSportFee { get; set; }
-        public decimal TotalAmount { get; set; }
-        public string DeliveryMethod { get; set; }
-        public int? OrderStatus { get; set; }
-    }
-
     public class ChildOrderReturnModel
     {
         public int OrderId { get; set; }           // ID của child order
@@ -114,15 +78,12 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         public int? PaymentMethodID { get; set; }
         public string DeliveryMethod { get; set; }
+        public int? PaymentStatus { get; set; }
         public string? Note { get; set; }
 
         public decimal? ParentSubTotal { get; set; }
         public decimal? ParentTranSportFee { get; set; }
         public decimal ParentTotalAmount { get; set; }
-
-        public int? OrderStatus { get; set; }
-        public int? PaymentStatus { get; set; }
-
         public int BranchId { get; set; }
 
 

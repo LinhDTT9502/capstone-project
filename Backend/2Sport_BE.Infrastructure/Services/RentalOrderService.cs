@@ -375,16 +375,14 @@ namespace _2Sport_BE.Infrastructure.Services
                     if (parentOrder == null) return GenerateErrorResponse($"Rental Order with id {orderId} not found!");
 
                     var branch = await _unitOfWork.BranchRepository.GetObjectAsync(o => o.Id == rentalOrderUM.BranchId);
-                    if (branch is null) return GenerateErrorResponse($"The branch with id {orderId} not found!");
+                    if (branch is null) return GenerateErrorResponse($"The branch with id {rentalOrderUM.BranchId} not found!");
 
                     AssignCustomerInformation(parentOrder, rentalOrderUM.CustomerInformation);
                     AssignBranchInformation(parentOrder, branch);
 
                     parentOrder.PaymentMethodId = rentalOrderUM.PaymentMethodID ?? (int)OrderMethods.COD;
-                    parentOrder.DeliveryMethod = rentalOrderUM.DeliveryMethod;
-
-                    parentOrder.OrderStatus = rentalOrderUM.OrderStatus;
                     parentOrder.PaymentStatus = rentalOrderUM.PaymentStatus;
+                    parentOrder.DeliveryMethod = rentalOrderUM.DeliveryMethod;
 
                     parentOrder.Note = rentalOrderUM.Note;
                     parentOrder.UpdatedAt = DateTime.UtcNow;
@@ -643,6 +641,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
             return response;
         }
+
         public async Task<ResponseDTO<RentalOrderVM>> GetRentalOrderByIdAsync(int rentalOrderId)
         {
             var response = new ResponseDTO<RentalOrderVM>();

@@ -3,6 +3,7 @@ using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Infrastructure.Helpers;
 using _2Sport_BE.Infrastructure.Services;
+using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -107,10 +108,13 @@ namespace _2Sport_BE.Controllers
             {
                 return StatusCode(500, response);
             }
-            foreach(var item in orderCM.SaleOrderDetailCMs)
-            {
-                await _cartItemService.DeleteCartItem(item.CartItemId);
-            }   
+            foreach (var item in orderCM.ProductInformations)
+            {   
+                if (item.CartItemId != null || item.CartItemId != 0)
+                {
+                    await _cartItemService.DeleteCartItem(item.CartItemId);
+                }
+            }
             return Ok(response);
         }
         [HttpPut("update-sale-order")]

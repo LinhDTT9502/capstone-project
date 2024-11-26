@@ -13,35 +13,44 @@ public class SaleOrder
     [Column("SaleOrderId")]
     public int Id { get; set; }
 
-    [Column("OrderCode", TypeName = "varchar")]
-    [MaxLength(50)]
-    public string? OrderCode { get; set; }
+    #region CustomerInformation
     [Column("UserId")]
     public int? UserId { get; set; }
+
+    [Column("Email")]
+    public string Email { get; set; }
+
     [Column("FullName")]
     public string FullName { get; set; }
 
     [Column("Gender")]
-    public string Gender { get; set; }//THEM GENDER
-    
-    [Column("Email")]
-    public string Email { get; set; }
+    public string Gender { get; set; }
 
     [Column("ContactPhone")]
     public string ContactPhone { get; set; }
 
     [Column("Address")]
     public string Address { get; set; }
+    #endregion
 
-    [Column("DeliveryMethod")]
-    [MaxLength(500)]
-    public string DeliveryMethod { get; set; } //PHUONG THUC NHAN HANG
-
-    [Column("PaymentMethodId")]
-    public int? PaymentMethodId { get; set; }
-
+    #region BranchInformation
     [Column("BranchId")]
     public int? BranchId { get; set; }
+
+    [Column("BranchName")]
+    public string? BranchName { get; set; }
+
+    #endregion
+
+    #region OrderInformation
+    [Column("SaleOrderCode", TypeName = "varchar")]
+    [MaxLength(50)]
+    public string? SaleOrderCode { get; set; }
+
+    [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+    [DataType(DataType.DateTime)]
+    [Column("DateOfReceipt")]
+    public DateTime? DateOfReceipt { get; set; }
 
     [Column("SubTotal", TypeName = "decimal")]
     public decimal? SubTotal { get; set; }
@@ -52,21 +61,28 @@ public class SaleOrder
     [Column("TotalAmount", TypeName = "decimal")]
     public decimal TotalAmount { get; set; }
 
-    [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
-    [DataType(DataType.DateTime)]
-    [Column("DateOfReceipt")]
-    public DateTime? DateOfReceipt { get; set; } //NGAY NHAN HANG 
-
-    [Column("Note", TypeName = "nvarchar")]
+    [Column("DeliveryMethod")]
     [MaxLength(500)]
-    public string? Note { get; set; }
+    public string DeliveryMethod { get; set; }
 
     [Column("OrderStatus")]
     public int? OrderStatus { get; set; }
+    [Column("Note", TypeName = "nvarchar")]
+    [MaxLength(500)]
+    public string? Note { get; set; }
+    #endregion
+
+    #region PaymentInformation
+
+    [Column("PaymentMethodId")]
+    public int? PaymentMethodId { get; set; }
 
     [Column("PaymentStatus")]
     public int? PaymentStatus { get; set; }
 
+    #endregion
+
+    #region AuditInformation
     [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
     [DataType(DataType.DateTime)]
     [Column("CreatedAt")]
@@ -76,10 +92,13 @@ public class SaleOrder
     [DataType(DataType.DateTime)]
     [Column("UpdatedAt")]
     public DateTime? UpdatedAt { get; set; }
+    #endregion
 
+    #region NavigationProperties
     public virtual ICollection<OrderDetail> OrderDetails { get; set; }
     public virtual PaymentMethod PaymentMethod { get; set; }
     public virtual User User { get; set; }
     public virtual Branch Branch { get; set; }
     public virtual ICollection<RefundRequest> Refunds { get; set; }
+    #endregion
 }
