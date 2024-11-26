@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 export default function UserOrderStatus() {
   const { t } = useTranslation();
   const user = useSelector(selectUser);
-  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("Tất cả");
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);

@@ -52,7 +52,7 @@ const WebServices = () => {
         <div className="text-center">
           <FontAwesomeIcon
             icon={faCreditCard}
-            className="text-4xl text-gray-4000"
+            className="text-4xl text-gray-400"
           />
           <h3 className="mt-4 text-xl font-semibold">
             {t("webservice.title5")}
