@@ -45,7 +45,8 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IShipmentDetailService, ShipmentDetailService>();
             services.AddScoped<IPaymentMethodService, PaymentMethodService>();
-			services.AddScoped<ILikeService, LikeService>();
+            services.AddScoped<IPhoneNumberService, PhoneNumberService>();
+            services.AddScoped<ILikeService, LikeService>();
 			services.AddScoped<IReviewService, ReviewService>();
 			services.AddScoped<IImportHistoryService, ImportHistoryService>();
 			services.AddScoped<IWarehouseService, WarehouseService>();

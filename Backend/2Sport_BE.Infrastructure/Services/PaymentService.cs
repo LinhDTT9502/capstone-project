@@ -2,6 +2,7 @@
 using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Infrastructure.Helpers;
 using _2Sport_BE.Repository.Interfaces;
+using _2Sport_BE.Service.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
@@ -92,11 +93,15 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 string content = $"Mã đơn hàng: {order.OrderCode}";
                 int expiredAt = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (60 * 5));
+
+                var returnStr = _configuration["PayOSSettings:ReturnUrlSaleOrder"];
+                var cancelStr = _configuration["PayOSSettings:CancelUrlSaleOrder"];
+
                 PaymentData data = new PaymentData(Convert.ToInt64(order.OrderCode),
                         Int32.Parse(order.TotalAmount.ToString()),
                         content, orders,
-                        "https://localhost:7276/api/Checkout/sale-order-cancel",
-                        "https://localhost:7276/api/Checkout/sale-order-return",
+                        cancelStr,
+                        returnStr,
                         null, order.FullName,
                         order.Email, order.ContactPhone,
                         order.Address,
@@ -156,11 +161,15 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 string content = $"Hoa Don Thue: {order.RentalOrderCode}";
                 int expiredAt = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (60 * 5));
+
+                var returnStr = _configuration["PayOSSettings:ReturnUrlRentalOrder"];
+                var cancelStr = _configuration["PayOSSettings:CancelUrlRentalOrder"];
+
                 PaymentData data = new PaymentData(Convert.ToInt64(order.RentalOrderCode),
                         Int32.Parse(order.TotalAmount.ToString()),
                         content, orders,
-                        "https://localhost:7276/api/Checkout/rental-order-cancel",
-                        "https://localhost:7276/api/Checkout/rental-order-return",
+                        cancelStr,
+                        returnStr,
                         null, order.FullName,
                         order.Email, order.ContactPhone,
                         order.Address,
@@ -197,7 +206,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         response.Data = 0;
                         return response;
                     }
-                    saleOrder.OrderStatus = (int)OrderStatus.CANCELLED;
+                    //SaleOrder.OrderStatus = (int)OrderStatus.CANCELLED;
                     saleOrder.PaymentStatus = (int)PaymentStatus.IsCanceled;
 
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
@@ -474,7 +483,7 @@ namespace _2Sport_BE.Infrastructure.Services
             pay.AddRequestData("vnp_Version", _configuration["Vnpay:Version"]);
             pay.AddRequestData("vnp_Command", _configuration["Vnpay:Command"]);
             pay.AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"]);
-            pay.AddRequestData("vnp_Amount", ((int)model.TotalAmount * 100).ToString());
+            pay.AddRequestData("vnp_Amount", ((int)model.TotalAmount/2 * 100).ToString());
             pay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
             pay.AddRequestData("vnp_CurrCode", _configuration["Vnpay:CurrCode"]);
             pay.AddRequestData("vnp_IpAddr", pay.GetIpAddress(context));
@@ -526,9 +535,9 @@ namespace _2Sport_BE.Infrastructure.Services
             {
                 if(response.Data.VnPayResponseCode == "00")
                 {
-                isUpdated = await _rentalOrderService.UpdatePaymentStatus(response.Data.OrderCode, (int)PaymentStatus.IsPaid);
+                isUpdated = await _rentalOrderService.UpdateRentalOrderAfterCheckout(response.Data.OrderCode,(int)DepositStatus.Partially_Paid, response.Data.Amount, (int)PaymentStatus.IsDeposited);
                 }
-                isUpdated = await _rentalOrderService.UpdatePaymentStatus(response.Data.OrderCode, (int)PaymentStatus.IsCanceled);
+                isUpdated = await _rentalOrderService.UpdateRentalOrderAfterCheckout(response.Data.OrderCode, (int)DepositStatus.Not_Paid, decimal.Zero, (int)PaymentStatus.IsCanceled);
             }
             if (isUpdated)
             {

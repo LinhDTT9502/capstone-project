@@ -4,6 +4,7 @@
     {
         IsWating = 1,
         IsPaid = 2,
-        IsCanceled = 3,
+        IsDeposited = 3,
+        IsCanceled = 4
     }
 }

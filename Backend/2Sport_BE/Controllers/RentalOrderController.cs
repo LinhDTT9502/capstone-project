@@ -3,6 +3,7 @@ using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Infrastructure.Hubs;
 using _2Sport_BE.Infrastructure.Services;
+using _2Sport_BE.Service.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -16,11 +17,15 @@ namespace _2Sport_BE.Controllers
     {
         private readonly IRentalOrderService _rentalOrderServices;
         private readonly IPaymentService _paymentService;
-        
-        public RentalOrderController(IRentalOrderService rentalOrderServices, IPaymentService paymentService, IHubContext<NotificationHub> hubContext)
+        private readonly ICartItemService _cartItemService;
+        public RentalOrderController(IRentalOrderService rentalOrderServices,
+            IPaymentService paymentService,
+            ICartItemService cartItemService
+            )
         {
             _rentalOrderServices = rentalOrderServices;
             _paymentService = paymentService;
+            _cartItemService = cartItemService;
         }
 
         [HttpGet]
@@ -100,7 +105,7 @@ namespace _2Sport_BE.Controllers
                     }
                     return BadRequest(response);
                 }*/
-        [HttpPost("create-rental-order")]
+        [HttpPost("create")]
         public async Task<IActionResult> CreateOrder([FromBody] RentalOrderCM rentalOrderCM)
         {
             if (!ModelState.IsValid)
@@ -112,24 +117,28 @@ namespace _2Sport_BE.Controllers
             {
                 return StatusCode(500, response);
             }
+            foreach (var item in rentalOrderCM.ProductInformations)
+            {
+                    await _cartItemService.DeleteCartItem(item.CartItemId);
+            }
             return Ok(response);
         }
-        [HttpPost("create-extend-request")]
-        public async Task<IActionResult> CreateOrder([FromBody] ExtendRentalModel extendRentalModel)
+        [HttpPut("request-extend")]
+        public async Task<IActionResult> RequestExtendRentalPeriod([FromBody] ExtendRentalModel extendRentalModel)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid request data.");
             }
-            var response = await _rentalOrderServices
-                .RequestExtendRentalPeriod(extendRentalModel.orderCode, extendRentalModel.quantity, extendRentalModel.quantity.Value);
+            var response = await _rentalOrderServices.ProcessExtendRentalPeriod(extendRentalModel);
             if (!response.IsSuccess)
             {
                 return StatusCode(500, response);
             }
+
             return Ok(response);
         }
-        [HttpPut("update-rental-order")]
+        [HttpPut("update")]
         public async Task<IActionResult> UpdateRentalOrder([FromQuery] int orderId, [FromBody] RentalOrderUM orderUM)
         {
             if (!ModelState.IsValid)
@@ -143,6 +152,21 @@ namespace _2Sport_BE.Controllers
             }
             return Ok(response);
         }
+        [HttpPut("return")]
+        public async Task<IActionResult> ProcessReturn([FromBody] ParentOrderReturnModel returnData)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid request data.");
+            }
+            var response = await _rentalOrderServices.ReturnOrder(returnData);
+            if (!response.IsSuccess)
+            {
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+
         [HttpPut("update-rental-order-status")]
         public async Task<IActionResult> ChangeOrderStatus(int orderId, int status)
         {

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241122071426_add-phone-number-confirmed-column-in-User")]
+    partial class addphonenumberconfirmedcolumninUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -814,14 +817,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("BranchName");
 
-                    b.Property<string>("Color")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Color");
-
-                    b.Property<int?>("Condition")
-                        .HasColumnType("int")
-                        .HasColumnName("Condition");
-
                     b.Property<string>("ContactPhone")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -845,26 +840,10 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("DeliveryMethod");
 
-                    b.Property<decimal?>("DepositAmount")
-                        .HasColumnType("decimal")
-                        .HasColumnName("DepositAmount");
-
-                    b.Property<int?>("DepositStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("DepositStatus");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("Email");
-
-                    b.Property<decimal?>("ExtensionCost")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("ExtensionCost");
-
-                    b.Property<int?>("ExtensionDays")
-                        .HasColumnType("int")
-                        .HasColumnName("ExtensionDays");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -881,9 +860,9 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("varchar")
                         .HasColumnName("ImgAvatarPath");
 
-                    b.Property<bool?>("IsExtended")
+                    b.Property<bool?>("IsExtendRentalOrder")
                         .HasColumnType("bit")
-                        .HasColumnName("IsExtended");
+                        .HasColumnName("IsExtendRentalOrder");
 
                     b.Property<bool?>("IsInspected")
                         .HasColumnType("bit")
@@ -939,10 +918,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("decimal")
                         .HasColumnName("RentPrice");
 
-                    b.Property<int>("RentalDays")
-                        .HasColumnType("int")
-                        .HasColumnName("RentalDays");
-
                     b.Property<DateTime?>("RentalEndDate")
                         .HasColumnType("datetime2");
 
@@ -959,10 +934,6 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<int?>("ShipmentDetailId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Size")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Size");
 
                     b.Property<decimal?>("SubTotal")
                         .HasColumnType("decimal")
@@ -1286,43 +1257,6 @@ namespace _2Sport_BE.Migrations
                     b.ToTable("Staffs");
                 });
 
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.TwilioAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccountSId")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("AccountSId");
-
-                    b.Property<string>("AuthToken")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("AuthToken");
-
-                    b.Property<string>("FromNumber")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("FromNumber");
-
-                    b.Property<string>("ToNumber")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("ToNumber");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TwilioAccounts");
-                });
-
             modelBuilder.Entity("_2Sport_BE.Repository.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -1377,10 +1311,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<bool?>("IsActived")
                         .HasColumnType("bit")
                         .HasColumnName("IsActived");
-
-                    b.Property<int>("OTP")
-                        .HasColumnType("int")
-                        .HasColumnName("OTP");
 
                     b.Property<string>("PasswordResetToken")
                         .HasColumnType("nvarchar(max)");

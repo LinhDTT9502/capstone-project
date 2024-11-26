@@ -26,8 +26,9 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<SaleOrderVM>> GetSaleOrderBySaleOrderCode(string SaleOrderCode);
         //Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByMonthAndStatus(DateTime startDate, DateTime endDate, int status);
         #endregion
+
         #region ICreate_IUpdate_IDelete
-        Task<ResponseDTO<SaleOrderVM>> CreatetSaleOrderAsync(SaleOrderCM SaleOrderCM);
+        Task<ResponseDTO<SaleOrderVM>> CreateSaleOrderAsync(SaleOrderCM SaleOrderCM);
         Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderAsync(int SaleOrderId, SaleOrderUM SaleOrderUM);
         Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderStatusAsync(int id, int status);
         Task<ResponseDTO<int>> UpdateBranchForSaleOrder(int orderId, int branchId);
@@ -35,6 +36,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<SaleOrderVM>> ApproveSaleOrderAsync(int orderId);
         Task<ResponseDTO<SaleOrderVM>> RejectSaleOrderAsync(int orderId);
         #endregion
+
         #region CRUD_Order
         Task<IQueryable<SaleOrder>> FindAllSaleOrderQueryableAsync();
         Task<SaleOrder> FindSaleOrderByIdFromUserAsync(int SaleOrderId, int userId);
@@ -44,6 +46,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<bool> UpdatePaymentStatusOfSaleOrder(string orderCode, int paymentStatus);
 
         #endregion
+
     }
     public class SaleOrderService : ISaleOrderService
     {
@@ -210,46 +213,6 @@ namespace _2Sport_BE.Infrastructure.Services
                 return response;
             }
         }
-        public async Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByMonth(DateTime month)
-        {
-            var response = new ResponseDTO<List<SaleOrderVM>>();
-            int targetMonth = month.Month;
-            int targetYear = month.Year;
-            try
-            {
-                var query = await _unitOfWork.SaleOrderRepository
-                    .GetAsync(o => o.CreatedAt.HasValue &&
-                        o.CreatedAt.Value.Month == targetMonth &&
-                        o.CreatedAt.Value.Year == targetYear,
-                        "User,OrderDetails");
-                if (query == null || !query.Any())
-                {
-                    response.IsSuccess = false;
-                    response.Message = "SaleOrders are not found";
-                    return response;
-                }
-
-                var saleOrderVMs = new List<SaleOrderVM>();
-
-                foreach (var item in query)
-                {
-                    var saleOrderVM = MapSaleOrderToSaleOrderVM(item);
-                    saleOrderVMs.Add(saleOrderVM);
-                }
-
-                response.IsSuccess = true;
-                response.Message = "Query successfully";
-                response.Data = saleOrderVMs;
-                return response;
-
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-                return response;
-            }
-        }
         public async Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByDateRangeAndStatus(DateTime? fromDate, DateTime? toDate, int? orderStatus)
         {
 
@@ -339,7 +302,7 @@ namespace _2Sport_BE.Infrastructure.Services
         #endregion
         #region Create_Update_Delete_SaleOrder
 
-        public async Task<ResponseDTO<SaleOrderVM>> CreatetSaleOrderAsync(SaleOrderCM saleOrderCM)
+        public async Task<ResponseDTO<SaleOrderVM>> CreateSaleOrderAsync(SaleOrderCM saleOrderCM)
         {
             var response = new ResponseDTO<SaleOrderVM>();
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
@@ -392,10 +355,10 @@ namespace _2Sport_BE.Infrastructure.Services
                     if (user != null && shipmentDetail != null)
                         MapUserToSaleOrder(user, shipmentDetail, toCreate);
 
-                    if (DeliveryMethod.Equals("HOME_DELIVERY"))
+                    /*if (DeliveryMethod.Equals("HOME_DELIVERY"))
                     {
                         toCreate.PaymentMethodId = (int)OrderMethods.COD;
-                    }
+                    }*/
                     await _unitOfWork.SaleOrderRepository.InsertAsync(toCreate);
                     decimal subTotal = 0;
                     foreach (var item in saleOrderCM.SaleOrderDetailCMs)

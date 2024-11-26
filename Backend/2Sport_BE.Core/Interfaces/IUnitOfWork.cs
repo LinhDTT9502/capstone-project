@@ -29,6 +29,7 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<Customer> CustomerDetailRepository { get; }
         IGenericRepository<Manager> ManagerRepository { get; }
         IGenericRepository<Staff> StaffRepository { get; }
+        IGenericRepository<TwilioAccount> TwilioRepository { get; }
         IGenericRepository<ErrorLog> ErrorLogRepository { get; }
         IGenericRepository<RentalOrder> RentalOrderRepository { get; }
         IGenericRepository<RefundRequest> RefundRequestRepository { get; }
