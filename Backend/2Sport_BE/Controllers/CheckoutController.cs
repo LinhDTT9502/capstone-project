@@ -123,7 +123,7 @@ namespace _2Sport_BE.Controllers
             var result = await _payOsService.ProcessCancelledSaleOrder(paymentResponse);
             if (result.IsSuccess)
             {
-                var redirectUrl = "https://twosport.vercel.app/order_cancel";
+                var redirectUrl = "https://twosportshop.vercel.app/order_cancel";
                 return Redirect(redirectUrl);
             }
             return BadRequest(result);
@@ -144,7 +144,7 @@ namespace _2Sport_BE.Controllers
             var result = await _payOsService.ProcessCompletedSaleOrder(paymentResponse);
             if (result.IsSuccess)
             {
-                var redirectUrl = "https://twosport.vercel.app/order_success";
+                var redirectUrl = "https://twosportshop.vercel.app/order_success";
                 return Redirect(redirectUrl);
             }
             return BadRequest(result);
@@ -235,7 +235,7 @@ namespace _2Sport_BE.Controllers
             var result = await _payOsService.ProcessCancelledRentalOrder(paymentResponse);
             if (result.IsSuccess)
             {
-                var redirectUrl = "https://twosport.vercel.app/order_cancel";
+                var redirectUrl = "https://twosportshop.vercel.app/order_cancel";
                 return Redirect(redirectUrl);
             }
             return BadRequest(result);
@@ -256,7 +256,7 @@ namespace _2Sport_BE.Controllers
             var result = await _payOsService.ProcessCompletedRentalOrder(paymentResponse);
             if (result.IsSuccess)
             {
-                var redirectUrl = "https://twosport.vercel.app/order_success";
+                var redirectUrl = "https://twosportshop.vercel.app/order_success";
                 return Redirect(redirectUrl);
             }
             return BadRequest(result);
@@ -291,10 +291,10 @@ namespace _2Sport_BE.Controllers
             var result = await _vnPayService.PaymentSaleOrderExecute(Request.Query);
             if (result.IsSuccess)
             {
-                var redirectUrl = "https://twosport.vercel.app/order_success";
+                var redirectUrl = "https://twosportshop.vercel.app/order_success";
                 return Redirect(redirectUrl);
             }
-            return Redirect("https://twosport.vercel.app/order-cancel");
+            return Redirect("https://twosportshop.vercel.app/order-cancel");
         }
         [HttpGet("rental-order-return-vnpay")]
         public async Task<IActionResult> HandleRentalOrderReturnVnPay()
@@ -302,10 +302,10 @@ namespace _2Sport_BE.Controllers
             var result = await _vnPayService.PaymentRentalOrderExecute(Request.Query);
             if (result.IsSuccess)
             {
-                var redirectUrl = "https://twosport.vercel.app/order_success";
+                var redirectUrl = "https://twosportshop.vercel.app/order_success";
                 return Redirect(redirectUrl);
             }
-            return Redirect("https://twosport.vercel.app/order-cancel");
+            return Redirect("https://twosportshop.vercel.app/order-cancel");
         }
     }
 }

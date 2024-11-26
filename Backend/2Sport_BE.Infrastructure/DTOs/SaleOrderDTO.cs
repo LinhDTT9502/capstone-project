@@ -53,7 +53,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
     public class SaleOrderVM 
     {
         public int SaleOrderId { get; set; }
-        public string? OrderCode { get; set; }
+        public string? SaleOrderCode { get; set; }
         public int? UserId { get; set; }
         public string FullName { get; set; }
         public string Gender { get; set; }

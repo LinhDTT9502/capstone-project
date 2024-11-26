@@ -8,6 +8,7 @@ using _2Sport_BE.Service.Enums;
 using _2Sport_BE.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using MailKit.Search;
 
 
 namespace _2Sport_BE.Infrastructure.Services
@@ -17,6 +18,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<List<RentalOrderVM>>> GetAllRentalOrderAsync();
         Task<ResponseDTO<RentalOrderVM>> GetRentalOrderByIdAsync(int orderId);
         Task<ResponseDTO<List<RentalOrderVM>>> GetRentalOrderByParentCodeAsync(string parentCode);
+        Task<ResponseDTO<List<RentalOrderVM>>> GetRentalOrdersByBranchAsync(int branchId);
 
         Task<ResponseDTO<List<RentalOrderVM>>> GetOrdersByUserIdAsync(int userId);
         Task<ResponseDTO<RentalOrderVM>> GetRentalOrderByOrderCodeAsync(string orderCode);
@@ -38,6 +40,11 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<bool> UpdateDepositStatusAndAmount(string orderCode, int depositStatus, decimal amount);
 
         Task<bool> UpdateRentalOrderAfterCheckout(string orderCode, int depositStatus, decimal amount, int paymentStatus);
+
+
+        Task<ResponseDTO<int>> UpdateBranchForRentalOrder(int orderId, int branchId);
+        Task<ResponseDTO<RentalOrderVM>> ApproveRentalOrderAsync(int orderId);
+        Task<ResponseDTO<RentalOrderVM>> RejectRentalOrderAsync(int orderId);
     }
 
     public class RentalOrderService : IRentalOrderService
@@ -1021,6 +1028,180 @@ namespace _2Sport_BE.Infrastructure.Services
             {
                 response = false;
             }
+            return response;
+        }
+
+        public async Task<ResponseDTO<RentalOrderVM>> ApproveRentalOrderAsync(int orderId)
+        {
+            var response = new ResponseDTO<RentalOrderVM>();
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
+                    var childOrder = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode.Equals(rentalOrder.RentalOrderCode));
+                    if (rentalOrder == null)
+                    {
+                        return GenerateErrorResponse($"SaleOrder with id = {orderId} is not found!");
+                    }
+                    else
+                    {
+                        if (rentalOrder.OrderStatus == (int)OrderStatus.CONFIRMED)
+                            return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
+
+                        rentalOrder.OrderStatus = (int)OrderStatus.CONFIRMED;
+                        if (childOrder.Any())
+                        {
+                            foreach (var item in childOrder.ToList())
+                            {
+                                item.OrderStatus = (int)OrderStatus.CONFIRMED;
+                                var productInWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(item.ProductId.Value, item.BranchId)).FirstOrDefault();
+                                if (productInWarehouse == null)
+                                {
+                                    await transaction.RollbackAsync();
+                                    return GenerateErrorResponse($"Failed to update stock for product {item.ProductName}");
+                                }
+                                productInWarehouse.AvailableQuantity -= item.Quantity;
+                                await _warehouseService.UpdateWarehouseAsync(productInWarehouse);
+                                await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
+                            }
+                        }
+                        else
+                        {
+                            var productInWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(rentalOrder.ProductId.Value, rentalOrder.BranchId)).FirstOrDefault();
+                            if (productInWarehouse == null)
+                            {
+                                await transaction.RollbackAsync();
+                                return GenerateErrorResponse($"Failed to update stock for product {rentalOrder.ProductName}");
+                            }
+                            productInWarehouse.AvailableQuantity -= rentalOrder.Quantity;
+                            await _warehouseService.UpdateWarehouseAsync(productInWarehouse);
+                        }
+                        
+
+                        await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
+
+                        await transaction.CommitAsync();
+                        var result = _mapper.Map<RentalOrderVM>(rentalOrder);
+                        response = GenerateSuccessResponse(rentalOrder, null, "Approved Succesfully");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return GenerateErrorResponse(ex.Message);
+                }
+            }
+            return response;
+        }
+        public async Task<ResponseDTO<RentalOrderVM>> RejectRentalOrderAsync(int orderId)
+        {
+            var response = new ResponseDTO<RentalOrderVM>();
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
+                    var childOrder = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode.Equals(rentalOrder.RentalOrderCode));
+                    if (rentalOrder == null)
+                    {
+                        return GenerateErrorResponse($"SaleOrder with id = {orderId} is not found!");
+                    }
+                    else
+                    {
+                        await _notificationService.NotifyForRejectOrderOrderAsync(rentalOrder.RentalOrderCode, rentalOrder.BranchId.Value);
+
+                        rentalOrder.OrderStatus = (int)OrderStatus.PENDING;
+                        rentalOrder.BranchId = null;
+
+                        if (childOrder.Any())
+                        {
+                            foreach (var item in childOrder.ToList())
+                            {
+                                item.OrderStatus = (int)OrderStatus.PENDING;
+                                item.BranchId = null;
+                                await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
+                            }
+                        }
+
+                        await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
+
+                        await transaction.CommitAsync();
+                        var result = _mapper.Map<RentalOrderVM>(rentalOrder);
+                        response = GenerateSuccessResponse(rentalOrder, null, "Rejected Succesfully");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return GenerateErrorResponse(ex.Message);
+                }
+            }
+            return response;
+        }
+        public async Task<ResponseDTO<int>> UpdateBranchForRentalOrder(int orderId, int branchId)
+        {
+            var response = new ResponseDTO<int>();
+            try
+            {
+                var branch = await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == branchId);
+                if (branch is null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"Branch with id = {branchId} is not found!";
+                    response.Data = 0;
+                }
+                var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
+                if (rentalOrder == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"SaleOrder with id = {orderId} is not found!";
+                    response.Data = 0;
+                }
+                else
+                {
+                    rentalOrder.BranchId = branchId;
+
+                    await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
+
+
+                    response.IsSuccess = true;
+                    response.Message = $"BranchId of SaleOrder with id = {orderId} updated successfully";
+                    response.Data = 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public async Task<ResponseDTO<List<RentalOrderVM>>> GetRentalOrdersByBranchAsync(int branchId)
+        {
+            var response = new ResponseDTO<List<RentalOrderVM>>();
+
+            try
+            {
+                var rentalOrders = await _unitOfWork.RentalOrderRepository.GetAsync(
+                    r => r.BranchId == branchId && r.ParentOrderCode == null
+                );
+
+                if (rentalOrders != null && rentalOrders.Any())
+                {
+                    var result = _mapper.Map<List<RentalOrderVM>>(rentalOrders);
+                    response.IsSuccess = true;
+                    response.Message = "Rental orders retrieved successfully";
+                    response.Data = result;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = $"Error: {ex.Message}";
+            }
+
             return response;
         }
     }
