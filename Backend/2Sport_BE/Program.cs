@@ -124,7 +124,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     builder.WithOrigins("https://twosport.vercel.app", "https://twosportshop.vercel.app",
-                        "https://2sport-employee.vercel.app/",
+                        "https://2sport-employee.vercel.app",
                         "http://localhost:5173", "http://localhost:5174",
                         "http://demo-api.ap-southeast-2.elasticbeanstalk.com")
            .AllowAnyMethod()
