@@ -132,7 +132,7 @@ namespace _2Sport_BE.Controllers
             {
                 if(item.CartItemId != null || item.CartItemId != 0)
                 {
-                    await _cartItemService.DeleteCartItem(item.CartItemId);
+                    await _cartItemService.DeleteCartItem((int)item.CartItemId);
                 }
             }
             return Ok(response);
