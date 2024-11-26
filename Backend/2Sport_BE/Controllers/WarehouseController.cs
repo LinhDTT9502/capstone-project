@@ -58,8 +58,6 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-
-
         [HttpGet]
         [Route("list-products-of-branch/{branchId}")]
         public async Task<IActionResult> GetProductsOfBranch(int branchId)
@@ -79,6 +77,24 @@ namespace _2Sport_BE.Controllers
             }
             var result = _mapper.Map<List<WarehouseVM>>(query.ToList());
             return Ok(new { total = result.Count, data = result });
+        }
+
+        [HttpGet]
+        [Route("quantity-of-product/{productId}")]
+        public async Task<IActionResult> GetQuantityOfProducts(int productId)
+        {
+            var query = (await _warehouseService.GetWarehouseByProductId(productId)).ToList();
+            var availableQuantity = 0;
+            var totalQuantity = 0;
+            foreach (var item in query)
+            {
+                availableQuantity += (int)item.AvailableQuantity;
+                totalQuantity += (int)item.TotalQuantity;
+            }
+
+            var product = await _productService.GetProductById(productId);
+            var result = _mapper.Map<ProductVM>(product);
+            return Ok(new { data = result, TotalQuantity = totalQuantity, AvailableQuantity = availableQuantity });
         }
 
         [HttpGet]
