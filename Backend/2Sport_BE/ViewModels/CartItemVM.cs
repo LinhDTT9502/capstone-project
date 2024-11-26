@@ -15,8 +15,9 @@ namespace _2Sport_BE.ViewModels
         public string Color { get; set; }
         public string Size { get; set; }
         public int Condition { get; set; }
-        public decimal TotalPrice { get; set; }
-        public string MainImagePath { get; set; }
+        public decimal Price { get; set; }
+        public decimal RentPrice { get; set; }
+        public string ImgAvatarPath { get; set; }
     }
 
 	public class CartItemCM : CartItemDTO
