@@ -244,14 +244,14 @@ namespace _2Sport_BE.Service.Services
                                                     IOrderedQueryable<Product>> orderBy = null, string includeProperties = "",
                                                     int? pageIndex = null, int? pageSize = null)
         {
-<<<<<<< HEAD
             try
             {
-                var query = await _unitOfWork.ProductRepository.GetAsync(filter, orderBy, includeProperties, pageIndex, pageSize);
+                var query = await _unitOfWork.ProductRepository.GetAsync(filter, orderBy, includeProperties, null, null);
                 // Group by ProductCode and ProductName, then select the first item in each group
                 var distinctProducts = query
                     .GroupBy(p => new { p.ProductCode, p.ProductName })
-                    .Select(g => g.First());
+                    .Select(g => g.First())
+                    .Skip((int)(pageIndex * pageSize)).Take((int)pageSize);
                 return distinctProducts.AsQueryable();
             } catch (Exception ex)
             {
@@ -259,15 +259,8 @@ namespace _2Sport_BE.Service.Services
                 return null;
             }
             
-=======
-            var query = await _unitOfWork.ProductRepository.GetAsync(filter, orderBy, includeProperties, null, null);
-            // Group by ProductCode and ProductName, then select the first item in each group
-            var distinctProducts = query
-                .GroupBy(p => new { p.ProductCode, p.ProductName })
-                .Select(g => g.First())
-                .Skip((int)(pageIndex * pageSize)).Take((int)pageSize);
-            return distinctProducts.AsQueryable();
->>>>>>> product_module
+            
+
         }
 
         public async Task<IQueryable<Product>> GetProducts(Expression<Func<Product, bool>> filter = null,
