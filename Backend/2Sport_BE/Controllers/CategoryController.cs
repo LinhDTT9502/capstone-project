@@ -45,18 +45,19 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var query = await _categoryService.GetAllCategories();
-                var warehouses = (await _warehouseService.GetWarehouse(_ => _.TotalQuantity > 0)).Include(_ => _.Product).ToList();
+                var warehouses = (await _warehouseService.GetAvailableWarehouse());
+                var products = new List<Product>();
                 foreach (var item in warehouses)
                 {
-                    item.Product = await _productService.GetProductById((int)item.ProductId);
+                    products.Add(await _productService.GetProductByProductCode(item.ProductCode));
                 }
                 foreach (var item in query.ToList())
 				{
                     item.Sport = await _sportService.GetSportById(item.SportId);
                     item.Quantity = 0;
-                    foreach (var productInWarehouse in warehouses)
+                    foreach (var product in products)
                     {
-                        if (productInWarehouse.Product.CategoryId == item.Id)
+                        if (product.CategoryId == item.Id)
                         {
                             item.Quantity += 1;
                         }
