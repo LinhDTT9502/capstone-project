@@ -9,6 +9,8 @@ import axios from "axios";
 const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
+  console.log(selectedOrder);
+  
 
   const handleCheckout = async () => {
     if (!selectedOrder || paymentMethodID !== "3") {
@@ -30,7 +32,7 @@ const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
 
       // Call the API for VNPay checkout
       const response = await axios.post(
-        "https://twosportapi-295683427295.asia-southeast2.run.app/api/VnPay/checkout-sale-order",
+        "https://capstone-project-703387227873.asia-southeast1.run.app/api/VnPay/checkout-sale-order",
         data,
         {
           headers: {

@@ -24,7 +24,7 @@ const RentalOrder = () => {
   const [loading, setLoading] = useState(false);
   const [apiResponse, setApiResponse] = useState(null);
   // console.log(selectedOption);
-  
+
 
   const token = localStorage.getItem("token");
 
@@ -81,12 +81,16 @@ const RentalOrder = () => {
           productName: product.productName,
           quantity: rentalData.quantity,
           rentPrice: product.rentPrice,
+          size: product.size,
+          color: product.color,
+          condition: product.condition,
+          imgAvatarPath: product.imgAvatarPath,
           rentalDates: {
             dateOfReceipt: new Date(new Date(startDate).setDate(new Date(startDate).getDate() - 1)).toISOString(),
             rentalStartDate: new Date(startDate).toISOString(),
             rentalEndDate: new Date(endDate).toISOString(),
             rentalDays: (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24) + 1,  // Dividing by milliseconds in a day
-          },          
+          },
           rentalCosts: {
             subTotal: product.rentPrice * rentalData.quantity,
             tranSportFee: 0, // Assuming no transport fee; adjust if needed
@@ -95,12 +99,12 @@ const RentalOrder = () => {
         },
       ],
     };
-// console.log(payload);
+    // console.log(payload);
 
     try {
       setLoading(true);
       const response = await axios.post(
-        "https://twosportapi-295683427295.asia-southeast2.run.app/api/RentalOrder/create",
+        "https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/create",
         payload,
         {
           headers: {
@@ -125,11 +129,11 @@ const RentalOrder = () => {
     }
   };
 
-  
+
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
     // if (event.target.value === "STORE_PICKUP") {
-     
+
     // }
   };
 
@@ -143,36 +147,10 @@ const RentalOrder = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-slate-200 py-10 px-4 md:px-8">
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg">
-        {/* Product Details */}
-        <div className="p-6">
-          <h2 className="text-xl font-bold text-gray-800">{rentalData.product.productName}</h2>
-          <p>Code: {rentalData.product.productCode}</p>
-          <p>Quantity: {rentalData.quantity}</p>
-          <p>Rent Price: {rentalData.product.rentPrice}</p>
-        </div>
+  return (<>
 
-        {/* Date Pickers */}
-        <div className="px-6 pb-6">
-          <label>Start Date:</label>
-          <input
-            type="date"
-            min={getTomorrowDate()}
-            value={startDate}
-            onChange={handleStartDateChange}
-          />
-          <label>End Date:</label>
-          <input
-            type="date"
-            min={startDate || getTomorrowDate()}
-            value={endDate}
-            onChange={handleEndDateChange}
-          />
-        </div>
-
-        {/* Order Method */}
+    <div className="flex flex-row bg-slate-200">
+      <div className="text-nowrap basis-2/3 bg-white">
         <OrderMethod
           userData={userData}
           setUserData={setUserData}
@@ -181,19 +159,103 @@ const RentalOrder = () => {
           selectedBranchId={branchId}
           setSelectedBranchId={setBranchId}
         />
-
-        {/* Submit Button */}
-        <div className="px-6 pb-6">
+      </div>
+      <div className="basis-3/5  pr-20 pl-5 h-1/4 mt-10">
+        <div className="font-alfa text-center p-5 border rounded text-black">
+          Summary
+        </div>
+        <div className="overflow-auto h-3/4">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="flex border rounded p-4 space-x-2">
+              <div className="relative">
+                <img
+                  src={rentalData.product.imgAvatarPath}
+                  alt={rentalData.product.productName}
+                  className="w-auto h-32 object-scale-down rounded"
+                />
+                <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {rentalData.quantity}
+                </span>
+              </div>
+              <div className="flex justify-between w-full">
+                <div className="flex flex-col space-y-1">
+                  <h3 className="text-lg pt-2 font-semibold w-full">
+                    {rentalData.product.productName}
+                  </h3>
+                  <div className="text-sm">
+                    <li>Màu sắc: {rentalData.product.color}</li>
+                    <li> Kích cỡ: {rentalData.product.size}</li>
+                    <li>Tình trạng: {rentalData.product.condition}%</li>
+                  </div>
+                </div>
+                <p className="text-lg text-black">{(rentalData.product.price * rentalData.quantity).toLocaleString()} VND</p>
+              </div>
+            </div>
+          </div>
+          <div className="px-6 pb-6">
+            <p>Chọn thời gian thuê</p>
+            <label>Ngày bắt đầu:</label>
+            <input
+              type="date"
+              min={getTomorrowDate()}
+              value={startDate}
+              onChange={handleStartDateChange}
+            />
+            <label>Ngày kết thúc:</label>
+            <input
+              type="date"
+              min={startDate || getTomorrowDate()}
+              value={endDate}
+              onChange={handleEndDateChange}
+            />
+          </div>
+          <div className="h-px bg-gray-300 my-5 mx-auto font-bold"></div>
+          <div className="flex justify-between items-center pt-1 border rounded mt-4">
+            <h3 className="text-lg font-semibold">
+              tam tinh
+            </h3>
+            <p className="text-lg text-black">
+              tong gia VND
+            </p>
+          </div>
+          <div className="flex justify-between items-center pt-1 border rounded mt-4">
+            <label className="block text-lg font-semibold">Ghi chú</label>
+            <input
+              type="text"
+              className="border rounded w-3/4 px-3 py-2 mt-2"
+              value={note}
+              // onChange={(e) => setNote(e.target.value)}
+              placeholder="ghi chú của bạn"
+            />
+          </div>
+          <div className="flex justify-between items-center pt-1 border rounded mt-4">
+            <h3 className="text-lg font-semibold">
+              Phí vận chuyển
+            </h3>
+            <p className="text-lg text-black">
+              2Sport sẽ liên hệ và thông báo sau
+            </p>
+          </div>
+          <div className="flex justify-between items-center pt-1 border rounded mt-4">
+            <h3 className="text-lg font-semibold">Tong cong</h3>
+            <p className="text-lg text-black">
+              Tong gia VND
+            </p>
+          </div>
+        </div>
+        <div className="flex justify-center items-center">
           <button
             onClick={handleCreateRentalOrder}
             disabled={loading}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md"
+            className="text-white bg-orange-500 w-40 py-3 rounded"
           >
             {loading ? "Processing..." : "Create Rental Order"}
           </button>
         </div>
       </div>
     </div>
+  </>
+
   );
 };
 

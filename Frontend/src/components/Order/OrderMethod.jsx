@@ -55,7 +55,7 @@ const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange
     return (
         <div className="pl-20 py-10">
             <div className="flex pt-3">
-                <form className="bg-white p-6 w-full">
+                <form className="bg-white w-full">
                     <div className="mb-4">
                     <h3 className="text-xl font-bold pt-1">Phương thức nhận hàng</h3>
                         <label className="inline-flex items-center pt-4">

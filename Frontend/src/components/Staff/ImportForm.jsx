@@ -124,7 +124,7 @@ const ProductForm = () => {
 
 
     try {
-      const response = await fetch('https://twosportapi-295683427295.asia-southeast2.run.app/api/Product/import-product', {
+      const response = await fetch('https://capstone-project-703387227873.asia-southeast1.run.app/api/Product/import-product', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
