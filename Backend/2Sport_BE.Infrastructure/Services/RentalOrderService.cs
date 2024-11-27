@@ -9,6 +9,7 @@ using _2Sport_BE.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using MailKit.Search;
+using _2Sport_BE.Service.Helpers;
 
 
 namespace _2Sport_BE.Infrastructure.Services
@@ -203,16 +204,17 @@ namespace _2Sport_BE.Infrastructure.Services
         private void MapToRentalOrderVM(RentalOrder rentalOrder, RentalOrderVM rentalOrderVM)
         {
             rentalOrderVM.DepositStatus = rentalOrder.DepositStatus != null
-                            ? Enum.GetName(typeof(DepositStatus), rentalOrder.DepositStatus)
-                            : "N/A";  // Giá trị mặc định nếu null
+                ? EnumDisplayHelper.GetEnumDescription<DepositStatus>(rentalOrder.DepositStatus.Value)
+                : "N/A";  // Giá trị mặc định nếu null
 
             rentalOrderVM.OrderStatus = rentalOrder.OrderStatus != null
-                ? Enum.GetName(typeof(OrderStatus), rentalOrder.OrderStatus)
+                ? EnumDisplayHelper.GetEnumDescription<RentalOrderStatus>(rentalOrder.OrderStatus.Value)
                 : "N/A";
 
             rentalOrderVM.PaymentStatus = rentalOrder.PaymentStatus != null
-                ? Enum.GetName(typeof(PaymentStatus), rentalOrder.PaymentStatus)
+                ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(rentalOrder.PaymentStatus.Value)
                 : "N/A";
+            rentalOrderVM.DeliveryMethod = _deliveryMethodService.GetDescription(rentalOrder.DeliveryMethod);
         }
 
         public async Task<ResponseDTO<RentalOrderVM>> CreateRentalOrderAsync(RentalOrderCM rentalOrderCM)
@@ -247,7 +249,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     rentalOrder.CreatedAt = DateTime.Now;
                     rentalOrder.DeliveryMethod = DeliveryMethod;
                     rentalOrder.OrderStatus = (int)OrderStatus.PENDING;
-
+                    rentalOrder.PaymentStatus = (int)PaymentStatus.IsWating;
                     //ParentCode For Child Orders
                     string parentOrderCode = rentalOrder.RentalOrderCode;
 
@@ -574,18 +576,18 @@ namespace _2Sport_BE.Infrastructure.Services
         private ResponseDTO<RentalOrderVM> GenerateSuccessResponse(RentalOrder order, List<RentalOrder>? listChild, string messagge)
         {
             var result = _mapper.Map<RentalOrderVM>(order);
-            result.OrderStatus = result.OrderStatus != null
-                     ? Enum.GetName(typeof(OrderStatus), order.OrderStatus)
-                     : "Unknown Status";
+            result.DepositStatus = order.DepositStatus != null
+               ? EnumDisplayHelper.GetEnumDescription<DepositStatus>(order.DepositStatus.Value)
+               : "N/A";  // Giá trị mặc định nếu null
 
-            result.PaymentStatus = result.PaymentStatus != null
-                                 ? Enum.GetName(typeof(PaymentStatus), order.PaymentStatus)
-                                 : "Unknown PaymentStatus";
+            result.OrderStatus = order.OrderStatus != null
+                ? EnumDisplayHelper.GetEnumDescription<RentalOrderStatus>(order.OrderStatus.Value)
+                : "N/A";
 
-            result.PaymentMethod = order.PaymentMethodId != null 
-                                 ? Enum.GetName(typeof(OrderMethods), order.PaymentMethodId.Value)
-                                 : "Unknown PaymentMethod";
-
+            result.PaymentStatus = order.PaymentStatus != null
+                ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(order.PaymentStatus.Value)
+                : "N/A";
+            result.DeliveryMethod = _deliveryMethodService.GetDescription(order.DeliveryMethod);
             result.Id = order.Id;
             if (listChild == null || !listChild.Any())
             {

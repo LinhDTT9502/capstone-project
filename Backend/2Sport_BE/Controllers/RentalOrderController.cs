@@ -130,9 +130,9 @@ namespace _2Sport_BE.Controllers
             }
             foreach (var item in rentalOrderCM.ProductInformations)
             {
-                if(item.CartItemId != null || item.CartItemId != 0)
+                if (item.CartItemId.HasValue && item.CartItemId.Value != 0)
                 {
-                    await _cartItemService.DeleteCartItem(item.CartItemId);
+                    await _cartItemService.DeleteCartItem(item.CartItemId.Value);
                 }
             }
             return Ok(response);

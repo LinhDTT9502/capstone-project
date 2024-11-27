@@ -167,7 +167,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 if (manager != null)
                 {
-                    Subject.Add(new Claim("BranchId", staff.BranchId.ToString()));
+                    Subject.Add(new Claim("BranchId", manager.BranchId.ToString()));
                 }
 
 
