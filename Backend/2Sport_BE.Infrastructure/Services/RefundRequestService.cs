@@ -78,7 +78,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                         refundRequest = new RefundRequest
                         {
-                            SaleOrderCode = saleOrder.OrderCode,
+                            SaleOrderCode = saleOrder.SaleOrderCode,
                             SaleOrderID = saleOrder.Id,
                             BranchId = saleOrder.BranchId.Value,
                             IsAgreementAccepted = refundRequestCM.IsAgreementAccepted,

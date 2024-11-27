@@ -94,6 +94,17 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(response);
         }
+        [HttpGet]
+        [Route("get-orders-by-branch")]
+        public async Task<IActionResult> GetOrdersByBranchId(int branchId)
+        {
+            var response = await _rentalOrderServices.GetRentalOrdersByBranchAsync(branchId);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
         /*        [HttpGet]
                 [Route("get-orders-by-date-and-status")]
                 public async Task<IActionResult> GetOrdersByOrderCode(DateTime startDate, DateTime endDate, int status)
@@ -119,7 +130,10 @@ namespace _2Sport_BE.Controllers
             }
             foreach (var item in rentalOrderCM.ProductInformations)
             {
-                    await _cartItemService.DeleteCartItem(item.CartItemId);
+                if(item.CartItemId != null || item.CartItemId != 0)
+                {
+                    await _cartItemService.DeleteCartItem((int)item.CartItemId);
+                }
             }
             return Ok(response);
         }
@@ -239,8 +253,42 @@ namespace _2Sport_BE.Controllers
                         return BadRequest(response);
                     }
                 }*/
-       
 
-        
+        [HttpPut]
+        [Route("assign-branch")]
+        public async Task<IActionResult> AssignBranch(int orderId, int branchId)
+        {
+            var response = await _rentalOrderServices.UpdateBranchForRentalOrder(orderId, branchId);
+
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+
+        }
+        [HttpPost]
+        [Route("{orderId}/approve")]
+        public async Task<IActionResult> ApproveSaleOrder(int orderId)
+        {
+            var response = await _rentalOrderServices.ApproveRentalOrderAsync(orderId);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpPost]
+        [Route("{orderId}/reject")]
+        public async Task<IActionResult> RejectSaleOrder(int orderId)
+        {
+            var response = await _rentalOrderServices.RejectRentalOrderAsync(orderId);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
     }
 }

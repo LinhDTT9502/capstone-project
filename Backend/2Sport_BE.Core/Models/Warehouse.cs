@@ -26,8 +26,5 @@ public class Warehouse
 
     public virtual Branch Branch { get; set; }
 
-
-
-
 }
 

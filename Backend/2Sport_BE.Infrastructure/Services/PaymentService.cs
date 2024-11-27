@@ -91,13 +91,13 @@ namespace _2Sport_BE.Infrastructure.Services
                     ItemData item = new ItemData("Chi phi van chuyen", 1, (int)order.TranSportFee);
                     orders.Add(item);
                 }
-                string content = $"Mã đơn hàng: {order.OrderCode}";
+                string content = $"Mã đơn hàng: {order.SaleOrderCode}";
                 int expiredAt = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (60 * 5));
 
                 var returnStr = _configuration["PayOSSettings:ReturnUrlSaleOrder"];
                 var cancelStr = _configuration["PayOSSettings:CancelUrlSaleOrder"];
 
-                PaymentData data = new PaymentData(Convert.ToInt64(order.OrderCode),
+                PaymentData data = new PaymentData(Convert.ToInt64(order.SaleOrderCode),
                         Int32.Parse(order.TotalAmount.ToString()),
                         content, orders,
                         cancelStr,
@@ -198,7 +198,7 @@ namespace _2Sport_BE.Infrastructure.Services
             {
                 try
                 {
-                    var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.OrderCode == paymentResponse.OrderCode);
+                    var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.SaleOrderCode == paymentResponse.OrderCode);
                     if (saleOrder == null)
                     {
                         response.IsSuccess = false;
@@ -248,7 +248,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<int>();
             try
             {
-                var SaleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.OrderCode == paymentResponse.OrderCode);
+                var SaleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.SaleOrderCode == paymentResponse.OrderCode);
                 if (SaleOrder == null)
                 {
                     response.IsSuccess = false;
@@ -456,7 +456,7 @@ namespace _2Sport_BE.Infrastructure.Services
             pay.AddRequestData("vnp_CurrCode", _configuration["Vnpay:CurrCode"]);
             pay.AddRequestData("vnp_IpAddr", pay.GetIpAddress(context));
             pay.AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"]);
-            pay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang mua: {model.OrderCode}");
+            pay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang mua: {model.SaleOrderCode}");
             pay.AddRequestData("vnp_OrderType", "sale order");
             pay.AddRequestData("vnp_ReturnUrl", urlCallBack);
             pay.AddRequestData("vnp_TxnRef", tick);

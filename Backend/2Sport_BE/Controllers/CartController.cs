@@ -70,7 +70,8 @@ namespace _2Sport_BE.Controllers
                             carItem.Color = product.Color;
                             carItem.Size = product.Size;
                             carItem.Condition = (int)product.Condition;
-                            carItem.MainImagePath = product.ImgAvatarPath;
+                            carItem.ImgAvatarPath = product.ImgAvatarPath;
+                            carItem.RentPrice = (decimal)product.RentPrice;
                         }
                         return Ok(new { total = cartItems.Count(), data = cartItems });
                     }
@@ -147,7 +148,7 @@ namespace _2Sport_BE.Controllers
                         return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
                     }
                     existedCartItem.Quantity = addedCartItemQuantity;
-                    existedCartItem.TotalPrice = addedProduct.Price * addedCartItemQuantity;
+                    existedCartItem.Price = addedProduct.Price * addedCartItemQuantity;
                     addedCartItem = await _cartItemService.AddExistedCartItem(existedCartItem);
 
                 }

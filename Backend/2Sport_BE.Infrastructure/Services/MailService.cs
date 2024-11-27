@@ -217,7 +217,7 @@ namespace _2Sport_BE.Services
                 var templateContent = await LoadEmailTemplateAsync("Order_Email.html");
 
                 templateContent = templateContent
-                    .Replace("{{OrderCode}}", saleOrder.OrderCode)
+                    .Replace("{{OrderCode}}", saleOrder.SaleOrderCode)
                     .Replace("{{CreatedAt}}", saleOrder.CreatedAt.ToString())
                     .Replace("{{TotalAmount}}", FormatCurrency(saleOrder.TotalAmount))
                     .Replace("{{FullName}}", saleOrder.FullName)

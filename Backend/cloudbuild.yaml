@@ -5,13 +5,13 @@
   
   # Bước 2: Xây dựng Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/sport-436513/2sport-api', '-f', '2Sport_BE/Dockerfile', '.']
+    args: ['build', '-t', 'gcr.io/sport-442812/2sport-api', '-f', '2Sport_BE/Dockerfile', '.']
     dir: 'Backend'
 
   # Bước 3: Đẩy Docker image lên Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/sport-436513/2sport-api']
+    args: ['push', 'gcr.io/sport-442812/2sport-api']
     dir: 'Backend'
 
 images:
-  - 'gcr.io/sport-436513/2sport-api'
+  - 'gcr.io/sport-442812/2sport-api'
