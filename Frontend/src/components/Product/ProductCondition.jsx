@@ -9,6 +9,9 @@ export function ProductCondition({ productCode, color, size, selectedCondition, 
       try {
         const response = await fetchProductCondition(productCode, color, size);
         setConditions(response);
+        // if (response.length > 0) {
+        //   setSelectedCondition(response[0].condition);
+        // }
       } catch (error) {
         console.error("Failed to load product conditions:", error);
       }
@@ -24,11 +27,11 @@ export function ProductCondition({ productCode, color, size, selectedCondition, 
   };
 
   return (
-    <div className="w-72">
-      <p><strong>Condition:</strong></p>
-      <ul className="flex space-x-4">
+    <div className="w-full">
+      <ul className="flex space-x-4 items-center">
+     <p><strong>Tình trạng:</strong></p>
         {conditions.map((condition) => (
-          <li key={condition.condition} className="flex items-center">
+          <li key={condition.condition} className="flex items-center border-2 border-zinc-400 p-1">
             <input
               type="radio"
               id={`condition-${condition.condition}`}
@@ -36,7 +39,7 @@ export function ProductCondition({ productCode, color, size, selectedCondition, 
               value={condition.condition}
               checked={selectedCondition === condition.condition}
               onChange={() => handleConditionChange(condition.condition)}
-              className="mr-2"
+              className="mr-1 "
               disabled={!condition.status}
             />
             <label

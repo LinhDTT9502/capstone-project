@@ -10,6 +10,9 @@ export function ProductColor({ productCode, selectedColor, setSelectedColor }) {
       try {
         const data = await fetchProductColor(productCode);
         setColors(data);
+        // if (data.length > 0) {
+        //   setSelectedColor(data[0].color);
+        // }
 
         // Fetch images for each color
         const imagePromises = data.map(async (color) => {
@@ -36,7 +39,7 @@ export function ProductColor({ productCode, selectedColor, setSelectedColor }) {
 
   return (
     <div className="w-full">
-      <p><strong>Color:</strong></p>
+      <p><strong>Màu sắc:</strong></p>
       <div className="flex flex-wrap gap-4">
         {colors.map((color, index) => (
           <label

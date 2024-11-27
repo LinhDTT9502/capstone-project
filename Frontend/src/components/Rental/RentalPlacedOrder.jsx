@@ -66,12 +66,16 @@ const RentalPlacedOrder = () => {
       deliveryMethod: selectedOption,
       branchId: selectedOption === "STORE_PICKUP" ? branchId : null,
       productInformations: selectedProducts.map(product => ({
-        cartItemId: product.id,  // Use the ID from selectedProducts
+        cartItemId: product.id,  
         productId: product.productId,
         productCode: product.productCode,
         productName: product.productName,
         quantity: product.quantity,
-        rentPrice: 120000, // Adjust according to your data structure
+        size: product.size,
+        color: product.color,
+        condition: product.condition,
+        rentPrice: product.rentPrice,
+        imgAvatarPath: product.imgAvatarPath,
         rentalDates: {
           dateOfReceipt: new Date(startDate).toISOString(),
           rentalStartDate: new Date(startDate).toISOString(),
@@ -85,12 +89,12 @@ const RentalPlacedOrder = () => {
         },
       })),
     };
-console.log(payload);
+    console.log(payload);
 
     try {
       setLoading(true);
       const response = await axios.post(
-        "https://twosportapi-295683427295.asia-southeast2.run.app/api/RentalOrder/create",
+        "https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/create",
         payload,
         {
           headers: {
@@ -129,40 +133,12 @@ console.log(payload);
     );
   }
 
-  return (
-    <div className="min-h-screen bg-slate-200 py-10 px-4 md:px-8">
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg">
-        {/* Product Details */}
-        <div className="p-6">
-          {selectedProducts.map((product) => (
-            <div key={product.id}>
-              <h2 className="text-xl font-bold text-gray-800">{product.productName}</h2>
-              <p>Code: {product.productCode}</p>
-              <p>Quantity: {product.quantity}</p>
-              <p>Rent Price: {product.rentPrice}</p>
-            </div>
-          ))}
-        </div>
+  return (<>
 
-        {/* Date Pickers */}
-        <div className="px-6 pb-6">
-          <label>Start Date:</label>
-          <input
-            type="date"
-            min={getTomorrowDate()}
-            value={startDate}
-            onChange={handleStartDateChange}
-          />
-          <label>End Date:</label>
-          <input
-            type="date"
-            min={startDate || getTomorrowDate()}
-            value={endDate}
-            onChange={handleEndDateChange}
-          />
-        </div>
 
-        {/* Order Method */}
+
+    <div className="flex flex-row bg-slate-200">
+      <div className="text-nowrap basis-2/3 bg-white">
         <OrderMethod
           userData={userData}
           setUserData={setUserData}
@@ -171,19 +147,104 @@ console.log(payload);
           selectedBranchId={branchId}
           setSelectedBranchId={setBranchId}
         />
+      </div>
+      <div className="basis-3/5  pr-20 pl-5 h-1/4 mt-10">
+        <div className="font-alfa text-center p-5 border rounded text-black">
+          Summary
+        </div>
+        <div className="overflow-auto h-3/4">
+          <div className="grid grid-cols-1 gap-4">
+            {selectedProducts.map((product) => (
+              <div key={product.id} className="flex border rounded p-4 space-x-2">
+                <div className="relative">
+                  <img
+                    src={product.imgAvatarPath}
+                    alt={product.productName}
+                    className="w-auto h-32 object-scale-down rounded"
+                  />
+                  <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {product.quantity}
+                  </span>
+                </div>
+                <div className="flex justify-between w-full">
+                  <div className="flex flex-col space-y-4">
+                    <h3 className="text-lg font-semibold">
+                      {product.productName}
+                    </h3>
+                    <div className="text-sm">
+                      <li>Màu sắc: {product.color}</li>
+                      <li>Kích cỡ: {product.size}</li>
+                      <li>Tình trạng: {product.condition}%</li>
+                    </div>
+                  </div>
+                  <p className="text-lg text-black">{(product.price * product.quantity).toLocaleString()} VND</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="px-6 pb-6">
+            <label>Start Date:</label>
+            <input
+              type="date"
+              min={getTomorrowDate()}
+              value={startDate}
+              onChange={handleStartDateChange}
+            />
+            <label>End Date:</label>
+            <input
+              type="date"
+              min={startDate || getTomorrowDate()}
+              value={endDate}
+              onChange={handleEndDateChange}
+            />
+          </div>
 
-        {/* Submit Button */}
-        <div className="px-6 pb-6">
+          <div className="h-px bg-gray-300 my-5 mx-auto font-bold"></div>
+          <div className="flex justify-between items-center pt-1 border rounded mt-4">
+            <h3 className="text-lg font-semibold">
+              Tạm tính
+            </h3>
+            <p className="text-lg text-black">
+              1 VND
+            </p>
+          </div>
+          <div className="flex justify-between items-center pt-1 border rounded mt-4">
+            <label className="block text-lg font-semibold">Ghi chú</label>
+            <input
+              type="text"
+              className="border rounded w-3/4 px-3 py-2 mt-2"
+              value={note}
+              // onChange={(e) => setNote(e.target.value)}
+              placeholder="Ghi chú của bạn"
+            />
+          </div>
+          <div className="flex justify-between items-center pt-1 border rounded mt-4">
+            <h3 className="text-lg font-semibold">
+              Phí vận chuyển
+            </h3>
+            <p className="text-lg text-black">
+              2Sport sẽ liên hệ và thông báo sau
+            </p>
+          </div>
+          <div className="flex justify-between items-center pt-1 border rounded mt-4">
+            <h3 className="text-lg font-semibold">Tổng cộng</h3>
+            <p className="text-lg text-black">
+              2 VND
+            </p>
+          </div>
+        </div>
+        <div className="flex pb-10 justify-center items-center">
           <button
             onClick={handleCreateRentalOrder}
             disabled={loading}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md"
+            className="bg-orange-500 text-white px-4 py-2 rounded-md"
           >
             {loading ? "Processing..." : "Create Rental Order"}
           </button>
         </div>
       </div>
     </div>
+  </>
   );
 };
 

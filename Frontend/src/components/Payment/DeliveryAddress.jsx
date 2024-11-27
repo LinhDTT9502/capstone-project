@@ -156,7 +156,7 @@ const DeliveryAddress = ({
                   {shipment.fullName}
                 </p>
                 <p className="text-gray-700">
-                  <span className="font-semibold">email:</span>{" "}
+                  <span className="font-semibold">Email:</span>{" "}
                   {shipment.email}
                 </p>
                 <p className="text-gray-70">

@@ -131,7 +131,8 @@ namespace _2Sport_BE.Controllers
             foreach (var item in rentalOrderCM.ProductInformations)
             {
                 if (item.CartItemId.HasValue && item.CartItemId.Value != 0)
-                {
+                { 
+                
                     await _cartItemService.DeleteCartItem(item.CartItemId.Value);
                 }
             }

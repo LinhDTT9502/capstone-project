@@ -76,7 +76,7 @@ const AddressForm = ({ onAddressChange }) => {
                 name="street"
                 value={formData.street}
                 onChange={handleInputChange}
-                label="số nhà, tên đường. ví dụ 123 đường mạc đĩnh chi"
+                label="số nhà, tên đường. ví dụ 123 đường Mạc Đĩnh Chi"
                 required
             />
             <div className="space-x-2 flex">

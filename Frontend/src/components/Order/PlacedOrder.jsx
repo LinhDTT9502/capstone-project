@@ -64,7 +64,7 @@ const PlacedOrder = () => {
         discountCode: discountCode || null,
         note: note || null,
         saleOrderDetailCMs: selectedProducts.map((item) => ({
-          productId: item.id, // Assuming the item has an id
+          productId: item.productId, // Assuming the item has an id
           productName: item.productName, // Assuming the item has a productName
           quantity: item.quantity,
           unitPrice: item.price,
@@ -107,8 +107,8 @@ const PlacedOrder = () => {
 //   }, [orderSuccess, navigate]);
 
   return (
-    <div className="px-5 py-5 flex flex-row bg-slate-200">
-      <div className="text-nowrap basis-2/3 bg-white mx-2 pr-14">
+    <div className="flex flex-row bg-slate-200 ">
+      <div className="text-nowrap basis-2/3 bg-white">
         <OrderMethod
           userData={userData}
           setUserData={setUserData}
@@ -118,7 +118,7 @@ const PlacedOrder = () => {
           setSelectedBranchId={setBranchId}
         />
       </div>
-      <div className="basis-3/5 mx-2 h-1/4">
+      <div className="basis-3/5 pr-20 pl-5 h-1/4 mt-10 pb-10">
         <div className="font-alfa text-center p-5 border rounded text-black">
           {t("checkout.order_summary")}
         </div>
@@ -132,22 +132,29 @@ const PlacedOrder = () => {
           <div className="overflow-auto h-3/4">
             <div className="grid grid-cols-1 gap-4">
               {selectedProducts.map((item) => (
-                <div key={item.id} className="flex border rounded p-4 space-x-2">
+                <div key={item.id} className="flex border rounded  space-x-2">
                   <div className="relative">
+                    <div className="bg-white">
                     <img
                       src={item.imgAvatarPath}
                       alt={item.productName}
-                      className="w-auto h-32 object-scale-down rounded"
+                      className="h-32 w-48 object-contain rounded"
                     />
+                    </div>
                     <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                       {item.quantity}
                     </span>
                   </div>
                   <div className="flex justify-between w-full">
                     <div className="flex flex-col space-y-4">
-                      <h3 className="text-lg font-semibold w-60">
+                      <h3 className="text-lg font-semibold">
                         {item.productName}
                       </h3>
+                      <div className="text-sm">
+                        <li>Màu sắc: {item.color}</li>
+                        <li>Kích cỡ: {item.size}</li>
+                        <li>Tình trạng: {item.condition}%</li>
+                      </div>
                     </div>
                     <p className="text-lg text-black">{(item.price * item.quantity).toLocaleString()} VND</p>
                   </div>
@@ -180,7 +187,7 @@ const PlacedOrder = () => {
                 className="border rounded w-3/4 px-3 py-2 mt-2"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="ghi chú của bạn"
+                placeholder="Ghi chú của bạn"
               />
             </div>
             <div className="flex justify-between items-center pt-1 border rounded mt-4">

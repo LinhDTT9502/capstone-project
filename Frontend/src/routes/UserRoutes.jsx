@@ -8,6 +8,7 @@ import UserChangePassword from '../components/User/UserChangePassword';
 import UserOrderStatus from '../components/User/UserOrderStatus';
 import UserListRental from '../components/User/UserListRental';
 import RefundForm from '../components/Refund/RefundForm';
+import UserRentalDetail from '../components/Rental/UserRentalDetail';
 
 const UserRoutes = () => {
   return (
@@ -18,6 +19,7 @@ const UserRoutes = () => {
         <Route path="change-password" element={<UserChangePassword />} />
         <Route path="order-status" element={<UserOrderStatus />} />
         <Route path="user-rental" element={<UserListRental />} />
+        <Route path="user-rental/:orderId" element={<UserRentalDetail />} />
         <Route path="refund-request" element={<RefundForm />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
