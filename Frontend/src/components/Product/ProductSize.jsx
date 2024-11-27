@@ -9,6 +9,9 @@ export function ProductSize({ productCode, color, selectedSize, setSelectedSize 
       try {
         const data = await fetchProductSize(productCode, color);
         setSizes(data);
+        // if (data.length > 0) {
+        //   setSelectedSize(data[0].size);
+        // }
       } catch (error) {
         console.error("Failed to load product sizes:", error);
       }
@@ -24,8 +27,8 @@ export function ProductSize({ productCode, color, selectedSize, setSelectedSize 
   };
 
   return (
-    <div className="w-72">
-      <p><strong>Size:</strong></p>
+    <div className="w-full">
+      <p><strong>Kích cỡ:</strong></p>
       <ul className="flex space-x-4">
         {sizes.map((size) => (
           <li key={size.size} className="flex items-center">

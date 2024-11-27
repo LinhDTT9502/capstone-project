@@ -2,7 +2,7 @@ import axios from "axios";
 import axiosInstance from "./axiosInstance";
 
 const API_ADMIN_BASE_URL =
-  "https://twosportapi-295683427295.asia-southeast2.run.app/api/Admin";
+  "https://capstone-project-703387227873.asia-southeast1.run.app/api/Admin";
 
 // Admin API Endpoints
 

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import { useSelector, useDispatch } from "react-redux"; // Added for Redux integration
 import {
     getUserCart,
     reduceCartItem,
@@ -13,8 +12,6 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
-import { selectCartItems, removeFromCart, decreaseQuantity, addCart } from "../../redux/slices/cartSlice";
-import { addCusCart, decreaseCusQuantity, removeFromCusCart, selectCustomerCartItems } from "../../redux/slices/customerCartSlice";
 // import { ProductType } from "../Product/ProductType";
 
 const UserCart = () => {
@@ -23,7 +20,6 @@ const UserCart = () => {
     const [selectedItems, setSelectedItems] = useState([]);
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
-    const dispatch = useDispatch();
 
     const getCart = async () => {
         if (token) {
@@ -44,16 +40,11 @@ const UserCart = () => {
     };
 
     const handleReduceQuantity = async (id) => {
-        if (token) {
-            dispatch(decreaseCusQuantity(id));
-        } else {
-            dispatch(decreaseQuantity(id));
-        }
+
     };
 
     const handleIncreaseQuantity = async (item) => {
-        const response = await addToCart(token, item.productId, 1)
-        console.log(response);
+
         getCart();
 
     };
@@ -84,9 +75,9 @@ const UserCart = () => {
     const totalItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
     const totalPrice = selectedItems.reduce((acc, id) => {
         const item = cartData.find((item) => item.id === id);
-        return acc + item.totalPrice;
+        return acc + item.price;
     }, 0);
-console.log(cartData);
+    console.log(cartData);
 
     const handleCheckout = () => {
         if (selectedItems.length === 0) {
@@ -110,7 +101,7 @@ console.log(cartData);
             selectedItems.includes(item.id)
         );
         console.log(selectedProducts);
-        
+
         navigate("/rental-placed-order", { state: { selectedProducts } });
     }
 
@@ -144,14 +135,17 @@ console.log(cartData);
                             <div className="w-2/12 text-center font-poppins text-lg font-bold">
                                 {t("user_cart.quantity")}
                             </div>
-                            <div className="w-1/12 text-center font-poppins text-lg font-bold">
+                            <div className="w-2/12 text-center font-poppins text-lg font-bold">
                                 {t("user_cart.price")}
+                            </div>
+                            <div className="w-2/12 text-center font-poppins text-lg font-bold">
+                                Giá thuê
                             </div>
                             <div className="w-2/12 text-center font-poppins text-lg font-bold">
                                 {t("user_cart.total")}
                             </div>
                             <div className="w-1/12 text-center font-poppins text-lg font-bold">
-                                {t("user_cart.action")}
+                             
                             </div>
                         </div>
                         {cartData.map((item) => (
@@ -168,7 +162,7 @@ console.log(cartData);
                                 </div>
                                 <div className="w-5/12 flex items-center">
                                     <img
-                                        src={item.mainImagePath}
+                                        src={item.imgAvatarPath}
                                         alt={item.productName}
                                         className="w-16 h-16 object-cover mr-4"
                                     />
@@ -211,12 +205,16 @@ console.log(cartData);
                                         +
                                     </button>
                                 </div>
-                                <div className="w-1/12 text-center">
-                                    {(item.totalPrice / item.quantity).toLocaleString()}{" "}
+                                <div className="w-2/12 text-center">
+                                    {(item.price.toLocaleString())}{" "}
                                     {t("user_cart.vnd")}
                                 </div>
                                 <div className="w-2/12 text-center">
-                                    {item.totalPrice.toLocaleString()} {t("user_cart.vnd")}
+                                    {(item.rentPrice.toLocaleString())}{" "}
+                                    {t("user_cart.vnd")}
+                                </div>
+                                <div className="w-2/12 text-center">
+                                    {(item.price*item.quantity).toLocaleString()} {t("user_cart.vnd")}
                                 </div>
                                 <div className="w-1/12 text-center">
                                     <button
@@ -229,7 +227,15 @@ console.log(cartData);
                             </div>
                         ))}
                     </div>
-                    <div className="flex justify-between items-center mt-4">
+                    <div className="flex justify-between items-center mt-5">
+                        <div className="text-left">
+                            <p className="text-lg font-semibold">
+                                {t("user_cart.total")} ({selectedItems.length} {t("user_cart.items")}):
+                            </p>
+                        </div>
+                        <p> {totalPrice.toLocaleString()} {t("user_cart.vnd")}</p>
+                    </div>
+                    <div className="flex justify-between mt-5">
                         <Link
                             to="/product"
                             className="text-blue-500 flex items-center font-poppins"
@@ -237,25 +243,19 @@ console.log(cartData);
                             <FontAwesomeIcon className="pr-2" icon={faArrowLeft} />{" "}
                             {t("user_cart.continue_shopping")}
                         </Link>
-                        <div className="text-right">
-                            <p className="text-lg font-semibold">
-                                {t("user_cart.total")} ({selectedItems.length} {t("user_cart.items")}):{" "}
-                                {totalPrice.toLocaleString()} {t("user_cart.vnd")}
-                            </p>
-                            <div className="flex">
-                                <button
-                                    className="bg-orange-500 text-white px-4 py-2 mt-2"
-                                    onClick={handleCheckout}
-                                >
-                                    Đặt hàng
-                                </button>
-                                <button
-                                    className="bg-orange-500 text-white px-4 py-2 mt-2"
-                                    onClick={handleRental}
-                                >
-                                   Thuê sản phẩm
-                                </button>
-                            </div>
+                        <div className="flex space-x-5">
+                            <button
+                                className="bg-orange-500 rounded-md text-white px-4 py-2"
+                                onClick={handleCheckout}
+                            >
+                                Đặt hàng
+                            </button>
+                            <button
+                                className="bg-rose-700 rounded-md text-white px-4 py-2"
+                                onClick={handleRental}
+                            >
+                                Thuê sản phẩm
+                            </button>
                         </div>
                     </div>
                 </div>

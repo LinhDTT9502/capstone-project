@@ -1,6 +1,6 @@
 import axiosInstance from './axiosInstance';
 
-const API_BASE_URL = 'https://twosportapi-295683427295.asia-southeast2.run.app/';
+const API_BASE_URL = 'https://capstone-project-703387227873.asia-southeast1.run.app/';
 
 export const getShipmentDetails = ( token) => {
 

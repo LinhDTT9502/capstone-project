@@ -35,6 +35,7 @@ import ListBranchs from './pages/ListBranchs';
 import RentalOrder from './components/Rental/RentalOrder';
 import Invoice from './pages/Invoice/Invoice';
 import RentalPlacedOrder from './components/Rental/RentalPlacedOrder';
+import RentalCheckout from './components/Rental/RentalCheckout';
 
 
 
@@ -65,6 +66,7 @@ function App() {
             <Route path="/rental-order" element={<RentalOrder />} />
             <Route path="/rental-placed-order" element={<RentalPlacedOrder />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/rental-checkout" element={<RentalCheckout />} />
             <Route path="/invoice" element={<Invoice />} />
             <Route path="/guest-order" element={<GuestOrder />} />
             <Route path="/guest-order/:orderId" element={<GuestOrderDetail />} />

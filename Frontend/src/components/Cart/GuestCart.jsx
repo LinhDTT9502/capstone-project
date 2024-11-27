@@ -140,14 +140,17 @@ const GuestCart = () => {
               <div className="w-2/12 text-center font-poppins text-lg font-bold">
                 {t("user_cart.quantity")}
               </div>
-              <div className="w-1/12 text-center font-poppins text-lg font-bold">
+              <div className="w-2/12 text-center font-poppins text-lg font-bold">
                 {t("user_cart.price")}
+              </div>
+              <div className="w-1/12 text-center font-poppins text-lg font-bold">
+                Giá thuê
               </div>
               <div className="w-2/12 text-center font-poppins text-lg font-bold">
                 {t("user_cart.total")}
               </div>
               <div className="w-1/12 text-center font-poppins text-lg font-bold">
-                {t("user_cart.action")}
+                
               </div>
             </div>
             {cartData.map((item) => (
@@ -206,9 +209,12 @@ const GuestCart = () => {
                     +
                   </button>
                 </div>
-                <div className="w-1/12 text-center">
+                <div className="w-2/12 text-center">
                   {item.price.toLocaleString()}{" "}
                   {t("user_cart.vnd")}
+                </div>
+                 <div className="w-1/12 text-center">
+                 test
                 </div>
                 <div className="w-2/12 text-center">
                   {(item.price * item.quantity).toLocaleString()} {t("user_cart.vnd")}
@@ -224,36 +230,39 @@ const GuestCart = () => {
               </div>
             ))}
           </div>
-          <div className="flex justify-between items-center mt-4">
-            <Link
-              to="/product"
-              className="text-blue-500 flex items-center font-poppins"
-            >
-              <FontAwesomeIcon className="pr-2" icon={faArrowLeft} />{" "}
-              {t("user_cart.continue_shopping")}
-            </Link>
-            <div className="text-right">
+          <div className="flex justify-between items-center mt-5">
+            <div className="text-left">
               <p className="text-lg font-semibold">
-                {t("user_cart.total")} ({selectedItems.length} {t("user_cart.items")}):{" "}
-                {totalPrice.toLocaleString()} {t("user_cart.vnd")}
+                {t("user_cart.total")} ({selectedItems.length} {t("user_cart.items")}):
               </p>
 
-              <div className="flex space-x-5">
-                <button
-                  className="bg-orange-500 text-white px-4 py-2 mt-2"
-                  onClick={handleCheckout}
-                >
-                  Đặt hàng
-                </button>
-                <button
-                  className="bg-rose-800 text-white px-4 py-2 mt-2"
-                  onClick={handleRental}
-                >
-                  Thuê sản phẩm
-                </button>
-              </div>
             </div>
+            <p className="text-right">{totalPrice.toLocaleString()} {t("user_cart.vnd")}</p>
           </div>
+          <div className="flex justify-between w-full mt-5">
+                <Link
+                  to="/product"
+                  className="text-blue-500 flex items-center font-poppins"
+                >
+                  <FontAwesomeIcon className="pr-2" icon={faArrowLeft} />{" "}
+                  {t("user_cart.continue_shopping")}
+                </Link>
+                <div className="space-x-5 items-center">
+                  <button
+                    className="bg-orange-500 rounded-md text-white px-4 py-2 "
+                    onClick={handleCheckout}
+                  >
+                    Mua ngay
+                  </button>
+                  <button
+                    className="bg-rose-800 rounded-md text-white px-4 py-2"
+                    onClick={handleRental}
+                  >
+                    Thuê ngay
+                  </button>
+                </div>
+
+              </div>
         </div>
       )}
     </div>

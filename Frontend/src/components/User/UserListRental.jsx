@@ -39,7 +39,7 @@ export default function UserListRental() {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `https://twosportapi-295683427295.asia-southeast2.run.app/api/RentalOrder/get-rental-order-by-user?userId=${user.UserId}`,
+          `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-user?userId=${user.UserId}`,
           {
             headers: {
               accept: "*/*",
@@ -48,7 +48,11 @@ export default function UserListRental() {
           }
         );
         if (response.data.isSuccess) {
-          setRentalOrders(response.data.data.$values);
+          // Sort orders by createdAt in descending order
+          const sortedOrders = response.data.data.$values.sort((a, b) => {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+          setRentalOrders(sortedOrders);
         } else {
           setError("Failed to fetch rental orders");
         }
@@ -60,6 +64,7 @@ export default function UserListRental() {
     };
     fetchRentalOrders();
   }, [user.UserId]);
+  
 
   const filteredRentalOrders =
     selectedStatus === "All"
@@ -111,7 +116,9 @@ export default function UserListRental() {
             key={order.id}
             className="p-4 border border-gray-200 rounded-lg shadow-sm mt-4"
           >
-            <div className="flex justify-between">
+            <div 
+            onClick={() => navigate(`/manage-account/user-rental/${order.id}`)}
+            className="flex justify-between">
               <div className="flex">
                 <img
                   src={order.imgAvatarPath || "default-image.jpg"} // Use a default image if no avatar exists
