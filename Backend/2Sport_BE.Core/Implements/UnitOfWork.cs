@@ -20,6 +20,7 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<Category> _categoryRepository;
         private IGenericRepository<Cart> _cartRepository;
         private IGenericRepository<CartItem> _cartItemRepository;
+        private IGenericRepository<Feedback> _feedbackRepository;
         private IGenericRepository<ImagesVideo> _imagesVideoRepository;
         private IGenericRepository<ImportHistory> _importHistoryRepository;
         private IGenericRepository<Like> _likeRepository;
@@ -355,6 +356,18 @@ namespace _2Sport_BE.Repository.Implements
                     _twilioAccountRepository = new GenericRepository<TwilioAccount>(_dbContext);
                 }
                 return _twilioAccountRepository;
+            }
+        }
+
+        public IGenericRepository<Feedback> FeedbackRepository
+        {
+            get
+            {
+                if (_feedbackRepository == null)
+                {
+                    _feedbackRepository = new GenericRepository<Feedback>(_dbContext);
+                }
+                return _feedbackRepository;
             }
         }
 
