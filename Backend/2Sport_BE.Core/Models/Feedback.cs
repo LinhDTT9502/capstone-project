@@ -30,6 +30,9 @@ namespace _2Sport_BE.Repository.Models
 
         [Column("Content", TypeName = "nvarchar(500)")]
         public string Content { get; set; }
+
+        [Column("CreatedAt")]
+        public DateTime CreatedAt { get; set; }
         public virtual User? User { get; set; }
     }
 }

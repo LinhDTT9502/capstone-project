@@ -70,6 +70,7 @@ namespace _2Sport_BE.Service.Services
         {
             try
             {
+                addedFeedback.CreatedAt = DateTime.Now;
                 if (userId > 0)
                 {
                     var user = await _unitOfWork.UserRepository.FindAsync(userId);

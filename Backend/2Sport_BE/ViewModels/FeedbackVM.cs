@@ -25,6 +25,7 @@ namespace _2Sport_BE.ViewModels
         public int? UserId { get; set; }
         public string? UserName { get; set; }
         public string? PhoneNumber { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
     public class FeedbackCM : FeedbackDTO
