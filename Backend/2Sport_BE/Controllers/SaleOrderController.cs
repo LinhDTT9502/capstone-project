@@ -110,7 +110,7 @@ namespace _2Sport_BE.Controllers
             }
             foreach (var item in orderCM.ProductInformations)
             {
-                if (item.CartItemId.HasValue && item.CartItemId.Value != 0)
+                if (item.CartItemId.HasValue && item.CartItemId.Value != Guid.Empty)
                 {
                     await _cartItemService.DeleteCartItem(item.CartItemId.Value);
                 }

@@ -3,6 +3,7 @@ using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
+using _2Sport_BE.Services.Caching;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -13,23 +14,26 @@ namespace _2Sport_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CartController : ControllerBase
+    public class CartWithRedisController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICartItemService _cartItemService;
         private readonly IWarehouseService _warehouseService;
         private readonly IProductService _productService;
+        private readonly IRedisCacheService _redisCacheService;
         private readonly IMapper _mapper;
 
-        public CartController(IUnitOfWork unitOfWork, 
-                              ICartItemService cartItemService, 
-                              IWarehouseService warehouse,
-                              IProductService productService,
-                              IMapper mapper)
+        public CartWithRedisController(IUnitOfWork unitOfWork,
+                                       ICartItemService cartItemService,
+                                       IWarehouseService warehouse,
+                                       IProductService productService,
+                                       IRedisCacheService redisCacheService,
+                                       IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _cartItemService = cartItemService;
             _productService = productService;
+            _redisCacheService = redisCacheService;
             _warehouseService = warehouse;
             _mapper = mapper;
         }
@@ -46,8 +50,8 @@ namespace _2Sport_BE.Controllers
                 {
                     return Unauthorized();
                 }
-
-                var query = await _cartItemService.GetCartItems(userId, defaultSearch.currentPage, defaultSearch.perPage);
+                var query = _redisCacheService.GetData<List<CartItem>>("CartItems");
+                //var query = await _cartItemService.GetCartItems(userId, defaultSearch.currentPage, defaultSearch.perPage);
                 if (query != null)
                 {
                     var cartItems = query.Select(_ => _mapper.Map<CartItem, CartItemVM>(_)).ToList();
@@ -60,6 +64,7 @@ namespace _2Sport_BE.Controllers
                             carItem.ProductCode = product.ProductCode;
                             carItem.Color = product.Color;
                             carItem.Size = product.Size;
+                            carItem.Price = (decimal)product.Price;
                             carItem.Condition = (int)product.Condition;
                             carItem.ImgAvatarPath = product.ImgAvatarPath;
                             carItem.RentPrice = (decimal)product.RentPrice;
@@ -114,13 +119,17 @@ namespace _2Sport_BE.Controllers
                 var productInWarehouse = (await _warehouseService.GetWarehouseByProductId(cartItemCM.ProductId))
                                         .FirstOrDefault();
                 var addedProduct = (await _productService.GetProductById((int)cartItemCM.ProductId));
-                if (productInWarehouse == null) 
+                if (productInWarehouse == null)
                 {
                     return BadRequest("That product is not in warehouse!");
                 }
                 var quantityOfProduct = productInWarehouse.AvailableQuantity;
                 var addedCartItemQuantity = cartItemCM.Quantity;
-                var existedCartItem = await _cartItemService.GetCartItemByUserIdAndProductId(userId, (int)cartItemCM.ProductId);
+                var listCartItemsInCache = _redisCacheService.GetData<List<CartItem>>("CartItems") 
+                                                                        ?? new List<CartItem>();
+                var existedCartItem = listCartItemsInCache.FirstOrDefault(_ => _.UserId == userId
+                                                                && _.ProductId == (int)cartItemCM.ProductId);
+                //var existedCartItem = await _cartItemService.GetCartItemByUserIdAndProductId(userId, (int)cartItemCM.ProductId);
                 var addedCartItem = new CartItem();
                 if (existedCartItem != null)
                 {
@@ -131,7 +140,9 @@ namespace _2Sport_BE.Controllers
                     }
                     existedCartItem.Quantity = addedCartItemQuantity;
                     existedCartItem.Price = addedProduct.Price * addedCartItemQuantity;
-                    addedCartItem = await _cartItemService.AddExistedCartItem(existedCartItem);
+                    _redisCacheService.SetData("CartItems", listCartItemsInCache);
+                    return Ok(existedCartItem);
+                    //addedCartItem = await _cartItemService.AddExistedCartItem(existedCartItem);
 
                 }
                 else
@@ -140,16 +151,12 @@ namespace _2Sport_BE.Controllers
                     {
                         return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
                     }
-                    addedCartItem = await _cartItemService.AddNewCartItem(userId, newCartItem);
-                }
-
-                if (addedCartItem != null)
-                {
-                    return Ok(addedCartItem);
-                }
-                else
-                {
-                    return BadRequest("Add to cart failed");
+                    newCartItem.CartItemId = Guid.NewGuid();
+                    newCartItem.UserId = userId;
+                    listCartItemsInCache.Add(newCartItem);
+                    _redisCacheService.SetData("CartItems", listCartItemsInCache);
+                    return Ok(newCartItem);
+                    //addedCartItem = await _cartItemService.AddNewCartItem(userId, newCartItem);
                 }
             }
             catch (Exception ex)
@@ -253,5 +260,6 @@ namespace _2Sport_BE.Controllers
                 return UserId;
             }
         }
+
     }
 }

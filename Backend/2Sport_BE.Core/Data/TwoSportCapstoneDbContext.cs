@@ -17,7 +17,6 @@ namespace _2Sport_BE.Repository.Data
         public virtual DbSet<Blog> Blogs { get; set; }
         public virtual DbSet<Branch> Branches { get; set; }
         public virtual DbSet<Brand> Brands { get; set; }
-        public virtual DbSet<Cart> Carts { get; set; }
         public virtual DbSet<CartItem> CartItems { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Comment> Comments { get; set; }
