@@ -1,17 +1,28 @@
-﻿steps:
-  # Bước 1: Kiểm tra mã nguồn
-  - name: 'gcr.io/cloud-builders/git'
-    args: ['clone', 'https://github.com/NhanNguyen8080/capstone-project', 'Backend']
-  
-  # Bước 2: Xây dựng Docker image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/sport-442812/2sport-api', '-f', '2Sport_BE/Dockerfile', '.']
-    dir: 'Backend'
+steps:
+# Step 1: Build the Docker Image
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'asia-southeast1-docker.pkg.dev/sport-442812/twosportapi/my-build:prod1', '.' ] # Replace with your image path
 
-  # Bước 3: Đẩy Docker image lên Container Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/sport-442812/2sport-api']
-    dir: 'Backend'
+# Step 2: Push the image to the Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'push', 'asia-southeast1-docker.pkg.dev/sport-442812/twosportapi/my-build:prod1' ] # Replace with your image path
 
-images:
-  - 'gcr.io/sport-442812/2sport-api'
+
+# Step 3: Deployment to Cloud Run after image is pushed
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - 'run'
+  - 'deploy'
+  - 'two-sport-api-service'  # Replace with your service name
+  - '--image'
+  - 'asia-southeast1-docker.pkg.dev/sport-442812/twosportapi/my-build:prod1' # Replace with your image path
+  - '--region'
+  - 'asia-southeast1'  # You can change this if you want to deploy to a different region
+  - '--platform'
+  - 'managed'
+  # Optional: if you want to allow unauthenticated access
+  - '--allow-unauthenticated'
+  - '--vpc-connector'
+  - 'vpc-connector' # vpn connector name
+  - '--set-env-vars'
+  - 'REDISHOST=10.238.179.203,REDISPORT=6379' # Redis IP and Port 
