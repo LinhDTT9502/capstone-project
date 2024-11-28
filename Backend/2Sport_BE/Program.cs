@@ -55,7 +55,6 @@ var tokenValidationParameters = new TokenValidationParameters
 };
 
 builder.Services.AddSingleton(tokenValidationParameters);
-
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
