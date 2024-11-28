@@ -76,5 +76,6 @@ namespace _2Sport_BE.Repository.Models
         public virtual ICollection<Manager> Managers { get; set; }
         public virtual ICollection<Staff> Staffs { get; set; }
         public virtual ICollection<Customer> Customers { get; set; }
+        public virtual ICollection<CartItem> CartItems { get; set; }
     }
 }

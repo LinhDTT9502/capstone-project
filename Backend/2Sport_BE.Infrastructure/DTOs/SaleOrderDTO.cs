@@ -5,7 +5,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
 {
     public class ProductInfor
     {
-        public int? CartItemId { get; set; }
+        public Guid? CartItemId { get; set; }
         [Required]
         public int ProductId { get; set; }
         public string? ProductName { get; set; }

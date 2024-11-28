@@ -1,17 +1,16 @@
 ﻿using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
-using Hangfire.States;
-using Microsoft.EntityFrameworkCore;
+using _2Sport_BE.Services.Caching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace _2Sport_BE.Service.Services
+namespace _2Sport_BE.Service.Services.Caching
 {
-    public interface ICartItemService
+    public interface ICaCartItemWithRedisService
     {
         Task<IQueryable<CartItem>> GetCartItems(int userId, int pageIndex, int pageSize);
         Task<CartItem> GetCartItemByUserIdAndProductId(int userId, int productId);
@@ -19,22 +18,26 @@ namespace _2Sport_BE.Service.Services
 
         Task<CartItem> AddNewCartItem(int userId, CartItem cartItem);
         Task DeleteCartItem(Guid cartItemId);
-        Task ReduceCartItem(Guid cartItemId);
+        Task ReduceCartItem(int cartItemId);
         Task UpdateQuantityOfCartItem(Guid cartItemId, int quantity);
         Task<CartItem> AddExistedCartItem(CartItem newCartItem);
     }
-    public class CartItemService : ICartItemService
+    public class CartItemWithRedisService : ICaCartItemWithRedisService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly TwoSportCapstoneDbContext _dbContext;
+        private readonly IRedisCacheService _redisCacheService;
         private IGenericRepository<User> _userRepository;
         private IGenericRepository<CartItem> _cartItemRepository;
         private IGenericRepository<Product> _productRepository;
 
-        public CartItemService(IUnitOfWork unitOfWork, TwoSportCapstoneDbContext dbContext)
+        public CartItemWithRedisService(IUnitOfWork unitOfWork, 
+                                        IRedisCacheService redisCacheService,
+                                        TwoSportCapstoneDbContext dbContext)
         {
             _unitOfWork = unitOfWork;
             _dbContext = dbContext;
+            _redisCacheService = redisCacheService;
             _userRepository = _unitOfWork.UserRepository;
             _cartItemRepository = _unitOfWork.CartItemRepository;
             _productRepository = _unitOfWork.ProductRepository;
@@ -48,14 +51,14 @@ namespace _2Sport_BE.Service.Services
                 var user = await _unitOfWork.UserRepository.FindAsync(userId);
                 if (user != null)
                 {
-                    var product = (await _productRepository.GetAsync(_ => _.Id == cartItem.ProductId && 
+                    var product = (await _productRepository.GetAsync(_ => _.Id == cartItem.ProductId &&
                                                                     _.Status == true))
                                                            .FirstOrDefault();
                     cartItem.UserId = userId;
                     cartItem.ProductId = product.Id;
                     var totalPrice = product.Price * cartItem.Quantity;
                     cartItem.Price = totalPrice;
-                    await _cartItemRepository.InsertAsync(cartItem);
+                    _redisCacheService.SetData("CartItems", cartItem);
                     return cartItem;
                 }
                 else
@@ -116,31 +119,31 @@ namespace _2Sport_BE.Service.Services
                 if (deletedCartItem is not null)
                 {
                     await _cartItemRepository.DeleteAsync(deletedCartItem);
-                } else
+                }
+                else
                 {
                     Console.WriteLine("Remove cart item failed!");
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
         }
 
-        public async Task ReduceCartItem(Guid cartItemId)
+        public async Task ReduceCartItem(int cartItemId)
         {
-            var reducedCartItem = (await _cartItemRepository.GetAsync(_ => _.CartItemId.Equals(cartItemId)))
-                                                            .FirstOrDefault();
+            var reducedCartItem = await _cartItemRepository.FindAsync(cartItemId);
             if (reducedCartItem != null)
             {
                 var product = (await _unitOfWork.ProductRepository.GetAsync(_ => _.Id == reducedCartItem.ProductId)).FirstOrDefault();
                 reducedCartItem.Quantity -= 1;
                 reducedCartItem.Price -= product.Price;
+                await _unitOfWork.CartItemRepository.UpdateAsync(reducedCartItem);
                 if (reducedCartItem.Quantity == 0)
                 {
                     DeleteCartItem(reducedCartItem.CartItemId);
                 }
-                await _unitOfWork.CartItemRepository.UpdateAsync(reducedCartItem);
-                
             }
         }
 
@@ -171,6 +174,5 @@ namespace _2Sport_BE.Service.Services
             return queryCartItem;
 
         }
-
     }
 }
