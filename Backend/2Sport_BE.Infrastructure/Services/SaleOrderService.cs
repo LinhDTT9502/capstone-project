@@ -10,6 +10,8 @@ using _2Sport_BE.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Microsoft.EntityFrameworkCore;
 using MailKit.Search;
+using _2Sport_BE.Service.Enums;
+using _2Sport_BE.Service.Helpers;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -97,11 +99,12 @@ namespace _2Sport_BE.Infrastructure.Services
             saleOrder.SubTotal = saleCosts.SubTotal ?? (decimal)(productInformation.UnitPrice * productInformation.Quantity);
             saleOrder.TranSportFee = saleCosts.TranSportFee ?? 0;
             saleOrder.TotalAmount = saleCosts.TotalAmount.Value != null ? saleCosts.TotalAmount.Value : (decimal)(saleOrder.SubTotal + saleOrder.TranSportFee);
+
         }
         private void AssignCustomerInformation(SaleOrder saleOrder, CustomerInformation customerInformation)
         {
             if (customerInformation == null) return;
-            saleOrder.UserId = customerInformation.UserId ?? 0;
+            saleOrder.UserId = customerInformation.UserId;
             saleOrder.Email = customerInformation.Email;
             saleOrder.Gender = customerInformation.Gender;
             saleOrder.FullName = customerInformation.FullName;
@@ -148,17 +151,16 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.Message = "SaleOrders are not found";
                     return response;
                 }
-                var saleOrderVMs = new List<SaleOrderVM>();
-
-                foreach (var item in query)
+                var resultList = query.Select(saleOrder =>
                 {
-                    var saleOrderVM = MapSaleOrderToSaleOrderVM(item);
-                    saleOrderVMs.Add(saleOrderVM);
-                }
+                    var result = _mapper.Map<SaleOrderVM>(saleOrder);
+                    MapSaleOrderToSaleOrderVM(saleOrder, result);
+                    return result;
+                }).ToList();
 
                 response.IsSuccess = true;
                 response.Message = "Query successfully";
-                response.Data = saleOrderVMs;
+                response.Data = resultList;
                 return response;
 
             }
@@ -182,12 +184,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     return response;
                 }
 
-                var saleOrderVM = MapSaleOrderToSaleOrderVM(saleOrder);
-
-
-                response.IsSuccess = true;
-                response.Message = "Query successfully";
-                response.Data = saleOrderVM;
+                response = GenerateSuccessResponse(saleOrder, "Query Successfully");
                 return response;
 
             }
@@ -210,16 +207,16 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.Message = "SaleOrders are not found";
                     return response;
                 }
-                var saleOrderVMs = new List<SaleOrderVM>();
-
-                foreach (var item in query)
+                var resultList = query.Select(saleOrder =>
                 {
-                    var saleOrderVM = MapSaleOrderToSaleOrderVM(item);
-                    saleOrderVMs.Add(saleOrderVM);
-                }
+                    var result = _mapper.Map<SaleOrderVM>(saleOrder);
+                    MapSaleOrderToSaleOrderVM(saleOrder, result);
+                    return result;
+                }).ToList();
+
                 response.IsSuccess = true;
                 response.Message = "Query successfully";
-                response.Data = saleOrderVMs;
+                response.Data = resultList;
                 return response;
 
             }
@@ -250,17 +247,17 @@ namespace _2Sport_BE.Infrastructure.Services
                 {
                     query = query.Where(o => o.PaymentStatus == paymentStatus);
                 }
-                var saleOrderVMs = new List<SaleOrderVM>();
 
-                foreach (var item in query)
+                var resultList = query.Select(saleOrder =>
                 {
-                    var saleOrderVM = MapSaleOrderToSaleOrderVM(item);
-                    saleOrderVMs.Add(saleOrderVM);
-                }
+                    var result = _mapper.Map<SaleOrderVM>(saleOrder);
+                    MapSaleOrderToSaleOrderVM(saleOrder, result);
+                    return result;
+                }).ToList();
 
                 response.IsSuccess = true;
                 response.Message = "Query successfully";
-                response.Data = saleOrderVMs;
+                response.Data = resultList;
                 return response;
 
             }
@@ -376,36 +373,24 @@ namespace _2Sport_BE.Infrastructure.Services
         }
         public async Task<ResponseDTO<SaleOrderVM>> GetSaleOrderBySaleOrderCode(string SaleOrderCode)
         {
-            var response = new ResponseDTO<SaleOrderVM>();
             try
             {
                 var saleOder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.SaleOrderCode.Equals(SaleOrderCode), new string[] { "User", "OrderDetails" });
                 if (saleOder == null)
                 {
-                    response.IsSuccess = false;
-                    response.Message = "SaleOrders are not found";
-                    return response;
-                }
-
-                var result = MapSaleOrderToSaleOrderVM(saleOder);
-                response.IsSuccess = true;
-                response.Message = "Query successfully";
-                response.Data = result;
-                return response;
-
+                    return GenerateErrorResponse($"SaleOrder with code {SaleOrderCode} are not found");
+                } 
+                return GenerateSuccessResponse(saleOder, "Query Successfully");
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-                return response;
+                return GenerateErrorResponse(ex.Message);
             }
         }
         #endregion
         #region Create_Update_Delete_SaleOrder
         public async Task<ResponseDTO<SaleOrderVM>> CreateSaleOrderAsync(SaleOrderCM saleOrderCM)
         {
-            var response = new ResponseDTO<SaleOrderVM>();
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
@@ -477,17 +462,12 @@ namespace _2Sport_BE.Infrastructure.Services
 
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
-                    var result = MapSaleOrderToSaleOrderVM(saleOrder);
-
                     //Send notifications to Admmin
                     await _notificationService.NotifyForCreatingNewOrderAsync(saleOrder.SaleOrderCode);
                     await _mailService.SendSaleOrderInformationToCustomer(saleOrder, saleOrder.OrderDetails.ToList(), saleOrder.Email);
                     await transaction.CommitAsync();
 
-                    response.IsSuccess = true;
-                    response.Message = $"SaleOrder processed successfully";
-                    response.Data = result;
-                    return response;
+                    return GenerateSuccessResponse(saleOrder, $"SaleOrder processed successfully");
                 }
                 catch (Exception ex)
                 {
@@ -498,7 +478,6 @@ namespace _2Sport_BE.Infrastructure.Services
         }
         public async Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderAsync(int saleOrderId, SaleOrderUM saleOrderUM)
         {
-            var response = new ResponseDTO<SaleOrderVM>();
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
@@ -585,13 +564,8 @@ namespace _2Sport_BE.Infrastructure.Services
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(toUpdate);
 
                     await transaction.CommitAsync();
-                    //Return
-                    var result = MapSaleOrderToSaleOrderVM(toUpdate);
 
-                    response.IsSuccess = true;
-                    response.Message = $"Update SaleOrder processed successfully";
-                    response.Data = result;
-                    return response;
+                    return GenerateSuccessResponse(toUpdate, $"Update SaleOrder processed successfully");
                 }
                 catch (Exception ex)
                 {
@@ -600,71 +574,20 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
             }
         }
-        private SaleOrderVM MapSaleOrderToSaleOrderVM(SaleOrder saleOrder)
+        private void MapSaleOrderToSaleOrderVM(SaleOrder saleOrder, SaleOrderVM saleOrderVM)
         {
-            var result = _mapper.Map<SaleOrderVM>(saleOrder);
-            result.PaymentStatus = Enum.GetName((PaymentStatus)saleOrder.PaymentStatus);
-            result.OrderStatus = Enum.GetName((OrderStatus)saleOrder.OrderStatus);
-            result.PaymentMethod = saleOrder.PaymentMethodId.HasValue
+            saleOrderVM.PaymentStatus = saleOrder.PaymentStatus != null
+                ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(saleOrder.PaymentStatus.Value)
+                : "N/A";
+            saleOrderVM.OrderStatus = saleOrder.OrderStatus != null
+              ? EnumDisplayHelper.GetEnumDescription<RentalOrderStatus>(saleOrder.OrderStatus.Value)
+              : "N/A";
+            saleOrderVM.PaymentMethod = saleOrder.PaymentMethodId.HasValue
                                 ? Enum.GetName(typeof(OrderMethods), saleOrder.PaymentMethodId.Value)
                                 : "Unknown PaymentMethod";
-            result.SaleOrderId = saleOrder.Id;
-
-            result.SaleOrderDetailVMs = saleOrder.OrderDetails.Select(od => new SaleOrderDetailVM()
-            {
-                ProductId = od.ProductId,
-                ProductName = od.ProductName,
-                UnitPrice = od.UnitPrice,
-                Quantity = od.Quantity,
-                TotalPrice = od.TotalAmount,
-                ImgAvatarPath = od.ImgAvatarPath,
-            }).ToList();
-            return result;
+            saleOrderVM.DeliveryMethod = _deliveryMethodService.GetDescription(saleOrder.DeliveryMethod);
         }
         #endregion
-        public async Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderStatusAsync(int id, int orderStatus)
-        {
-            var response = new ResponseDTO<SaleOrderVM>();
-            try
-            {
-                var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == id);
-                if (saleOrder == null)
-                {
-                    response = GenerateErrorResponse($"SaleOrder with id = {id} is not found!");
-                    return response;
-                }
-
-                saleOrder.OrderStatus = orderStatus;
-                await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
-
-                response.IsSuccess = true;
-                response.Data = MapSaleOrderToSaleOrderVM(saleOrder);
-
-                if (saleOrder.OrderStatus == (int)OrderStatus.COMPLETED)
-                {
-                    var loyaltyUpdateResponse = await _customerDetailService.UpdateLoyaltyPoints(saleOrder.Id);
-                    if (loyaltyUpdateResponse.IsSuccess)
-                    {
-                        response.Message = "Order status updated and loyalty points awarded successfully.";
-                    }
-                    else
-                    {
-                        response.Message = "Order status updated, but there was an error updating loyalty points.";
-                    }
-                }
-                else
-                {
-                    response.Message = "Order status updated successfully.";
-                }
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                response = GenerateErrorResponse(ex.Message);
-                return response;
-            }
-        }
         public async Task<ResponseDTO<int>> DeleteSaleOrderAsync(int id)
         {
             var response = new ResponseDTO<int>();
@@ -718,6 +641,34 @@ namespace _2Sport_BE.Infrastructure.Services
             await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
             return 1;
         }
+        public async Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderStatusAsync(int id, int orderStatus)
+        {
+            try
+            {
+                var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == id, new string[] {"OrderDetails" } );
+                if (saleOrder == null) return GenerateErrorResponse($"SaleOrder with id = {id} is not found!");
+
+                saleOrder.OrderStatus = orderStatus;
+                await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
+
+                string message = "";
+
+                if (saleOrder.OrderStatus == (int)OrderStatus.COMPLETED)
+                {
+                    var loyaltyUpdateResponse = await _customerDetailService.UpdateLoyaltyPoints(saleOrder.Id);
+                    if (loyaltyUpdateResponse.IsSuccess) message = "Order status updated and loyalty points awarded successfully.";
+                    else message = "Order status updated, but there was an error updating loyalty points.";
+
+                }
+                else message = "Order status updated successfully.";
+
+                return GenerateSuccessResponse(saleOrder, message);
+            }
+            catch (Exception ex)
+            {
+                return GenerateErrorResponse(ex.Message);
+            }
+        }
         public async Task<bool> UpdatePaymentStatusOfSaleOrder(string orderCode, int paymentStatus)
         {
             bool response = false;
@@ -743,6 +694,45 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
         #endregion
+        private ResponseDTO<SaleOrderVM> GenerateSuccessResponse(SaleOrder order, string messagge)
+        {
+            var result = _mapper.Map<SaleOrderVM>(order);
+
+            result.OrderStatus = order.OrderStatus != null
+                ? EnumDisplayHelper.GetEnumDescription<RentalOrderStatus>(order.OrderStatus.Value)
+                : "N/A";
+
+            result.PaymentStatus = order.PaymentStatus != null
+                ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(order.PaymentStatus.Value)
+                : "N/A";
+            
+
+            result.DeliveryMethod = _deliveryMethodService.GetDescription(order.DeliveryMethod);
+
+            if (order.OrderDetails.Any())
+            {
+                result.SaleOrderDetailVMs = order.OrderDetails.Select(od => new SaleOrderDetailVM()
+                {
+                    ProductId = od.ProductId,
+                    ProductName = od.ProductName,
+                    UnitPrice = od.UnitPrice,
+                    Quantity = od.Quantity,
+                    TotalAmount = od.TotalAmount,
+                    ImgAvatarPath = od.ImgAvatarPath,
+                    ProductCode = od.ProductCode,
+                    Color = od.Color,
+                    Condition = od.Condition,
+                    Size = od.Size,
+                }).ToList();
+            }
+
+            return new ResponseDTO<SaleOrderVM>
+            {
+                IsSuccess = true,
+                Message = messagge,
+                Data = result
+            };
+        }
         private ResponseDTO<SaleOrderVM> GenerateErrorResponse(string message)
         {
             return new ResponseDTO<SaleOrderVM>()
@@ -803,16 +793,17 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.Message = "SaleOrders are not found";
                     return response;
                 }
-                var saleOrderVMs = new List<SaleOrderVM>();
 
-                foreach (var item in query)
+                var resultList = query.Select(saleOrder =>
                 {
-                    var saleOrderVM = MapSaleOrderToSaleOrderVM(item);
-                    saleOrderVMs.Add(saleOrderVM);
-                }
+                    var result = _mapper.Map<SaleOrderVM>(saleOrder);
+                    MapSaleOrderToSaleOrderVM(saleOrder, result);
+                    return result;
+                }).ToList();
+
                 response.IsSuccess = true;
                 response.Message = "Query successfully";
-                response.Data = saleOrderVMs;
+                response.Data = resultList;
                 return response;
 
             }
@@ -825,16 +816,12 @@ namespace _2Sport_BE.Infrastructure.Services
         }
         public async Task<ResponseDTO<SaleOrderVM>> ApproveSaleOrderAsync(int orderId)
         {
-            var response = new ResponseDTO<SaleOrderVM>();
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
                     var SaleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId, new string[] { "OrderDetails" });
-                    if (SaleOrder == null)
-                    {
-                        return GenerateErrorResponse($"SaleOrder with id = {orderId} is not found!");
-                    }
+                    if (SaleOrder == null) return GenerateErrorResponse($"SaleOrder with id = {orderId} is not found!");
                     else
                     {
                         if (SaleOrder.OrderStatus == (int)OrderStatus.CONFIRMED)
@@ -855,12 +842,9 @@ namespace _2Sport_BE.Infrastructure.Services
                         }
 
                         await _unitOfWork.SaleOrderRepository.UpdateAsync(SaleOrder);
+                        await transaction.CommitAsync(); 
 
-                        await transaction.CommitAsync();
-
-                        response.IsSuccess = true;
-                        response.Message = $"Approving SaleOrder with id = {orderId} successfully";
-                        response.Data = MapSaleOrderToSaleOrderVM(SaleOrder);
+                        return GenerateSuccessResponse(SaleOrder, $"Approving SaleOrder with id = {orderId} successfully");
                     }
                 }
                 catch (Exception ex)
@@ -869,11 +853,9 @@ namespace _2Sport_BE.Infrastructure.Services
                     return GenerateErrorResponse(ex.Message);
                 }
             }
-            return response;
         }
         public async Task<ResponseDTO<SaleOrderVM>> RejectSaleOrderAsync(int orderId)
         {
-            var response = new ResponseDTO<SaleOrderVM>();
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
                 try
@@ -891,21 +873,18 @@ namespace _2Sport_BE.Infrastructure.Services
                         SaleOrder.BranchId = null;
 
                         await _unitOfWork.SaleOrderRepository.UpdateAsync(SaleOrder);
-
                         await transaction.CommitAsync();
 
-                        response.IsSuccess = true;
-                        response.Message = $"Rejecting SaleOrder with id = {orderId} successfully";
-                        response.Data = MapSaleOrderToSaleOrderVM(SaleOrder);
+                        return GenerateSuccessResponse(SaleOrder, $"Rejecting SaleOrder with id = {orderId} successfully");
                     }
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
                     return GenerateErrorResponse(ex.Message);
-                }
+                }  
             }
-            return response;
+
         }
     }
 }

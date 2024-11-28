@@ -242,8 +242,12 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.Message = "User not found!";
                     return response;
                 }
-                existingUser = _mapper.Map(profile, existingUser);
+                existingUser.FullName = profile.FullName;
+                existingUser.Gender = profile.Gender;
+                existingUser.PhoneNumber = profile.Phone;
+                existingUser.Address = profile.Address;
                 existingUser.UpdatedAt = DateTime.UtcNow;
+
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
                 response.IsSuccess = true;
                 response.Message = "User updated successfully.";

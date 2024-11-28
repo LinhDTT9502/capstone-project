@@ -22,6 +22,11 @@ namespace _2Sport_BE.Helpers
             CreateMap<RefundRequest, RefundRequestUM>();
             CreateMap<RefundRequestUM, RefundRequest>();
             #endregion
+            #region SaleOrder
+            CreateMap<SaleOrderCM, SaleOrder>();
+            CreateMap<SaleOrderUM, SaleOrder>();
+            CreateMap<SaleOrder, SaleOrderVM>();
+            #endregion
             #region RentalOrder
             CreateMap<RentalOrder, RentalOrderVM>();
             #endregion
@@ -94,11 +99,6 @@ namespace _2Sport_BE.Helpers
             CreateMap<PaymentMethod, PaymentMethodVM>();
             CreateMap<PaymentMethod, PaymentMethodUM>();
             CreateMap<PaymentMethodUM, PaymentMethod>();
-            #endregion
-            #region SaleOrder
-            CreateMap<SaleOrderCM, SaleOrder>();
-            CreateMap<SaleOrderUM, SaleOrder>();
-            CreateMap<SaleOrder, SaleOrderVM>();
             #endregion
             #region OrderDetail
             CreateMap<OrderDetail, SaleOrderDetailVM>();

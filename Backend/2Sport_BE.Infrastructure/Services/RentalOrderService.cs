@@ -141,7 +141,7 @@ namespace _2Sport_BE.Infrastructure.Services
         private void AssignCustomerInformation(RentalOrder rentalOrder, CustomerInformation customerInformation)
         {
             if (customerInformation == null) return;
-            rentalOrder.UserId = customerInformation.UserId ?? 0;
+            rentalOrder.UserId = customerInformation.UserId;
             rentalOrder.Email = customerInformation.Email;
             rentalOrder.Gender = customerInformation.Gender;
             rentalOrder.FullName = customerInformation.FullName;
@@ -156,7 +156,7 @@ namespace _2Sport_BE.Infrastructure.Services
         //Update For creating or returning
         private async Task<bool> UpdateStock(ProductInformation productInformation, int branchId, bool isReturningStock)
         {
-            var warehouse = await  _unitOfWork.WarehouseRepository
+            var warehouse = await _unitOfWork.WarehouseRepository
                 .GetObjectAsync(w => w.ProductId == productInformation.ProductId && w.BranchId == branchId);
 
             if (warehouse == null || warehouse.TotalQuantity < productInformation.Quantity || warehouse.AvailableQuantity < productInformation.Quantity)
@@ -254,7 +254,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     string parentOrderCode = rentalOrder.RentalOrderCode;
 
                     if (rentalOrderCM.ProductInformations.Count == 1) // Create only 1 order
-                    {                     
+                    {
                         foreach (var item in rentalOrderCM.ProductInformations)
                         {
 
@@ -294,9 +294,9 @@ namespace _2Sport_BE.Infrastructure.Services
                     else if (rentalOrderCM.ProductInformations.Count > 1)//Parent order and child order
                     {
                         var branch = rentalOrderCM.BranchId != null ? await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == rentalOrderCM.BranchId) : null;
-                        if(branch != null)
+                        if (branch != null)
                         {
-                            AssignBranchInformation (rentalOrder, branch);
+                            AssignBranchInformation(rentalOrder, branch);
                         }
 
                         decimal? parentSubtotal = 0;
@@ -321,7 +321,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                             AssignRentalProduct(itemCM, childRentalOrder);
                             AssignRentalDates(childRentalOrder, itemCM.RentalDates);
- 
+
                             if (branch != null)
                             {
                                 AssignBranchInformation(childRentalOrder, branch);
@@ -422,7 +422,7 @@ namespace _2Sport_BE.Infrastructure.Services
                             }
                             else // (== productCode, != ProductId)
                             {
-                                var product = _unitOfWork.ProductRepository.FindObject(p => p.Id == item.ProductId &&  p.ProductCode == item.ProductCode);
+                                var product = _unitOfWork.ProductRepository.FindObject(p => p.Id == item.ProductId && p.ProductCode == item.ProductCode);
                                 if (parentOrder.BranchId != null)
                                 {
                                     //cập nhật lại available quantity với sản phẩm của order ban đầu
@@ -443,9 +443,9 @@ namespace _2Sport_BE.Infrastructure.Services
                                 newProductInWarehouse.AvailableQuantity -= item.Quantity;
                                 await _unitOfWork.WarehouseRepository.UpdateAsync(newProductInWarehouse);
                             }
-                                AssignRentalProduct(item, parentOrder);
-                                AssignRentalDates(parentOrder, item.RentalDates);
-                                AssignRentalCost(parentOrder, item);
+                            AssignRentalProduct(item, parentOrder);
+                            AssignRentalDates(parentOrder, item.RentalDates);
+                            AssignRentalCost(parentOrder, item);
                         }
                         await _unitOfWork.RentalOrderRepository.UpdateAsync(parentOrder);
                     }
@@ -454,8 +454,8 @@ namespace _2Sport_BE.Infrastructure.Services
                         var childOrders = await _unitOfWork.RentalOrderRepository.GetAndIncludeAsync(o => o.ParentOrderCode.Equals(parentOrder.RentalOrderCode));
                         if (rentalOrderUM.ProductInformations.Count != childOrders.ToList().Count || rentalOrderUM.ProductInformations.Count == 0)
                             return GenerateErrorResponse($"The number of items are not match with the number of items in Child Orders!");
-                        
-                        for(var i = 0; i < rentalOrderUM.ProductInformations.Count; i++)
+
+                        for (var i = 0; i < rentalOrderUM.ProductInformations.Count; i++)
                         {
                             var itemUm = rentalOrderUM.ProductInformations[i];
                             // Lấy lại existingChild trong mỗi vòng lặp để làm việc với đối tượng mới nhất
@@ -572,7 +572,7 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             return response;
         }
-        
+
         private ResponseDTO<RentalOrderVM> GenerateSuccessResponse(RentalOrder order, List<RentalOrder>? listChild, string messagge)
         {
             var result = _mapper.Map<RentalOrderVM>(order);
@@ -663,7 +663,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 var listChild = await _unitOfWork.RentalOrderRepository.GetAsync(r => r.ParentOrderCode == rentalOrder.RentalOrderCode);
                 if (rentalOrder != null)
                 {
-                    if(listChild.Count() > 0) response = GenerateSuccessResponse(rentalOrder, listChild.ToList(), "Query Successfully");
+                    if (listChild.Count() > 0) response = GenerateSuccessResponse(rentalOrder, listChild.ToList(), "Query Successfully");
                     else response = GenerateSuccessResponse(rentalOrder, null, "Query Successfully");
                 }
                 else
@@ -689,7 +689,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(
                     r => r.RentalOrderCode == orderCode
                 );
-                    
+
                 var listChild = await _unitOfWork.RentalOrderRepository.GetAsync(r => r.ParentOrderCode == rentalOrder.RentalOrderCode);
                 if (rentalOrder != null)
                 {
@@ -720,10 +720,16 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 if (orders != null && orders.Any())
                 {
-                    var result = _mapper.Map<List<RentalOrderVM>>(orders);
+                    var resultList = orders.Select(rentalOrder =>
+                    {
+                        var result = _mapper.Map<RentalOrderVM>(rentalOrder);
+                        MapToRentalOrderVM(rentalOrder, result);
+                        return result;
+                    }).ToList();
+
                     response.IsSuccess = true;
                     response.Message = "Orders retrieved successfully";
-                    response.Data = result;
+                    response.Data = resultList;
                 }
                 else
                 {
@@ -852,7 +858,7 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             return response;
         }
-        
+
         public async Task<ResponseDTO<RentalOrderVM>> ReturnOrder(ParentOrderReturnModel rentalInfor)
         {
             var parentOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id.Equals(rentalInfor.ParentOrderId));
@@ -1079,7 +1085,7 @@ namespace _2Sport_BE.Infrastructure.Services
                             productInWarehouse.AvailableQuantity -= rentalOrder.Quantity;
                             await _warehouseService.UpdateWarehouseAsync(productInWarehouse);
                         }
-                        
+
 
                         await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 

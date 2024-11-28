@@ -49,28 +49,48 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public RentalCosts SaleCosts { get; set; }
 
     }
-    public class SaleOrderVM 
+    public class SaleOrderVM
     {
-        public int SaleOrderId { get; set; }
-        public string? SaleOrderCode { get; set; }
+        public int Id { get; set; }
+
+        #region CustomerInformation
         public int? UserId { get; set; }
+        public string Email { get; set; }
         public string FullName { get; set; }
         public string Gender { get; set; }
-        public string Email { get; set; }
         public string ContactPhone { get; set; }
         public string Address { get; set; }
-        public string DeliveryMethod { get; set; }
-        public string? PaymentMethod { get; set; }
+        #endregion
+
+        #region BranchInformation
         public int? BranchId { get; set; }
+        public string? BranchName { get; set; }
+
+        #endregion
+
+        #region OrderInformation
+        public string? SaleOrderCode { get; set; }
+        public DateTime? DateOfReceipt { get; set; }
         public decimal? SubTotal { get; set; }
         public decimal? TranSportFee { get; set; }
         public decimal TotalAmount { get; set; }
-        public DateTime? DateOfReceipt { get; set; }
-        public string? Note { get; set; }
+        public string DeliveryMethod { get; set; }
         public string? OrderStatus { get; set; }
+        public string? Note { get; set; }
+        #endregion
+
+        #region PaymentInformation
+        public int? PaymentMethodId { get; set; }
         public string? PaymentStatus { get; set; }
+
+        #endregion
+
+        #region AuditInformation
         public DateTime? CreatedAt { get; set; }
-        public string? PaymentLink  { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        #endregion  
+        public string? PaymentMethod { get; set; }
+        public string? PaymentLink { get; set; }
         public List<SaleOrderDetailVM> SaleOrderDetailVMs { get; set; }
     }
     public class RevenueVM
