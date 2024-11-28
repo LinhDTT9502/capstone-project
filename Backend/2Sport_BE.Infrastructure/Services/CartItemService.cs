@@ -134,11 +134,12 @@ namespace _2Sport_BE.Service.Services
                 var product = (await _unitOfWork.ProductRepository.GetAsync(_ => _.Id == reducedCartItem.ProductId)).FirstOrDefault();
                 reducedCartItem.Quantity -= 1;
                 reducedCartItem.Price -= product.Price;
-                await _unitOfWork.CartItemRepository.UpdateAsync(reducedCartItem);
                 if (reducedCartItem.Quantity == 0)
                 {
                     DeleteCartItem(reducedCartItem.CartItemId);
                 }
+                await _unitOfWork.CartItemRepository.UpdateAsync(reducedCartItem);
+                
             }
         }
 
