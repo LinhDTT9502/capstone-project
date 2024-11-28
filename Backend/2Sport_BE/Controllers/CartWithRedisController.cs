@@ -53,7 +53,7 @@ namespace _2Sport_BE.Controllers
                 {
                     return Unauthorized();
                 }
-                var query = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey);
+                var query = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey) ?? new List<CartItem>();
                 //var query = await _cartItemService.GetCartItems(userId, defaultSearch.currentPage, defaultSearch.perPage);
                 if (query != null)
                 {
