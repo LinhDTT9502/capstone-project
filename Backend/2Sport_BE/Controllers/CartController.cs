@@ -160,7 +160,7 @@ namespace _2Sport_BE.Controllers
 
         [HttpPut]
         [Route("reduce-cart/{cartItemId}")]
-        public async Task<IActionResult> ReduceCart(int cartItemId)
+        public async Task<IActionResult> ReduceCart(Guid cartItemId)
         {
             try
             {
