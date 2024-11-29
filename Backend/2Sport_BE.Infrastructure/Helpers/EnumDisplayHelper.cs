@@ -36,10 +36,17 @@ namespace _2Sport_BE.Service.Helpers
         { RentalOrderStatus.CANCELLED, "Đã hủy" },
         { RentalOrderStatus.EXTEND, "Gia hạn" },
 
-         { DepositStatus.Paid, "Đã thanh toán" },
-        { DepositStatus.Partially_Paid, "Đã thanh toán một phần" },
+        { DepositStatus.Paid, "Đã thanh toán" },
+        { DepositStatus.Partially_Paid, "Đã thanh toán cọc 50%" },
         { DepositStatus.Not_Paid, "Chưa thanh toán" },
-        { DepositStatus.Refunded, "Đã hoàn trả" }
+        { DepositStatus.Refunded, "Đã hoàn trả" },
+        { DepositStatus.Pending, "Đang chờ thanh toán" },
+        { DepositStatus.Partially_Pending, "Đang chờ thanh toán cọc 50%" },
+
+        { OrderMethods.COD, "Giao hàng thu tiền hộ - COD" },
+        { OrderMethods.PayOS, "Quét mã QR - PayOs" },
+        { OrderMethods.VnPay, "Giao dịch trực tuyến - VnPay" },
+        { OrderMethods.BankTransfer, "Chuyển khoản ngân hàng" }
     };
 
         public static string GetDisplayName(Enum enumValue)
@@ -56,7 +63,7 @@ namespace _2Sport_BE.Service.Helpers
                     return description;
                 }
             }
-            return "N/A"; // Trả về "N/A" nếu không tìm thấy mô tả
+            return "N/A";
         }
     }
 }

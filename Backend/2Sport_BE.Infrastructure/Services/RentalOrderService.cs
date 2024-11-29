@@ -573,7 +573,7 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
 
-        private ResponseDTO<RentalOrderVM> GenerateSuccessResponse(RentalOrder order, List<RentalOrder>? listChild, string messagge)
+        public ResponseDTO<RentalOrderVM> GenerateSuccessResponse(RentalOrder order, List<RentalOrder>? listChild, string messagge)
         {
             var result = _mapper.Map<RentalOrderVM>(order);
             result.DepositStatus = order.DepositStatus != null
@@ -595,7 +595,7 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             else
             {
-                result.listChild = _mapper.Map<List<RentalOrderVM>>(listChild);
+                result.childOrders = _mapper.Map<List<RentalOrderVM>>(listChild);
 
             }
             return new ResponseDTO<RentalOrderVM>
@@ -605,7 +605,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 Data = result
             };
         }
-        private ResponseDTO<RentalOrderVM> GenerateErrorResponse(string message)
+        public ResponseDTO<RentalOrderVM> GenerateErrorResponse(string message)
         {
             return new ResponseDTO<RentalOrderVM>()
             {
@@ -719,7 +719,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     .GetAsync(o => o.UserId == userId);
 
                 if (orders != null && orders.Any())
-                {
+                {             
                     var resultList = orders.Select(rentalOrder =>
                     {
                         var result = _mapper.Map<RentalOrderVM>(rentalOrder);

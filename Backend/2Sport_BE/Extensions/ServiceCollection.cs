@@ -67,6 +67,7 @@ namespace _2Sport_BE.Extensions
             #region Order_Services
             //SaleOrder
             services.AddScoped<ISaleOrderService, SaleOrderService>();
+            services.AddScoped<SaleOrderService>();
             services.AddScoped<IOrderDetailService, OrderDetailService>();
             //RentalOrder
             services.AddScoped<IRentalOrderService, RentalOrderService>();
