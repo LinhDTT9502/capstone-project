@@ -221,6 +221,14 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
                 var cartItem = await _cartItemService.GetCartItemById(cartItemId);
+                if (cartItem is null)
+                {
+                    return BadRequest("The cart is not exist!");
+                }
+                if ((await _warehouseService.GetWarehouseByProductId(cartItem.ProductId)) is null)
+                {
+                    return BadRequest("The warehouse is not exist!");
+                }
                 var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(cartItem.ProductId))
                         .FirstOrDefault().AvailableQuantity;
                 if (cartItem.Quantity > quantityOfProduct)

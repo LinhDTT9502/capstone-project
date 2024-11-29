@@ -62,6 +62,10 @@ namespace _2Sport_BE.Controllers
                     {
                         foreach (var carItem in cartItems)
                         {
+                            if (carItem.Quantity == 0)
+                            {
+                                await DeleteCartItem(carItem.CartItemId);
+                            }
                             var product = await _unitOfWork.ProductRepository.FindAsync(carItem.ProductId);
                             carItem.ProductName = product.ProductName;
                             carItem.ProductCode = product.ProductCode;
@@ -255,6 +259,53 @@ namespace _2Sport_BE.Controllers
                 }
                 _redisCacheService.SetData(_cartItemsKey, listCartItems);
                 return Ok($"Update quantity cart item with id: {cartItemId}");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPut]
+        [Route("update-product-cart-item/{cartItemId}")]
+        public async Task<IActionResult> UpdateProductOfCart(Guid cartItemId, [FromQuery] int productId)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
+                var listCartItems = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey)
+                                                                ?? new List<CartItem>();
+
+                var cartItem = listCartItems.Find(_ => _.CartItemId.Equals(cartItemId));
+                if (cartItem is null)
+                {
+                    return BadRequest("The cart is not exist!");
+                }
+                if ((await _warehouseService.GetWarehouseByProductId(cartItem.ProductId)) is null)
+                {
+                    return BadRequest("The warehouse is not exist!");
+                }
+
+                var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(cartItem.ProductId))
+                        .FirstOrDefault().AvailableQuantity;
+                if (cartItem.Quantity > quantityOfProduct)
+                {
+                    return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
+                }
+                var existedProduct = await _productService.GetProductById(productId);
+                if (existedProduct == null)
+                {
+                    return BadRequest("This product is not existed!");
+                }
+                await _cartItemService.UpdateProductIdOfCartItem(cartItemId, productId);
+                cartItem.ProductId = productId;
+                _redisCacheService.SetData(_cartItemsKey, listCartItems);
+                return Ok($"Updated productId in cart item with id: {cartItemId}");
             }
             catch (Exception ex)
             {
