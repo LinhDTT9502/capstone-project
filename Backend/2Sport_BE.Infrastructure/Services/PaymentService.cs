@@ -383,8 +383,8 @@ namespace _2Sport_BE.Infrastructure.Services
     }
     public interface IVnPayService
     {
-        Task<ResponseDTO<PaymentResponseModel>> PaymentRentalOrderExecute(IQueryCollection collections);
-        Task<ResponseDTO<PaymentResponseModel>> PaymentSaleOrderExecute(IQueryCollection collections);
+        Task<ResponseDTO<RentalOrderVM>> PaymentRentalOrderExecute(IQueryCollection collections);
+        Task<ResponseDTO<SaleOrderVM>> PaymentSaleOrderExecute(IQueryCollection collections);
 
         public string QueryTransaction(string orderCode, DateTime payDate, HttpContext context);
     }
@@ -401,17 +401,23 @@ namespace _2Sport_BE.Infrastructure.Services
         private readonly ISaleOrderService _saleOrderService;
         private readonly IRentalOrderService _rentalOrderService;
         private readonly IMethodHelper _methodHelper;
+        private readonly SaleOrderService saleOrderService;
+        private readonly RentalOrderService rentalOrderService;
         public VnPayPaymentService(IUnitOfWork unitOfWork,
             IConfiguration configuration,
             ISaleOrderService saleOrderService,
             IRentalOrderService rentalOrderService,
-            IMethodHelper methodHelper)
+            IMethodHelper methodHelper,
+            RentalOrderService rentalOrderService1,
+            SaleOrderService saleOrderService1)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _saleOrderService = saleOrderService;
             _rentalOrderService = rentalOrderService;
             _methodHelper = methodHelper;
+            this.rentalOrderService = rentalOrderService1;
+            this.saleOrderService = saleOrderService1;
         }
 
         public async Task<ResponseDTO<string>> ProcessSaleOrderPayment(int orderId, HttpContext context)
@@ -491,11 +497,15 @@ namespace _2Sport_BE.Infrastructure.Services
                 Message = "Generate payment string"
             };
         }
-        public async Task<ResponseDTO<PaymentResponseModel>> PaymentSaleOrderExecute(IQueryCollection collections)
+        public async Task<ResponseDTO<SaleOrderVM>> PaymentSaleOrderExecute(IQueryCollection collections)
         {
             var pay = new VnPayLibrary();
             var response = pay.GetFullResponseData(collections, _configuration["Vnpay:HashSecret"]);
             var isUpdated = false;
+
+            var order = _unitOfWork.SaleOrderRepository.FindObject(o => o.SaleOrderCode == response.Data.OrderCode);
+            if (order == null) return saleOrderService.GenerateErrorResponse("Order not found!");
+
             if (response.IsSuccess)
             {
                 if (response.Data.VnPayResponseCode == "00")
@@ -504,41 +514,23 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 isUpdated = await _saleOrderService.UpdatePaymentStatusOfSaleOrder(response.Data.OrderCode, (int)PaymentStatus.IsCanceled);
             }
-            if (isUpdated)
-            {
-                return response;
-            }
-            return new ResponseDTO<PaymentResponseModel>()
-            {
-                IsSuccess = false,
-                Message = "Update Payment Status Failed"
-            };
+            if (isUpdated) return saleOrderService.GenerateSuccessResponse(order, "Payment status updated successfully.");
+
+            return saleOrderService.GenerateErrorResponse("Failed to update payment status.");
         }
-        public async Task<ResponseDTO<PaymentResponseModel>> PaymentRentalOrderExecute(IQueryCollection collections)
+        public async Task<ResponseDTO<RentalOrderVM>> PaymentRentalOrderExecute(IQueryCollection collections)
         {
             var vnPayLib = new VnPayLibrary();
             var response = vnPayLib.GetFullResponseData(collections, _configuration["Vnpay:HashSecret"]);
 
             if (response == null || response.Data == null)
             {
-                return new ResponseDTO<PaymentResponseModel>
-                {
-                    IsSuccess = false,
-                    Message = "Invalid response data!",
-                    Data = null
-                };
+                return rentalOrderService.GenerateErrorResponse("Invalid response data!");
             }
 
             var order = _unitOfWork.RentalOrderRepository.FindObject(o => o.RentalOrderCode == response.Data.OrderCode);
-            if (order == null)
-            {
-                return new ResponseDTO<PaymentResponseModel>
-                {
-                    IsSuccess = false,
-                    Message = "Order not found!",
-                    Data = null
-                };
-            }
+            if (order == null) return rentalOrderService.GenerateErrorResponse("Order not found!");
+
 
             // Determine deposit status based on the response code
             DepositStatus newDepositStatus = response.Data.VnPayResponseCode == "00"
@@ -557,22 +549,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 (int)paymentStatus
             );
 
-            if (isUpdated)
-            {
-                return new ResponseDTO<PaymentResponseModel>
-                {
-                    IsSuccess = true,
-                    Message = "Payment status updated successfully.",
-                    Data = response.Data
-                };
-            }
+            if (isUpdated) return rentalOrderService.GenerateSuccessResponse(order, null, "Payment status updated successfully.");
 
-            return new ResponseDTO<PaymentResponseModel>
-            {
-                IsSuccess = false,
-                Message = "Failed to update payment status.",
-                Data = null
-            };
+            return rentalOrderService.GenerateErrorResponse("Failed to update payment status.");
         }
 
         public string QueryTransaction(string orderCode, DateTime payDate, HttpContext context)

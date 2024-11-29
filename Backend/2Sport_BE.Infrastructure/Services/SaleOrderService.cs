@@ -210,6 +210,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 var resultList = query.Select(saleOrder =>
                 {
                     var result = _mapper.Map<SaleOrderVM>(saleOrder);
+                    result.SaleOrderDetailVMs = _mapper.Map<List<SaleOrderDetailVM>> (saleOrder.OrderDetails.ToList());
                     MapSaleOrderToSaleOrderVM(saleOrder, result);
                     return result;
                 }).ToList();
