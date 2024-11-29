@@ -109,10 +109,10 @@ namespace _2Sport_BE.Controllers
                 return StatusCode(500, response);
             }
             foreach (var item in orderCM.ProductInformations)
-            {   
-                if (item.CartItemId != null || item.CartItemId != 0)
+            {
+                if (item.CartItemId.HasValue && item.CartItemId.Value != Guid.Empty)
                 {
-                    await _cartItemService.DeleteCartItem(item.CartItemId);
+                    await _cartItemService.DeleteCartItem(item.CartItemId.Value);
                 }
             }
             return Ok(response);

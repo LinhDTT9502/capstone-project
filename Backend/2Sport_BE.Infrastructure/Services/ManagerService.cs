@@ -4,6 +4,7 @@ using _2Sport_BE.Repository.Models;
 using AutoMapper;
 using _2Sport_BE.Infrastructure.Enums;
 using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.IdentityModel.Tokens;
 namespace _2Sport_BE.Infrastructure.Services
 {
     public interface IManagerService
@@ -34,17 +35,51 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<ManagerVM>();
             try
             {
+                var user = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id ==  managerCM.UserId);
+                if(user == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"User with userId = {managerCM.UserId} cannot found";
+                    return response;
+                }
+                if(user.RoleId != (int)UserRole.Manager && user.RoleId != (int)UserRole.Staff)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"User with roleId = {user.RoleId} cannot be a manager";
+                    return response;
+                }
+                var branch = await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == managerCM.BranchId);
+                if(branch == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"Branch with branchId = {managerCM.UserId} cannot found";
+                    return response;
+                }
+                var managers = await _unitOfWork.ManagerRepository. GetObjectAsync(m => m .BranchId == branch.Id && (m.IsActive == true || m.EndDate == null) );
+
+                if (managers != null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"The Branch with branchId {managerCM.BranchId} already has a manager";
+                    return response;
+                }
                 var manager = await _unitOfWork.ManagerRepository
                     .GetObjectAsync(m => m.UserId == managerCM.UserId);
-                if(manager == null)
+                if(manager != null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"The manager with userId {manager.UserId} are existed";
+                    response.Data = null;
+                }
+                if (manager == null)
                 {
                     manager = new Manager()
                     {
                         UserId = managerCM.UserId,
                         BranchId = managerCM.BranchId,
                         StartDate = managerCM.StartDate,
-                        EndDate = managerCM.EndDate ?? null,
-                        IsActive = true
+                        IsActive = true,
+                        
                     };
                     await _unitOfWork.ManagerRepository.InsertAsync(manager);
                     await _unitOfWork.SaveChanges();
@@ -55,10 +90,39 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.Data = result;
 
                 }
+                
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public async Task<ResponseDTO<ManagerVM>> UpdateManagerAsync(int managerId, ManagerUM managerUM)
+        {
+            var response = new ResponseDTO<ManagerVM>();
+            try
+            {
+                var manager = await _unitOfWork.ManagerRepository
+                    .GetObjectAsync(m => m.Id == managerId);
+                if (manager != null)
+                {
+                    manager = _mapper.Map<Manager>(managerUM);
+                    await _unitOfWork.ManagerRepository.UpdateAsync(manager);
+                    await _unitOfWork.SaveChanges();
+                    //Return
+                    var result = _mapper.Map<ManagerVM>(manager);
+                    response.IsSuccess = true;
+                    response.Message = "Updated successfully";
+                    response.Data = result;
+
+                }
                 else
                 {
                     response.IsSuccess = false;
-                    response.Message = "Error inserted";
+                    response.Message = "Error updated";
                     response.Data = null;
                 }
             }
@@ -69,7 +133,6 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             return response;
         }
-
         public async Task<ResponseDTO<int>> DeleteManagerAsync(int managerId)
         {
             var response = new ResponseDTO<int>();
@@ -86,6 +149,15 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 else
                 {
+                    var listStaff = await _unitOfWork.StaffRepository.GetAsync(s => s.ManagerId == managerId);
+                    if (listStaff.Any())
+                    {
+                        foreach (var staff in listStaff)
+                        {
+                            staff.ManagerId = null;
+                            await _unitOfWork.StaffRepository.UpdateAsync(staff);
+                        }
+                    }
                     await _unitOfWork.ManagerRepository.DeleteAsync(toDeleted);
                     await _unitOfWork.SaveChanges();
                     response.IsSuccess = true;
@@ -235,39 +307,6 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
 
-        public async Task<ResponseDTO<ManagerVM>> UpdateManagerAsync(int managerId, ManagerUM managerUM)
-        {
-            var response = new ResponseDTO<ManagerVM>();
-            try
-            {
-                var manager = await _unitOfWork.ManagerRepository
-                    .GetObjectAsync(m => m.Id == managerId);
-                if (manager != null)
-                {
-                    manager = _mapper.Map<Manager>(managerUM);
-                    await _unitOfWork.ManagerRepository.UpdateAsync(manager);
-                    await _unitOfWork.SaveChanges();
-                    //Return
-                    var result = _mapper.Map<ManagerVM>(manager);
-                    response.IsSuccess = true;
-                    response.Message = "Updated successfully";
-                    response.Data = result;
-
-                }
-                else
-                {
-                    response.IsSuccess = false;
-                    response.Message = "Error updated";
-                    response.Data = null;
-                }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-            }
-            return response;
-        }
 
         public async Task<ResponseDTO<ManagerVM>> ConvertStaffToManager(int userId, int roleId, int branchId)
         {

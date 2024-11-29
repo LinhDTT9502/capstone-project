@@ -85,19 +85,42 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<StaffVM>();
             try
             {
+                var user = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == staffCM.UserId);
+                if (user == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"User with userId = {staffCM.UserId} cannot found";
+                    return response;
+                }
+
+                if (user.RoleId != (int)UserRole.Manager && user.RoleId != (int)UserRole.Staff)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"User with roleId = {user.RoleId} cannot be a staff";
+                    return response;
+                }
+
                 var isExisted = await _unitOfWork.StaffRepository
                     .GetObjectAsync(m => m.UserId == staffCM.UserId);
+                if(isExisted != null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"Staff with userId {staffCM.UserId} is existed";
+                    return response;
+                }
                 var manager = await _unitOfWork.ManagerRepository
                     .GetObjectAsync(m => m.Id == staffCM.ManagerId);
-
-                if (isExisted == null)
+                if (manager == null)
                 {
+                    response.IsSuccess = false;
+                    response.Message = $"Manager with managerId {staffCM.ManagerId} is not found";
+                    return response;
+                }
                     var staff = new Staff()
                     {
                         ManagerId = manager != null ? manager.Id : null,
                         BranchId = staffCM.BranchId,
                         StartDate = DateTime.Now,
-                        EndDate = staffCM.EndDate,
                         Position = staffCM.Position,
                         UserId = staffCM.UserId,
                         IsActive = true
@@ -110,13 +133,6 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.IsSuccess = true;
                     response.Message = "Inserted successfully";
                     response.Data = result;
-
-                }
-                else
-                {
-                    response.IsSuccess = false;
-                    response.Message = $"Staff with userId{staffCM.UserId} is existed";
-                }
             }
             catch (Exception ex)
             {
@@ -274,11 +290,17 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<StaffVM>();
             try
             {
-                var staff = await _unitOfWork.StaffRepository
-                    .GetObjectAsync(m => m.StaffId == staffId);
+                var staff =  _unitOfWork.StaffRepository
+                    .FindObject(m => m.StaffId == staffId);
                 if (staff != null)
                 {
-                    staff = _mapper.Map<Staff>(staffUM);
+                    staff.StartDate = staffUM.StartDate;
+                    staff.BranchId = staffUM.BranchId;
+                    staff.ManagerId = staffUM.ManagerId;
+                    staff.EndDate = staffUM.EndDate;
+                    staff.Position = staffUM.Position;
+                    staff.IsActive = staffUM.IsActive.Value;
+
                     await _unitOfWork.StaffRepository.UpdateAsync(staff);
                     await _unitOfWork.SaveChanges();
                     //Return

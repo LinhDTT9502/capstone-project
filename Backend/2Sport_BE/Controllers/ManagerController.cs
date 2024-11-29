@@ -27,7 +27,7 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
         [HttpGet]
-        [Route("get-staff-detail")]
+        [Route("get-manager-detail")]
         //Role User
         public async Task<IActionResult> GetManagerDetail([FromQuery] int managerId)
         {
@@ -83,7 +83,7 @@ namespace _2Sport_BE.Controllers
             return BadRequest(result);
         }
         [HttpDelete]
-        [Route("delete-admin")]
+        [Route("delete-manager")]
         public async Task<ActionResult<User>> DeleteManager([FromQuery] int managerId)
         {
             var response = await _managerService.DeleteManagerAsync(managerId);

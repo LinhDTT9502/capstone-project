@@ -3,34 +3,41 @@ using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
+using _2Sport_BE.Services.Caching;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Configuration;
 using System.Security.Claims;
 
 namespace _2Sport_BE.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CartController : ControllerBase
+    public class CartWithRedisController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICartItemService _cartItemService;
         private readonly IWarehouseService _warehouseService;
         private readonly IProductService _productService;
+        private readonly IRedisCacheService _redisCacheService;
         private readonly IMapper _mapper;
-
-        public CartController(IUnitOfWork unitOfWork, 
-                              ICartItemService cartItemService, 
-                              IWarehouseService warehouse,
-                              IProductService productService,
-                              IMapper mapper)
+        private readonly string _cartItemsKey;
+        public CartWithRedisController(IUnitOfWork unitOfWork,
+                                       ICartItemService cartItemService,
+                                       IWarehouseService warehouse,
+                                       IProductService productService,
+                                       IRedisCacheService redisCacheService,
+                                       IConfiguration configuration,
+                                       IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _cartItemService = cartItemService;
             _productService = productService;
+            _redisCacheService = redisCacheService;
             _warehouseService = warehouse;
+            _cartItemsKey = configuration.GetValue<string>("RedisKeys:CartItems");
             _mapper = mapper;
         }
 
@@ -46,8 +53,8 @@ namespace _2Sport_BE.Controllers
                 {
                     return Unauthorized();
                 }
-
-                var query = await _cartItemService.GetCartItems(userId, defaultSearch.currentPage, defaultSearch.perPage);
+                var query = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey) ?? new List<CartItem>();
+                //var query = await _cartItemService.GetCartItems(userId, defaultSearch.currentPage, defaultSearch.perPage);
                 if (query != null)
                 {
                     var cartItems = query.Select(_ => _mapper.Map<CartItem, CartItemVM>(_)).ToList();
@@ -60,6 +67,7 @@ namespace _2Sport_BE.Controllers
                             carItem.ProductCode = product.ProductCode;
                             carItem.Color = product.Color;
                             carItem.Size = product.Size;
+                            carItem.Price = (decimal)product.Price;
                             carItem.Condition = (int)product.Condition;
                             carItem.ImgAvatarPath = product.ImgAvatarPath;
                             carItem.RentPrice = (decimal)product.RentPrice;
@@ -84,10 +92,22 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var cartItem = await _cartItemService.GetCartItemById(cartItemId);
+                var listCartItems = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey) 
+                                                            ?? new List<CartItem>();
+                var cartItem = listCartItems.Find(_ => _.CartItemId.Equals(cartItemId));
                 if (cartItem != null)
                 {
-                    return Ok(cartItem);
+                    var result = _mapper.Map<CartItemVM>(cartItem);
+                    var product = await _unitOfWork.ProductRepository.FindAsync(cartItem.ProductId);
+                    result.ProductName = product.ProductName;
+                    result.ProductCode = product.ProductCode;
+                    result.Color = product.Color;
+                    result.Size = product.Size;
+                    result.Price = (decimal)product.Price;
+                    result.Condition = (int)product.Condition;
+                    result.ImgAvatarPath = product.ImgAvatarPath;
+                    result.RentPrice = (decimal)product.RentPrice;
+                    return Ok(result);
                 }
                 return BadRequest($"Cannot find cart item with id: {cartItemId}");
             }
@@ -114,13 +134,17 @@ namespace _2Sport_BE.Controllers
                 var productInWarehouse = (await _warehouseService.GetWarehouseByProductId(cartItemCM.ProductId))
                                         .FirstOrDefault();
                 var addedProduct = (await _productService.GetProductById((int)cartItemCM.ProductId));
-                if (productInWarehouse == null) 
+                if (productInWarehouse == null)
                 {
                     return BadRequest("That product is not in warehouse!");
                 }
                 var quantityOfProduct = productInWarehouse.AvailableQuantity;
                 var addedCartItemQuantity = cartItemCM.Quantity;
-                var existedCartItem = await _cartItemService.GetCartItemByUserIdAndProductId(userId, (int)cartItemCM.ProductId);
+                var listCartItemsInCache = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey) 
+                                                                        ?? new List<CartItem>();
+                var existedCartItem = listCartItemsInCache.FirstOrDefault(_ => _.UserId == userId
+                                                                && _.ProductId == (int)cartItemCM.ProductId);
+                //var existedCartItem = await _cartItemService.GetCartItemByUserIdAndProductId(userId, (int)cartItemCM.ProductId);
                 var addedCartItem = new CartItem();
                 if (existedCartItem != null)
                 {
@@ -131,7 +155,9 @@ namespace _2Sport_BE.Controllers
                     }
                     existedCartItem.Quantity = addedCartItemQuantity;
                     existedCartItem.Price = addedProduct.Price * addedCartItemQuantity;
-                    addedCartItem = await _cartItemService.AddExistedCartItem(existedCartItem);
+                    _redisCacheService.SetData(_cartItemsKey, listCartItemsInCache);
+                    return Ok(existedCartItem);
+                    //addedCartItem = await _cartItemService.AddExistedCartItem(existedCartItem);
 
                 }
                 else
@@ -140,16 +166,12 @@ namespace _2Sport_BE.Controllers
                     {
                         return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
                     }
-                    addedCartItem = await _cartItemService.AddNewCartItem(userId, newCartItem);
-                }
-
-                if (addedCartItem != null)
-                {
-                    return Ok(addedCartItem);
-                }
-                else
-                {
-                    return BadRequest("Add to cart failed");
+                    newCartItem.CartItemId = Guid.NewGuid();
+                    newCartItem.UserId = userId;
+                    listCartItemsInCache.Add(newCartItem);
+                    _redisCacheService.SetData(_cartItemsKey, listCartItemsInCache);
+                    return Ok(newCartItem);
+                    //addedCartItem = await _cartItemService.AddNewCartItem(userId, newCartItem);
                 }
             }
             catch (Exception ex)
@@ -170,8 +192,22 @@ namespace _2Sport_BE.Controllers
                 {
                     return Unauthorized();
                 }
-
-                await _cartItemService.ReduceCartItem(cartItemId);
+                var listCartItems = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey)
+                                                                    ?? new List<CartItem>();
+                var reducedCartItem = listCartItems.Find(_ => _.CartItemId.Equals(cartItemId));
+                if (reducedCartItem != null)
+                {
+                    var product = (await _unitOfWork.ProductRepository
+                                                        .GetAsync(_ => _.Id == reducedCartItem.ProductId))
+                                                        .FirstOrDefault();
+                    reducedCartItem.Quantity -= 1;
+                    reducedCartItem.Price -= product.Price;
+                    if (reducedCartItem.Quantity == 0)
+                    {
+                        listCartItems.Remove(reducedCartItem);
+                    }
+                    _redisCacheService.SetData(_cartItemsKey, listCartItems);
+                }
                 return Ok($"Reduce cart item with id: {cartItemId}");
             }
             catch (Exception ex)
@@ -192,14 +228,32 @@ namespace _2Sport_BE.Controllers
                 {
                     return Unauthorized();
                 }
-                var cartItem = await _cartItemService.GetCartItemById(cartItemId);
-                var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(cartItem.ProductId))
+                var listCartItems = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey)
+                                                              ?? new List<CartItem>();
+                var updatedCartItem = listCartItems.Find(_ => _.CartItemId.Equals(cartItemId));
+                if (updatedCartItem == null)
+                {
+                    return NotFound("There is not cart item!");
+                }
+
+                var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(updatedCartItem.ProductId))
                         .FirstOrDefault().AvailableQuantity;
                 if (quantity > quantityOfProduct)
                 {
                     return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
                 }
-                await _cartItemService.UpdateQuantityOfCartItem(cartItemId, quantity);
+
+                var product = await _unitOfWork.ProductRepository.FindAsync(updatedCartItem.ProductId);
+                if (updatedCartItem.Quantity == 0)
+                {
+                    listCartItems.Remove(updatedCartItem);
+                }
+                else
+                {
+                    updatedCartItem.Quantity = quantity;
+                    updatedCartItem.Price = quantity * product.Price;
+                }
+                _redisCacheService.SetData(_cartItemsKey, listCartItems);
                 return Ok($"Update quantity cart item with id: {cartItemId}");
             }
             catch (Exception ex)
@@ -220,7 +274,15 @@ namespace _2Sport_BE.Controllers
                 {
                     return Unauthorized();
                 }
-
+                var listCartItems = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey)
+                                                       ?? new List<CartItem>();
+                var deletedCartItem = listCartItems.Find(_ => _.CartItemId.Equals(cartItemId));
+                if (deletedCartItem == null)
+                {
+                    return NotFound("There is not cart item!");
+                } 
+                listCartItems.Remove(deletedCartItem);
+                _redisCacheService.SetData(_cartItemsKey, listCartItems);
                 await _cartItemService.DeleteCartItem(cartItemId);
                 return Ok($"Delete cart item with id: {cartItemId}");
             }
@@ -253,5 +315,6 @@ namespace _2Sport_BE.Controllers
                 return UserId;
             }
         }
+
     }
 }

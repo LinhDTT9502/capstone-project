@@ -9,7 +9,7 @@ namespace _2Sport_BE.ViewModels
     }
     public class CartItemVM : CartItemDTO
     {
-        public int Id { get; set; }
+        public Guid CartItemId { get; set; }
         public string ProductName { get; set; }
         public string ProductCode { get; set; }
         public string Color { get; set; }

@@ -11,10 +11,21 @@ namespace _2Sport_BE.Helpers
         public Mapping()
         {
             #region RefundRequest
+            CreateMap<Feedback, FeedbackCM>().ReverseMap();
+            CreateMap<Feedback, FeedbackVM>().ReverseMap();
+            CreateMap<Feedback, FeedbackUM>().ReverseMap();
+            #endregion
+
+            #region RefundRequest
             CreateMap<RefundRequest, RefundRequestCM>();
             CreateMap<RefundRequest, RefundRequestVM>();
             CreateMap<RefundRequest, RefundRequestUM>();
             CreateMap<RefundRequestUM, RefundRequest>();
+            #endregion
+            #region SaleOrder
+            CreateMap<SaleOrderCM, SaleOrder>();
+            CreateMap<SaleOrderUM, SaleOrder>();
+            CreateMap<SaleOrder, SaleOrderVM>();
             #endregion
             #region RentalOrder
             CreateMap<RentalOrder, RentalOrderVM>();
@@ -88,11 +99,6 @@ namespace _2Sport_BE.Helpers
             CreateMap<PaymentMethod, PaymentMethodVM>();
             CreateMap<PaymentMethod, PaymentMethodUM>();
             CreateMap<PaymentMethodUM, PaymentMethod>();
-            #endregion
-            #region SaleOrder
-            CreateMap<SaleOrderCM, SaleOrder>();
-            CreateMap<SaleOrderUM, SaleOrder>();
-            CreateMap<SaleOrder, SaleOrderVM>();
             #endregion
             #region OrderDetail
             CreateMap<OrderDetail, SaleOrderDetailVM>();

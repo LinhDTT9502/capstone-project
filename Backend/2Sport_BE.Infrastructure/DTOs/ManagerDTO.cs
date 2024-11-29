@@ -10,12 +10,9 @@ namespace _2Sport_BE.Infrastructure.DTOs
 {
     public class ManagerDTO
     {
-        public int Id { get; set; }
         public int? UserId { get; set; }
         public int? BranchId { get; set; }
         public DateTime StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-      
     }
     public class ManagerCM : ManagerDTO
     {
@@ -23,10 +20,13 @@ namespace _2Sport_BE.Infrastructure.DTOs
     }
     public class ManagerUM : ManagerDTO
     {
-
+        public DateTime? EndDate { get; set; }
     }
     public class ManagerVM : ManagerDTO
     {
+        public int Id { get; set; }
         public UserVM UserVM { get; set; }
+        public DateTime? EndDate { get; set; }
+
     }
 }

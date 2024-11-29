@@ -1,4 +1,4 @@
-﻿steps:
+steps:
   # Bước 1: Kiểm tra mã nguồn
   - name: 'gcr.io/cloud-builders/git'
     args: ['clone', 'https://github.com/NhanNguyen8080/capstone-project', 'Backend']
@@ -7,7 +7,7 @@
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/sport-442812/2sport-api', '-f', '2Sport_BE/Dockerfile', '.']
     dir: 'Backend'
-
+    
   # Bước 3: Đẩy Docker image lên Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/sport-442812/2sport-api']

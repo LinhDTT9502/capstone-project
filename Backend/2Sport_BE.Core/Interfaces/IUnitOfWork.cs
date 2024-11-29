@@ -8,10 +8,10 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<Blog> BlogRepository { get; }
         IGenericRepository<Brand> BrandRepository { get; }
         IGenericRepository<Branch> BranchRepository { get; }
-        IGenericRepository<Cart> CartRepository { get; }
         IGenericRepository<CartItem> CartItemRepository { get; }
         IGenericRepository<Category> CategoryRepository { get; }
         IGenericRepository<Comment> CommentRepository { get; }
+        IGenericRepository<Feedback> FeedbackRepository { get; }
         IGenericRepository<ImagesVideo> ImagesVideoRepository { get; }
         IGenericRepository<ImportHistory> ImportHistoryRepository { get; }
         IGenericRepository<Like> LikeRepository { get; }

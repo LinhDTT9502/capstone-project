@@ -17,10 +17,10 @@ namespace _2Sport_BE.Repository.Data
         public virtual DbSet<Blog> Blogs { get; set; }
         public virtual DbSet<Branch> Branches { get; set; }
         public virtual DbSet<Brand> Brands { get; set; }
-        public virtual DbSet<Cart> Carts { get; set; }
         public virtual DbSet<CartItem> CartItems { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Comment> Comments { get; set; }
+        public virtual DbSet<Feedback> Feedbacks { get; set; }
         public virtual DbSet<ImportHistory> ImportHistories { get; set; }
         public virtual DbSet<ImagesVideo> ImagesVideos { get; set; }
         public virtual DbSet<Like> Likes { get; set; }
@@ -59,10 +59,10 @@ namespace _2Sport_BE.Repository.Data
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer("Server=(local);uid=sa;pwd=12345;database=TwoSportDB;TrustServerCertificate=True");
-            }
+            //if (!optionsBuilder.IsConfigured)
+            //{
+            //    optionsBuilder.UseSqlServer("Server=(local);uid=sa;pwd=12345;database=TwoSportDB;TrustServerCertificate=True");
+            //}
         }
         private string GetConnectionStrings()
         {

@@ -6,6 +6,7 @@
         string ConvertToDisplayFormat(string dbValue);
         List<string> GetAllMethods();
         bool IsValidMethod(string method);
+        public string GetDescription(string deliveryMethod);
     }
 
     public class DeliveryMethodService : IDeliveryMethodService
@@ -18,6 +19,12 @@
         HomeDelivery,
         StorePickup
     };
+        private static readonly Dictionary<string, string> DeliveryMethodDescriptions = new Dictionary<string, string>
+    {
+        { HomeDelivery, "Giao hàng tận nơi" },
+        { StorePickup, "Đến cửa hàng nhận" }
+    };
+
         public bool IsValidMethod(string method)
         {
             return ValidMethods.Contains(method);
@@ -35,6 +42,15 @@
         public List<string> GetAllMethods()
         {
             return new List<string>(ValidMethods);
+        }
+
+        public string GetDescription(string deliveryMethod)
+        {
+            if (DeliveryMethodDescriptions.TryGetValue(deliveryMethod, out var description))
+            {
+                return description;
+            }
+            return "Không xác định"; // Giá trị mặc định nếu không tìm thấy
         }
     }
 

@@ -64,23 +64,11 @@ namespace _2Sport_BE.Infrastructure.DTOs
     }
     public class ProfileUM
     {
-        [Required(ErrorMessage = "FullName is required")]
-        public string FullName { get; set; }
-
-        [Required(ErrorMessage = "Gender is required")]
-        public string Gender { get; set; }
-
-        [Required(ErrorMessage = "Phone is required")]
-        /*[RegularExpression(@"^(\+84|0)(3|5|7|8|9)([0-9]{8})$", ErrorMessage = "Please enter a valid phone number.")]*/
-        public string Phone { get; set; }
-
-        [Required(ErrorMessage = "Address is required")]
-        public string Address { get; set; }
-
-        [Required(ErrorMessage = "BirthDate is required")]
-        /*[DataType(DataType.Date)]
-        [Range(typeof(DateTime), "1/1/1900", "12/31/2024", ErrorMessage = "BirthDate must be between {1} and {2}.")]*/
-        public DateTime BirthDate { get; set; }
+        public string? FullName { get; set; }
+        public string? Gender { get; set; }
+        public string? Phone { get; set; }
+        public string? Address { get; set; }
+        public DateTime? BirthDate { get; set; }
     }
     public class UserLogin
     {

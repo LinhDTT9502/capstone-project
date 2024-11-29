@@ -9,6 +9,8 @@ using System.Configuration;
 using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Infrastructure.Helpers;
 using Microsoft.Extensions.Options;
+using StackExchange.Redis;
+using _2Sport_BE.Services.Caching;
 
 namespace _2Sport_BE.Extensions
 {
@@ -23,6 +25,13 @@ namespace _2Sport_BE.Extensions
                 options.UseSqlServer(GetConnectionStrings(), b => b.MigrationsAssembly("2Sport_BE"));
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
             }, ServiceLifetime.Transient);
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = GetConnectionStringsRedis();
+                options.InstanceName = "CartItems_";
+            });
+
             #region User_Services
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
@@ -40,7 +49,6 @@ namespace _2Sport_BE.Extensions
             services.AddTransient<ICommentService, CommentService>();
             services.AddScoped<ISportService, SportService>();
             services.AddScoped<ICategoryService, CategoryService>();
-            services.AddScoped<ICartService, CartService>();
             services.AddScoped<ICartItemService, CartItemService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IShipmentDetailService, ShipmentDetailService>();
@@ -48,7 +56,9 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<IPhoneNumberService, PhoneNumberService>();
             services.AddScoped<ILikeService, LikeService>();
 			services.AddScoped<IReviewService, ReviewService>();
-			services.AddScoped<IImportHistoryService, ImportHistoryService>();
+			services.AddScoped<IRedisCacheService, RedisCacheService>();
+			services.AddScoped<IFeedbackService, FeedbackService>();
+            services.AddScoped<IImportHistoryService, ImportHistoryService>();
 			services.AddScoped<IWarehouseService, WarehouseService>();
 			services.AddScoped<IImageService, ImageService>();
 			services.AddScoped<IImageVideosService, ImageVideosService>();
@@ -88,6 +98,17 @@ namespace _2Sport_BE.Extensions
 
             var strConn = config["ConnectionStrings:DefaultConnection"];
             return strConn; 
+        }
+
+        private static string GetConnectionStringsRedis()
+        {
+            IConfigurationRoot config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true, true)
+                .Build();
+
+            var strConn = config["ConnectionStrings:Redis"];
+            return strConn;
         }
     }
 }
