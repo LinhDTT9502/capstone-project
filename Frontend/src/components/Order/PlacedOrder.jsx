@@ -34,43 +34,55 @@ const PlacedOrder = () => {
   const [note, setNote] = useState("");
 
   const totalPrice = selectedProducts.reduce(
-    (acc, item) => acc + item.price * item.quantity, // Calculate total price correctly
+    (acc, item) => acc + item.price * item.quantity,
     0
   );
 
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
     // if (event.target.value === "STORE_PICKUP") {
-     
+
     // }
   };
 
   const handleOrder = async () => {
     console.log(userData);
-    
+
     try {
       const token = localStorage.getItem("token");
       const data = {
-        fullName: userData.fullName,
-        email: userData.email,
-        contactPhone: userData.phoneNumber,
-        address: userData.address ,
-        userID: token ? user.UserId : 0,
-        shipmentDetailID: userData.shipmentDetailID, 
+
+        customerInformation: {
+          fullName: userData.fullName,
+          email: userData.email,
+          gender: userData.gender,
+          contactPhone: userData.phoneNumber,
+          address: userData.address,
+          userID: token ? user.UserId : 0,
+          shipmentDetailID: userData.shipmentDetailID,
+        },
+        dateOfReceipt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        note: note,
         deliveryMethod: selectedOption,
-        gender: userData.gender,
         branchId: selectedOption === "STORE_PICKUP" ? branchId : null,
-        dateOfReceipt: null,
-        discountCode: discountCode || null,
-        note: note || null,
-        saleOrderDetailCMs: selectedProducts.map((item) => ({
-          productId: item.productId, // Assuming the item has an id
-          productName: item.productName, // Assuming the item has a productName
+        productInformations: selectedProducts.map(item => ({
+          cartItemId: item.cartItemId ,
+          productId: item.productId,
+          productName: item.productName,
+          productCode:item.productCode,
           quantity: item.quantity,
           unitPrice: item.price,
+          size: item.size,
+          color: item.color,
+          condition: item.condition,
+          imgAvatarPath: item.imgAvatarPath,
         })),
+        saleCosts: {
+          subTotal: totalPrice ,
+          tranSportFee: 0,
+          totalAmount: totalPrice,
+        },
       };
-// console.log(data);
 
       // Call the placedOrder function to make the API request
       const response = await placedOrder(data);
@@ -78,15 +90,15 @@ const PlacedOrder = () => {
       if (response) {
         // console.log(response);
         // console.log(response.data);
-        
-  
+
+
         // Check if user is a guest (no token)
         if (!token) {
           // Save the response to Redux store for guest users
           dispatch(addGuestOrder(response.data));
-          
+
         }
-  
+
         setOrderSuccess(true);
         navigate("/order_success", {
           state: {
@@ -100,11 +112,11 @@ const PlacedOrder = () => {
     }
   };
 
-//   useEffect(() => {
-//     if (orderSuccess) {
-//       navigate("/order_success");
-//     }
-//   }, [orderSuccess, navigate]);
+  //   useEffect(() => {
+  //     if (orderSuccess) {
+  //       navigate("/order_success");
+  //     }
+  //   }, [orderSuccess, navigate]);
 
   return (
     <div className="flex flex-row bg-slate-200 ">
@@ -114,7 +126,7 @@ const PlacedOrder = () => {
           setUserData={setUserData}
           selectedOption={selectedOption}
           handleOptionChange={handleOptionChange}
-          selectedBranchId={branchId} 
+          selectedBranchId={branchId}
           setSelectedBranchId={setBranchId}
         />
       </div>
@@ -135,11 +147,11 @@ const PlacedOrder = () => {
                 <div key={item.id} className="flex border rounded  space-x-2">
                   <div className="relative">
                     <div className="bg-white">
-                    <img
-                      src={item.imgAvatarPath}
-                      alt={item.productName}
-                      className="h-32 w-48 object-contain rounded"
-                    />
+                      <img
+                        src={item.imgAvatarPath}
+                        alt={item.productName}
+                        className="h-32 w-48 object-contain rounded"
+                      />
                     </div>
                     <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                       {item.quantity}

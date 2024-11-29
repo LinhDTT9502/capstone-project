@@ -68,16 +68,16 @@ const UserCart = () => {
         if (selectedItems.length === cartData.length) {
             setSelectedItems([]);
         } else {
-            setSelectedItems(cartData.map((item) => item.id));
+            setSelectedItems(cartData.map((item) => item.cartItemId));
         }
     };
 
     const totalItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
-    const totalPrice = selectedItems.reduce((acc, id) => {
-        const item = cartData.find((item) => item.id === id);
+    const totalPrice = selectedItems.reduce((acc, cartItemId) => {
+        const item = cartData.find((item) => item.cartItemId === cartItemId);
         return acc + item.price;
     }, 0);
-    console.log(cartData);
+    // console.log(cartData);
 
     const handleCheckout = () => {
         if (selectedItems.length === 0) {
@@ -86,29 +86,36 @@ const UserCart = () => {
         }
 
         const selectedProducts = cartData.filter((item) =>
-            selectedItems.includes(item.id)
+            selectedItems.includes(item.cartItemId)
         );
         navigate("/placed-order", { state: { selectedProducts } });
     };
 
     const handleRental = () => {
+
         if (selectedItems.length === 0) {
             toast.error("Please select at least one item to checkout.");
             return;
         }
 
         const selectedProducts = cartData.filter((item) =>
-            selectedItems.includes(item.id)
+            selectedItems.includes(item.cartItemId)
         );
-        console.log(selectedProducts);
 
+        const nonRentableItems = selectedProducts.filter((item) => item.rentPrice === 0);
+
+        if (nonRentableItems.length > 0) {
+            const nonRentableItemNames = nonRentableItems.map((item) => item.productName).join(", ");
+            alert(`Sản phẩm không thể thuê: ${nonRentableItemNames}`);
+            return;
+        }
         navigate("/rental-placed-order", { state: { selectedProducts } });
     }
 
     return (
         <div className="container mx-auto px-20 py-10">
             <ToastContainer />
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center">
                 <h1 className="font-alfa text-orange-500 text-2xl">
                     {t("user_cart.shopping_cart")}
                 </h1>
@@ -116,6 +123,7 @@ const UserCart = () => {
                     {totalItems} {t("user_cart.items")}
                 </span>
             </div>
+            <div className="items-center mb-2 justify-end flex font-medium text-rose-700">* Đơn vị tiền tệ: VND</div>
             {cartData.length === 0 ? (
                 <p>{t("user_cart.empty")}</p>
             ) : (
@@ -129,35 +137,36 @@ const UserCart = () => {
                                     onChange={handleSelectAll}
                                 />
                             </div>
-                            <div className="w-5/12 text-center font-poppins text-lg font-bold">
+                            <div className="w-5/12 text-center text-lg font-bold">
                                 {t("user_cart.products")}
                             </div>
-                            <div className="w-2/12 text-center font-poppins text-lg font-bold">
+                            <div className="w-2/12 text-center text-lg font-bold">
                                 {t("user_cart.quantity")}
                             </div>
-                            <div className="w-2/12 text-center font-poppins text-lg font-bold">
+                            <div className="w-2/12 text-center text-lg font-bold">
                                 {t("user_cart.price")}
                             </div>
-                            <div className="w-2/12 text-center font-poppins text-lg font-bold">
-                                Giá thuê
-                            </div>
-                            <div className="w-2/12 text-center font-poppins text-lg font-bold">
+                            <div className="w-2/12 text-center text-lg font-bold">
                                 {t("user_cart.total")}
                             </div>
-                            <div className="w-1/12 text-center font-poppins text-lg font-bold">
-                             
+                            <div className="w-2/12 text-center text-lg font-bold">
+                                Giá thuê 
+                                <p className="text-xs">(cho 1 ngày)</p>
+                            </div>
+                            <div className="w-1/12 text-center text-lg font-bold">
+
                             </div>
                         </div>
                         {cartData.map((item) => (
                             <div
-                                key={item.id}
+                                key={item.cartItemId}
                                 className="flex items-center justify-between p-4 border-b hover:bg-zinc-200"
                             >
                                 <div className="w-1/12 text-center">
                                     <input
                                         type="checkbox"
-                                        checked={selectedItems.includes(item.id)}
-                                        onChange={() => handleSelectItem(item.id)}
+                                        checked={selectedItems.includes(item.cartItemId)}
+                                        onChange={() => handleSelectItem(item.cartItemId)}
                                     />
                                 </div>
                                 <div className="w-5/12 flex items-center">
@@ -168,7 +177,7 @@ const UserCart = () => {
                                     />
                                     <Link
                                         to={`/product/${item.productCode}`}
-                                        className="text-sm font-poppins font-bold text-wrap w-1/2"
+                                        className="text-sm font-poppins font-bold text-wrap w-1/2 pr-4"
                                     >
                                         {item.productName}
                                     </Link>
@@ -185,7 +194,7 @@ const UserCart = () => {
                                 <div className="w-2/12 text-center flex items-center justify-center">
                                     <button
                                         className="px-2 py-1"
-                                        onClick={() => handleReduceQuantity(item.id)}
+                                        onClick={() => handleReduceQuantity(item.cartItemId)}
                                     >
                                         -
                                     </button>
@@ -207,19 +216,19 @@ const UserCart = () => {
                                 </div>
                                 <div className="w-2/12 text-center">
                                     {(item.price.toLocaleString())}{" "}
-                                    {t("user_cart.vnd")}
                                 </div>
                                 <div className="w-2/12 text-center">
-                                    {(item.rentPrice.toLocaleString())}{" "}
-                                    {t("user_cart.vnd")}
+                                    {(item.price * item.quantity).toLocaleString()}
                                 </div>
                                 <div className="w-2/12 text-center">
-                                    {(item.price*item.quantity).toLocaleString()} {t("user_cart.vnd")}
+                                    {item.rentPrice !== 0
+                                        ? item.rentPrice.toLocaleString()
+                                        : "Sản phẩm chỉ bán"}
                                 </div>
                                 <div className="w-1/12 text-center">
                                     <button
                                         className="text-red-500"
-                                        onClick={() => handleRemoveFromCart(item.id)}
+                                        onClick={() => handleRemoveFromCart(item.cartItemId)}
                                     >
                                         <FontAwesomeIcon icon={faTrash} />
                                     </button>
@@ -233,7 +242,7 @@ const UserCart = () => {
                                 {t("user_cart.total")} ({selectedItems.length} {t("user_cart.items")}):
                             </p>
                         </div>
-                        <p> {totalPrice.toLocaleString()} {t("user_cart.vnd")}</p>
+                        <p className="font-bold"> {totalPrice.toLocaleString()}{" "}₫ </p>
                     </div>
                     <div className="flex justify-between mt-5">
                         <Link
@@ -248,13 +257,13 @@ const UserCart = () => {
                                 className="bg-orange-500 rounded-md text-white px-4 py-2"
                                 onClick={handleCheckout}
                             >
-                                Đặt hàng
+                                Mua ngay
                             </button>
                             <button
                                 className="bg-rose-700 rounded-md text-white px-4 py-2"
                                 onClick={handleRental}
                             >
-                                Thuê sản phẩm
+                                Thuê ngay
                             </button>
                         </div>
                     </div>

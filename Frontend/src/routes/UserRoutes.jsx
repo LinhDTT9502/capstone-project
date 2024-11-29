@@ -17,7 +17,7 @@ const UserRoutes = () => {
         <Route path="profile" element={<UserProfile />} />
         <Route path="shipment" element={<UserShipment />} />
         <Route path="change-password" element={<UserChangePassword />} />
-        <Route path="order-status" element={<UserOrderStatus />} />
+        <Route path="sale-order" element={<UserOrderStatus />} />
         <Route path="user-rental" element={<UserListRental />} />
         <Route path="user-rental/:orderId" element={<UserRentalDetail />} />
         <Route path="refund-request" element={<RefundForm />} />

@@ -78,7 +78,7 @@ const ProductDetails = () => {
 
     if (selectedColor && selectedSize && selectedCondition) {
       fetchUpdatedProduct();
-      console.log(product);
+      // console.log(product);
     }
   }, [selectedColor, selectedSize, selectedCondition]);
 
@@ -148,8 +148,8 @@ const ProductDetails = () => {
             <h2 className="text-3xl font-bold text-black mt-2">{product.productName}</h2>
 
             <div className="my-4 text-gray-800">
-              <p><strong>Brand:</strong> {product.brandName}</p>
-              <p><strong>Code:</strong> {product.productCode}</p>
+              <p><strong>Thương hiệu:</strong> {product.brandName}</p>
+              <p><strong>Mã sản phẩm:</strong> {product.productCode}</p>
               <ProductColor
                 productCode={productCode}
                 selectedColor={selectedColor}
@@ -207,6 +207,7 @@ const ProductDetails = () => {
                 <Button
                   variant="text"
                   onClick={handleRentalClick}
+                  disabled={!product.isRent}
                   className="w-full bg-rose-700 border-rose-700 border-2 text-white hover:text-rose-700 hover:bg-white">
                   Thuê ngay
                 </Button>
