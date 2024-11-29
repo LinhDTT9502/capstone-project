@@ -208,6 +208,39 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpPut]
+        [Route("update-product-cart-item/{cartItemId}")]
+        public async Task<IActionResult> UpdateProductOfCart(Guid cartItemId, [FromQuery] int productId)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
+                var cartItem = await _cartItemService.GetCartItemById(cartItemId);
+                var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(cartItem.ProductId))
+                        .FirstOrDefault().AvailableQuantity;
+                if (cartItem.Quantity > quantityOfProduct)
+                {
+                    return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
+                }
+                var existedProduct = await _productService.GetProductById(productId);
+                if (existedProduct == null)
+                {
+                    return BadRequest("This product is not existed!");
+                }
+                await _cartItemService.UpdateProductIdOfCartItem(cartItemId, productId);
+                return Ok($"Updated productId in cart item with id: {cartItemId}");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
         [HttpDelete]
         [Route("delete-cart-item/{cartItemId}")]
         public async Task<IActionResult> DeleteCartItem(Guid cartItemId)

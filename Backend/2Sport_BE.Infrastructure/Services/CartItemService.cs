@@ -22,6 +22,7 @@ namespace _2Sport_BE.Service.Services
         Task ReduceCartItem(int cartItemId);
         Task UpdateQuantityOfCartItem(Guid cartItemId, int quantity);
         Task<CartItem> AddExistedCartItem(CartItem newCartItem);
+        Task UpdateProductIdOfCartItem(Guid cartItemId, int productId);
     }
     public class CartItemService : ICartItemService
     {
@@ -171,5 +172,23 @@ namespace _2Sport_BE.Service.Services
 
         }
 
+        public async Task UpdateProductIdOfCartItem(Guid cartItemId, int productId)
+        {
+            try
+            {
+                var updatedCartItem = (await _cartItemRepository
+                                                    .GetAsync(_ => _.CartItemId.Equals(cartItemId)))
+                                                    .FirstOrDefault();
+                if (updatedCartItem != null)
+                {
+                    updatedCartItem.ProductId = productId;
+                    await _unitOfWork.CartItemRepository.UpdateAsync(updatedCartItem);
+                }
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            
+        }
     }
 }
