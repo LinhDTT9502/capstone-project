@@ -19,7 +19,7 @@ namespace _2Sport_BE.Service.Services
 
         Task<CartItem> AddNewCartItem(int userId, CartItem cartItem);
         Task DeleteCartItem(Guid cartItemId);
-        Task ReduceCartItem(int cartItemId);
+        Task ReduceCartItem(Guid cartItemId);
         Task UpdateQuantityOfCartItem(Guid cartItemId, int quantity);
         Task<CartItem> AddExistedCartItem(CartItem newCartItem);
         Task UpdateProductIdOfCartItem(Guid cartItemId, int productId);
@@ -127,9 +127,10 @@ namespace _2Sport_BE.Service.Services
             }
         }
 
-        public async Task ReduceCartItem(int cartItemId)
+        public async Task ReduceCartItem(Guid cartItemId)
         {
-            var reducedCartItem = await _cartItemRepository.FindAsync(cartItemId);
+            var reducedCartItem = (await _cartItemRepository.GetAsync(_ => _.CartItemId.Equals(cartItemId)))
+                                                            .FirstOrDefault();
             if (reducedCartItem != null)
             {
                 var product = (await _unitOfWork.ProductRepository.GetAsync(_ => _.Id == reducedCartItem.ProductId)).FirstOrDefault();
@@ -137,10 +138,12 @@ namespace _2Sport_BE.Service.Services
                 reducedCartItem.Price -= product.Price;
                 if (reducedCartItem.Quantity == 0)
                 {
-                    DeleteCartItem(reducedCartItem.CartItemId);
+                    await DeleteCartItem(reducedCartItem.CartItemId);
+                } else
+                {
+                    await _unitOfWork.CartItemRepository.UpdateAsync(reducedCartItem);
                 }
-                await _unitOfWork.CartItemRepository.UpdateAsync(reducedCartItem);
-                
+
             }
         }
 
@@ -151,9 +154,9 @@ namespace _2Sport_BE.Service.Services
             if (updatedCartItem != null)
             {
                 var product = await _productRepository.FindAsync(updatedCartItem.ProductId);
-                if (updatedCartItem.Quantity == 0)
+                if (quantity == 0)
                 {
-                    DeleteCartItem(updatedCartItem.CartItemId);
+                    await DeleteCartItem(updatedCartItem.CartItemId);
                 }
                 else
                 {

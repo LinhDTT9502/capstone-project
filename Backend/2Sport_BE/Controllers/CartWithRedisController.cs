@@ -53,7 +53,8 @@ namespace _2Sport_BE.Controllers
                 {
                     return Unauthorized();
                 }
-                var query = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey);
+                var query = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey)
+                                                        ?? new List<CartItem>();
                 //var query = await _cartItemService.GetCartItems(userId, defaultSearch.currentPage, defaultSearch.perPage);
                 if (query != null)
                 {
@@ -64,7 +65,10 @@ namespace _2Sport_BE.Controllers
                         {
                             if (carItem.Quantity == 0)
                             {
-                                await DeleteCartItem(carItem.CartItemId);
+                                var deleteCartItem = query.Find(_ => _.CartItemId.Equals(carItem.CartItemId));
+                                query.Remove(deleteCartItem);
+                                _redisCacheService.SetData(_cartItemsKey, query);
+                                cartItems = query.Select(_ => _mapper.Map<CartItem, CartItemVM>(_)).ToList();
                             }
                             var product = await _unitOfWork.ProductRepository.FindAsync(carItem.ProductId);
                             carItem.ProductName = product.ProductName;
@@ -237,9 +241,12 @@ namespace _2Sport_BE.Controllers
                 var updatedCartItem = listCartItems.Find(_ => _.CartItemId.Equals(cartItemId));
                 if (updatedCartItem == null)
                 {
-                    return NotFound("There is not cart item!");
+                    return BadRequest("The cart is not exist!");
                 }
-
+                if ((await _warehouseService.GetWarehouseByProductId(updatedCartItem.ProductId)) is null)
+                {
+                    return BadRequest("The warehouse is not exist!");
+                }
                 var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(updatedCartItem.ProductId))
                         .FirstOrDefault().AvailableQuantity;
                 if (quantity > quantityOfProduct)

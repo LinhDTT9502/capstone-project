@@ -160,7 +160,7 @@ namespace _2Sport_BE.Controllers
 
         [HttpPut]
         [Route("reduce-cart/{cartItemId}")]
-        public async Task<IActionResult> ReduceCart(int cartItemId)
+        public async Task<IActionResult> ReduceCart(Guid cartItemId)
         {
             try
             {
@@ -193,6 +193,14 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
                 var cartItem = await _cartItemService.GetCartItemById(cartItemId);
+                if (cartItem is null)
+                {
+                    return BadRequest("The cart item is not exist!");
+                }
+                if ((await _warehouseService.GetWarehouseByProductId(cartItem.ProductId)) is null)
+                {
+                    return BadRequest("The warehouse is not exist!");
+                }
                 var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(cartItem.ProductId))
                         .FirstOrDefault().AvailableQuantity;
                 if (quantity > quantityOfProduct)
