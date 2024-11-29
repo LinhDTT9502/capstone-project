@@ -9,7 +9,7 @@ const RentalPlacedOrder = () => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedProducts } = location.state || {}; // Get selectedProducts from state
+  const [selectedProducts, setSelectedProducts] = useState(location.state?.selectedProducts || []);
   const [branchId, setBranchId] = useState(null);
   const [selectedOption, setSelectedOption] = useState("");
   const [discountCode, setDiscountCode] = useState("");
@@ -20,16 +20,13 @@ const RentalPlacedOrder = () => {
     phoneNumber: "",
     address: "",
   });
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [apiResponse, setApiResponse] = useState(null);
+  // console.log(selectedProducts);
+
 
   const token = localStorage.getItem("token");
-
-  const handleStartDateChange = (e) => setStartDate(e.target.value);
-  const handleEndDateChange = (e) => setEndDate(e.target.value);
 
   const getTomorrowDate = () => {
     const tomorrow = new Date();
@@ -37,19 +34,50 @@ const RentalPlacedOrder = () => {
     return tomorrow.toISOString().split("T")[0];
   };
 
+  const handleDateChange = (cartItemId, field, value) => {
+    setSelectedProducts((prevProducts) =>
+      prevProducts.map((product) =>
+        product.cartItemId === cartItemId
+          ? {
+            ...product,
+            [field]: value,
+          }
+          : product
+      )
+    );
+    console.log(selectedProducts);
+
+  };
+
+  // Calculate fields for each product
+  const updatedProducts = selectedProducts.map(product => {
+    const rentStartDate = new Date(product.rentalStartDate);
+    const rentEndDate = new Date(product.rentalEndDate);
+
+    // Calculate rentDays
+    const rentDays = Math.floor((rentEndDate - rentStartDate) / (1000 * 60 * 60 * 24)) + 1;
+
+    // Calculate totalPrice
+    const totalPrice = product.quantity * product.rentPrice * rentDays;
+
+    // Return product with calculated fields
+    return {
+      ...product,
+      rentDays,
+      totalPrice,
+    };
+  });
+
+  // Calculate subTotal
+  const subTotal = updatedProducts.reduce((acc, product) => acc + product.totalPrice, 0);
+
+  // console.log(updatedProducts, subTotal);
+  
+
   const handleCreateRentalOrder = async () => {
+
     if (!selectedProducts || selectedProducts.length === 0) {
       alert("No product selected for rental.");
-      return;
-    }
-
-    if (!startDate || !endDate || !selectedOption || !userData.fullName) {
-      alert("Please fill in all required fields.");
-      return;
-    }
-
-    if (new Date(startDate) >= new Date(endDate)) {
-      alert("End date must be after the start date.");
       return;
     }
 
@@ -62,11 +90,11 @@ const RentalPlacedOrder = () => {
         contactPhone: userData.phoneNumber,
         address: userData.address,
       },
-      note: "Test",
+      note: note,
       deliveryMethod: selectedOption,
       branchId: selectedOption === "STORE_PICKUP" ? branchId : null,
-      productInformations: selectedProducts.map(product => ({
-        cartItemId: product.id,  
+      productInformations: updatedProducts.map(product => ({
+        cartItemId: product.cartItemId,
         productId: product.productId,
         productCode: product.productCode,
         productName: product.productName,
@@ -77,19 +105,19 @@ const RentalPlacedOrder = () => {
         rentPrice: product.rentPrice,
         imgAvatarPath: product.imgAvatarPath,
         rentalDates: {
-          dateOfReceipt: new Date(startDate).toISOString(),
-          rentalStartDate: new Date(startDate).toISOString(),
-          rentalEndDate: new Date(endDate).toISOString(),
-          rentalDays: (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24) + 1,
+          dateOfReceipt: product.rentalStartDate,
+          rentalStartDate: product.rentalStartDate,
+          rentalEndDate: product.rentalEndDate,
+          rentalDays: product.rentDays,
         },
         rentalCosts: {
-          subTotal: 120000 * product.quantity,
+          subTotal: product.totalPrice,
           tranSportFee: 0,
-          totalAmount: 120000 * product.quantity,
+          totalAmount: product.totalPrice,
         },
       })),
     };
-    console.log(payload);
+console.log(payload);
 
     try {
       setLoading(true);
@@ -134,9 +162,6 @@ const RentalPlacedOrder = () => {
   }
 
   return (<>
-
-
-
     <div className="flex flex-row bg-slate-200">
       <div className="text-nowrap basis-2/3 bg-white">
         <OrderMethod
@@ -150,62 +175,68 @@ const RentalPlacedOrder = () => {
       </div>
       <div className="basis-3/5  pr-20 pl-5 h-1/4 mt-10">
         <div className="font-alfa text-center p-5 border rounded text-black">
-          Summary
+          Tóm tắt đơn hàng
         </div>
         <div className="overflow-auto h-3/4">
           <div className="grid grid-cols-1 gap-4">
-            {selectedProducts.map((product) => (
-              <div key={product.id} className="flex border rounded p-4 space-x-2">
-                <div className="relative">
-                  <img
-                    src={product.imgAvatarPath}
-                    alt={product.productName}
-                    className="w-auto h-32 object-scale-down rounded"
-                  />
-                  <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {product.quantity}
-                  </span>
-                </div>
-                <div className="flex justify-between w-full">
-                  <div className="flex flex-col space-y-4">
-                    <h3 className="text-lg font-semibold">
-                      {product.productName}
-                    </h3>
-                    <div className="text-sm">
-                      <li>Màu sắc: {product.color}</li>
-                      <li>Kích cỡ: {product.size}</li>
-                      <li>Tình trạng: {product.condition}%</li>
-                    </div>
+            {updatedProducts.map((product) => (
+              <div key={product.cartItemId} className=" border rounded p-4 space-x-2">
+                <div className="flex">
+                  <div className="relative bg-white mr-4">
+                    <img
+                      src={product.imgAvatarPath}
+                      alt={product.productName}
+                      className="w-32 h-32 object-contain rounded"
+                    />
+                    <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {product.quantity}
+                    </span>
                   </div>
-                  <p className="text-lg text-black">{(product.price * product.quantity).toLocaleString()} VND</p>
+                  <div className="flex justify-between w-full">
+                    <div className="flex flex-col space-y-4 text-wrap mr-2">
+                      <h3 className="text-lg font-semibold">
+                        {product.productName}
+                      </h3>
+                      <div className="text-sm">
+                        <li>Màu sắc: {product.color}</li>
+                        <li>Kích cỡ: {product.size}</li>
+                        <li>Tình trạng: {product.condition}%</li>
+                      </div>
+                    </div>
+                    <p className="text-lg text-black text-center flex items-center justify-center ">{(product.totalPrice).toLocaleString()} </p>
+                  </div>
+
+                </div>
+                {/* Date part */}
+                <div className="flex bg-blue-200 text-slate-600 p-2">
+                  <label>Ngày bắt đầu thuê:</label>
+                  <input
+                    type="date"
+                    min={getTomorrowDate()}
+                    value={product.rentalStartDate || ""}
+                    onChange={(e) => handleDateChange(product.cartItemId, 'rentalStartDate', e.target.value)}
+                    className="rounded-lg"
+                  />
+                  <label>Ngày kết thúc thuê:</label>
+                  <input
+                    type="date"
+                    min={product.rentalStartDate || getTomorrowDate()}
+                    value={product.rentalEndDate || ""}
+                    onChange={(e) => handleDateChange(product.cartItemId, 'rentalEndDate', e.target.value)}
+                  />
                 </div>
               </div>
             ))}
           </div>
-          <div className="px-6 pb-6">
-            <label>Start Date:</label>
-            <input
-              type="date"
-              min={getTomorrowDate()}
-              value={startDate}
-              onChange={handleStartDateChange}
-            />
-            <label>End Date:</label>
-            <input
-              type="date"
-              min={startDate || getTomorrowDate()}
-              value={endDate}
-              onChange={handleEndDateChange}
-            />
-          </div>
 
-          <div className="h-px bg-gray-300 my-5 mx-auto font-bold"></div>
+          <div className="text-red-700 flex justify-end text-sm font-bold my-2">* Đơn vị tiền tệ: VND</div>
+          <div className="h-px bg-gray-300 mx-auto font-bold"></div>
           <div className="flex justify-between items-center pt-1 border rounded mt-4">
             <h3 className="text-lg font-semibold">
               Tạm tính
             </h3>
             <p className="text-lg text-black">
-              1 VND
+              {subTotal.toLocaleString()}
             </p>
           </div>
           <div className="flex justify-between items-center pt-1 border rounded mt-4">
@@ -214,7 +245,7 @@ const RentalPlacedOrder = () => {
               type="text"
               className="border rounded w-3/4 px-3 py-2 mt-2"
               value={note}
-              // onChange={(e) => setNote(e.target.value)}
+              onChange={(e) => setNote(e.target.value)}
               placeholder="Ghi chú của bạn"
             />
           </div>
@@ -229,7 +260,7 @@ const RentalPlacedOrder = () => {
           <div className="flex justify-between items-center pt-1 border rounded mt-4">
             <h3 className="text-lg font-semibold">Tổng cộng</h3>
             <p className="text-lg text-black">
-              2 VND
+              {subTotal.toLocaleString()}
             </p>
           </div>
         </div>

@@ -24,6 +24,8 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const [warning, setWarning] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
+  console.log(product);
+  
 
   useEffect(() => {
     const getProduct = async () => {
@@ -78,7 +80,7 @@ const ProductDetails = () => {
 
     if (selectedColor && selectedSize && selectedCondition) {
       fetchUpdatedProduct();
-      console.log(product);
+      // console.log(product);
     }
   }, [selectedColor, selectedSize, selectedCondition]);
 
@@ -122,6 +124,7 @@ const ProductDetails = () => {
   return (
     <div className="container mx-auto px-20 py-10 bg-white rounded-lg shadow-lg">
       {product && (
+        <>
         <div className="flex flex-col  md:flex-row gap-1 justify-between">
           <div className="h-1/2 w-2/5">
             <img
@@ -148,8 +151,8 @@ const ProductDetails = () => {
             <h2 className="text-3xl font-bold text-black mt-2">{product.productName}</h2>
 
             <div className="my-4 text-gray-800">
-              <p><strong>Brand:</strong> {product.brandName}</p>
-              <p><strong>Code:</strong> {product.productCode}</p>
+              <p><strong>Thương hiệu:</strong> {product.brandName}</p>
+              <p><strong>Mã sản phẩm:</strong> {product.productCode}</p>
               <ProductColor
                 productCode={productCode}
                 selectedColor={selectedColor}
@@ -171,7 +174,7 @@ const ProductDetails = () => {
                 setSelectedCondition={setSelectedCondition}
               />
               <p><strong>Giá:</strong> {product.price ? `${product.price.toLocaleString()} VND` : "N/A"}</p>
-              <p><strong>Giá thuê:</strong> {product.rentPrice ? `${product.rentPrice.toLocaleString()} VND` : "N/A"}</p>
+              <p><strong>Giá thuê:</strong> {product.rentPrice ? `${product.rentPrice.toLocaleString()} VND` : "Sản phẩm chỉ bán"}</p>
               <div className="flex w-1/6 space-x-4">
                 <button
                   onClick={() => setQuantity(prev => prev - 1)}
@@ -207,6 +210,7 @@ const ProductDetails = () => {
                 <Button
                   variant="text"
                   onClick={handleRentalClick}
+                  disabled={!product.isRent}
                   className="w-full bg-rose-700 border-rose-700 border-2 text-white hover:text-rose-700 hover:bg-white">
                   Thuê ngay
                 </Button>
@@ -238,8 +242,12 @@ const ProductDetails = () => {
 
 
           </div>
-
         </div>
+        <div className="mt-4">
+        <h3 className="font-poppins text-lg text-orange-500 font-bold">Mô tả sản phẩm:{product.description}</h3>
+        </div>
+        
+        </>
       )}
     </div>
   );

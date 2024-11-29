@@ -26,8 +26,8 @@ export default function UserRentalDetail() {
 
                 if (response.data.isSuccess) {
                     setOrderDetail(response.data.data);
-                    console.log(orderDetail);
-
+                    // console.log(orderDetail);
+                    
                 } else {
                     setError("Failed to fetch order details");
                 }
@@ -44,6 +44,23 @@ export default function UserRentalDetail() {
     if (isLoading) return <p>Loading order details...</p>;
     if (error) return <p>Error: {error}</p>;
 
+    const {
+        fullName,
+        email,
+        contactPhone,
+        address,
+        rentalOrderCode,
+        listChild,
+        productName,
+        rentPrice,
+        rentalDays,
+        totalAmount,
+        orderStatus,
+        paymentStatus,
+    } = orderDetail;
+
+    const children = listChild?.$values || [];
+
     return (
         <div className="container mx-auto p-4">
             <button
@@ -52,63 +69,118 @@ export default function UserRentalDetail() {
             >
                 Back
             </button>
-            <Button
-                className="bg-purple-500 text-white text-sm rounded-full py-2 px-4"
-                onClick={() => navigate("/rental-checkout", { state: { selectedOrder: orderDetail } })}
-            >
-                Checkout
-            </Button>
+            {orderDetail.paymentStatus === "Đang chờ thanh toán" && orderDetail.deliveryMethod !== "HOME_DELIVERY" &&
 
+                <Button
+                    className="bg-purple-500 text-white text-sm rounded-full py-2 px-4"
+                    onClick={() => navigate("/rental-checkout", { state: { selectedOrder: orderDetail } })}
+                >
+                    Checkout
+                </Button>
+            }
             <div className="bg-white p-6 rounded shadow-lg">
                 <h2 className="text-2xl font-bold mb-4">Order Details</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <img
-                            src={orderDetail.imgAvatarPath}
-                            alt={orderDetail.productName}
-                            className="w-full h-64 object-cover rounded"
-                        />
-                    </div>
-                    <div>
-                        <h3 className="text-xl font-semibold mb-2">{orderDetail.productName}</h3>
-                        <p>
-                            <span className="font-semibold">Order Code:</span> {orderDetail.rentalOrderCode}
-                        </p>
-                        <p>
-                            <span className="font-semibold">Customer Name:</span> {orderDetail.fullName}
-                        </p>
-                        <p>
-                            <span className="font-semibold">Contact:</span> {orderDetail.contactPhone} | {orderDetail.email}
-                        </p>
-                        <p>
-                            <span className="font-semibold">Address:</span> {orderDetail.address}
-                        </p>
-                        <p>
-                            <span className="font-semibold">Branch:</span> {orderDetail.branchName}
-                        </p>
-                        <p>
-                            <span className="font-semibold">Rent Price:</span> {orderDetail.rentPrice} VND
-                        </p>
-                        <p>
-                            <span className="font-semibold">Rental Days:</span> {orderDetail.rentalDays}
-                        </p>
-                        <p>
-                            <span className="font-semibold">Total Amount:</span> {orderDetail.totalAmount} VND
-                        </p>
-                        <p>
-                            <span className="font-semibold">Order Status:</span> {orderDetail.orderStatus}
-                        </p>
-                    </div>
-                </div>
-                <div className="mt-4">
-                    <h4 className="text-lg font-semibold mb-2">Rental Period</h4>
+
+                {/* User Information Section */}
+                <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-2">Customer Information</h3>
                     <p>
-                        <span className="font-semibold">Start Date:</span>{" "}
-                        {new Date(orderDetail.rentalStartDate).toLocaleDateString()}
+                        <span className="font-semibold">Name:</span> {fullName}
                     </p>
                     <p>
-                        <span className="font-semibold">End Date:</span>{" "}
-                        {new Date(orderDetail.rentalEndDate).toLocaleDateString()}
+                        <span className="font-semibold">Email:</span> {email}
+                    </p>
+                    <p>
+                        <span className="font-semibold">Contact Phone:</span> {contactPhone}
+                    </p>
+                    <p>
+                        <span className="font-semibold">Address:</span> {address}
+                    </p>
+                    <p>
+                        <span className="font-semibold">Order Code:</span> {rentalOrderCode}
+                    </p>
+                </div>
+
+                {/* Order Details Section */}
+                <div>
+                    <h3 className="text-lg font-semibold mb-2">Product Details</h3>
+                    {children.length > 0 ? (
+                        children.map((child, index) => (
+                            <div
+                                key={child.id}
+                                className="bg-gray-100 p-4 mb-4 rounded-lg shadow-sm"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <img
+                                        src={child.imgAvatarPath}
+                                        alt={child.productName}
+                                        className="w-24 h-24 object-cover rounded"
+                                    />
+                                    <div>
+                                        <p>
+                                            <span className="font-semibold">Product Name:</span>{" "}
+                                            {child.productName}
+                                        </p>
+                                        <p>
+                                            <span className="font-semibold">Rent Price:</span>{" "}
+                                            {child.rentPrice} VND
+                                        </p>
+                                        <p>
+                                            <span className="font-semibold">Quantity:</span>{" "}
+                                            {child.quantity}
+                                        </p>
+                                        <p>
+                                            <span className="font-semibold">Rental Period:</span>{" "}
+                                            {new Date(child.rentalStartDate).toLocaleDateString()} -{" "}
+                                            {new Date(child.rentalEndDate).toLocaleDateString()}
+                                        </p>
+                                        <p>
+                                            <span className="font-semibold">Total:</span>{" "}
+                                            {child.totalAmount} VND
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="bg-gray-100 p-4 rounded-lg shadow-sm">
+                            <div className="flex items-center gap-4">
+                                <img
+                                    src={orderDetail.imgAvatarPath || "/placeholder.jpg"}
+                                    alt={productName}
+                                    className="w-24 h-24 object-cover rounded"
+                                />
+                                <div>
+                                    <p>
+                                        <span className="font-semibold">Product Name:</span>{" "}
+                                        {productName}
+                                    </p>
+                                    <p>
+                                        <span className="font-semibold">Rent Price:</span>{" "}
+                                        {rentPrice || "N/A"} VND
+                                    </p>
+                                    <p>
+                                        <span className="font-semibold">Rental Days:</span>{" "}
+                                        {rentalDays || "N/A"}
+                                    </p>
+                                    <p>
+                                        <span className="font-semibold">Total:</span>{" "}
+                                        {totalAmount || "N/A"} VND
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Order Summary Section */}
+                <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-2">Order Summary</h3>
+                    <p>
+                        <span className="font-semibold">Order Status:</span> {orderStatus}
+                    </p>
+                    <p>
+                        <span className="font-semibold">Payment Status:</span> {paymentStatus}
                     </p>
                 </div>
             </div>
