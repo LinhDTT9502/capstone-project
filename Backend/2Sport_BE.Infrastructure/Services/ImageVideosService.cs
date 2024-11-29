@@ -4,6 +4,7 @@ using _2Sport_BE.Repository.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,6 +17,7 @@ namespace _2Sport_BE.Service.Services
         Task<IQueryable<ImagesVideo>> GetAllVideos();
         Task DeleteImagesVideos(List<ImagesVideo> imagesVideos);
         Task<IQueryable<ImagesVideo>> GetImageVideosByProductId(int productId);
+        Task<IQueryable<ImagesVideo>> GetAsyncs(Expression<Func<ImagesVideo, bool>> filter = null);
     }
     public class ImageVideosService : IImageVideosService
     {
@@ -49,6 +51,12 @@ namespace _2Sport_BE.Service.Services
         {
             var videoList = await _unitOfWork.ImagesVideoRepository.GetAsync(_ => _.ImageUrl == null);
             return videoList.AsQueryable();
+        }
+
+        public async Task<IQueryable<ImagesVideo>> GetAsyncs(Expression<Func<ImagesVideo, bool>> filter = null)
+        {
+            var query = await _unitOfWork.ImagesVideoRepository.GetAsync(filter);
+            return query.AsQueryable();
         }
 
         public async Task<IQueryable<ImagesVideo>> GetImageVideosByProductId(int productId)

@@ -47,7 +47,7 @@ function ManageAccount() {
         </h1>
         <ul className="space-y-4 font-poppins px-5 py-1">
           <NavLink
-            to="/manage-account/order-status"
+            to="/manage-account/sale-order"
             className={({ 
               isActive
              }) =>

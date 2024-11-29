@@ -223,7 +223,7 @@
     "payment.cash_on_delivery":"Thanh toán khi nhận hàng",
     "payment.cash_on_delivery_description":"Khi chọn hình thức thanh toán khi nhận hàng (COD), quý khách vui lòng kiểm tra kỹ hàng hóa khi nhận hàng và thanh toán đầy đủ toàn bộ giá trị đơn hàng cho người gửi.",
     "payment.bank_transfer":"Chuyển khoản ngân hàng",
-    "payment.bank_transfer_description":"Sử dụng ứng dụng ngân hàng để quét mã QR và tự động xác nhận thanh toán trong 5 phút. Vui lòng nhấn \"Đặt hàng\" để thực hiện thanh toán chuyển khoản ở bước tiếp theo.",
+    "payment.bank_transfer_description":"Sử dụng ứng dụng ngân hàng để quét mã QR và tự động xác nhận thanh toán trong 5 phút. Vui lòng nhấn \"Thanh toán\" để thực hiện thanh toán đơn hàng ở bước tiếp theo.",
     "product_list.error_fetching_products":"Lỗi lấy dữ liệu sản phẩm",
     "product_list.error_adding_product_to_cart":"Lỗi thêm sản phẩm vào giỏ hàng",
     "product_list.is_added_to_cart":"được thêm vào giỏ hàng",
