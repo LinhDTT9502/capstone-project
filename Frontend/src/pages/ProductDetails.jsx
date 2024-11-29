@@ -24,6 +24,8 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const [warning, setWarning] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
+  console.log(product);
+  
 
   useEffect(() => {
     const getProduct = async () => {
@@ -122,6 +124,7 @@ const ProductDetails = () => {
   return (
     <div className="container mx-auto px-20 py-10 bg-white rounded-lg shadow-lg">
       {product && (
+        <>
         <div className="flex flex-col  md:flex-row gap-1 justify-between">
           <div className="h-1/2 w-2/5">
             <img
@@ -171,7 +174,7 @@ const ProductDetails = () => {
                 setSelectedCondition={setSelectedCondition}
               />
               <p><strong>Giá:</strong> {product.price ? `${product.price.toLocaleString()} VND` : "N/A"}</p>
-              <p><strong>Giá thuê:</strong> {product.rentPrice ? `${product.rentPrice.toLocaleString()} VND` : "N/A"}</p>
+              <p><strong>Giá thuê:</strong> {product.rentPrice ? `${product.rentPrice.toLocaleString()} VND` : "Sản phẩm chỉ bán"}</p>
               <div className="flex w-1/6 space-x-4">
                 <button
                   onClick={() => setQuantity(prev => prev - 1)}
@@ -239,8 +242,12 @@ const ProductDetails = () => {
 
 
           </div>
-
         </div>
+        <div className="mt-4">
+        <h3 className="font-poppins text-lg text-orange-500 font-bold">Mô tả sản phẩm:{product.description}</h3>
+        </div>
+        
+        </>
       )}
     </div>
   );
