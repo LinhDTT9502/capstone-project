@@ -8,10 +8,12 @@ using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
+using CloudinaryDotNet.Actions;
 using EntityFrameworkCore.SqlServer.SimpleBulks.BulkInsert;
 using ExcelDataReader;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net.WebSockets;
@@ -947,11 +949,20 @@ namespace _2Sport_BE.Controllers
                                                                         sizeValue,
                                                                         colorValue,
                                                                         int.Parse(conditionValue))).FirstOrDefault();
-                                                                     if (existedProductWithSizeColorCodition == null)
+                            if (existedProductWithSizeColorCodition == null)
                             {
-                                var newProduct = existedProduct;
+                                var newProduct = new Product(existedProduct){};
+                                newProduct.Id = 0;
+                                newProduct.Size = sizeValue;
+                                newProduct.Color = colorValue;
+                                newProduct.Condition = int.Parse(conditionValue);
+                                newProduct.Price = decimal.Parse(priceValue);
+                                newProduct.RentPrice = decimal.Parse(rentPriceValue);
+                                newProduct.CreateAt = DateTime.Now;
+                                newProduct = await _productService.AddProduct(newProduct);
 
-                                if (!existedProduct.Color.Equals(colorValue))
+                                var existedProductColor = newProduct.Color;
+                                if (!existedProductColor.Equals(colorValue))
                                 {
                                     if (!string.IsNullOrEmpty(avaImgValue))
                                     {
@@ -970,14 +981,9 @@ namespace _2Sport_BE.Controllers
                                         return (int)ProductErrors.NullError;
                                     }
                                 }
-                                newProduct.Id = 0;
-                                newProduct.Size = sizeValue;
-                                newProduct.Color = colorValue;
-                                newProduct.Condition = int.Parse(conditionValue);
-                                newProduct.Price = decimal.Parse(priceValue);
-                                newProduct = await _productService.AddProduct(newProduct);
 
-                                if (!existedProduct.Color.Equals(colorValue))
+
+                                if (!existedProductColor.Equals(colorValue))
                                 {
                                     //Add product's images into ImageVideo table
                                     var firstImgValue = reader.GetValue(15)?.ToString();
@@ -992,6 +998,23 @@ namespace _2Sport_BE.Controllers
                                     {
                                         return (int)ProductErrors.NotExcepted;
                                     }
+                                    existedProductColor = newProduct.Color;
+                                } else
+                                {
+                                    var images = await _imageVideosService.GetAsyncs(
+                                                                _ => _.ProductId == existedProduct.Id);
+                                    foreach (var image in images)
+                                    {
+                                        var imageObject = new ImagesVideo()
+                                        {
+                                            ProductId = newProduct.Id,
+                                            ImageUrl = image.ImageUrl,
+                                            CreateAt = DateTime.Now,
+                                            VideoUrl = null,
+                                        };
+                                        await _imageVideosService.AddImage(imageObject);
+                                    }
+                                    
                                 }
 
                                 var warehouse = new Warehouse()
@@ -1002,6 +1025,7 @@ namespace _2Sport_BE.Controllers
                                     AvailableQuantity = int.Parse(quantityValue),
                                 };
                                 await _warehouseService.CreateANewWarehouseAsync(warehouse);
+                                product = newProduct;
                             }
                             else
                             {
@@ -1014,11 +1038,8 @@ namespace _2Sport_BE.Controllers
                                 existedWarehouse.TotalQuantity += int.Parse(quantityValue);
                                 existedWarehouse.AvailableQuantity += int.Parse(quantityValue);
                                 await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
+                                product = existedProductWithSizeColorCodition;
                             }
-                        }
-                        if (existedProduct != null)
-                        {
-                            product = existedProduct;
                         }
 
                         //Save import history
@@ -1035,7 +1056,7 @@ namespace _2Sport_BE.Controllers
                             Color = product.Color,
                             Size = product.Size,
                             Condition = product.Condition,
-                            Action = $@"{importedBranch.BranchName}: Import {int.Parse(quantityValue)} {productNameValue} ({productCodeValue})",
+                            Action = $@"{importedBranch.BranchName}: Import {int.Parse(quantityValue)} {productNameValue} ({productCodeValue}) {colorValue} {sizeValue} {conditionValue}",
                             ImportDate = DateTime.Now,
                             Quantity = int.Parse(quantityValue),
                         };
@@ -1104,7 +1125,6 @@ namespace _2Sport_BE.Controllers
                             VideoUrl = null,
                         };
                         await _imageVideosService.AddImage(imageObject);
-                        return true;
                     }
                     else
                     {
@@ -1135,7 +1155,8 @@ namespace _2Sport_BE.Controllers
         public IFormFile ConvertToIFormFile(string filePath)
         {
             var fileInfo = new FileInfo(filePath);
-            var stream = new FileStream(filePath, FileMode.Open);
+            var fileBytes = System.IO.File.ReadAllBytes(filePath); // Read file into memory
+            var stream = new MemoryStream(fileBytes);    // Create memory stream from file bytes
 
             IFormFile formFile = new FormFile(stream, 0, fileInfo.Length, null, fileInfo.Name)
             {
