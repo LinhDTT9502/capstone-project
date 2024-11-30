@@ -21,19 +21,19 @@ namespace _2Sport_BE.Controllers
         private readonly IBlogService _blogService;
         private readonly IUserService _userService;
         private readonly IImageService _imageService;
-        private readonly ILikeService _likeService;
+        private readonly IBookmarkService _bookmarkService;
 
         public BlogController(IMapper mapper, IUnitOfWork unitOfWork, 
                               IBlogService blogService,
                               IImageService imageService,
-                              ILikeService likeService,
+                              IBookmarkService bookmarkService,
                               IUserService userService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _blogService = blogService;
             _userService = userService;
-            _likeService = likeService;
+            _bookmarkService = bookmarkService;
             _imageService = imageService;
         }
 
@@ -104,6 +104,7 @@ namespace _2Sport_BE.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
 
         [HttpGet]
         [Route("get-blog-by-id")]
@@ -225,6 +226,82 @@ namespace _2Sport_BE.Controllers
                 }
                 await _blogService.DeleteBlog(blogId);
                 return Ok("Delete blog successfully!");
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            
+        }
+
+
+        [HttpGet]
+        [Route("get-all-blog-bookmarks")]
+        public async Task<IActionResult> GetAllBlogBookmarks()
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+                if (userId == 0)
+                {
+                    return Unauthorized("You are not allowed to do this method!");
+                }
+                var bookmarks = await _bookmarkService.GetAllByUserId(userId);
+                var blogs = new List<Blog>();
+                foreach (var bookmark in bookmarks)
+                {
+                    var blog = await _blogService.GetBlogById(bookmark.BlogId);
+                    blogs.Add(blog);
+                }
+                foreach (var blog in blogs)
+                {
+                    var createdStaffAccount = await _userService.GetUserById((int)blog.CreatedByStaff.UserId);
+                    blog.CreatedByStaff.User = createdStaffAccount;
+                    if (blog.EditedByStaff != null)
+                    {
+                        var editedStaffAccount = await _userService.GetUserById((int)blog.EditedByStaff.UserId);
+                        blog.CreatedByStaff.User = editedStaffAccount;
+                    }
+
+                }
+                var result = _mapper.Map<List<BlogVM>>(blogs.ToList());
+
+                return Ok(new { total = result.Count, data = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("bookmark-unbookmark-blog/{blogId}")]
+        public async Task<IActionResult> BookmarkUnBookmarkBlog(int blogId)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+                if (userId == 0)
+                {
+                    return Unauthorized("You are not allowed to do this method!");
+                }
+                var addedBookmark = new Bookmark()
+                {
+                    BlogId = blogId,
+                    UserId = userId,
+                };
+                var isSuccess = await _bookmarkService.BookmarkUnBookmarkBlog(addedBookmark);
+                if (isSuccess == -1)
+                {
+                    return StatusCode(500, "Something wrong!");
+                }
+                else if (isSuccess == 1)
+                {
+                    return Ok("Bookmark blog successfully!");
+                }
+                else
+                {
+                    return Ok("UnBookmark blog successfully!");
+                }
             } catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);

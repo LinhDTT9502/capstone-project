@@ -16,6 +16,7 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<Blog> _blogRepository;
         private IGenericRepository<Brand> _brandRepository;
         private IGenericRepository<Branch> _branchRepository;
+        private IGenericRepository<Bookmark> _bookmarkRepository;
         private IGenericRepository<Comment> _commentRepository;
         private IGenericRepository<Category> _categoryRepository;
         private IGenericRepository<CartItem> _cartItemRepository;
@@ -355,6 +356,18 @@ namespace _2Sport_BE.Repository.Implements
                     _feedbackRepository = new GenericRepository<Feedback>(_dbContext);
                 }
                 return _feedbackRepository;
+            }
+        }
+
+        public IGenericRepository<Bookmark> BookmarkRepository
+        {
+            get
+            {
+                if (_bookmarkRepository == null)
+                {
+                    _bookmarkRepository = new GenericRepository<Bookmark>(_dbContext);
+                }
+                return _bookmarkRepository;
             }
         }
 
