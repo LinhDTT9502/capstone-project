@@ -121,6 +121,11 @@ const ProductDetails = () => {
 
   };
 
+  const handlePlaceOrder = () => {
+    navigate("/sale-order", { state: { selectedProducts:product } });
+};
+
+
   return (
     <div className="container mx-auto px-20 py-10 bg-white rounded-lg shadow-lg">
       {product && (
@@ -173,8 +178,8 @@ const ProductDetails = () => {
                 selectedCondition={selectedCondition}
                 setSelectedCondition={setSelectedCondition}
               />
-              <p><strong>Giá:</strong> {product.price ? `${product.price.toLocaleString()} VND` : "N/A"}</p>
-              <p><strong>Giá thuê:</strong> {product.rentPrice ? `${product.rentPrice.toLocaleString()} VND` : "Sản phẩm chỉ bán"}</p>
+              <p><strong>Giá:</strong> {product.price ? `${product.price.toLocaleString()} ₫` : "N/A"}</p>
+              <p><strong>Giá thuê:</strong> {product.rentPrice ? `${product.rentPrice.toLocaleString()} ₫` : "Sản phẩm chỉ bán"}</p>
               <div className="flex w-1/6 space-x-4">
                 <button
                   onClick={() => setQuantity(prev => prev - 1)}
@@ -202,7 +207,7 @@ const ProductDetails = () => {
               <div className="flex items-center mt-4 space-x-2 w-full justify-between">
                 <Button
                   variant="text"
-                  onClick={handleRentalClick}
+                  onClick={handlePlaceOrder}
                   className="w-full border-orange-500 border-2 text-orange-500 hover:text-white hover:bg-orange-500">
                   Mua ngay
                 </Button>

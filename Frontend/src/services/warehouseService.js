@@ -1,4 +1,4 @@
-import { getProductofBranchAPI, getWarehouse } from '../api/apiWarehouse';
+import { checkQuantityProductAPI, getProductofBranchAPI, getWarehouse } from '../api/apiWarehouse';
 
 export const fetchWarehouse = async () => {
   try {
@@ -17,6 +17,16 @@ export const fetchProductsbyBranch = async (branchId) => {
     return response.data.data.$values
   } catch (error) {
     console.error('Error fetching Warehouse data:', error);
+    throw error;
+  }
+};
+
+export const checkQuantityProduct = async (productId) => {
+  try {
+    const response = await checkQuantityProductAPI(productId);
+    return response.data
+  } catch (error) {
+    console.error('Error fetching  data:', error);
     throw error;
   }
 };

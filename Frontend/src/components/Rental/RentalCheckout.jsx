@@ -98,7 +98,10 @@ export default function RentalCheckout() {
                                                     <li>Màu sắc: {product.color}</li>
                                                     <li>Kích cỡ: {product.size}</li>
                                                     <li>Tình trạng: {product.condition}%</li>
-                                                    <li>Thời gian thuê: {product.rentalStartDate} - {product.rentalEndDate}</li>
+                                                    <li>
+                                                        Thời gian thuê: {new Date(product.rentalStartDate).toLocaleDateString()} - {new Date(product.rentalEndDate).toLocaleDateString()}
+                                                    </li>
+
                                                 </div>
                                             </div>
                                             <p className="text-lg text-black text-center flex items-center justify-center">
@@ -129,7 +132,9 @@ export default function RentalCheckout() {
                                                     <li>Màu sắc: {orderDetail.color}</li>
                                                     <li>Kích cỡ: {orderDetail.size}</li>
                                                     <li>Tình trạng: {orderDetail.condition}%</li>
-                                                    <li>Thời gian thuê: {orderDetail.rentalStartDate} - {orderDetail.rentalEndDate}</li>
+                                                    <li>
+                                                        Thời gian thuê: {new Date(orderDetail.rentalStartDate).toLocaleDateString()} - {new Date(orderDetail.rentalEndDate).toLocaleDateString()}
+                                                    </li>
                                                 </div>
                                             </div>
                                             <p className="text-lg text-black text-center flex items-center justify-center">
@@ -137,14 +142,14 @@ export default function RentalCheckout() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="text-red-700 flex justify-end text-sm font-bold my-2">* Đơn vị tiền tệ: VND</div>
+                                    <div className="text-red-700 flex justify-end text-sm font-bold my-2">* Đơn vị tiền tệ: ₫</div>
                                     <div className="h-px bg-gray-300 mx-auto font-bold"></div>
                                     <div className="flex justify-between items-center pt-1 border rounded mt-4">
                                         <h3 className="text-lg font-semibold">
                                             Tạm tính
                                         </h3>
                                         <p className="text-lg text-black">
-                                        {orderDetail.subTotal.toLocaleString()}
+                                            {orderDetail.subTotal.toLocaleString()}
                                         </p>
                                     </div>
                                     <div className="flex justify-between items-center pt-1 border rounded mt-4">
@@ -158,7 +163,7 @@ export default function RentalCheckout() {
                                     <div className="flex justify-between items-center pt-1 border rounded mt-4">
                                         <h3 className="text-lg font-semibold">Tổng cộng</h3>
                                         <p className="text-lg text-black">
-                                        {orderDetail.subTotal.toLocaleString()}
+                                            {orderDetail.subTotal.toLocaleString()}
                                         </p>
                                     </div>
                                 </div>
@@ -200,7 +205,7 @@ export default function RentalCheckout() {
                             <span className="font-semibold">Customer Name:</span> {orderDetail.fullName}
                         </p>
                         <p>
-                            <span className="font-semibold">Total Amount:</span> {orderDetail.totalAmount} VND
+                            <span className="font-semibold">Total Amount:</span> {orderDetail.totalAmount} ₫
                         </p>
                     </div>
                 </div>

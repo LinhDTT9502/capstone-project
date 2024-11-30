@@ -112,6 +112,7 @@ const DeliveryAddress = ({
           value="Female" 
           onChange={handleGenderChange}
           checked={userData.gender === "Female"}
+          className="border-2"
         />
           </div>
           

@@ -99,7 +99,7 @@ export default function UserListRental() {
                 <h4 className="font-semibold text-lg">Mã đơn hàng: {parent.rentalOrderCode}</h4>
                 <p className="text-gray-500">Hình thức nhận hàng: {parent.deliveryMethod}</p>
                 <p className="text-gray-500">Trạng thái: {parent.orderStatus}</p>
-                <p className="text-gray-500">Ngày đặt: {parent.createdAt}</p>
+                <p className="text-gray-500">Ngày đặt: {new Date(parent.createdAt).toLocaleDateString()}</p>
                 <p className="mt-2 font-bold">Tổng tiền: {parent.totalAmount}</p>
               </div>
             </div>

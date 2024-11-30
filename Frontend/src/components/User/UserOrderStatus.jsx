@@ -58,7 +58,7 @@ export default function UserOrderStatus() {
       const renderOrderStatusButton = (order) => {
         // console.log(order);
         
-        if (order.paymentStatus === "IsWating" && order.deliveryMethod !== "HOME_DELIVERY") {
+        if (order.paymentStatus === "Đang chờ thanh toán" && order.deliveryMethod !== "HOME_DELIVERY") {
           return (
             <Button
               className="bg-purple-500 text-white text-sm rounded-full py-2 px-4"
@@ -116,7 +116,7 @@ export default function UserOrderStatus() {
                 />
                 <div className="ml-4">
                   <h4 className="font-semibold text-lg">
-                    Mã đơn hàng: {order.orderCode}
+                    Mã đơn hàng: {order.saleOrderCode}
                   </h4>
                   {/* <p className="text-gray-500">
                     Delivery: {order.deliveryMethod}

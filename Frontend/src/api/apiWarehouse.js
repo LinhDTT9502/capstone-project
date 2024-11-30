@@ -19,3 +19,13 @@ export const getProductofBranchAPI = (branchId) => {
     }
   });
 };
+
+export const checkQuantityProductAPI = (productId) => {
+  const url = `${API_BASE_URL}/quantity-of-product/${productId}`;
+  return axios.get(url, {
+    headers: {
+      'accept': '*/*'
+    }
+  });
+};
+

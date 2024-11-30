@@ -52,7 +52,7 @@ const PaymentMethod = ({ selectedOption, handleOptionChange }) => {
                 className="form-radio text-[#FA7D0B]"
                 onChange={handleOptionChange}
               />
-              <span className="ml-2">VNPay</span>
+              <span className="ml-2">Thanh toán trực tuyến VNPay</span>
             </label>
             {selectedOption === "3" && (
               <p className="mt-4 text-sm text-black bg-gray-300 p-2 rounded text-wrap">

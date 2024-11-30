@@ -24,6 +24,9 @@ const RentalPlacedOrder = () => {
   const [loading, setLoading] = useState(false);
   const [apiResponse, setApiResponse] = useState(null);
   // console.log(selectedProducts);
+  console.log(branchId);
+  
+console.log(selectedOption);
 
 
   const token = localStorage.getItem("token");
@@ -229,7 +232,7 @@ console.log(payload);
             ))}
           </div>
 
-          <div className="text-red-700 flex justify-end text-sm font-bold my-2">* Đơn vị tiền tệ: VND</div>
+          <div className="text-red-700 flex justify-end text-sm font-bold my-2">* Đơn vị tiền tệ: ₫</div>
           <div className="h-px bg-gray-300 mx-auto font-bold"></div>
           <div className="flex justify-between items-center pt-1 border rounded mt-4">
             <h3 className="text-lg font-semibold">

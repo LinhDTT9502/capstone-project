@@ -10,10 +10,12 @@ import {
 
 } from "@material-tailwind/react";
 import { addToCart } from '../../services/cartService';
+import { useCart } from '../Cart/CartContext';
 
 const AddToCart = ({ product, quantity, selectedColor, selectedSize, selectedCondition }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+  const { setCartCount } = useCart();
 
   const handleAddToCart = async () => {
     if (!selectedColor) {
@@ -26,14 +28,16 @@ const AddToCart = ({ product, quantity, selectedColor, selectedSize, selectedCon
       const token = localStorage.getItem('token');
       if (!token) {
         dispatch(addCart(product));
-        alert(`${product.productName} đã được thêm vào giỏ hàng`)
-        toast.info('Added to cart');
+        // alert(`${product.productName} đã được thêm vào giỏ hàng`)
+        toast.info(`${product.productName} đã được thêm vào giỏ hàng`);
         return;
       } else {
         const response = await addToCart(token, product.id, quantity)
         console.log(response);
-        alert(`${product.productName} đã được thêm vào giỏ hàng`)
-        toast.success(`${product.productName} has been added to the cart!`);
+        toast.success(`${product.productName} đã được thêm vào giỏ hàng`);
+        setCartCount((prevCount) => prevCount + quantity);
+        // alert(`${product.productName} đã được thêm vào giỏ hàng`)
+        
       }
     }
   };

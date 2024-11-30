@@ -188,7 +188,7 @@ const RentalOrder = () => {
                     <li>Tình trạng: {rentalData.product.condition}%</li>
                   </div>
                 </div>
-                <p className="text-lg text-black">{(rentalData.product.price * rentalData.quantity).toLocaleString()} VND</p>
+                <p className="text-lg text-black">{(rentalData.product.price * rentalData.quantity).toLocaleString()} ₫</p>
               </div>
             </div>
           </div>
@@ -215,7 +215,7 @@ const RentalOrder = () => {
               tam tinh
             </h3>
             <p className="text-lg text-black">
-              tong gia VND
+              tong gia ₫
             </p>
           </div>
           <div className="flex justify-between items-center pt-1 border rounded mt-4">
@@ -239,7 +239,7 @@ const RentalOrder = () => {
           <div className="flex justify-between items-center pt-1 border rounded mt-4">
             <h3 className="text-lg font-semibold">Tong cong</h3>
             <p className="text-lg text-black">
-              Tong gia VND
+              Tong gia ₫
             </p>
           </div>
         </div>

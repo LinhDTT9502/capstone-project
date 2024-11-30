@@ -13,26 +13,25 @@ const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
   
 
   const handleCheckout = async () => {
-    if (!selectedOrder || paymentMethodID !== "3") {
+    if (!selectedOrder ) {
       alert("Please select a valid payment method.");
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
-      const userId = token ? user.UserId : 0;
 
       // Prepare the API request payload
       const data = {
-        paymentMethodID: 3,
-        orderID: selectedOrder.saleOrderId,
-        orderCode: selectedOrder.orderCode,
-        userId,
+        paymentMethodID: paymentMethodID,
+        orderID: selectedOrder.id,
+        orderCode: selectedOrder.saleOrderCode,
+        transactionType: selectedOrder.transactionType,
       };
 
       // Call the API for VNPay checkout
       const response = await axios.post(
-        "https://capstone-project-703387227873.asia-southeast1.run.app/api/VnPay/checkout-sale-order",
+        "https://capstone-project-703387227873.asia-southeast1.run.app/api/Checkout/checkout-sale-order",
         data,
         {
           headers: {
@@ -45,7 +44,13 @@ const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
       
         const paymentLink = response.data.data.paymentLink;
         // console.log(paymentLink);
-        window.location.href = paymentLink;
+        if (paymentMethodID ==2 || paymentMethodID ==3) {
+          window.location.href = paymentLink;
+          return;
+        } else (
+          navigate('/manage-account/sale-order')
+        )
+       
      
     } catch (error) {
       console.error("Error during checkout:", error);

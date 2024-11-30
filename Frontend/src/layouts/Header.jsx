@@ -20,26 +20,40 @@ import { BreadcrumbsDefault } from "./BreadcrumbsDefault";
 import SearchBar from "../components/Product/SearchBar";
 import BranchSystem from "../components/BranchButton";
 import { getUserCart } from "../services/cartService";
+import { useCart } from "../components/Cart/CartContext";
 
 function Header() {
   const { scrollYProgress } = useScroll();
   const { t } = useTranslation("translation");
   const [enabled, setEnabled] = useState(true);
-  const [cartCount, setCartCount] = useState(0);
+  const { cartCount, setCartCount } = useCart();
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const fetchCart = async () => {
-      
+    const fetchCartCount = async () => {
+      const token = localStorage.getItem("token");
       if (token) {
         const cartData = await getUserCart(token);
-        const count = cartData.reduce((total, item) => total + item.quantity, 0);
-        setCartCount(count);
+        const totalItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
+        setCartCount(totalItems);
       }
     };
 
-    fetchCart();
-  }, []);
+    fetchCartCount();
+  }, [setCartCount]);
+
+  // useEffect(() => {
+  //   const fetchCart = async () => {
+      
+  //     if (token) {
+  //       const cartData = await getUserCart(token);
+  //       const count = cartData.reduce((total, item) => total + item.quantity, 0);
+  //       setCartCount(count);
+  //     }
+  //   };
+
+  //   fetchCart();
+  // }, []);
 
   const changeLanguage = () => {
     const languageValue = enabled ? "eng" : "vie";
@@ -128,9 +142,10 @@ function Header() {
               <Link to="/cart" className="relative">
                 <FontAwesomeIcon icon={faCartShopping} className="pr-1" />
                 {cartCount > 0 && token && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-fit px-1.5 flex items-center justify-center">
-                    {cartCount}
-                  </span>
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[0.625rem] font-bold rounded-full h-[1rem] w-full leading-none flex items-center justify-center">
+                  {cartCount}
+                </span>
+                
                 )}
               </Link>
               {/* <Link to="/guest-order">

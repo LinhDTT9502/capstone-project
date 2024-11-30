@@ -36,6 +36,7 @@ import RentalOrder from './components/Rental/RentalOrder';
 import Invoice from './pages/Invoice/Invoice';
 import RentalPlacedOrder from './components/Rental/RentalPlacedOrder';
 import RentalCheckout from './components/Rental/RentalCheckout';
+import SaleOrder from './components/Order/SaleOrder';
 
 
 
@@ -63,6 +64,7 @@ function App() {
             <Route path="/product/*" element={<ProductRoutes />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/placed-order" element={<PlacedOrder />} />
+            <Route path="/sale-order" element={<SaleOrder />} />
             <Route path="/rental-order" element={<RentalOrder />} />
             <Route path="/rental-placed-order" element={<RentalPlacedOrder />} />
             <Route path="/checkout" element={<Checkout />} />

@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 export const addToCart = async (token, productId, quantity) => {
   try {
     const response = await addToCartAPI(token, productId, quantity);
-  
+    
     return response.data;
   } catch (error) {
     console.error('Add to cart failed', error);
@@ -48,7 +48,7 @@ export const removeCartItem = async (id, token) => {
 export const updateCartItemQuantity = async (cartItemId, quantity, token) => {
   try {
     const response = await updateCartItemQuantityAPI(cartItemId, quantity, token);
-    toast.success("Cart item quantity updated successfully");
+    // toast.success("Cart item quantity updated successfully");
     return response.data;
   } catch (error) {
     console.error('Error updating cart item quantity:', error);

@@ -26,7 +26,7 @@ export default function UserRentalDetail() {
 
                 if (response.data.isSuccess) {
                     setOrderDetail(response.data.data);
-                    // console.log(orderDetail);
+                    console.log(orderDetail);
                     
                 } else {
                     setError("Failed to fetch order details");
@@ -60,6 +60,7 @@ export default function UserRentalDetail() {
     } = orderDetail;
 
     const children = listChild?.$values || [];
+    
 
     return (
         <div className="container mx-auto p-4">
@@ -122,12 +123,24 @@ export default function UserRentalDetail() {
                                             {child.productName}
                                         </p>
                                         <p>
+                                            <span className="font-semibold">Màu sắc:</span>{" "}
+                                            {child.color}
+                                        </p>
+                                        <p>
+                                            <span className="font-semibold">Kích cỡ:</span>{" "}
+                                            {child.size}
+                                        </p>
+                                        <p>
+                                            <span className="font-semibold">Tình trạng:</span>{" "}
+                                            {child.condition}%
+                                        </p>
+                                        <p>
                                             <span className="font-semibold">Rent Price:</span>{" "}
-                                            {child.rentPrice} VND
+                                            {child.rentPrice} ₫
                                         </p>
                                         <p>
                                             <span className="font-semibold">Quantity:</span>{" "}
-                                            {child.quantity}
+                                            {child.quantity} 
                                         </p>
                                         <p>
                                             <span className="font-semibold">Rental Period:</span>{" "}
@@ -136,7 +149,7 @@ export default function UserRentalDetail() {
                                         </p>
                                         <p>
                                             <span className="font-semibold">Total:</span>{" "}
-                                            {child.totalAmount} VND
+                                            {child.totalAmount} ₫
                                         </p>
                                     </div>
                                 </div>
@@ -157,7 +170,7 @@ export default function UserRentalDetail() {
                                     </p>
                                     <p>
                                         <span className="font-semibold">Rent Price:</span>{" "}
-                                        {rentPrice || "N/A"} VND
+                                        {rentPrice || "N/A"} ₫
                                     </p>
                                     <p>
                                         <span className="font-semibold">Rental Days:</span>{" "}
@@ -165,7 +178,7 @@ export default function UserRentalDetail() {
                                     </p>
                                     <p>
                                         <span className="font-semibold">Total:</span>{" "}
-                                        {totalAmount || "N/A"} VND
+                                        {totalAmount || "N/A"} ₫
                                     </p>
                                 </div>
                             </div>

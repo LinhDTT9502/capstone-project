@@ -31,7 +31,7 @@ const GuestOrder = () => {
               Order Code: {order.orderCode}
             </Typography>
             <Typography>Order ID: {order.saleOrderId}</Typography>
-            <Typography>Total Amount: {order.totalAmount.toLocaleString()} VND</Typography>
+            <Typography>Total Amount: {order.totalAmount.toLocaleString()} ₫</Typography>
             <Typography>Order Status: {order.orderStatus}</Typography>
 
             <Button

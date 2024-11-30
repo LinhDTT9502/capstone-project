@@ -12,6 +12,8 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
+import { checkQuantityProduct } from "../../services/warehouseService";
+import { useCart } from "./CartContext";
 // import { ProductType } from "../Product/ProductType";
 
 const UserCart = () => {
@@ -20,6 +22,9 @@ const UserCart = () => {
     const [selectedItems, setSelectedItems] = useState([]);
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
+    const { setCartCount } = useCart();
+    const [editingQuantities, setEditingQuantities] = useState({});
+
 
     const getCart = async () => {
         if (token) {
@@ -35,26 +40,37 @@ const UserCart = () => {
 
     const handleRemoveFromCart = async (itemId) => {
         const response = await removeCartItem(itemId, token)
-        console.log(response);
+        // console.log(response);
         getCart();
     };
 
-    const handleReduceQuantity = async (id) => {
-
+    const handleReduceQuantity = async (item) => {
+        const response = await reduceCartItem(item.cartItemId, token)
+        setCartCount((prevCount) => prevCount - 1);
+        getCart();
     };
 
     const handleIncreaseQuantity = async (item) => {
-
-        getCart();
+        const response = await checkQuantityProduct(item.productId)
+        if (item.quantity < response.availableQuantity) {
+            const data = await addToCart(token, item.productId, 1)
+            setCartCount((prevCount) => prevCount + 1);
+            getCart();
+        } else {
+            alert(`Sản phẩm này chỉ còn lại ${response.availableQuantity} sản phẩm trong kho`)
+        }
 
     };
 
     const handleQuantityChange = async (item, quantity) => {
-        const response = await updateCartItemQuantity(item.id, quantity, token)
-        console.log(response);
-        getCart();
-
+        try {
+            await updateCartItemQuantity(item.cartItemId, quantity, token);
+            getCart(); 
+        } catch (error) {
+            console.error("Failed to update quantity", error);
+        }
     };
+    
 
     const handleSelectItem = (productId) => {
         setSelectedItems((prevSelected) =>
@@ -123,9 +139,20 @@ const UserCart = () => {
                     {totalItems} {t("user_cart.items")}
                 </span>
             </div>
-            <div className="items-center mb-2 justify-end flex font-medium text-rose-700">* Đơn vị tiền tệ: VND</div>
-            {cartData.length === 0 ? (
-                <p>{t("user_cart.empty")}</p>
+            <div className="items-center font-poppins mb-2 justify-end flex  text-rose-700">* Đơn vị tiền tệ: ₫</div>
+            {cartData.length === 0 ? (<>
+                <div className="flex flex-col items-center my-10 ">
+                    <img src="/assets/images/cart-icon.png" className="w-48 h-auto object-contain" />
+                    <p className="pt-4 text-lg font-poppins">{t("user_cart.empty")}</p>
+                    <Link
+                        to="/product"
+                        className="text-blue-500 flex items-center font-poppins"
+                    >
+                        <FontAwesomeIcon className="pr-2" icon={faArrowLeft} />{" "}
+                        {t("user_cart.continue_shopping")}
+                    </Link>
+                </div>
+            </>
             ) : (
                 <div className="w-full">
                     <div className="bg-zinc-100 rounded-lg overflow-hidden shadow-lg">
@@ -150,7 +177,7 @@ const UserCart = () => {
                                 {t("user_cart.total")}
                             </div>
                             <div className="w-2/12 text-center text-lg font-bold">
-                                Giá thuê 
+                                Giá thuê
                                 <p className="text-xs">(cho 1 ngày)</p>
                             </div>
                             <div className="w-1/12 text-center text-lg font-bold">
@@ -194,19 +221,48 @@ const UserCart = () => {
                                 <div className="w-2/12 text-center flex items-center justify-center">
                                     <button
                                         className="px-2 py-1"
-                                        onClick={() => handleReduceQuantity(item.cartItemId)}
+                                        onClick={() => handleReduceQuantity(item)}
                                     >
                                         -
                                     </button>
                                     <input
                                         type="number"
-                                        className="w-12 mx-2 text-center "
-                                        value={item.quantity}
-                                        onChange={(e) =>
-                                            handleQuantityChange(item, parseInt(e.target.value))
-                                        }
+                                        className="w-12 mx-2 text-center"
+                                        value={editingQuantities[item.cartItemId] !== undefined ? editingQuantities[item.cartItemId] : item.quantity}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setEditingQuantities((prev) => ({
+                                                ...prev,
+                                                [item.cartItemId]: value ? parseInt(value) : "",
+                                            }));
+                                        }}
+                                        onBlur={async () => {
+                                            const finalQuantity = editingQuantities[item.cartItemId];
+                                            if (finalQuantity && finalQuantity !== item.quantity) {
+                                                await handleQuantityChange(item, finalQuantity);
+                                            }
+                                            setEditingQuantities((prev) => {
+                                                const updated = { ...prev };
+                                                delete updated[item.cartItemId];
+                                                return updated;
+                                            });
+                                        }}
+                                        onKeyDown={async (e) => {
+                                            if (e.key === "Enter") {
+                                                const finalQuantity = editingQuantities[item.cartItemId];
+                                                if (finalQuantity && finalQuantity !== item.quantity) {
+                                                    await handleQuantityChange(item, finalQuantity);
+                                                }
+                                                setEditingQuantities((prev) => {
+                                                    const updated = { ...prev };
+                                                    delete updated[item.cartItemId];
+                                                    return updated;
+                                                });
+                                            }
+                                        }}
                                         min="1"
                                     />
+
                                     <button
                                         className="px-2 py-1 "
                                         onClick={() => handleIncreaseQuantity(item)}

@@ -90,7 +90,7 @@ export default function FeatureProductSlide() {
                   </label>
 
                   <label className="text-wrap font-poppins text-zinc-500 text-clip">
-                    {product.price} VND
+                    {product.price} ₫
                   </label>
                 </Link>
                 {/* <button

@@ -80,9 +80,9 @@ const Invoice = ({ data }) => {
                       />
                     </td>
                     <td className="px-4 py-2">{item.productName}</td>
-                    <td className="px-4 py-2">{item.unitPrice.toLocaleString()} VND</td>
+                    <td className="px-4 py-2">{item.unitPrice.toLocaleString()} ₫</td>
                     <td className="px-4 py-2">{item.quantity}</td>
-                    <td className="px-4 py-2">{item.totalPrice.toLocaleString()} VND</td>
+                    <td className="px-4 py-2">{item.totalPrice.toLocaleString()} ₫</td>
                   </tr>
                 ))}
               </tbody>
@@ -95,9 +95,9 @@ const Invoice = ({ data }) => {
             Payment Summary
           </Typography>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <p><strong>Subtotal:</strong> {subTotal.toLocaleString()} VND</p>
-            <p><strong>Transport Fee:</strong> {tranSportFee.toLocaleString()} VND</p>
-            <p><strong>Total Amount:</strong> {totalAmount.toLocaleString()} VND</p>
+            <p><strong>Subtotal:</strong> {subTotal.toLocaleString()} ₫</p>
+            <p><strong>Transport Fee:</strong> {tranSportFee.toLocaleString()} ₫</p>
+            <p><strong>Total Amount:</strong> {totalAmount.toLocaleString()} ₫</p>
             <p><strong>Created At:</strong> {new Date(createdAt).toLocaleString()}</p>
             <p><strong>Note:</strong> {note}</p>
           </div>

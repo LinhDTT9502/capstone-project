@@ -89,7 +89,7 @@ const PriceRangeSlider = ({ minPrice, maxPrice, setMinPrice, setMaxPrice }) => {
               className="w-2/3 text-center"
               min="0" // Adding the min attribute for the input
             />
-            VND
+            ₫
           </div>
           <div className="flex py-2 px-2 rounded border justify-between w-1/2">
             <input
@@ -100,7 +100,7 @@ const PriceRangeSlider = ({ minPrice, maxPrice, setMinPrice, setMaxPrice }) => {
               className="w-2/3 text-center"
               max={max} // Adding the max attribute for the input
             />
-            VND
+            ₫
           </div>
         </div>
       </div>

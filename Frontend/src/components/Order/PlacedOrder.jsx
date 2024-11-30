@@ -168,7 +168,7 @@ const PlacedOrder = () => {
                         <li>Tình trạng: {item.condition}%</li>
                       </div>
                     </div>
-                    <p className="text-lg text-black">{(item.price * item.quantity).toLocaleString()} VND</p>
+                    <p className="text-lg text-black">{(item.price * item.quantity).toLocaleString()} ₫</p>
                   </div>
                 </div>
               ))}
@@ -179,7 +179,7 @@ const PlacedOrder = () => {
                 {t("checkout.subtotal")}
               </h3>
               <p className="text-lg text-black">
-                {totalPrice.toLocaleString()} VND
+                {totalPrice.toLocaleString()} ₫
               </p>
             </div>
             {/* <div className="flex justify-between items-center pt-1 border rounded mt-4">
@@ -213,7 +213,7 @@ const PlacedOrder = () => {
             <div className="flex justify-between items-center pt-1 border rounded mt-4">
               <h3 className="text-lg font-semibold">{t("checkout.total")}</h3>
               <p className="text-lg text-black">
-                {totalPrice.toLocaleString()} VND
+                {totalPrice.toLocaleString()} ₫
               </p>
             </div>
           </div>

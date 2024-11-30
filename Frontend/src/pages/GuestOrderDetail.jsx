@@ -34,7 +34,7 @@ const GuestOrderDetail = () => {
 
           <Typography variant="h6">Order ID: {saleOrderId}</Typography>
           <Typography>Order Code: {orderCode}</Typography>
-          <Typography>Total Amount: {totalAmount.toLocaleString()} VND</Typography>
+          <Typography>Total Amount: {totalAmount.toLocaleString()} ₫</Typography>
 
           <Typography variant="h5" className="mt-8 mb-4">
             Order Items
@@ -49,7 +49,7 @@ const GuestOrderDetail = () => {
               <div className="ml-4">
                 <Typography>{item.productName}</Typography>
                 <Typography>Quantity: {item.quantity}</Typography>
-                <Typography>Price: {item.unitPrice.toLocaleString()} VND</Typography>
+                <Typography>Price: {item.unitPrice.toLocaleString()} ₫</Typography>
               </div>
             </div>
           ))}

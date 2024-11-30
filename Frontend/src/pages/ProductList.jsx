@@ -72,7 +72,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
               </Link>
               <div className=" mt-2">
                 <h3 className="font-semibold">{product.productName}</h3>
-                <p className='text-red-700'>{product.price.toLocaleString()} VND</p>
+                <p className='text-red-700'>{product.price.toLocaleString()} ₫</p>
               
               </div>
             </div>
