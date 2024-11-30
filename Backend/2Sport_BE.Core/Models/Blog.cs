@@ -47,6 +47,8 @@ namespace _2Sport_BE.Repository.Models
         [ForeignKey("EditedByStaffId")]
         public virtual Staff EditedByStaff { get; set; }
 
+        public virtual ICollection<Bookmark> Bookmarks { get; set; }
+
         public bool Status { get; set; }
     }
 }
