@@ -22,6 +22,7 @@ namespace _2Sport_BE.Service.Services
         Task ReduceCartItem(Guid cartItemId);
         Task UpdateQuantityOfCartItem(Guid cartItemId, int quantity);
         Task<CartItem> AddExistedCartItem(CartItem newCartItem);
+        Task UpdateProductIdOfCartItem(Guid cartItemId, int productId);
     }
     public class CartItemService : ICartItemService
     {
@@ -137,10 +138,12 @@ namespace _2Sport_BE.Service.Services
                 reducedCartItem.Price -= product.Price;
                 if (reducedCartItem.Quantity == 0)
                 {
-                    DeleteCartItem(reducedCartItem.CartItemId);
+                    await DeleteCartItem(reducedCartItem.CartItemId);
+                } else
+                {
+                    await _unitOfWork.CartItemRepository.UpdateAsync(reducedCartItem);
                 }
-                await _unitOfWork.CartItemRepository.UpdateAsync(reducedCartItem);
-                
+
             }
         }
 
@@ -151,9 +154,9 @@ namespace _2Sport_BE.Service.Services
             if (updatedCartItem != null)
             {
                 var product = await _productRepository.FindAsync(updatedCartItem.ProductId);
-                if (updatedCartItem.Quantity == 0)
+                if (quantity == 0)
                 {
-                    DeleteCartItem(updatedCartItem.CartItemId);
+                    await DeleteCartItem(updatedCartItem.CartItemId);
                 }
                 else
                 {
@@ -172,5 +175,23 @@ namespace _2Sport_BE.Service.Services
 
         }
 
+        public async Task UpdateProductIdOfCartItem(Guid cartItemId, int productId)
+        {
+            try
+            {
+                var updatedCartItem = (await _cartItemRepository
+                                                    .GetAsync(_ => _.CartItemId.Equals(cartItemId)))
+                                                    .FirstOrDefault();
+                if (updatedCartItem != null)
+                {
+                    updatedCartItem.ProductId = productId;
+                    await _unitOfWork.CartItemRepository.UpdateAsync(updatedCartItem);
+                }
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            
+        }
     }
 }

@@ -573,7 +573,7 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
 
-        private ResponseDTO<RentalOrderVM> GenerateSuccessResponse(RentalOrder order, List<RentalOrder>? listChild, string messagge)
+        public ResponseDTO<RentalOrderVM> GenerateSuccessResponse(RentalOrder order, List<RentalOrder>? listChild, string messagge)
         {
             var result = _mapper.Map<RentalOrderVM>(order);
             result.DepositStatus = order.DepositStatus != null
@@ -595,7 +595,7 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             else
             {
-                result.listChild = _mapper.Map<List<RentalOrderVM>>(listChild);
+                result.childOrders = _mapper.Map<List<RentalOrderVM>>(listChild);
 
             }
             return new ResponseDTO<RentalOrderVM>
@@ -605,7 +605,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 Data = result
             };
         }
-        private ResponseDTO<RentalOrderVM> GenerateErrorResponse(string message)
+        public ResponseDTO<RentalOrderVM> GenerateErrorResponse(string message)
         {
             return new ResponseDTO<RentalOrderVM>()
             {
@@ -719,7 +719,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     .GetAsync(o => o.UserId == userId);
 
                 if (orders != null && orders.Any())
-                {
+                {             
                     var resultList = orders.Select(rentalOrder =>
                     {
                         var result = _mapper.Map<RentalOrderVM>(rentalOrder);
@@ -1110,14 +1110,13 @@ namespace _2Sport_BE.Infrastructure.Services
                 try
                 {
                     var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
-                    var childOrder = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode.Equals(rentalOrder.RentalOrderCode));
                     if (rentalOrder == null)
                     {
                         return GenerateErrorResponse($"SaleOrder with id = {orderId} is not found!");
                     }
                     else
                     {
-                        await _notificationService.NotifyForRejectOrderOrderAsync(rentalOrder.RentalOrderCode, rentalOrder.BranchId.Value);
+                    var childOrder = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode.Equals(rentalOrder.RentalOrderCode));
 
                         rentalOrder.OrderStatus = (int)OrderStatus.PENDING;
                         rentalOrder.BranchId = null;
@@ -1132,6 +1131,7 @@ namespace _2Sport_BE.Infrastructure.Services
                             }
                         }
 
+                        await _notificationService.NotifyForRejectOrderAsync(rentalOrder.RentalOrderCode, rentalOrder.BranchId.Value);
                         await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                         await transaction.CommitAsync();

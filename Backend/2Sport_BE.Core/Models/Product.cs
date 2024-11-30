@@ -79,4 +79,30 @@ public class Product
     public virtual ICollection<Like> Likes { get; set; }
     public virtual ICollection<ImportHistory> ImportHistories { get; set; }
     public virtual ICollection<Warehouse> Warehouses { get; set; }
+
+    public Product()
+    {
+    }
+
+    public Product(Product other)
+    {
+        Id = other.Id;
+        ProductName = other.ProductName;
+        Price = other.Price;
+        Size = other.Size;
+        Description = other.Description;
+        Status = other.Status;
+        Color = other.Color;
+        Condition = other.Condition;
+        Offers = other.Offers;
+        Discount = other.Discount;
+        CategoryId = other.CategoryId;
+        BrandId = other.BrandId;
+        ProductCode = other.ProductCode;
+        SportId = other.SportId;
+        CreateAt = other.CreateAt;
+        RentPrice = other.RentPrice;
+        IsRent = other.IsRent;
+        ImgAvatarPath = other.ImgAvatarPath;
+    }
 }

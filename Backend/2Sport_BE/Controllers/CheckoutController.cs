@@ -4,6 +4,7 @@ using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Infrastructure.Helpers;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Models;
+using _2Sport_BE.Service.Enums;
 using _2Sport_BE.Services;
 using MailKit.Search;
 using Microsoft.AspNetCore.Http;
@@ -121,11 +122,7 @@ namespace _2Sport_BE.Controllers
             }
 
             var result = await _payOsService.ProcessCancelledSaleOrder(paymentResponse);
-            if (result.IsSuccess)
-            {
-                var redirectUrl = "https://twosportshop.vercel.app/order_cancel";
-                return Redirect(redirectUrl);
-            }
+            if (result.IsSuccess) return Ok(result);
             return BadRequest(result);
         }
         [HttpGet("sale-order-return-payos")]
@@ -142,11 +139,8 @@ namespace _2Sport_BE.Controllers
             }
 
             var result = await _payOsService.ProcessCompletedSaleOrder(paymentResponse);
-            if (result.IsSuccess)
-            {
-                var redirectUrl = "https://twosportshop.vercel.app/order_success";
-                return Redirect(redirectUrl);
-            }
+
+            if (result.IsSuccess) return Ok(result);
             return BadRequest(result);
         }
         [HttpPost]
@@ -172,22 +166,34 @@ namespace _2Sport_BE.Controllers
 
             if (checkoutModel.PaymentMethodID == (int)OrderMethods.PayOS || checkoutModel.PaymentMethodID == (int)OrderMethods.VnPay)
             {
+
                 var paymentService = _paymentFactory.GetPaymentService(checkoutModel.PaymentMethodID);
                 if (paymentService == null)
                 {
                     return BadRequest("Phương thức thanh toán không hợp lệ.");
                 }
+                var createdLink = new ResponseDTO<string>();
+                if (!string.IsNullOrEmpty(checkoutModel.TransactionType) && checkoutModel.TransactionType == "DEPOSIT_50")
+                {
+                    order.DepositStatus = (int)DepositStatus.Partially_Pending;
+                    createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext, true);
+                }
+                else 
+                {
+                    createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext, false);
+                    order.DepositStatus = (int)DepositStatus.Pending;
+                } 
 
-                var createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext);
                 if (!createdLink.IsSuccess)
                 {
                     return BadRequest(createdLink.Message ?? "Failed to create payment link.");
                 }
 
-
                 if (order.PaymentMethodId != checkoutModel.PaymentMethodID)
                 {
                     order.PaymentMethodId = checkoutModel.PaymentMethodID;
+                    order.PaymentStatus = (int)PaymentStatus.IsWating;
+
                     await _rentalOrderService.UpdaterRentalOrder(order);
                 }
 
@@ -233,11 +239,8 @@ namespace _2Sport_BE.Controllers
             }
 
             var result = await _payOsService.ProcessCancelledRentalOrder(paymentResponse);
-            if (result.IsSuccess)
-            {
-                var redirectUrl = "https://twosportshop.vercel.app/order_cancel";
-                return Redirect(redirectUrl);
-            }
+
+            if (result.IsSuccess) return Ok(result);
             return BadRequest(result);
         }
         [HttpGet("rental-order-return-payos")]
@@ -254,11 +257,8 @@ namespace _2Sport_BE.Controllers
             }
 
             var result = await _payOsService.ProcessCompletedRentalOrder(paymentResponse);
-            if (result.IsSuccess)
-            {
-                var redirectUrl = "https://twosportshop.vercel.app/order_success";
-                return Redirect(redirectUrl);
-            }
+
+            if (result.IsSuccess) return Ok(result);
             return BadRequest(result);
         }
         [NonAction]
@@ -289,23 +289,17 @@ namespace _2Sport_BE.Controllers
         public async Task<IActionResult> HandleSaleOrderReturnVnPay()
         {
             var result = await _vnPayService.PaymentSaleOrderExecute(Request.Query);
-            if (result.IsSuccess)
-            {
-                var redirectUrl = "https://twosportshop.vercel.app/order_success";
-                return Redirect(redirectUrl);
-            }
-            return Redirect("https://twosportshop.vercel.app/order-cancel");
+
+            if (result.IsSuccess) return Ok(result);
+            return BadRequest(result);
         }
         [HttpGet("rental-order-return-vnpay")]
         public async Task<IActionResult> HandleRentalOrderReturnVnPay()
         {
             var result = await _vnPayService.PaymentRentalOrderExecute(Request.Query);
-            if (result.IsSuccess)
-            {
-                var redirectUrl = "https://twosportshop.vercel.app/order_success";
-                return Redirect(redirectUrl);
-            }
-            return Redirect("https://twosportshop.vercel.app/order-cancel");
+
+            if (result.IsSuccess) return Ok(result);
+            return BadRequest(result);
         }
     }
 }

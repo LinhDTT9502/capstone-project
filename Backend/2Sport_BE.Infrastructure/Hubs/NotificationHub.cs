@@ -4,11 +4,12 @@ using System.Security.Claims;
 
 namespace _2Sport_BE.Infrastructure.Hubs
 {
-    public interface INotificationMethod
+    public interface INotificationHub
     {
-
+        Task SendMessageToGroup(string groupName, string message);
+        Task SendNotificationToCustomer(string userId, string message);
     }
-    public class NotificationHub : Hub
+    public class NotificationHub : Hub, INotificationHub
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -16,7 +17,24 @@ namespace _2Sport_BE.Infrastructure.Hubs
         {
             _httpContextAccessor = httpContextAccessor;
         }
-
+        private string GetCurrentUserBranchFromToken()
+        {
+            string userbranchId = string.Empty;
+            try
+            {
+                if (_httpContextAccessor.HttpContext.User.Identity.IsAuthenticated)
+                {
+                    var identity = _httpContextAccessor.HttpContext.User.Identity as ClaimsIdentity;
+                    var branchClaim = identity?.FindFirst("BranchId");
+                    userbranchId = branchClaim?.Value ?? string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return userbranchId;
+        }
         private string GetCurrentUserRoleFromToken()
         {
             string userRole = string.Empty;
@@ -40,20 +58,27 @@ namespace _2Sport_BE.Infrastructure.Hubs
         public override async Task OnConnectedAsync()
         {
             string userRole = GetCurrentUserRoleFromToken();
+            string branchId = GetCurrentUserBranchFromToken();
+
             if (userRole == "Order Coordinator")
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, "Coordinator");
             }
-            else
+            else if (userRole == "Manager" || userRole == "Staff")
             {
-                return;
+                if (!string.IsNullOrEmpty(branchId))
+                {
+                    // Thêm user vào nhóm chi nhánh tương ứng
+                    string branchGroupName = $"Branch_{branchId}";
+                    await Groups.AddToGroupAsync(Context.ConnectionId, branchGroupName);
+                }
             }
             await base.OnConnectedAsync();
         }
 
-        public async Task SendMessageToGroup(string orderCode)
+        public async Task SendMessageToGroup(string groupName, string message)
         {
-            await Clients.Group("Coordinator").SendAsync("ReceiveOrderCreated", $"New order created with code: {orderCode}");
+            await Clients.Group(groupName).SendAsync("ReceiveMessage", message);
         }
 
         public async Task SendNotificationToCustomer(string userId, string message)

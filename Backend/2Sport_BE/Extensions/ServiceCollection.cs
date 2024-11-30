@@ -11,6 +11,7 @@ using _2Sport_BE.Infrastructure.Helpers;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using _2Sport_BE.Services.Caching;
+using _2Sport_BE.Infrastructure.Hubs;
 
 namespace _2Sport_BE.Extensions
 {
@@ -46,6 +47,7 @@ namespace _2Sport_BE.Extensions
             services.AddTransient<IBrandService, BrandService>();
             services.AddTransient<IBlogService, BlogService>();
             services.AddTransient<IBranchService, BranchService>();
+            services.AddTransient<IBookmarkService, BookmarkService>();
             services.AddTransient<ICommentService, CommentService>();
             services.AddScoped<ISportService, SportService>();
             services.AddScoped<ICategoryService, CategoryService>();
@@ -67,6 +69,7 @@ namespace _2Sport_BE.Extensions
             #region Order_Services
             //SaleOrder
             services.AddScoped<ISaleOrderService, SaleOrderService>();
+            services.AddScoped<SaleOrderService>();
             services.AddScoped<IOrderDetailService, OrderDetailService>();
             //RentalOrder
             services.AddScoped<IRentalOrderService, RentalOrderService>();
@@ -86,6 +89,10 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<IDeliveryMethodService, DeliveryMethodService>();
             services.AddScoped<IRefundRequestService, RefundRequestService>();
 
+            #endregion
+            #region Notification
+            services.AddScoped<INotificationHub, NotificationHub>();
+            services.AddScoped<INotificationService, NotificationService>();
             #endregion
         }
 

@@ -5,33 +5,89 @@ namespace _2Sport_BE.Infrastructure.Services
 {
     public interface INotificationService
     {
-        Task NotifyForCreatingNewOrderAsync(string orderCode);
-        Task NotifyForRejectOrderOrderAsync(string orderCode, int branchId);
-
+        Task NotifyForCreatingNewOrderAsync(string orderCode, int? brachId = null);
+        Task NotifyForRejectOrderAsync(string orderCode, int branchId);
+        Task NotifyPaymentCancellation(string orderCode, bool isRentalOrder, int? branchId = null);
+        Task NotifyPaymentPaid(string orderCode, bool isRentalOrder, int? branchId = null);
         Task SendRentalOrderExpirationNotificationAsync(string customerId, string orderId, DateTime rentalEndDate);
     }
     public class NotificationService : INotificationService
     {
-        private readonly IHubContext<NotificationHub> _notificationHubContext;
-        public NotificationService(IHubContext<NotificationHub> hubContext)
+        private readonly INotificationHub _notificationHub;
+        public NotificationService(INotificationHub notificationHub)
         {
-            _notificationHubContext = hubContext;
+            _notificationHub = notificationHub;
         }
-        public async Task NotifyForCreatingNewOrderAsync(string orderCode)
+        public async Task NotifyForCreatingNewOrderAsync(string orderCode, int? branchId = null)
         {
-            var message = $"A new order has been created with order code: {orderCode}";
-            await _notificationHubContext.Clients.Group("Coordinator").SendAsync("ReceiveOrderCreated", message);
+            var message = $"Đơn hàng có mã là {orderCode} vừa được tạo.";
+            if(branchId != null)
+            {
+                string toBranch = $"Branch_{branchId}";
+                await _notificationHub.SendMessageToGroup(toBranch, message);
+            }
+            else
+            {
+                await _notificationHub.SendMessageToGroup("Coordinator", message);
+            }
         }
-        public async Task NotifyForRejectOrderOrderAsync(string orderCode, int branchId)
+
+        public async Task NotifyForRejectOrderAsync(string orderCode, int branchId)
         {
-            var message = $"A order has been rejected with order code: {orderCode} by branch {branchId}";
-            await _notificationHubContext.Clients.Group("Coordinator").SendAsync("ReceiveOrderRejected", message);
+            var message = $"Đơn hàng {orderCode} đã bị từ chối tại chi nhánh {branchId}.";
+            await _notificationHub.SendMessageToGroup("Coordinator", message);
         }
-        public async Task SendRentalOrderExpirationNotificationAsync(string customerId, string orderId, DateTime rentalEndDate)
+
+        public async Task NotifyPaymentCancellation(string orderCode, bool isRentalOrder, int? branchId = null)
         {
-            var message = $"Your rental order #{orderId} is about to expire on {rentalEndDate.ToShortDateString()}";
-            await _notificationHubContext.Clients.User(customerId)
-                .SendAsync("ReceiveNotification", message);
+            string message = "";
+            if(isRentalOrder == false) {
+                 message = $"Thanh toán cho đơn hàng {orderCode} đã bị hủy.";
+            }
+            else
+            {
+                 message = $"Thanh toán cho đơn hàng thuê {orderCode} đã bị hủy.";
+            }
+
+
+            if (branchId != null)
+            {
+                var toBranch = $"Branch_{branchId}";
+                await _notificationHub.SendMessageToGroup(toBranch, message);
+            }
+            else
+            {
+                await _notificationHub.SendMessageToGroup("Coordinator", message);
+            }
+        }
+
+        public async Task NotifyPaymentPaid(string orderCode, bool isRentalOrder, int? branchId = null)
+        {
+            string message = "";
+            if (isRentalOrder == false)
+            {
+                message = $"Thanh toán cho đơn hàng {orderCode} thành công.";
+            }
+            else
+            {
+                message = $"Thanh toán cho đơn hàng thuê {orderCode} thành công.";
+            }
+
+            if (branchId != null)
+            {
+                var toBranch = $"Branch_{branchId}";
+                await _notificationHub.SendMessageToGroup(toBranch, message);
+            }
+            else
+            {
+                await _notificationHub.SendMessageToGroup("Coordinator", message);
+            }
+        }
+
+        public async Task SendRentalOrderExpirationNotificationAsync(string customerId, string orderCode, DateTime rentalEndDate)
+        {
+            var message = $"Đơn thuê {orderCode} sẽ hết hạn vào ngày {rentalEndDate:dd/MM/yyyy}.";
+            await _notificationHub.SendNotificationToCustomer(customerId, message);
         }
     }
 }

@@ -210,6 +210,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 var resultList = query.Select(saleOrder =>
                 {
                     var result = _mapper.Map<SaleOrderVM>(saleOrder);
+                    result.SaleOrderDetailVMs = _mapper.Map<List<SaleOrderDetailVM>> (saleOrder.OrderDetails.ToList());
                     MapSaleOrderToSaleOrderVM(saleOrder, result);
                     return result;
                 }).ToList();
@@ -458,12 +459,17 @@ namespace _2Sport_BE.Infrastructure.Services
 
                     saleOrder.SubTotal = saleOrderCM.SaleCosts.SubTotal ?? subTotal;
                     saleOrder.TranSportFee = saleOrderCM.SaleCosts.TranSportFee ?? 0;
-                    saleOrder.TotalAmount = saleOrderCM.SaleCosts.TotalAmount.Value != null ? saleOrderCM.SaleCosts.TotalAmount.Value : (decimal)(saleOrder.SubTotal + saleOrder.TranSportFee);
+                    saleOrder.TotalAmount = saleOrderCM.SaleCosts.TotalAmount ?? (decimal)(saleOrder.SubTotal + saleOrder.TranSportFee);
 
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
                     //Send notifications to Admmin
-                    await _notificationService.NotifyForCreatingNewOrderAsync(saleOrder.SaleOrderCode);
+                    if(saleOrder.BranchId != null)
+                    {
+                        await _notificationService.NotifyForCreatingNewOrderAsync(saleOrder.SaleOrderCode, saleOrder.BranchId);
+                    }
+                    else await _notificationService.NotifyForCreatingNewOrderAsync(saleOrder.SaleOrderCode);
+                    
                     await _mailService.SendSaleOrderInformationToCustomer(saleOrder, saleOrder.OrderDetails.ToList(), saleOrder.Email);
                     await transaction.CommitAsync();
 
@@ -694,7 +700,7 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
         #endregion
-        private ResponseDTO<SaleOrderVM> GenerateSuccessResponse(SaleOrder order, string messagge)
+        public ResponseDTO<SaleOrderVM> GenerateSuccessResponse(SaleOrder order, string messagge)
         {
             var result = _mapper.Map<SaleOrderVM>(order);
 
@@ -733,7 +739,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 Data = result
             };
         }
-        private ResponseDTO<SaleOrderVM> GenerateErrorResponse(string message)
+        public ResponseDTO<SaleOrderVM> GenerateErrorResponse(string message)
         {
             return new ResponseDTO<SaleOrderVM>()
             {
@@ -867,7 +873,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
                     else
                     {
-                        await _notificationService.NotifyForRejectOrderOrderAsync(SaleOrder.SaleOrderCode, SaleOrder.BranchId.Value);
+                        await _notificationService.NotifyForRejectOrderAsync(SaleOrder.SaleOrderCode, SaleOrder.BranchId.Value);
 
                         SaleOrder.OrderStatus = (int)OrderStatus.PENDING;
                         SaleOrder.BranchId = null;
