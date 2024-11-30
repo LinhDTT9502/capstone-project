@@ -11,6 +11,7 @@ using _2Sport_BE.Infrastructure.Helpers;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using _2Sport_BE.Services.Caching;
+using _2Sport_BE.Infrastructure.Hubs;
 
 namespace _2Sport_BE.Extensions
 {
@@ -87,6 +88,10 @@ namespace _2Sport_BE.Extensions
             services.AddScoped<IDeliveryMethodService, DeliveryMethodService>();
             services.AddScoped<IRefundRequestService, RefundRequestService>();
 
+            #endregion
+            #region Notification
+            services.AddScoped<INotificationHub, NotificationHub>();
+            services.AddScoped<INotificationService, NotificationService>();
             #endregion
         }
 

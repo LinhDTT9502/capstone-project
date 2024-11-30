@@ -13,6 +13,7 @@ namespace _2Sport_BE.Service.Enums
         Not_Paid = 3,
         Refunded = 4,
         Pending = 6,
-        Partially_Pending = 7
+        Partially_Pending = 7,
+        Canceled = 8,
     }
 }
