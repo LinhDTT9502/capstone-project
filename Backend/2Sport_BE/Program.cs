@@ -167,7 +167,7 @@ app.UseStaticFiles();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
-    endpoints.MapHub<NotificationHub>("/notificationHub");
+    endpoints.MapHub<NotificationHub>("/notificationHub").RequireAuthorization();
 
 });
 
