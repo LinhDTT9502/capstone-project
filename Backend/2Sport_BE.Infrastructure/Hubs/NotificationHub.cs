@@ -9,7 +9,7 @@ namespace _2Sport_BE.Infrastructure.Hubs
         Task SendMessageToGroup(string groupName, string message);
         Task SendNotificationToCustomer(string userId, string message);
     }
-    public class NotificationHub : Hub, INotificationHub
+    public class NotificationHub : Hub
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -19,7 +19,11 @@ namespace _2Sport_BE.Infrastructure.Hubs
         }
         private string GetCurrentUserBranchFromToken()
         {
-            string userbranchId = string.Empty;
+            var identity = Context.User?.Identity as ClaimsIdentity;
+            var branchClaim = identity?.FindFirst("BranchId");
+            return branchClaim?.Value ?? string.Empty;
+
+          /*  string userbranchId = string.Empty;
             try
             {
                 if (_httpContextAccessor.HttpContext.User.Identity.IsAuthenticated)
@@ -33,26 +37,29 @@ namespace _2Sport_BE.Infrastructure.Hubs
             {
                 Console.WriteLine(ex.Message);
             }
-            return userbranchId;
+            return userbranchId;*/
         }
         private string GetCurrentUserRoleFromToken()
         {
-            string userRole = string.Empty;
-            try
-            {
-                if (_httpContextAccessor.HttpContext.User.Identity.IsAuthenticated)
-                {
-                    var identity = _httpContextAccessor.HttpContext.User.Identity as ClaimsIdentity;
-                    var roleClaim = identity?.FindFirst(ClaimTypes.Role);
-                    userRole = roleClaim?.Value ?? string.Empty;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log the exception (consider using a logging framework)
-                Console.WriteLine(ex.Message);
-            }
-            return userRole;
+            /*  string userRole = string.Empty;
+              try
+              {
+                  if (_httpContextAccessor.HttpContext.User.Identity.IsAuthenticated)
+                  {
+                      var identity = _httpContextAccessor.HttpContext.User.Identity as ClaimsIdentity;
+                      var roleClaim = identity?.FindFirst(ClaimTypes.Role);
+                      userRole = roleClaim?.Value ?? string.Empty;
+                  }
+              }
+              catch (Exception ex)
+              {
+                  // Log the exception (consider using a logging framework)
+                  Console.WriteLine(ex.Message);
+              }
+              return userRole;*/
+            var identity = Context.User?.Identity as ClaimsIdentity;
+            var roleClaim = identity?.FindFirst(ClaimTypes.Role);
+            return roleClaim?.Value ?? string.Empty;
         }
 
         public override async Task OnConnectedAsync()
@@ -83,13 +90,35 @@ namespace _2Sport_BE.Infrastructure.Hubs
 
         public async Task SendNotificationToCustomer(string userId, string message)
         {
-            if (Clients.User(userId) != null)
+            var user = Clients.User(userId); // Kiểm tra user connection
+
+            if (user != null)
             {
-                await Clients.User(userId).SendAsync("ReceiveNotification", message);
+                await user.SendAsync("ReceiveNotification", message);
             }
             else
             {
-                return;
+                // Log thông báo hoặc xử lý khi user không được kết nối
+                Console.WriteLine("User not connected");
+            }
+        }
+        public class NotificationHubService : INotificationHub
+        {
+            private readonly IHubContext<NotificationHub> _hubContext;
+
+            public NotificationHubService(IHubContext<NotificationHub> hubContext)
+            {
+                _hubContext = hubContext;
+            }
+
+            public async Task SendMessageToGroup(string groupName, string message)
+            {
+                await _hubContext.Clients.Group(groupName).SendAsync("ReceiveMessage", message);
+            }
+
+            public async Task SendNotificationToCustomer(string userId, string message)
+            {
+                await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", message);
             }
         }
     }

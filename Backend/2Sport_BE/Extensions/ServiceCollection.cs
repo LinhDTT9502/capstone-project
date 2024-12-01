@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using _2Sport_BE.Services.Caching;
 using _2Sport_BE.Infrastructure.Hubs;
+using static _2Sport_BE.Infrastructure.Hubs.NotificationHub;
 
 namespace _2Sport_BE.Extensions
 {
@@ -91,7 +92,7 @@ namespace _2Sport_BE.Extensions
 
             #endregion
             #region Notification
-            services.AddScoped<INotificationHub, NotificationHub>();
+            services.AddScoped<INotificationHub, NotificationHubService>();
             services.AddScoped<INotificationService, NotificationService>();
             #endregion
         }
