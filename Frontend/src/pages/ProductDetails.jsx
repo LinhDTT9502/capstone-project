@@ -239,9 +239,11 @@ const ProductDetails = () => {
                     type="number"
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-                    className="w-full text-center"
-                    min="1"
+                    className="w-24 h-6 text-center text-sm p-1 border rounded"
+                    min="0"
                   />
+
+
                   <button
                     onClick={() => setQuantity(prev => prev + 1)}
                     className="px-3 border rounded-md bg-orange-500 text-white"
@@ -256,7 +258,7 @@ const ProductDetails = () => {
                   <Button
                     variant="text"
                     onClick={handlePlaceOrder}
-                    className="w-full border-orange-500 border-2 text-orange-500 hover:text-white hover:bg-orange-500">
+                    className="w-full bg-orange-500 border-orange-500 border-2 text-white hover:text-orange-500 hover:bg-white">
                     Mua ngay
                   </Button>
 
