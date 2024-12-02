@@ -6,7 +6,7 @@ import { selectProducts, setProducts } from '../redux/slices/productSlice';
 import { Rating } from "@material-tailwind/react";
 
 const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, minPrice, maxPrice }) => {
-  console.log(selectedBrands,selectedCategories);
+  // console.log(selectedBrands,selectedCategories);
   
   const dispatch = useDispatch();
   const { products: allProducts } = useSelector(selectProducts) || { products: [] };
@@ -51,7 +51,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
       }
 
       setFilteredProducts(result);
-      console.log(result);
+      // console.log(result);
       //  dispatch(setProducts({ data: { total: result.length } }));
       
     };

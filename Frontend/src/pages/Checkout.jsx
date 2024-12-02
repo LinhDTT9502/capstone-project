@@ -6,20 +6,13 @@ import CheckoutButton from "../components/Payment/CheckoutButton";
 const Checkout = () => {
   const location = useLocation();
   const [selectedOption, setSelectedOption] = useState(null);
-  const [selectedDeposit, setSelectedDeposit] = useState('');
   const selectedOrder = location.state?.selectedOrder || null;
 
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
   };
 
-  const handleDepositChange = (value) => {
-    if (value === "DEPOSIT_50") {
-      setSelectedDeposit("DEPOSIT_50");
-    } else {
-      setSelectedDeposit(null);
-    }
-  };
+  
   
 
   return (
@@ -37,30 +30,7 @@ const Checkout = () => {
           {/* Order Summary Section */}
           {selectedOrder && (
             <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
-              <div className="mb-4">
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="option"
-                    value="DEPOSIT_50"
-                    className="form-radio text-[#FA7D0B]"
-                    onChange={(e) => handleDepositChange(e.target.value)}
-                  />
-                  <span className="ml-2">Đặt cọc 50%</span>
-                </label>
-              </div>
-              <div className="mb-4">
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="option"
-                    value="FULL_PAYMENT"
-                    className="form-radio text-[#FA7D0B]"
-                    onChange={(e) => handleDepositChange(null)} 
-                  />
-                  <span className="ml-2">Thanh toán toàn bộ đơn hàng</span>
-                </label>
-              </div>
+              
 
               <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
               <p className="text-gray-600">
@@ -137,7 +107,6 @@ const Checkout = () => {
               <CheckoutButton
                 paymentMethodID={selectedOption}
                 selectedOrder={selectedOrder}
-                selectedDeposit={selectedDeposit}
                 className="mt-4"
               />
             </div>

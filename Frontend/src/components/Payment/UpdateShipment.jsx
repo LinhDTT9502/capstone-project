@@ -50,7 +50,7 @@ export default function UpdateShipment({ shipment, onClose }) {
   return (
     <>
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={closeModal}>
+        <Dialog as="div" className="bg-white" onClose={closeModal}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -63,7 +63,7 @@ export default function UpdateShipment({ shipment, onClose }) {
             <Dialog.Overlay className="fixed inset-0 bg-black opacity-50" />
           </Transition.Child>
 
-          <div className="fixed inset-0 overflow-y-auto">
+          <div className="fixed inset-0 max-h-[100vh] overflow-y-auto pt-20">
             <div className="flex items-center justify-center min-h-screen">
               <Transition.Child
                 as={Fragment}
@@ -74,7 +74,7 @@ export default function UpdateShipment({ shipment, onClose }) {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="bg-white p-6 rounded-md shadow-xl max-w-md w-full mx-4">
+                <Dialog.Panel className="bg-white p-6 rounded-md shadow-xl  w-fit mx-4">
                   <Dialog.Title className="text-xl font-bold">
                     {t("payment.update_shipment")}
                   </Dialog.Title>

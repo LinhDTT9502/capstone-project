@@ -105,6 +105,7 @@ const GuestCart = () => {
     const selectedProducts = cartData.filter((item) =>
       selectedItems.includes(item.id)
     );
+console.log(selectedProducts);
 
     navigate("/rental-order", { state: { selectedProducts } });
 
@@ -211,13 +212,13 @@ const GuestCart = () => {
                 </div>
                 <div className="w-2/12 text-center">
                   {item.price.toLocaleString()}{" "}
-                  {t("user_cart.vnd")}
+                
                 </div>
                  <div className="w-1/12 text-center">
                  test
                 </div>
                 <div className="w-2/12 text-center">
-                  {(item.price * item.quantity).toLocaleString()} {t("user_cart.vnd")}
+                  {(item.price * item.quantity).toLocaleString()} 
                 </div>
                 <div className="w-1/12 text-center">
                   <button
@@ -237,7 +238,7 @@ const GuestCart = () => {
               </p>
 
             </div>
-            <p className="text-right">{totalPrice.toLocaleString()} {t("user_cart.vnd")}</p>
+            <p className="text-right">{totalPrice.toLocaleString()}</p>
           </div>
           <div className="flex justify-between w-full mt-5">
                 <Link

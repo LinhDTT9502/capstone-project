@@ -60,8 +60,7 @@ const SaleOrder = () => {
           gender: userData.gender,
           contactPhone: userData.phoneNumber,
           address: userData.address,
-          userID: token ? user.UserId : 0,
-          shipmentDetailID: userData.shipmentDetailID,
+          userID: token ? user.UserId : null,
         },
         dateOfReceipt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
         note: note,
@@ -72,7 +71,7 @@ const SaleOrder = () => {
           productId: item.id,
           productName: item.productName,
           productCode: item.productCode,
-          quantity: item.quantity || 1, // Default to 1 if quantity is not provided
+          quantity: item.quantity || 1, 
           unitPrice: item.price,
           size: item.size,
           color: item.color,

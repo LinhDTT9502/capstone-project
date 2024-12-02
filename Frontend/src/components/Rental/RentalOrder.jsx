@@ -29,6 +29,7 @@ const RentalOrder = () => {
   const token = localStorage.getItem("token");
 
   const rentalData = JSON.parse(localStorage.getItem("rentalData"));
+console.log(rentalData);
 
   const handleStartDateChange = (e) => setStartDate(e.target.value);
   const handleEndDateChange = (e) => setEndDate(e.target.value);
@@ -63,7 +64,7 @@ const RentalOrder = () => {
 
     const payload = {
       customerInformation: {
-        userId: token ? user.UserId : 0,
+        userId: token ? user.UserId : null,
         email: userData.email,
         fullName: userData.fullName,
         gender: userData.gender,

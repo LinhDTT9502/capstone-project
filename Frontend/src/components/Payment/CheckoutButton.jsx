@@ -26,7 +26,7 @@ const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
         paymentMethodID: paymentMethodID,
         orderID: selectedOrder.id,
         orderCode: selectedOrder.saleOrderCode,
-        transactionType: selectedOrder.transactionType,
+        transactionType: null,
       };
 
       // Call the API for VNPay checkout

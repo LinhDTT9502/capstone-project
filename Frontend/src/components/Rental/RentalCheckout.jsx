@@ -9,8 +9,16 @@ export default function RentalCheckout() {
     const navigate = useNavigate();
     const orderDetail = location.state?.selectedOrder;
     const [selectedOption, setSelectedOption] = useState(null);
+    const [selectedDeposit, setSelectedDeposit] = useState('');
     console.log(orderDetail);
 
+    const handleDepositChange = (value) => {
+        if (value === "DEPOSIT_50") {
+          setSelectedDeposit("DEPOSIT_50");
+        } else {
+          setSelectedDeposit(null);
+        }
+      };
 
     const handleOptionChange = (event) => {
         setSelectedOption(event.target.value);
@@ -29,6 +37,7 @@ export default function RentalCheckout() {
                 paymentMethodID: selectedOption,
                 orderID: orderDetail.id,
                 orderCode: orderDetail.rentalOrderCode,
+                transactionType: selectedDeposit,
             };
 
             const response = await axios.post(
@@ -46,7 +55,12 @@ export default function RentalCheckout() {
             if (response.data.isSuccess) {
                 const paymentLink = response.data.data.paymentLink;
                 // console.log(paymentLink);
-                window.location.href = paymentLink;
+                if (selectedOption ==2 || selectedOption ==3) {
+                    window.location.href = paymentLink;
+                    return;
+                  } else (
+                    navigate(`/manage-account/user-rental/${orderDetail.id}`)
+                  )
             } else {
                 alert("Checkout failed: " + response.data.message);
             }
@@ -64,6 +78,30 @@ export default function RentalCheckout() {
                     selectedOption={selectedOption}
                     handleOptionChange={handleOptionChange}
                 />
+                <div className="mb-4">
+                <label className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    name="option"
+                    value="DEPOSIT_50"
+                    className="form-radio text-[#FA7D0B]"
+                    onChange={(e) => handleDepositChange(e.target.value)}
+                  />
+                  <span className="ml-2">Đặt cọc 50%</span>
+                </label>
+              </div>
+              <div className="mb-4">
+                <label className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    name="option"
+                    value="FULL_PAYMENT"
+                    className="form-radio text-[#FA7D0B]"
+                    onChange={(e) => handleDepositChange(null)} 
+                  />
+                  <span className="ml-2">Thanh toán toàn bộ đơn hàng</span>
+                </label>
+              </div>
                 <button
                     onClick={() => navigate(-1)}
                     className="mb-4 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"

@@ -9,6 +9,7 @@ import {
   faCaretDown,
   faUser,
   faCartShopping,
+  faBinoculars
 } from "@fortawesome/free-solid-svg-icons";
 import GetCurrentLocation from "../components/GetCurrentLocation";
 import { useTranslation } from "react-i18next";
@@ -44,7 +45,7 @@ function Header() {
 
   // useEffect(() => {
   //   const fetchCart = async () => {
-      
+
   //     if (token) {
   //       const cartData = await getUserCart(token);
   //       const count = cartData.reduce((total, item) => total + item.quantity, 0);
@@ -136,6 +137,12 @@ function Header() {
               {/* <Link to="/">{t("header.blog")}</Link> */}
               <Link to="/about-us">{t("header.about")}</Link>
               <Link to="/contact-us">{t("header.contact")}</Link>
+              <Link
+                to="/manage-account/refund-request"
+                className=""
+              >
+                Trả hàng/Hoàn tiền
+              </Link>
             </div>
             <div className="flex space-x-4">
               <SignInModal />
@@ -143,15 +150,15 @@ function Header() {
                 <FontAwesomeIcon icon={faCartShopping} className="pr-1" />
                 {cartCount > 0 && token && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[0.625rem] font-bold rounded-full h-[1rem] w-full leading-none flex items-center justify-center">
-                  {cartCount}
-                </span>
-                
+                    {cartCount}
+                  </span>
+
                 )}
               </Link>
-              {/* <Link to="/guest-order">
-
-                Đơn mua
-              </Link> */}
+              <Link to="/guest-order">
+              <FontAwesomeIcon icon={faBinoculars} className="pr-2"/>
+                Tra cứu
+              </Link>
             </div>
           </div>
           <motion.div
