@@ -710,7 +710,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
             result.DeliveryMethod = _deliveryMethodService.GetDescription(order.DeliveryMethod);
 
-            if (order.OrderDetails.Any())
+            if (order.OrderDetails != null && order.OrderDetails.Count > 0)
             {
                 result.SaleOrderDetailVMs = order.OrderDetails.Select(od => new SaleOrderDetailVM()
                 {

@@ -64,7 +64,7 @@ namespace _2Sport_BE.Controllers
         }
 
         [Route("sign-out")]
-        [HttpPost]
+        [HttpPost]  
         public async Task<IActionResult> LogOutAsync([FromBody] TokenModel request)
         {
             var token = await _unitOfWork.RefreshTokenRepository.GetObjectAsync(_ => _.Token == request.RefreshToken);
