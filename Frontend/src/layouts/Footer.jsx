@@ -36,7 +36,7 @@ function Footer() {
           />
           <Typography>{t("footer.text")}</Typography>
           <Typography> {t("footer.Copyright")}</Typography>
-          <div>
+          {/* <div>
             <p className="font-alfa text-xl pb-4 ">{t("footer.getupdate")}</p>
             <div className="flex w-full bg-white ">
               <input
@@ -48,11 +48,8 @@ function Footer() {
                 {t("footer.btn")}
               </button>
             </div>
-          </div>
+          </div> */}
           <div className="mt-4">
-            <Link to="/privacy-policy" className="text-white underline">
-              Privacy Policy
-            </Link>
           </div>
         </div>
 
