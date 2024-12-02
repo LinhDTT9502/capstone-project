@@ -243,6 +243,10 @@ namespace _2Sport_BE.Controllers
                 {
                     return StatusCode(500, "Something wrong!");
                 }
+                if (isSuccess == (int)Errors.Verified)
+                {
+                    return BadRequest("The account has been verified!");
+                }
                 return Ok("Send OTP to your number");
 
             } catch (Exception ex)
