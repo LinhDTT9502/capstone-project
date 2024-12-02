@@ -463,13 +463,8 @@ namespace _2Sport_BE.Infrastructure.Services
 
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
-                    //Send notifications to Admmin
-                    if(saleOrder.BranchId != null)
-                    {
-                        await _notificationService.NotifyForCreatingNewOrderAsync(saleOrder.SaleOrderCode, saleOrder.BranchId);
-                    }
-                    else await _notificationService.NotifyForCreatingNewOrderAsync(saleOrder.SaleOrderCode);
-                    
+                    await _notificationService.NotifyForCreatingNewOrderAsync(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
+
                     await _mailService.SendSaleOrderInformationToCustomer(saleOrder, saleOrder.OrderDetails.ToList(), saleOrder.Email);
                     await transaction.CommitAsync();
 

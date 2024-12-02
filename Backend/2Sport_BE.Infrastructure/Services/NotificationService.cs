@@ -5,7 +5,7 @@ namespace _2Sport_BE.Infrastructure.Services
 {
     public interface INotificationService
     {
-        Task NotifyForCreatingNewOrderAsync(string orderCode, int? brachId = null);
+        Task NotifyForCreatingNewOrderAsync(string orderCode, bool isRentalOrder, int? brachId = null);
         Task NotifyForRejectOrderAsync(string orderCode, int branchId);
         Task NotifyPaymentCancellation(string orderCode, bool isRentalOrder, int? branchId = null);
         Task NotifyPaymentPaid(string orderCode, bool isRentalOrder, int? branchId = null);
@@ -18,10 +18,20 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             _notificationHub = notificationHub;
         }
-        public async Task NotifyForCreatingNewOrderAsync(string orderCode, int? branchId = null)
+        public async Task NotifyForCreatingNewOrderAsync(string orderCode, bool isRentalOrder, int? branchId = null)
         {
-            var message = $"Đơn hàng có mã là {orderCode} vừa được tạo.";
-            if(branchId != null)
+            var message = "";
+
+            if (isRentalOrder == false)
+            {
+                message = $"Đơn hàng có mã là S-{orderCode} vừa được tạo.";
+            }
+            else
+            {
+                message = $"Đơn hàng thuê có mã là T-{orderCode} vừa được tạo.";
+            }
+
+            if (branchId != null)
             {
                 string toBranch = $"Branch_{branchId}";
                 await _notificationHub.SendMessageToGroup(toBranch, message);
@@ -42,13 +52,12 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             string message = "";
             if(isRentalOrder == false) {
-                 message = $"Thanh toán cho đơn hàng {orderCode} đã bị hủy.";
+                 message = $"Thanh toán cho đơn hàng S-{orderCode} đã bị hủy.";
             }
             else
             {
-                 message = $"Thanh toán cho đơn hàng thuê {orderCode} đã bị hủy.";
+                 message = $"Thanh toán cho đơn hàng thuê T-{orderCode} đã bị hủy.";
             }
-
 
             if (branchId != null)
             {
@@ -66,11 +75,11 @@ namespace _2Sport_BE.Infrastructure.Services
             string message = "";
             if (isRentalOrder == false)
             {
-                message = $"Thanh toán cho đơn hàng {orderCode} thành công.";
+                message = $"Thanh toán cho đơn hàng S-{orderCode} thành công.";
             }
             else
             {
-                message = $"Thanh toán cho đơn hàng thuê {orderCode} thành công.";
+                message = $"Thanh toán cho đơn hàng thuê T-{orderCode} thành công.";
             }
 
             if (branchId != null)
@@ -86,7 +95,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
         public async Task SendRentalOrderExpirationNotificationAsync(string customerId, string orderCode, DateTime rentalEndDate)
         {
-            var message = $"Đơn thuê {orderCode} sẽ hết hạn vào ngày {rentalEndDate:dd/MM/yyyy}.";
+            var message = $"Đơn thuê T-{orderCode} sẽ hết hạn vào ngày {rentalEndDate:dd/MM/yyyy}.";
             await _notificationHub.SendNotificationToCustomer(customerId, message);
         }
     }
