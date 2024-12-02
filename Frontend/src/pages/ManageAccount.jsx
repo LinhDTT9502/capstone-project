@@ -71,7 +71,7 @@ function ManageAccount() {
           </NavLink>
         </ul>
         
-        <h1 className="font-semibold	" style={{ fontSize: "18px" }}>
+        {/* <h1 className="font-semibold	" style={{ fontSize: "18px" }}>
           Gửi yêu cầu
         </h1>
         <ul className="space-y-4 font-poppins px-5 py-1">
@@ -85,7 +85,7 @@ function ManageAccount() {
           >
             <li>Trả hàng/Hoàn tiền</li>
           </NavLink>
-        </ul>
+        </ul> */}
       </nav>
       <div className="md:w-4/5	">
         <Outlet />

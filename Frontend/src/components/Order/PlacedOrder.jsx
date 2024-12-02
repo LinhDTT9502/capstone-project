@@ -34,7 +34,7 @@ const PlacedOrder = () => {
   const [note, setNote] = useState("");
 
   const totalPrice = selectedProducts.reduce(
-    (acc, item) => acc + item.price * item.quantity,
+    (acc, item) => acc + item.price ,
     0
   );
 
@@ -47,6 +47,8 @@ const PlacedOrder = () => {
 
   const handleOrder = async () => {
     console.log(userData);
+    console.log(selectedProducts);
+    
 
     try {
       const token = localStorage.getItem("token");
@@ -58,16 +60,15 @@ const PlacedOrder = () => {
           gender: userData.gender,
           contactPhone: userData.phoneNumber,
           address: userData.address,
-          userID: token ? user.UserId : 0,
-          shipmentDetailID: userData.shipmentDetailID,
+          userID: token ? user.UserId : null,
         },
         dateOfReceipt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
         note: note,
         deliveryMethod: selectedOption,
         branchId: selectedOption === "STORE_PICKUP" ? branchId : null,
         productInformations: selectedProducts.map(item => ({
-          cartItemId: item.cartItemId ,
-          productId: item.productId,
+          cartItemId: item.cartItemId || null,
+          productId: item.id,
           productName: item.productName,
           productCode:item.productCode,
           quantity: item.quantity,
@@ -168,7 +169,7 @@ const PlacedOrder = () => {
                         <li>Tình trạng: {item.condition}%</li>
                       </div>
                     </div>
-                    <p className="text-lg text-black">{(item.price * item.quantity).toLocaleString()} ₫</p>
+                    <p className="text-lg text-black">{(item.price).toLocaleString()} ₫</p>
                   </div>
                 </div>
               ))}

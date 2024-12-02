@@ -104,6 +104,8 @@ const UserCart = () => {
         const selectedProducts = cartData.filter((item) =>
             selectedItems.includes(item.cartItemId)
         );
+        console.log(selectedProducts);
+        
         navigate("/placed-order", { state: { selectedProducts } });
     };
 
@@ -271,10 +273,11 @@ const UserCart = () => {
                                     </button>
                                 </div>
                                 <div className="w-2/12 text-center">
-                                    {(item.price.toLocaleString())}{" "}
+                                {(item.price / item.quantity).toLocaleString()}
                                 </div>
                                 <div className="w-2/12 text-center">
-                                    {(item.price * item.quantity).toLocaleString()}
+                                    
+                                    {(item.price.toLocaleString())}
                                 </div>
                                 <div className="w-2/12 text-center">
                                     {item.rentPrice !== 0
