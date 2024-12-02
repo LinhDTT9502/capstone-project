@@ -20,43 +20,11 @@ namespace _2Sport_BE.Infrastructure.Hubs
         private string GetCurrentUserBranchFromToken()
         {
             var identity = Context.User?.Identity as ClaimsIdentity;
-            var branchClaim = identity?.FindFirst("BranchId");
-            return branchClaim?.Value ?? string.Empty;
-
-          /*  string userbranchId = string.Empty;
-            try
-            {
-                if (_httpContextAccessor.HttpContext.User.Identity.IsAuthenticated)
-                {
-                    var identity = _httpContextAccessor.HttpContext.User.Identity as ClaimsIdentity;
-                    var branchClaim = identity?.FindFirst("BranchId");
-                    userbranchId = branchClaim?.Value ?? string.Empty;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            return userbranchId;*/
+            var roleClaim = identity?.FindFirst("BranchId");
+            return roleClaim?.Value ?? string.Empty;
         }
         private string GetCurrentUserRoleFromToken()
         {
-            /*  string userRole = string.Empty;
-              try
-              {
-                  if (_httpContextAccessor.HttpContext.User.Identity.IsAuthenticated)
-                  {
-                      var identity = _httpContextAccessor.HttpContext.User.Identity as ClaimsIdentity;
-                      var roleClaim = identity?.FindFirst(ClaimTypes.Role);
-                      userRole = roleClaim?.Value ?? string.Empty;
-                  }
-              }
-              catch (Exception ex)
-              {
-                  // Log the exception (consider using a logging framework)
-                  Console.WriteLine(ex.Message);
-              }
-              return userRole;*/
             var identity = Context.User?.Identity as ClaimsIdentity;
             var roleClaim = identity?.FindFirst(ClaimTypes.Role);
             return roleClaim?.Value ?? string.Empty;
@@ -118,7 +86,15 @@ namespace _2Sport_BE.Infrastructure.Hubs
 
             public async Task SendNotificationToCustomer(string userId, string message)
             {
-                await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", message);
+                var user = _hubContext.Clients.User(userId);
+                if (user != null)
+                {
+                    await user.SendAsync("ReceiveNotification", message);
+                }
+                else
+                {
+                    Console.WriteLine("User not connected or does not exist.");
+                }
             }
         }
     }
