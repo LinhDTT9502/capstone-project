@@ -286,7 +286,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                         await _unitOfWork.SaveChanges();
 
-                        await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode);
+                        await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode, rentalOrder.BranchId);
                         await _mailService.SendRentalOrderInformationToCustomer(rentalOrder, null, rentalOrder.Email);
                         response = GenerateSuccessResponse(rentalOrder, null, "Rental order created successfully");
                         await transaction.CommitAsync();
@@ -349,7 +349,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                         //Send notifications to Coordinator
                         var listChild = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.ParentOrderCode.Equals(rentalOrder.RentalOrderCode));
-                        await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode);
+                        await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode, rentalOrder.BranchId);
                         await _mailService.SendRentalOrderInformationToCustomer(rentalOrder, listChild.ToList(), rentalOrder.Email);
 
                         response = GenerateSuccessResponse(rentalOrder, listChild.ToList(), "Rental order inserted successfully");

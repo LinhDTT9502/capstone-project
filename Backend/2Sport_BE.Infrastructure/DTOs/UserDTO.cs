@@ -38,6 +38,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
     {
         public int Id { get; set; }
         public bool EmailConfirmed { get; set; }
+        public bool PhoneNumberConfirmed { get; set; }
         public string? ImgAvatarPath { get; set; }
         public CustomerVM? CustomerDetail { get; set; }
         public StaffVM? StaffDetail { get; set; }
