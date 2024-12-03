@@ -463,13 +463,8 @@ namespace _2Sport_BE.Infrastructure.Services
 
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
-                    //Send notifications to Admmin
-                    if(saleOrder.BranchId != null)
-                    {
-                        await _notificationService.NotifyForCreatingNewOrderAsync(saleOrder.SaleOrderCode, saleOrder.BranchId);
-                    }
-                    else await _notificationService.NotifyForCreatingNewOrderAsync(saleOrder.SaleOrderCode);
-                    
+                    await _notificationService.NotifyForCreatingNewOrderAsync(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
+
                     await _mailService.SendSaleOrderInformationToCustomer(saleOrder, saleOrder.OrderDetails.ToList(), saleOrder.Email);
                     await transaction.CommitAsync();
 
@@ -715,7 +710,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
             result.DeliveryMethod = _deliveryMethodService.GetDescription(order.DeliveryMethod);
 
-            if (order.OrderDetails.Any())
+            if (order.OrderDetails != null && order.OrderDetails.Count > 0)
             {
                 result.SaleOrderDetailVMs = order.OrderDetails.Select(od => new SaleOrderDetailVM()
                 {
