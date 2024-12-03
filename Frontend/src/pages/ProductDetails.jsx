@@ -146,8 +146,8 @@ const ProductDetails = () => {
     } else {
       const rentalData = { product, quantity };
       localStorage.setItem("rentalData", JSON.stringify(rentalData));
-      // navigate("/rental-order");
-      console.log(localStorage.getItem("rentalData"));
+      navigate("/rental-order");
+      // console.log(localStorage.getItem("rentalData"));
 
     }
 

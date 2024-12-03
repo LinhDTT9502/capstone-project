@@ -1,5 +1,5 @@
 // CheckoutButton.js
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@material-tailwind/react";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
@@ -57,6 +57,36 @@ const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
       alert("An error occurred during checkout. Please try again later.");
     }
   };
+//   useEffect(() => {
+//     const params = new URLSearchParams(window.location.search);
+//     const isSuccess = params.get("isSuccess");
+//     const orderCode = params.get("orderCode");
+//     const status = params.get("status");
+// console.log(isSuccess );
+// console.log(orderCode);
+// console.log(status);
+
+
+
+//     if (isSuccess && orderCode) {
+//       // Process the response data (you can save this to state or localStorage)
+//       const orderDetails = {
+//         isSuccess: isSuccess === "true", // Convert to boolean
+//         orderCode,
+//         status,
+//       };
+
+//       // Save order details for future use (localStorage or state)
+//       localStorage.setItem("orderDetails", JSON.stringify(orderDetails));
+
+//       if (isSuccess === "true") {
+//         // Redirect to the desired link
+//         window.location.href = "https://localhost:5173";
+//       } else {
+//         alert("Payment failed. Please try again.");
+//       }
+//     }
+//   }, []);
 
   return (
     <Button
