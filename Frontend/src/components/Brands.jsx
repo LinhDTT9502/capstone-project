@@ -72,7 +72,7 @@ export default function Brands() {
 
   return (
     <div className="flex flex-col items-center justify-center px-20">
-      <p className="font-alfa text-orange-500 text-3xl pt-2">
+      <p className="font-alfa text-orange-500 text-3xl pt-10">
         {t("brand.name")}
       </p>
       <ParallaxText baseVelocity={-5}>

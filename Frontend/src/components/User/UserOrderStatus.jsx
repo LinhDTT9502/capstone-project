@@ -23,16 +23,15 @@ export default function UserOrderStatus() {
   };
   const closeProductModal = () => setProductModalOpen(false);
 
-  const statusList = [
-    "Tất cả",
-    "Đang chờ",
-    "Đã xác nhận",
-    "Đã thanh toán",
-    "Đang đóng gói",
-    "Đang vận chuyển",
-    "Thành công",
-    "Tạm hoãn",
-  ];
+  const statusColors = {
+    "Đang chờ": "bg-yellow-100 text-yellow-800",
+    "Xác nhận": "bg-blue-100 text-blue-800",
+    "Đã thanh toán": "bg-green-100 text-green-800",
+    "Đang xử lý": "bg-purple-100 text-purple-800",
+    "Đã giao": "bg-indigo-100 text-indigo-800",
+    "Bị hoãn": "bg-red-100 text-red-800",
+    "Hoàn thành": "bg-teal-100 text-teal-800",
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -55,11 +54,16 @@ export default function UserOrderStatus() {
       : orders.filter((order) => order.orderStatus === selectedStatus);
 
   const renderOrderStatusButton = (order) => {
-    if (order.paymentStatus === "Đang chờ thanh toán" && order.deliveryMethod !== "HOME_DELIVERY") {
+    if (
+      order.paymentStatus === "Đang chờ thanh toán" &&
+      order.deliveryMethod !== "HOME_DELIVERY"
+    ) {
       return (
         <Button
           className="bg-green-700 text-white text-sm rounded-full py-2 px-4 w-40 mt-4"
-          onClick={() => navigate("/checkout", { state: { selectedOrder: order } })}
+          onClick={() =>
+            navigate("/checkout", { state: { selectedOrder: order } })
+          }
         >
           Thanh Toán
         </Button>
@@ -69,32 +73,51 @@ export default function UserOrderStatus() {
 
   const formatCurrency = (amount) => {
     let formattedAmount = new Intl.NumberFormat("vi-VN").format(amount);
-    formattedAmount = formattedAmount.replace(/,/g, 'TEMP_COMMA').replace(/\./g, ',').replace(/TEMP_COMMA/g, '.');
+    formattedAmount = formattedAmount
+      .replace(/,/g, "TEMP_COMMA")
+      .replace(/\./g, ",")
+      .replace(/TEMP_COMMA/g, ".");
     return formattedAmount;
   };
 
-  if (isLoading) return <p>Loading orders...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (isLoading)
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  if (error)
+    return <p className="text-center text-red-500 mt-4">Lỗi: {error}</p>;
 
   return (
-    <div className="container mx-auto max-h-[70vh] overflow-y-auto">
+    <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
+      <h2 className="text-orange-500 font-bold text-2xl">Danh sách đơn mua </h2>
       {/* Status Filter Tabs */}
-      <div className="text-sm font-medium text-center text-gray-700 border-b border-gray-300 mb-6">
-        <ul className="flex flex-wrap justify-center space-x-6">
-          {statusList.map((status) => (
-            <li key={status}>
-              <button
-                className={`inline-block p-4 border-b-2 rounded-t-lg ${selectedStatus === status
-                  ? "text-orange-500 border-orange-500"
-                  : "hover:text-gray-600 hover:border-gray-300"
-                  } transition duration-300`}
-                onClick={() => setSelectedStatus(status)}
-              >
-                {status}
-              </button>
-            </li>
+      <div className=" rounded-lg overflow-hidden">
+        <div className="flex flex-wrap justify-center p-4 bg-gray-50 border-b">
+          {[
+            "Tất cả",
+            "Đang chờ",
+            "Xác nhận",
+            "Đã thanh toán",
+            "Đang xử lý",
+            "Đã giao",
+            "Bị hoãn",
+            "Hoàn thành",
+          ].map((status) => (
+            <button
+              key={status}
+              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
+                selectedStatus === status
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+              onClick={() => setSelectedStatus(status)}
+            >
+              {status}
+            </button>
           ))}
-        </ul>
+        </div>
       </div>
 
       {/* Order List */}
@@ -103,35 +126,43 @@ export default function UserOrderStatus() {
           key={order.saleOrderId}
           className="p-4 border border-gray-200 rounded-lg shadow-sm mt-4 relative flex flex-col"
         >
-          <div className="mb-3 text-lg font-medium text-gray-500 text-right border-b border-gray-300">
-            {order.orderStatus}
-          </div>
-
-          <div className="flex justify-between">
-            <div className="flex">
-              <img
-                src={order.saleOrderDetailVMs.$values[0]?.imgAvatarPath}
-                alt={order.saleOrderDetailVMs.$values[0]?.productName}
-                className="w-24 h-24 object-cover rounded cursor-pointer"
-                onClick={() => openProductModal(order)}
-              />
-              <div className="ml-4">
-                <h4 className="font-semibold text-lg">
-                  Mã đơn hàng: <span className="text-orange-500">{order.saleOrderCode}</span>
-                </h4>
-                <p className="text-gray-500">
-                  Trạng thái thanh toán: {order.paymentStatus}
-                </p>
-                <p className="mt-2 font-bold">
-                  Total: {formatCurrency(order.totalAmount)}₫
-                </p>
-              </div>
+          <div className="flex flex-col items-start mb-4">
+            <div className="mb-3 text-lg font-medium text-gray-500 text-right border-b border-gray-300">
+              {order.orderStatus}
             </div>
+            {/* {renderOrderStatusButton(order)} */}
+            <div className="flex justify-between mt-4">
+              <div className="flex">
+                <img
+                  src={order.saleOrderDetailVMs.$values[0]?.imgAvatarPath}
+                  alt={order.saleOrderDetailVMs.$values[0]?.productName}
+                  className="w-24 h-24 object-cover rounded cursor-pointer"
+                  onClick={() => openProductModal(order)}
+                />
+                <div className="ml-4">
+                  <h4 className="font-semibold text-lg">
+                    Mã đơn hàng:{" "}
+                    <span className="text-orange-500">
+                      {order.saleOrderCode}
+                    </span>
+                  </h4>
+                  <p className="text-gray-500">
+                    Trạng thái thanh toán: {order.paymentStatus}
+                  </p>
+                  <p className="mt-2 font-bold">
+                    Tổng giá: {formatCurrency(order.totalAmount)}₫
+                  </p>
+                </div>
+              </div>
 
-            <div className="flex flex-col justify-between items-end">
-              <p className="mt-4 font-semibold text-lg">
-                Total Amount: <span className="text-orange-500">{formatCurrency(order.totalAmount)}₫</span>
-              </p>
+              {/* <div className="flex flex-col justify-between items-end">
+                <p className="mt-4 font-semibold text-lg">
+                  Total Amount:{" "}
+                  <span className="text-orange-500">
+                    {formatCurrency(order.totalAmount)}₫
+                  </span>
+                </p>
+              </div> */}
             </div>
           </div>
 
@@ -143,14 +174,16 @@ export default function UserOrderStatus() {
                   {item.productName} (x{item.quantity})
                 </p>
                 <p className="text-gray-500">
-                  Đơn giá: {formatCurrency(item.unitPrice)}₫
+                 Giá: {formatCurrency(item.unitPrice)}₫
                 </p>
               </div>
             ))}
           </div>
 
           {/* Place "Thanh Toán" button at the bottom of the order card */}
+          <div className="flex flex-col justify-between items-end ">
           {renderOrderStatusButton(order)}
+          </div>
         </div>
       ))}
     </div>

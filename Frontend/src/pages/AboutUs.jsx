@@ -34,8 +34,8 @@ const members = [
   },
   {
     name: "Dương Chí Khang",
-    specialisations: "CHRO",
-    image: "/assets/images/aboutus/shark-linh.jpg",
+    specialisations: "CCO",
+    image: "/assets/images/aboutus/nv-khang.jpg",
   }
 ];
 

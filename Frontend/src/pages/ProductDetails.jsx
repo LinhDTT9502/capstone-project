@@ -184,7 +184,7 @@ const ProductDetails = () => {
               <img
                 src={displayImage}
                 alt={product.imgAvatarName || "Product Image"}
-                className=" object-contain rounded-lg justify-center"
+                className=" w-90 object-contain rounded-lg justify-center"
               />
               <div className="flex flex-wrap mt-4 gap-2">
                 {product.listImages?.$values.map((image, index) => (
