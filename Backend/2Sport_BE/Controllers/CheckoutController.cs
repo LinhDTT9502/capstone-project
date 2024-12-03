@@ -71,7 +71,7 @@ namespace _2Sport_BE.Controllers
                 var createdLink = await paymentService.ProcessSaleOrderPayment(order.Id, HttpContext);
                 if (!createdLink.IsSuccess)
                 {
-                    return BadRequest(createdLink.Message ?? "Failed to create payment link.");
+                    return BadRequest(createdLink);
                 }
 
 
@@ -84,7 +84,7 @@ namespace _2Sport_BE.Controllers
                 var response = await _saleOrderService.GetSaleOrderDetailByIdAsync(order.Id);
                 if (!response.IsSuccess)
                 {
-                    return BadRequest(response.Message ?? "Failed to retrieve order details.");
+                    return BadRequest(response);
                 }
 
                 response.Data.PaymentLink = createdLink.Data;
@@ -102,7 +102,7 @@ namespace _2Sport_BE.Controllers
                 var response = await _saleOrderService.GetSaleOrderDetailByIdAsync(order.Id);
                 if (!response.IsSuccess)
                 {
-                    return BadRequest(response.Message ?? "Failed to retrieve order details.");
+                    return BadRequest(response);
                 }
                 return Ok(response);
             }
@@ -186,7 +186,7 @@ namespace _2Sport_BE.Controllers
 
                 if (!createdLink.IsSuccess)
                 {
-                    return BadRequest(createdLink.Message ?? "Failed to create payment link.");
+                    return BadRequest(createdLink);
                 }
 
                 if (order.PaymentMethodId != checkoutModel.PaymentMethodID)
@@ -200,7 +200,7 @@ namespace _2Sport_BE.Controllers
                 var response = await _rentalOrderService.GetRentalOrderByIdAsync(order.Id);
                 if (!response.IsSuccess)
                 {
-                    return BadRequest(response.Message ?? "Failed to retrieve order details.");
+                    return BadRequest(response);
                 }
 
                 response.Data.PaymentLink = createdLink.Data;
