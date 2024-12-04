@@ -34,7 +34,7 @@ function Banner() {
                 {t("banner.subtitle")}
               </p>
               <Link to="/product">
-                <button className="bg-orange-500 font-poppins font-semibold text-white text-xl py-3 px-10 w-fit">
+                <button className="border-2 rounded-full hover:bg-orange-500 hover:border-orange-500 font-poppins font-semibold text-white text-xl py-3 px-10 w-fit">
                   {t("banner.btn")}
                 </button>
               </Link>

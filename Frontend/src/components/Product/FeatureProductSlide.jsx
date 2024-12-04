@@ -16,16 +16,19 @@ export default function FeatureProductSlide() {
   useEffect(() => {
     const getFeature = async () => {
       try {
-        const productFeatured = await axios.get('https://capstone-project-703387227873.asia-southeast1.run.app/api/Product/list-products',{sortBy, isAscending}, {
-          headers: {
-            'accept': '*/*'
+        const productFeatured = await axios.get(
+          "https://capstone-project-703387227873.asia-southeast1.run.app/api/Product/list-products",
+          { sortBy, isAscending },
+          {
+            headers: {
+              accept: "*/*",
+            },
           }
-        });
+        );
         // console.log('Fetched Products:', productFeatured.data.data.$values);
-        const products = productFeatured.data.data.$values
+        const products = productFeatured.data.data.$values;
         if (products && Array.isArray(products)) {
           setImages(products);
-
         } else {
           console.error("Fetched data is not an array");
         }
@@ -55,24 +58,27 @@ export default function FeatureProductSlide() {
   return (
     <>
       <div className="flex justify-between  px-20">
-        <label className="font-alfa">{t("fearureproduct.featured")}</label>
+        <label className="font-alfa ">{t("fearureproduct.featured")}</label>
         <Link to="/product">
-          <button className="font-poppins font-semibold">
+          <button className="font-poppins font-semibold text-orange-500">
             {t("fearureproduct.viewall")}
           </button>
-          <FontAwesomeIcon className="pl-2" icon={faArrowRight} />
+          <FontAwesomeIcon
+            className="pl-2 text-orange-500"
+            icon={faArrowRight}
+          />
         </Link>
       </div>
       <div className="relative px-20">
-        <div className="overflow-hidden">
+        <div className="overflow-hidden ">
           <div
-            className="flex transition-transform duration-500 ease-in-out "
+            className="flex transition-transform duration-500 ease-in-out  "
             style={{ transform: `translateX(-${currentIndex * (100 / 8)}%)` }}
           >
             {images.map((product, index) => (
               <div
                 key={index}
-                className="min-w-64 px-2 flex flex-col hover:brightness-90"
+                className="min-w-64 px-2 flex flex-col hover:brightness-90 "
               >
                 <Link className=" flex flex-col " to={`/product/${product.id}`}>
                   <div className="bg-white">
@@ -82,15 +88,15 @@ export default function FeatureProductSlide() {
                       className="object-scale-down h-48 w-96 shadow-lg "
                     />
                   </div>
-                  <label className="text-wrap font-poppins text-orange-500 text-clip">
+                  <label className="text-wrap font-poppins text-orange-500 text-clip m-2">
                     {product.brandName}
                   </label>
-                  <label className="text-wrap font-poppins font-bold text-clip">
+                  <label className="text-wrap font-poppins font-bold text-clip mb-2">
                     {product.productName}
                   </label>
 
                   <label className="text-wrap font-poppins text-zinc-500 text-clip">
-                    {product.price} ₫
+                    {product.price.toLocaleString("vi-VN")} ₫
                   </label>
                 </Link>
                 {/* <button

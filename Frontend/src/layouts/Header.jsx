@@ -9,7 +9,7 @@ import {
   faCaretDown,
   faUser,
   faCartShopping,
-  faBinoculars
+  faBinoculars,
 } from "@fortawesome/free-solid-svg-icons";
 import GetCurrentLocation from "../components/GetCurrentLocation";
 import { useTranslation } from "react-i18next";
@@ -30,12 +30,36 @@ function Header() {
   const { cartCount, setCartCount } = useCart();
   const token = localStorage.getItem("token");
 
+  const [prevScrollY, setPrevScrollY] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > prevScrollY) {
+        // Scrolling down, hide the header
+        setVisible(false);
+      } else {
+        // Scrolling up, show the header
+        setVisible(true);
+      }
+      setPrevScrollY(window.scrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [prevScrollY]);
+
   useEffect(() => {
     const fetchCartCount = async () => {
       const token = localStorage.getItem("token");
       if (token) {
         const cartData = await getUserCart(token);
-        const totalItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
+        const totalItems = cartData.reduce(
+          (acc, item) => acc + item.quantity,
+          0
+        );
         setCartCount(totalItems);
       }
     };
@@ -63,7 +87,11 @@ function Header() {
   return (
     <>
       <div className="w-full relative z-50 pb-28">
-        <div className="fixed top-0 left-0 right-0">
+        <div
+          className={`fixed top-0 left-0 right-0 transition-all duration-300 ease-in-out ${visible ? "transform translate-y-0" : "transform -translate-y-full"
+            }`}
+        >
+          {" "}
           <div className="bg-white/95 backdrop-blur-lg font-medium text-black flex justify-between items-center relative text-xs py-2 z-50">
             <div className="flex pl-20 items-center space-x-2">
               <Link to="/">
@@ -123,7 +151,6 @@ function Header() {
                             </select> */}
             </div>
           </div>
-
           <div className="bg-zinc-800/80 backdrop-blur-lg text-white  flex justify-between items-center text-base font-normal py-5 pr-20  z-50">
             <div className="flex space-x-10 pl-20 ">
               <Link to="/">{t("header.home")}</Link>
@@ -132,15 +159,12 @@ function Header() {
                 className=" hover:text-orange-500 focus:text-orange-500"
               >
                 {t("header.product")}
-                <FontAwesomeIcon icon={faCaretDown} className="pl-2" />
+                {/* <FontAwesomeIcon icon={faCaretDown} className="pl-2" /> */}
               </Link>
               {/* <Link to="/">{t("header.blog")}</Link> */}
               <Link to="/about-us">{t("header.about")}</Link>
               <Link to="/contact-us">{t("header.contact")}</Link>
-              <Link
-                to="/manage-account/refund-request"
-                className=""
-              >
+              <Link to="/manage-account/refund-request" className="">
                 Trả hàng/Hoàn tiền
               </Link>
             </div>
@@ -148,15 +172,15 @@ function Header() {
               <SignInModal />
               <Link to="/cart" className="relative">
                 <FontAwesomeIcon icon={faCartShopping} className="pr-1" />
+                Giỏ hàng
                 {cartCount > 0 && token && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[0.625rem] font-bold rounded-full h-[1rem] w-full leading-none flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[0.625rem] font-bold rounded-full h-[1rem] w-4  leading-none flex items-center justify-center">
                     {cartCount}
                   </span>
-
                 )}
               </Link>
               <Link to="/guest-order">
-              <FontAwesomeIcon icon={faBinoculars} className="pr-2"/>
+                <FontAwesomeIcon icon={faBinoculars} className="pr-2" />
                 Tra cứu
               </Link>
             </div>

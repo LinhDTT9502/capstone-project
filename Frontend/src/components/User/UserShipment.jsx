@@ -65,36 +65,33 @@ const UserShipment = () => {
   };
 
   return (
-    <div className="container mx-auto px-20 py-5 bg-white blur-none shadow-xl rounded-lg">
-      <div className="flex items-center justify-between">
-            <h2 className="font-alfa text-2xl">{t("user_shipment.address")}</h2>
-            <AddShipment refreshShipments={refreshShipments} />
-          </div>
+    <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="font-bold text-2xl text-orange-500">{t("user_shipment.address")}</h2>
+        <AddShipment refreshShipments={refreshShipments} />
+      </div>
+
+      {/* No shipments available */}
       {shipments.length === 0 ? (
-        <p>{t("user_shipment.empty")}</p>
+        <p className="text-gray-500">{t("user_shipment.empty")}</p>
       ) : (
-        <div>
-          {/* <div className="flex items-center justify-between">
-            <h2 className="font-alfa text-2xl">{t("user_shipment.address")}</h2>
-            <AddShipment refreshShipments={refreshShipments} />
-          </div> */}
+        <div className="space-y-6">
+          {/* Shipment List */}
           {shipments.map((shipment) => (
-            <div
-              className="p-4 border-b flex justify-between"
-              key={shipment.id}
-            >
+            <div key={shipment.id} className="p-4 bg-gray-100 border rounded-lg flex justify-between items-center">
               <div>
-                <div className="flex">
-                  <label className="pr-2">{shipment.fullName}</label>
-                  <p className="border-l-2 pl-2">{shipment.phoneNumber}</p>
+                <div className="flex items-center space-x-2">
+                  <span className="font-semibold">{shipment.fullName}</span>
+                  <span className="border-l-2 pl-2 text-gray-600">{shipment.phoneNumber}</span>
                 </div>
-                <p>{shipment.address}</p>
+                <p className="text-gray-700">{shipment.address}</p>
               </div>
+
+              {/* Action Buttons */}
               <div className="flex space-x-4">
                 <button
-                  className="rounded-lg p-2 text-orange-500 hover:bg-orange-500 hover:text-white"
-                  type="button"
                   onClick={() => openUpdateModal(shipment)}
+                  className="px-4 py-2 rounded-lg text-orange-500 hover:bg-orange-500 hover:text-white transition-all"
                 >
                   {t("user_shipment.update")}
                 </button>

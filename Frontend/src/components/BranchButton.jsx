@@ -9,7 +9,7 @@ const BranchSystem = () => {
 
     <Link to='/branch-system'>
       <FontAwesomeIcon icon={faMapLocation} />
-      <button>
+      <button className='ml-1'>
         Hệ thống cửa hàng
       </button>
     </Link>

@@ -204,11 +204,11 @@ export default function SignUpModal({ isOpen, closeModal, openSignInModal }) {
                    {t("SignUpModal.notmatch_confirmPassword")}
                         </p>
                       )}
-                      <ReCAPTCHA
+                      {/* <ReCAPTCHA
                       sitekey={siteKey}
                       onChange={(val) => setCaptcha(val)}
                       onExpired={() => setCaptcha(null)}
-                      />
+                      /> */}
                     <button
                       type="submit"
                       className="bg-orange-500 font-alfa text-white rounded-lg px-10 py-2 w-full"
