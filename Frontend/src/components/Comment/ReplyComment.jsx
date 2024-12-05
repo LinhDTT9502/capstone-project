@@ -29,7 +29,7 @@ const ReplyComment = ({ productId, parentCommentId, onReplySuccess }) => {
       )
       .then(() => {
         setContent('');
-        onReplySuccess(); // Notify the parent to refresh the comments
+        onReplySuccess();
       })
       .catch((error) => {
         console.error('Error replying to comment:', error);
@@ -38,17 +38,16 @@ const ReplyComment = ({ productId, parentCommentId, onReplySuccess }) => {
   };
 
   return (
-    <div className="mt-2">
+    <div className="mt-4 space-y-2">
       <textarea
-        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:border-blue-500"
-        rows="2"
+        className="w-full min-h-[80px] p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
         placeholder="Nhập nội dung phản hồi..."
         value={content}
         onChange={(e) => setContent(e.target.value)}
-      ></textarea>
+      />
       <button
-        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
         onClick={handleReply}
+        className="w-full sm:w-auto mt-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
       >
         Gửi phản hồi
       </button>
