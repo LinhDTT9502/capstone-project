@@ -48,6 +48,10 @@ namespace _2Sport_BE.Infrastructure.Hubs
                     await Groups.AddToGroupAsync(Context.ConnectionId, branchGroupName);
                 }
             }
+            else if (userRole == "Admin")
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, "Admin");
+            }
             await base.OnConnectedAsync();
         }
 

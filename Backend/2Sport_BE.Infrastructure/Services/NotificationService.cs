@@ -18,6 +18,8 @@ namespace _2Sport_BE.Infrastructure.Services
         //
         Task<ResponseDTO<List<Notification>>> GetNotificationByUserId(int userId);
         Task<ResponseDTO<Notification>> UpdateNotificationStatus(int notificationId, bool isRead);
+        Task<bool> NotifyForComment(int userId, Product product);
+        Task<bool> NotifyForReplyComment(int currAdminId, string currUserId, Product product);
     }
     public class NotificationService : INotificationService
     {
@@ -315,5 +317,55 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
 
+        public async Task<bool> NotifyForComment(int userId, Product product)
+        {
+            try
+            {
+                var commentedUser = await _unitOfWork.UserRepository.FindAsync(userId);
+                var message = $"{commentedUser.UserName} đã đặt câu hỏi trong sản phẩm {product.ProductName}";
+                var notifications = new Notification()
+                {
+                    UserId = userId,
+                    Message = message,
+                    Type = "Comment Noti",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+
+                await _notificationHub.SendMessageToGroup("Admin", message);
+                return true;
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> NotifyForReplyComment(int currAdminId, string currUserId, Product product)
+        {
+            try
+            {
+                var message = $"Quản trị viên đã trả lời câu hỏi của bạn trong sản phẩm {product.ProductName}";
+                var notifications = new Notification()
+                {
+                    UserId = currAdminId,
+                    Message = message,
+                    Type = "Comment Noti",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+
+                await _notificationHub.SendNotificationToCustomer(currUserId, message);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+
+        }
     }
 }
