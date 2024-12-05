@@ -88,9 +88,8 @@ function Header() {
     <>
       <div className="w-full relative z-50 pb-28">
         <div
-          className={`fixed top-0 left-0 right-0 transition-all duration-300 ease-in-out ${
-            visible ? "transform translate-y-0" : "transform -translate-y-full"
-          }`}
+          className={`fixed top-0 left-0 right-0 transition-all duration-300 ease-in-out ${visible ? "transform translate-y-0" : "transform -translate-y-full"
+            }`}
         >
           {" "}
           <div className="bg-white/95 backdrop-blur-lg font-medium text-black flex justify-between items-center relative text-xs py-2 z-50">
@@ -160,7 +159,7 @@ function Header() {
                 className=" hover:text-orange-500 focus:text-orange-500"
               >
                 {t("header.product")}
-                <FontAwesomeIcon icon={faCaretDown} className="pl-2" />
+                {/* <FontAwesomeIcon icon={faCaretDown} className="pl-2" /> */}
               </Link>
               {/* <Link to="/">{t("header.blog")}</Link> */}
               <Link to="/about-us">{t("header.about")}</Link>
