@@ -153,7 +153,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 List<ItemData> orders = new List<ItemData>();
                 var childOrders = (await _unitOfWork.RentalOrderRepository
                                             .GetAsync(o => o.ParentOrderCode.Equals(order.RentalOrderCode))).ToList();
-                if (childOrders.Any())
+                if (childOrders != null && childOrders.Count > 0)
                 {
                     foreach (var childOrder in childOrders)
                     {

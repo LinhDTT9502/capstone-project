@@ -24,12 +24,12 @@ export default function UserOrderStatus() {
   const closeProductModal = () => setProductModalOpen(false);
 
   const statusColors = {
-    "Đang chờ": "bg-yellow-100 text-yellow-800",
-    "Xác nhận": "bg-blue-100 text-blue-800",
+    "Chờ xử lý": "bg-yellow-100 text-yellow-800",
+    "Đã xác nhận": "bg-blue-100 text-blue-800",
     "Đã thanh toán": "bg-green-100 text-green-800",
     "Đang xử lý": "bg-purple-100 text-purple-800",
-    "Đã giao": "bg-indigo-100 text-indigo-800",
-    "Bị hoãn": "bg-red-100 text-red-800",
+    "Đã giao hàng": "bg-indigo-100 text-indigo-800",
+    "Bị trì hoãn": "bg-red-100 text-red-800",
     "Hoàn thành": "bg-teal-100 text-teal-800",
   };
 
@@ -38,7 +38,10 @@ export default function UserOrderStatus() {
       try {
         const token = localStorage.getItem("token");
         const response = await fetchUserOrders(user.UserId, token);
-        setOrders(response);
+        const sortedOrders = response.sort((a, b) => {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+        setOrders(sortedOrders);
       } catch (err) {
         setError(err.message || "Failed to fetch orders");
       } finally {
@@ -90,19 +93,18 @@ export default function UserOrderStatus() {
     return <p className="text-center text-red-500 mt-4">Lỗi: {error}</p>;
 
   return (
-    <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
+    <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[70vh] overflow-y-auto">
       <h2 className="text-orange-500 font-bold text-2xl">Danh sách đơn mua </h2>
       {/* Status Filter Tabs */}
       <div className=" rounded-lg overflow-hidden">
         <div className="flex flex-wrap justify-center p-4 bg-gray-50 border-b">
           {[
             "Tất cả",
-            "Đang chờ",
-            "Xác nhận",
+            "Chờ xử lý",
+            "Đã xác nhận",
             "Đã thanh toán",
             "Đang xử lý",
-            "Đã giao",
-            "Bị hoãn",
+            "Đã giao hàng",
             "Hoàn thành",
           ].map((status) => (
             <button

@@ -43,6 +43,7 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<ErrorLog> _errorLogRepository;
         private IGenericRepository<RentalOrder> _rentalOrderRepository;
         private IGenericRepository<RefundRequest> _refundRequestRepository;
+        private IGenericRepository<Notification> _notificationRepository;
 
         public IGenericRepository<RentalOrder> RentalOrderRepository
         {
@@ -368,6 +369,18 @@ namespace _2Sport_BE.Repository.Implements
                     _bookmarkRepository = new GenericRepository<Bookmark>(_dbContext);
                 }
                 return _bookmarkRepository;
+            }
+        }
+
+        public IGenericRepository<Notification> NotificationRepository
+        {
+            get
+            {
+                if (_notificationRepository == null)
+                {
+                    _notificationRepository = new GenericRepository<Notification>(_dbContext);
+                }
+                return _notificationRepository;
             }
         }
 

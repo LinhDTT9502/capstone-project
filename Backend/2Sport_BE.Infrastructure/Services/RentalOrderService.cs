@@ -286,7 +286,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                         await _unitOfWork.SaveChanges();
 
-                        await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode, rentalOrder.BranchId);
+                        await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
                         await _mailService.SendRentalOrderInformationToCustomer(rentalOrder, null, rentalOrder.Email);
                         response = GenerateSuccessResponse(rentalOrder, null, "Rental order created successfully");
                         await transaction.CommitAsync();
@@ -349,7 +349,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                         //Send notifications to Coordinator
                         var listChild = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.ParentOrderCode.Equals(rentalOrder.RentalOrderCode));
-                        await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode, rentalOrder.BranchId);
+                        await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode,true, rentalOrder.BranchId);
                         await _mailService.SendRentalOrderInformationToCustomer(rentalOrder, listChild.ToList(), rentalOrder.Email);
 
                         response = GenerateSuccessResponse(rentalOrder, listChild.ToList(), "Rental order inserted successfully");
@@ -752,8 +752,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
             try
             {
-                var orders = await _unitOfWork.RentalOrderRepository
-                    .GetAllAsync();
+                var orders = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.ParentOrderCode == null);
                 if (orderStatus.HasValue)
                 {
                     orders = orders.Where(o => o.OrderStatus == orderStatus.Value);
@@ -764,10 +763,16 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 if (orders != null && orders.Any())
                 {
-                    var result = _mapper.Map<List<RentalOrderVM>>(orders);
+                    var resultList = orders.Select(rentalOrder =>
+                    {
+                        var result = _mapper.Map<RentalOrderVM>(rentalOrder);
+                        MapToRentalOrderVM(rentalOrder, result);
+                        return result;
+                    }).ToList();
+
                     response.IsSuccess = true;
                     response.Message = "Rental orders retrieved successfully";
-                    response.Data = result;
+                    response.Data = resultList;
                 }
             }
             catch (Exception ex)

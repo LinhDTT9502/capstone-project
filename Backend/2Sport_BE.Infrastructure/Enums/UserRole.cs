@@ -7,6 +7,7 @@
         Staff = 3,
         Customer = 4,
         Owner = 5,
-
+        OrderCoordinator = 16,
+        ContentStaff = 17
     }
 }

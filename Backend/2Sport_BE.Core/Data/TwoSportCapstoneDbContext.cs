@@ -41,6 +41,7 @@ namespace _2Sport_BE.Repository.Data
         public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
         public virtual DbSet<RentalOrder> RentalOrders { get; set; }
         public virtual DbSet<RefundRequest> RefundRequests { get; set; }
+        public virtual DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

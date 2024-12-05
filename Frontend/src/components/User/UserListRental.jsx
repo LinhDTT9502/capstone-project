@@ -85,7 +85,7 @@ export default function UserListRental() {
     return <p className="text-center text-red-500 mt-4">Lỗi: {error}</p>;
 
   return (
-    <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
+    <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[70vh] overflow-y-auto">
       <h2 className="text-orange-500 font-bold text-2xl">
         Danh sách đơn thuê{" "}
       </h2>
@@ -93,21 +93,19 @@ export default function UserListRental() {
         <div className="flex flex-wrap justify-center p-4 bg-gray-50 border-b">
           {[
             "Tất cả",
-            "Đang chờ",
-            "Xác nhận",
+            "Chờ xử lý",
+            "Đã xác nhận",
             "Đã thanh toán",
             "Đang xử lý",
-            "Đã giao",
-            "Bị hoãn",
+            "Đã giao hàng",
             "Hoàn thành",
           ].map((status) => (
             <button
               key={status}
-              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
-                selectedStatus === status
+              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${selectedStatus === status
                   ? "bg-orange-500 text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+                }`}
               onClick={() => setSelectedStatus(status)}
             >
               {status}
@@ -122,7 +120,7 @@ export default function UserListRental() {
             className="p-4 border border-gray-200 rounded-lg shadow-sm mt-4"
           >
             <div
-              className="flex justify-between items-center p-6 cursor-pointer hover:bg-gray-50 transition-colors duration-150 ease-in-out"
+              className="flex justify-between items-center p-6 cursor-pointer hover:bg-slate-200 transition-colors duration-150 ease-in-out"
               onClick={() => toggleExpand(parent.id)}
             >
               <div>
@@ -145,10 +143,9 @@ export default function UserListRental() {
               </div>
               <div className="flex flex-col items-end">
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    statusColors[parent.orderStatus] ||
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[parent.orderStatus] ||
                     "bg-gray-100 text-gray-800"
-                  }`}
+                    }`}
                 >
                   {parent.orderStatus}
                 </span>
@@ -195,9 +192,12 @@ export default function UserListRental() {
                           <h5 className="font-medium text-base">
                             {child.productName}
                           </h5>
-                          <p className="text-sm text-gray-500">{child.color}</p>
-                          <p className="text-sm text-gray-500">
-                            Số tiền: {child.totalAmount}
+                          <p className="text-sm text-gray-500">{child.color} - {child.size} - {child.condition}%</p>
+                          <p className="font-medium text-base text-rose-700">
+                            Số tiền: {new Intl.NumberFormat("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            }).format(child.totalAmount)}
                           </p>
                         </div>
                       </div>
@@ -211,14 +211,18 @@ export default function UserListRental() {
                       className="w-24 h-24 object-cover rounded"
                     />
                     <div>
-                      <h5 className="font-medium text-base">
-                        Mã đơn hàngg: {parent.rentalOrderCode}
-                      </h5>
-                      <p className="text-sm text-gray-500">
+
+                      <h3 className="font-medium text-base">
                         {parent.productName}
-                      </p>
+                      </h3>
                       <p className="text-sm text-gray-500">
-                        Số tiền: {parent.totalAmount}
+                        {parent.color} - {parent.size} - {parent.condition}%
+                      </p>
+                      <p className="font-medium text-base text-rose-700">
+                        Số tiền:  {new Intl.NumberFormat("vi-VN", {
+                          style: "currency",
+                          currency: "VND",
+                        }).format(parent.totalAmount)}
                       </p>
                     </div>
                   </div>
