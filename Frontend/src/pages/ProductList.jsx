@@ -75,7 +75,7 @@ const ProductList = ({ sortBy, isAscending, selectedBrands, selectedCategories, 
             <h3 className="font-semibold mt-4">{product.productName}</h3>
 
             {/* Product Price */}
-            <p className="text-red-700 text-lg font-bold mt-auto">{product.price.toLocaleString()} ₫</p>
+            <p className="text-red-700 text-lg font-bold mt-auto">{product.price.toLocaleString("vi-VN")} ₫</p>
           </div>
 
         ))}

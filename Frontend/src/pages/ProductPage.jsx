@@ -98,8 +98,17 @@ function ProductPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-2">
           <div className="w-full lg:col-span-1">
             <div className="w-full">
-              <div className="mb-4 font-alfa text-xl">
+              <div className="mb-4  text-xl flex">
                 {t("productv2.products")}
+                <div className="flex items-center justify-end w-[50%] text-xs ml-16 ">
+                  <button
+                    onClick={handleClearFilters}
+                    className="flex items-center text-white bg-orange-500 p-2"
+                  >
+                    <FontAwesomeIcon icon={faXmark} className="mr-1" />
+                    {t("productv2.clear_all_filter")}
+                  </button>
+                </div>
               </div>
               <div className="Products text-black font-bold">
                 {t("productv2.categories")}
@@ -158,7 +167,7 @@ function ProductPage() {
                   setMaxPrice={setMaxPrice}
                 />
                 <div className="h-px bg-gray-300 my-5 mx-auto"></div>
-                <div className="flex items-center justify-center mt-4 w-fit">
+                {/* <div className="flex items-center justify-center mt-4 w-fit">
                   <button
                     onClick={handleClearFilters}
                     className="flex items-center text-black font-bold underline"
@@ -166,7 +175,7 @@ function ProductPage() {
                     <FontAwesomeIcon icon={faXmark} />
                     {t("productv2.clear_all_filter")}
                   </button>
-                </div>
+                </div> */}
               </div>
               <div className="relative inline-block mt-6">
                 <img src="/assets/images/product/hero.png" alt="Hero" />
@@ -222,13 +231,13 @@ function ProductPage() {
                   )}
                   <div className="ml-4 flex items-center space-x-2">
                     {/* <button>
-                      <FontAwesomeIcon icon={faTableCellsLarge} />
-                    </button> */}
+                          <FontAwesomeIcon icon={faTableCellsLarge} />
+                        </button> */}
                     {/* <Link to="/productv2">
-                      <button>
-                        <FontAwesomeIcon icon={faBars} />
-                      </button>
-                    </Link> */}
+                          <button>
+                            <FontAwesomeIcon icon={faBars} />
+                          </button>
+                        </Link> */}
                   </div>
                 </div>
               </div>
