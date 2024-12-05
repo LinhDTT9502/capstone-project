@@ -57,46 +57,46 @@ export default function RentalCheckout() {
                 const paymentLink = response.data.data.paymentLink;
                 // Open the payment link in a new tab
                 newTabRef.current = window.open(paymentLink, '_blank');
-                console.log(paymentLink);
+//                 console.log(paymentLink);
 
-                // Start polling to check if the new tab redirects to URL C
-                const checkTab = setInterval(() => {
-                    if (newTabRef.current) {
-                        try {
-                            const currentUrl = newTabRef.current.location.href; // Check the current URL of the new tab
-                            console.log(currentUrl);
+//                 // Start polling to check if the new tab redirects to URL C
+//                 const checkTab = setInterval(() => {
+//                     if (newTabRef.current) {
+//                         try {
+//                             const currentUrl = newTabRef.current.location.href; // Check the current URL of the new tab
+//                             console.log(currentUrl);
                             
-                            if (currentUrl.includes('capstone-project')) {
-                                const params = new URLSearchParams(newTabRef.current.location.search);
-                                console.log(params);
+//                             if (currentUrl.includes('capstone-project')) {
+//                                 const params = new URLSearchParams(newTabRef.current.location.search);
+//                                 console.log(params);
                                 
-                                const status = params.get('status');
-                                console.log(currentUrl);
+//                                 const status = params.get('status');
+//                                 console.log(currentUrl);
 
-                                if (status === 'PAID') {
-                                    newTabRef.current.close(); // Close the new tab
-                                    window.location.href = 'http://localhost:5173'; // Redirect back to URL A
-                                }
-                                else {
-                                    newTabRef.current.close(); // Close the new tab
-                                    window.location.href = 'http://localhost:5173'; // Redirect back to URL A
-                                }
-                            }
-                        } catch (error) {
-                            // Ignore cross-origin errors
-                        }
-                    }
-                }, 1000);
-console.log(newTabRef.current);
-console.log(newTabRef.current.location.href);
+//                                 if (status === 'PAID') {
+//                                     newTabRef.current.close(); // Close the new tab
+//                                     window.location.href = 'http://localhost:5173'; // Redirect back to URL A
+//                                 }
+//                                 else {
+//                                     newTabRef.current.close(); // Close the new tab
+//                                     window.location.href = 'http://localhost:5173'; // Redirect back to URL A
+//                                 }
+//                             }
+//                         } catch (error) {
+//                             // Ignore cross-origin errors
+//                         }
+//                     }
+//                 }, 1000);
+// console.log(newTabRef.current);
+// console.log(newTabRef.current.location.href);
 
-                // Stop polling after a certain time (e.g., 30 seconds)
-                setTimeout(() => {
-                    clearInterval(checkTab);
-                    if (newTabRef.current) {
-                        newTabRef.current.close(); // Close the tab if still open
-                    }
-                }, 30000)
+//                 // Stop polling after a certain time (e.g., 30 seconds)
+//                 setTimeout(() => {
+//                     clearInterval(checkTab);
+//                     if (newTabRef.current) {
+//                         newTabRef.current.close(); // Close the tab if still open
+//                     }
+//                 }, 30000)
             } else {
                 alert("Checkout failed: " + response.data.message);
             }

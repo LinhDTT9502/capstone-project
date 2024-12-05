@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../redux/slices/authSlice";
@@ -25,27 +25,36 @@ export default function UserDropdown() {
     const [isOpen, setIsOpen] = useState(false);
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const timeoutRef = useRef(null);
 
     const handleManageAccount = () => {
         navigate("/manage-account/profile");
     };
 
-    const handleLogout = () => {
-        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        document.cookie = "refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-        dispatch(logout());
-        navigate("/");
-    };
+    const handleMouseEnter = () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+        setIsOpen(true);
+      };
+    
+      const handleMouseLeave = () => {
+        timeoutRef.current = setTimeout(() => {
+          setIsOpen(false);
+        }, 500); 
+      };
+      
 
     return (
         <motion.nav
             initial={false}
             animate={isOpen ? "open" : "closed"}
             className="menu"
-           
+            onMouseLeave={handleMouseLeave}
         >
             <div 
-              onMouseEnter={() => setIsOpen(true)} 
+              onMouseEnter={handleMouseEnter}
             className="justify-between flex text-left items-center">
                 <button>
                 <FontAwesomeIcon icon={faUser} className="pr-1" />
@@ -62,8 +71,9 @@ export default function UserDropdown() {
                     )}
                 </motion.div>
             </div>
+          
             <motion.ul
-                className="absolute m-5  backdrop-blur-lg text-white bg-gradient-to-r from-zinc-600/80 to-zinc-900/80"
+                className="absolute mt-2 backdrop-blur-lg text-white bg-gradient-to-r from-zinc-600/80 rounded-md shadow-lg to-zinc-900/80"
                 variants={{
                     open: {
                         clipPath: "inset(0% 0% 0% 0% round 10px)",
@@ -85,6 +95,8 @@ export default function UserDropdown() {
                     }
                 }}
                 style={{ pointerEvents: isOpen ? "auto" : "none" }}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
             >
                 <motion.li
                     variants={itemVariants}
@@ -99,7 +111,7 @@ export default function UserDropdown() {
                 <motion.li
                     variants={itemVariants}
                     className=" p-3 "
-                    onMouseLeave={() => setIsOpen(false)} 
+                   
                 >
                     <Logout />
                 </motion.li>

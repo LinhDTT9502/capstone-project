@@ -11,6 +11,7 @@ import { ProductCondition } from "../components/Product/ProductCondition";
 import { HashLoader } from "react-spinners"
 import { checkQuantityProduct } from "../services/warehouseService";
 import { getComment } from "../services/Comment/CommentService";
+import CommentList from "../components/Comment/CommentList";
 // import CommentList from "../components/Comment/CommentList";
 
 const ProductDetails = () => {
@@ -86,33 +87,6 @@ const ProductDetails = () => {
       // console.log(product);
     }
   }, [selectedColor, selectedSize, selectedCondition]);
-
-  useEffect(() => {
-    const fetchComments = async () => {
-      try {
-        const commentData = await getComment(product?.id);
-        if (commentData?.data?.$values) {
-          const structuredComments = commentData.data.$values.reduce((acc, comment) => {
-            if (comment.parentCommentId === 0) {
-              acc.push({ ...comment, replies: [] });
-            } else {
-              const parentComment = acc.find(c => c.id === comment.parentCommentId);
-              if (parentComment) {
-                parentComment.replies.push(comment);
-              }
-            }
-            return acc;
-          }, []);
-          setComments(structuredComments);
-        }
-      } catch (error) {
-        console.error("Error fetching comments:", error);
-      }
-    };
-
-    if (product) fetchComments();
-  }, [product]);
-
 
   // // Check if all fields are selected
   // useEffect(() => {
@@ -301,14 +275,9 @@ const ProductDetails = () => {
           <div className="mt-4">
             <h3 className="font-poppins text-lg text-orange-500 font-bold">Mô tả sản phẩm:{product.description}</h3>
           </div>
-          {/* <div className="mt-10">
-            <h3 className="text-2xl font-semibold">Bình luận</h3>
-            {comments.length > 0 ? (
-              <CommentList comments={comments} />
-            ) : (
-              <p className="text-gray-500">Chưa có bình luận nào.</p>
-            )}
-          </div> */}
+        <CommentList
+        productId={product?.id}
+        />
         </>
       )}
     </div>

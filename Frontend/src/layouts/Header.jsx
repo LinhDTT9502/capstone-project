@@ -22,6 +22,7 @@ import SearchBar from "../components/Product/SearchBar";
 import BranchSystem from "../components/BranchButton";
 import { getUserCart } from "../services/cartService";
 import { useCart } from "../components/Cart/CartContext";
+import SearchOrderDropDown from "../components/Research/SearchOrderDropDown";
 
 function Header() {
   const { scrollYProgress } = useScroll();
@@ -169,19 +170,18 @@ function Header() {
               </Link>
             </div>
             <div className="flex space-x-4">
+              <SearchOrderDropDown/>
               <SignInModal />
-              <Link to="/cart" className="relative">
+              <Link to="/cart" className="flex space-x-2">
+              <div className="relative">
                 <FontAwesomeIcon icon={faCartShopping} className="pr-1" />
-                Giỏ hàng
                 {cartCount > 0 && token && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[0.625rem] font-bold rounded-full h-[1rem] w-4  leading-none flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
-              </Link>
-              <Link to="/guest-order">
-                <FontAwesomeIcon icon={faBinoculars} className="pr-2" />
-                Tra cứu
+                </div>
+                <p>Giỏ hàng</p>
               </Link>
             </div>
           </div>

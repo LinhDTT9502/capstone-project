@@ -14,6 +14,7 @@ export default function LoginGoogle({ setIsSignInOpen }) {
 
     window.addEventListener('message', (event) => {
       if (event.origin === 'http://demo-api.ap-southeast-2.elasticbeanstalk.com') {
+
         const { token, refreshToken } = event.data;
         console.log(token, refreshToken);
         if (token && refreshToken) {
@@ -26,15 +27,15 @@ export default function LoginGoogle({ setIsSignInOpen }) {
           newTab.close();
         }
       }
-    }, { once: true }); 
+    }, { once: true });
   };
   return (
     <>
-                  <button
-                    onClick={handleSubmitButton}
-                    className="border-zinc-400 border-2 rounded-lg"
-                  > {t("login_google.btn")}</button>
-                 
+      <button
+        onClick={handleSubmitButton}
+        className="border-zinc-400 border-2 rounded-lg"
+      > {t("login_google.btn")}</button>
+
     </>
   );
 }
