@@ -67,17 +67,9 @@ namespace _2Sport_BE.Controllers
         [HttpPost]  
         public async Task<IActionResult> LogOutAsync([FromBody] TokenModel request)
         {
-            var token = await _unitOfWork.RefreshTokenRepository.GetObjectAsync(_ => _.Token == request.RefreshToken);
-            if (token == null)
-            {
-                return BadRequest("Not found token!");
-            }
-            else
-            {
-                await _refreshTokenService.RemoveToken(token);
-                _unitOfWork.Save();
-                return Ok("Query Successfully");
-            }
+            var response = await _identityService.HandleLogoutAsync(request);
+           if(response.IsSuccess) return Ok(response);
+           return BadRequest(response);
         }
 
         [Route("sign-up")]
@@ -121,7 +113,7 @@ namespace _2Sport_BE.Controllers
         [HttpPost]
         public async Task<IActionResult> RefreshAsync([FromBody] TokenModel request)
         {
-            var result = await _identityService.RefreshTokenAsync(request);
+            var result = await _identityService.RefreshAccessTokenAsync(request);
             return Ok(result);
         }
 

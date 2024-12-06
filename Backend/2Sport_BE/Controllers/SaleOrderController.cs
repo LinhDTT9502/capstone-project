@@ -16,7 +16,6 @@ namespace _2Sport_BE.Controllers
     {
 
         private readonly ISaleOrderService _orderService;
-        private readonly IPaymentService _paymentService;
         private readonly IMethodHelper _methodHelper;
         private readonly ICartItemService _cartItemService;
         public SaleOrderController(ISaleOrderService orderService,
@@ -25,13 +24,12 @@ namespace _2Sport_BE.Controllers
                                 IPaymentService paymentService)
         {
             _orderService = orderService;
-            _paymentService = paymentService;
             _methodHelper = methodHelper;
             _cartItemService = cartItemService;
         }
         [HttpGet]
         [Route("get-all-sale-orders")]
-        public async Task<IActionResult> GetOrders()
+        public async Task<IActionResult> ListAllSaleOrder()
         {
             var response = await _orderService.GetAllSaleOrdersAsync();
             if (response.IsSuccess)
@@ -44,7 +42,7 @@ namespace _2Sport_BE.Controllers
         [Route("get-sale-order-detail")]
         public async Task<IActionResult> GetOrderByOrderId(int orderId)
         {
-            var response = await _orderService.GetSaleOrderDetailByIdAsync(orderId);
+            var response = await _orderService.GetSaleOrderDetailsByIdAsync(orderId);
             if (response.IsSuccess)
             {
                 return Ok(response);
@@ -96,7 +94,7 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
         [HttpPost("create-sale-order")]
-        public async Task<IActionResult> CreateOrder([FromBody] SaleOrderCM orderCM)
+        public async Task<IActionResult> AddSaleOrder([FromBody] SaleOrderCM orderCM)
         {
             if (!ModelState.IsValid)
             {
@@ -118,7 +116,7 @@ namespace _2Sport_BE.Controllers
             return Ok(response);
         }
         [HttpPut("update-sale-order")]
-        public async Task<IActionResult> UpdateSaleOrder([FromQuery] int orderId, [FromBody] SaleOrderUM orderUM)
+        public async Task<IActionResult> EditSaleOrder([FromQuery] int orderId, [FromBody] SaleOrderUM orderUM)
         {
             if (!ModelState.IsValid)
             {
@@ -131,17 +129,7 @@ namespace _2Sport_BE.Controllers
             }
             return Ok(response);
         }
-        /*        [HttpGet]
-                [Route("get-orders-by-date-and-status")]
-                public async Task<IActionResult> GetOrdersByOrderCode(DateTime startDate, DateTime endDate, int status)
-                {
-                    var response = await _orderService.GetOrdersByMonthAndStatus(startDate, endDate, status);
-                    if (response.IsSuccess)
-                    {
-                        return Ok(response);
-                    }
-                    return BadRequest(response);
-                }*/
+
         [HttpPut("update-order-status")]
         public async Task<IActionResult> ChangeOrderStatus(int orderId, int status)
         {
@@ -153,84 +141,7 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(response);
         }
-        /*        [HttpGet]
-                [Route("revenue-summary")]
-                public async Task<IActionResult> GetSalesOrdersByStatus([FromQuery] DateTime? startDate,
-                                                                        [FromQuery] DateTime? endDate,
-                                                                        [FromQuery] int? status)
-                {
-                    try
-                    {
-                        var query = await _orderService.GetAllSaleOrderQueryableAsync();
-                        if (startDate.HasValue)
-                        {
-                            query = query.Where(o => o.CreatedAt >= startDate.Value);
-                        }
-                        if (endDate.HasValue)
-                        {
-                            query = query.Where(o => o.CreatedAt <= endDate.Value);
-                        }
 
-                        // Lọc theo trạng thái đơn hàng
-                        if (status.HasValue)
-                        {
-                            query = query.Where(o => o.OrderStatus == status.Value);
-                        }
-
-                        var totalRevenue = await query.SumAsync(o => o.TotalAmount);
-                        var totalOrders = await query.CountAsync();
-
-                        decimal totalRevenueInMonth = (decimal)query.Sum(_ => _.TotalAmount);
-                        int ordersInMonth = query.Count();
-                        int ordersInLastMonth = 1;
-                        bool isIncrease;
-                        double orderGrowthRatio = PercentageChange(ordersInMonth, ordersInLastMonth, out isIncrease);
-
-                        SaleOrdersSales ordersSales = new SaleOrdersSales
-                        {
-                            SaleOrderGrowthRatio = totalOrders,
-                            TotalIntoMoney = totalRevenue,
-                            TotalSaleOrders = 0,
-                            IsIncrease = true
-                        };
-
-                        ResponseModel<SaleOrdersSales> response = new ResponseModel<SaleOrdersSales>
-                        {
-                            IsSuccess = true,
-                            Message = "Query Successfully",
-                            Data = ordersSales
-                        };
-
-                        return Ok(response);
-                    }
-                    catch (Exception ex)
-                    {
-                        ResponseModel<OrdersSales> response = new ResponseModel<OrdersSales>
-                        {
-                            IsSuccess = false,
-                            Message = "Something went wrong: " + ex.Message,
-                            Data = null
-                        };
-                        return BadRequest(response);
-                    }
-                }*/
-        /*        }  
-                [HttpGet]
-                [Route("get-revenue")]
-                public async Task<IActionResult> GetRevenue(
-                   [FromQuery] int? branchId,
-                   [FromQuery] int? orderType,
-                   [FromQuery] DateTime? dateFrom,
-                   [FromQuery] DateTime? dateTo,
-                   [FromQuery] int? status)
-                {
-                    var response = await _orderService.GetOrdersRevenue(branchId, orderType, dateFrom, dateTo, status);
-                    if (response.IsSuccess)
-                    {
-                        return Ok(response);
-                    }
-                    return BadRequest(response);
-                }*/
         [HttpPut]
         [Route("assign-branch")]
         public async Task<IActionResult> AssignBranch(int orderId, int branchId)
@@ -244,6 +155,7 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
 
         }
+
         [HttpPost]
         [Route("{orderId}/approve")]
         public async Task<IActionResult> ApproveSaleOrder(int orderId)
@@ -255,6 +167,7 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(response);
         }
+
         [HttpPost]
         [Route("{orderId}/reject")]
         public async Task<IActionResult> RejectSaleOrder(int orderId)
@@ -267,6 +180,14 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
 
+        [HttpDelete]
+        [Route("remove/{orderId}")]
+        public async Task<IActionResult> RemoveSaleOrder(int orderId)
+        {
+            var response = await _orderService.DeleteSaleOrderAsync(orderId);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
         [NonAction]
         public int GetCurrentUserIdFromToken()
         {

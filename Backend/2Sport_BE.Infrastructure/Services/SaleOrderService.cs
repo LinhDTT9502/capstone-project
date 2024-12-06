@@ -4,14 +4,10 @@ using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Infrastructure.Enums;
 using AutoMapper;
-using System.Net;
-using Microsoft.CodeAnalysis.Semantics;
 using _2Sport_BE.Services;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using Microsoft.EntityFrameworkCore;
-using MailKit.Search;
 using _2Sport_BE.Service.Enums;
 using _2Sport_BE.Service.Helpers;
+using _2Sport_BE.Service.Services;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -19,7 +15,7 @@ namespace _2Sport_BE.Infrastructure.Services
     {
         #region IRead
         Task<ResponseDTO<List<SaleOrderVM>>> GetAllSaleOrdersAsync();
-        Task<ResponseDTO<SaleOrderVM>> GetSaleOrderDetailByIdAsync(int saleOrderId);
+        Task<ResponseDTO<SaleOrderVM>> GetSaleOrderDetailsByIdAsync(int saleOrderId);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByStatus(int? orderStatus, int? paymentStatus);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersOfUserAsync(int userId);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByBranchAsync(int branchId);
@@ -61,6 +57,8 @@ namespace _2Sport_BE.Infrastructure.Services
         private readonly IMapper _mapper;
         private readonly INotificationService _notificationService;
         private readonly IMailService _mailService;
+        private readonly IOrderDetailService _orderDetailService;
+
         public SaleOrderService(IUnitOfWork unitOfWork,
             ICustomerService customerDetailService,
             IWarehouseService warehouseService,
@@ -68,7 +66,8 @@ namespace _2Sport_BE.Infrastructure.Services
             IDeliveryMethodService deliveryMethodService,
             IMapper mapper,
             INotificationService notificationService,
-            IMailService mailService)
+            IMailService mailService,
+            IOrderDetailService orderDetailService)
         {
             _unitOfWork = unitOfWork;
             _customerDetailService = customerDetailService;
@@ -78,6 +77,7 @@ namespace _2Sport_BE.Infrastructure.Services
             _mapper = mapper;
             _notificationService = notificationService;
             _mailService = mailService;
+            _orderDetailService = orderDetailService;
         }
         private void AssignSaleProduct(ProductInfor productInformation, OrderDetail orderDetail)
         {
@@ -171,7 +171,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 return response;
             }
         }
-        public async Task<ResponseDTO<SaleOrderVM>> GetSaleOrderDetailByIdAsync(int id)
+        public async Task<ResponseDTO<SaleOrderVM>> GetSaleOrderDetailsByIdAsync(int id)
         {
             var response = new ResponseDTO<SaleOrderVM>();
             try
@@ -594,7 +594,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<int>();
             try
             {
-                var SaleOrder = _unitOfWork.SaleOrderRepository.FindObject(o => o.Id == id);
+                var SaleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == id);
                 if (SaleOrder == null)
                 {
                     response.IsSuccess = false;
@@ -604,11 +604,20 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 else
                 {
-                    await _unitOfWork.SaleOrderRepository.DeleteAsync(id);
-
-                    response.IsSuccess = true;
-                    response.Message = $"Remove SaleOrder with id = {id} successfully";
-                    response.Data = 1;
+                    var deleteItem = await _orderDetailService.DeleteOrderDetailsByOrderId(SaleOrder.Id);
+                    if (deleteItem)
+                    {
+                        await _unitOfWork.SaleOrderRepository.DeleteAsync(id);
+                        response.IsSuccess = true;
+                        response.Message = $"Remove SaleOrder with id = {id} successfully";
+                        response.Data = 1;
+                    }
+                    else
+                    {
+                        response.IsSuccess = false;
+                        response.Message = $"Remove SaleOrder with id = {id} failed";
+                        response.Data = 0;
+                    }                
                 }
             }
             catch (Exception ex)

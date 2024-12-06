@@ -19,22 +19,35 @@ namespace _2Sport_BE.Service.Helpers
 
         { OrderStatus.PENDING, "Chờ xử lý" },
         { OrderStatus.CONFIRMED, "Đã xác nhận" },
-        { OrderStatus.PAID, "Đã thanh toán" },
+        { OrderStatus.AWAITING_PAYMENT, "Đang chờ thanh toán" },
         { OrderStatus.PROCESSING, "Đang xử lý" },
         { OrderStatus.SHIPPED, "Đã giao hàng" },
-        { OrderStatus.DELAYED, "Bị trì hoãn" },
-        { OrderStatus.COMPLETED, "Hoàn thành" },
+        { OrderStatus.DELIVERED, "Đã nhận hàng" },
+        { OrderStatus.COMPLETED, "Hoàn tất" },
+        { OrderStatus.DECLINED, "Bị từ chối" },
+        { OrderStatus.REFUNDED, "Đã hoàn tiền" },
+        { OrderStatus.ON_HOLD, "Tạm hoãn" },
+        { OrderStatus.AWAITING_PICKUP, "Chờ nhận hàng" },
+        { OrderStatus.RETURN_REQUESTED, "Yêu cầu trả hàng" },
+        { OrderStatus.RETURNED, "Đã trả hàng" },
+        { OrderStatus.FAILED, "Thất bại" },
         { OrderStatus.CANCELLED, "Đã hủy" },
 
-         { RentalOrderStatus.PENDING, "Chờ xử lý" },
+        { RentalOrderStatus.CANCELLED, "Đã hủy" },
+        { RentalOrderStatus.PENDING, "Chờ xử lý" },
         { RentalOrderStatus.CONFIRMED, "Đã xác nhận" },
         { RentalOrderStatus.PAID, "Đã thanh toán" },
         { RentalOrderStatus.PROCESSING, "Đang xử lý" },
         { RentalOrderStatus.SHIPPED, "Đã giao hàng" },
         { RentalOrderStatus.DELAYED, "Bị trì hoãn" },
-        { RentalOrderStatus.COMPLETED, "Hoàn thành" },
-        { RentalOrderStatus.CANCELLED, "Đã hủy" },
-        { RentalOrderStatus.EXTEND, "Gia hạn" },
+        { RentalOrderStatus.COMPLETED, "Đã hoàn tất thuê" },
+        { RentalOrderStatus.EXTENDING, "Đang gia hạn" },
+        { RentalOrderStatus.AWAITING_PICKUP, "Chờ nhận hàng" },
+        { RentalOrderStatus.RETURN_REQUESTED, "Yêu cầu trả sản phẩm" },
+        { RentalOrderStatus.RETURNED, "Đã trả sản phẩm" },
+        { RentalOrderStatus.INSPECTING, "Đang kiểm tra sản phẩm" },
+        { RentalOrderStatus.CLOSED, "Đơn thuê đã kết thúc" },
+        { RentalOrderStatus.FAILED, "Thất bại" },
 
         { DepositStatus.Paid, "Đã thanh toán" },
         { DepositStatus.Partially_Paid, "Đã thanh toán cọc 50%" },
@@ -46,7 +59,12 @@ namespace _2Sport_BE.Service.Helpers
         { OrderMethods.COD, "Giao hàng thu tiền hộ - COD" },
         { OrderMethods.PayOS, "Quét mã QR - PayOs" },
         { OrderMethods.VnPay, "Giao dịch trực tuyến - VnPay" },
-        { OrderMethods.BankTransfer, "Chuyển khoản ngân hàng" }
+        { OrderMethods.BankTransfer, "Chuyển khoản ngân hàng" },
+
+        { MemberLevel.Normal_Member, "Thành viên thường" },
+        { MemberLevel.Silver_Member, "Thành viên bạc" },
+        { MemberLevel.Gold_Member, "Thành viên vàng" },
+        { MemberLevel.Diamond_Member, "Thành viên kim cương" }
     };
 
         public static string GetDisplayName(Enum enumValue)

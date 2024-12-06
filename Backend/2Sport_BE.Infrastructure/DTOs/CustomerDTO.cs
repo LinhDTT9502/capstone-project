@@ -9,14 +9,8 @@ namespace _2Sport_BE.Infrastructure.DTOs
 {
     public class CustomerDTO
     {
-        public int Id { get; set; }
-        public int? UserId { get; set; } 
-        public int? LoyaltyPoints { get; set; }
-        public string MembershipLevel { get; set; }
+        public int? UserId { get; set; }
 
-        [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
-        [DataType(DataType.DateTime)]
-        public DateTime? JoinedAt { get; set; }
     }
     public class CustomerCM : CustomerDTO
     {
@@ -24,10 +18,14 @@ namespace _2Sport_BE.Infrastructure.DTOs
     }
     public class CustomerUM : CustomerDTO
     {
-
+        public int? LoyaltyPoints { get; set; }
+        public string MembershipLevel { get; set; }
     }
     public class CustomerVM : CustomerDTO
     {
-
+        public int Id { get; set; }
+        public DateTime? JoinedAt { get; set; }
+        public int? LoyaltyPoints { get; set; }
+        public string MembershipLevel { get; set; }
     }
 }

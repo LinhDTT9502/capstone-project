@@ -70,7 +70,7 @@ namespace _2Sport_BE.Controllers
         [HttpGet]
         [Route("get-users-detail")]
         //Role User
-        public async Task<IActionResult> GetUserDetail([FromQuery] int userId)
+        public async Task<IActionResult> GetUserDetails([FromQuery] int userId)
         {
             try
             {
@@ -83,6 +83,24 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(e);
             }
         }
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail(string token, string email)
+        {
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(email) && _.Token.Equals(token))).FirstOrDefault();
+            if (user is null)
+            {
+                return BadRequest("Email or Token are invalid!");
+            }
+            if (user.EmailConfirmed)
+            {
+                return Ok("Your email verified!");
+            }
+            user.EmailConfirmed = true;
+            user.Token = null;
+            await _userService.UpdateUserAsync(user.Id, user);
+            return Ok(new { Message = "Email verified successfully." });
+        }
+
         [HttpGet]
         [Route("get-profile")]
         //Role User
@@ -100,13 +118,13 @@ namespace _2Sport_BE.Controllers
         }
         [HttpPost]
         [Route("create-user")]
-        public async Task<IActionResult> CreateUser([FromBody] UserCM userCM)
+        public async Task<IActionResult> AddNewUser([FromBody] UserCM userCM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var response = await _userService.AddUserAsync(userCM);
+            var response = await _userService.CreateUserAsync(userCM);
 
             if (response.IsSuccess)
             {
@@ -118,7 +136,7 @@ namespace _2Sport_BE.Controllers
         [HttpPut]
         [Route("update-user")]
         //Role Admin
-        public async Task<IActionResult> UpdateUserAsync([FromQuery] int id, [FromBody] UserUM userUM)
+        public async Task<IActionResult> EditUserAsync([FromQuery] int id, [FromBody] UserUM userUM)
         {
             if (!ModelState.IsValid)
             {
@@ -134,7 +152,7 @@ namespace _2Sport_BE.Controllers
         [HttpPut]
         [Route("update-profile")]
         //Role Customer
-        public async Task<IActionResult> UpdateProfileAsync([FromQuery] int id, [FromBody] ProfileUM profileUM)
+        public async Task<IActionResult> EditProfileAsync([FromQuery] int id, [FromBody] ProfileUM profileUM)
         {
             if (!ModelState.IsValid)
             {
@@ -156,7 +174,7 @@ namespace _2Sport_BE.Controllers
         [HttpPut]
         [Route("update-password")]
         //Role Customer
-        public async Task<IActionResult> UpdatePasswordAsync([FromQuery] int id, [FromBody] ChangePasswordVM changePasswordVM)
+        public async Task<IActionResult> EditPasswordAsync([FromQuery] int id, [FromBody] ChangePasswordVM changePasswordVM)
         {
             if (!ModelState.IsValid)
             {
@@ -175,18 +193,39 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
 
-        [HttpDelete]
-        [Route("delete-user")]
-        //Role Admin
-        public async Task<ActionResult<User>> DeleteUser([FromQuery] int id)
+        [HttpPost]
+        [Route("upload-avatar")]
+        public async Task<IActionResult> EditAvatar(AvatarModel model)
         {
-            var response = await _userService.RemoveUserAsync(id);
-            if (response.IsSuccess)
+            if (!ModelState.IsValid)
             {
-                return Ok(response);
+                return BadRequest(ModelState);
             }
-            return BadRequest(response);
+            var user = await _userService.GetUserById(model.userId);
+            if (user != null)
+            {
+                if (model.Avatar != null)
+                {
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(model.Avatar);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        user.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
+                        await _userService.UpdateUserAsync(user.Id, user);
+                        return Ok("Upload avatar successfully");
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
+                else
+                {
+                    user.ImgAvatarPath = "";
+                }
+            }
+            return BadRequest(model);
         }
+
         [HttpPost("send-verification-email")]
         public async Task<IActionResult> SendVerificationEmail([FromBody] SendEmailRequest request)
         {
@@ -275,62 +314,22 @@ namespace _2Sport_BE.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
-        [HttpGet("verify-email")]
-        public async Task<IActionResult> VerifyEmail(string token, string email)
+        [HttpPut]
+        [Route("edit-status/{userId}")]
+        public async Task<IActionResult> EditStatus(int userId, [FromBody] bool status)
         {
-            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(email) && _.Token.Equals(token))).FirstOrDefault();
-            if (user is null)
-            {
-                return BadRequest("Email or Token are invalid!");
-            }
-            if (user.EmailConfirmed)
-            {
-                return Ok("Your email verified!");
-            }
-            user.EmailConfirmed = true;
-            user.Token = null;
-            await _userService.UpdateUserAsync(user.Id, user);
-            return Ok(new { Message = "Email verified successfully." });
+            var response = await _userService.UpdateStatus(userId, status);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
         }
-        [HttpGet("verify-phone-number")]
-        public async Task<IActionResult> VerifyPhoneNumber(string from, string to)
+        [HttpDelete]
+        [Route("delete-user")]
+        //Role Admin
+        public async Task<ActionResult<User>> RemoveUser([FromQuery] int id)
         {
-            var response = await _userService.VerifyPhoneNumber(from, to);
-
-            return Ok(response);
-        }
-        [HttpPost]
-        [Route("upload-avatar")]
-        public async Task<IActionResult> UpdateAvatar(AvatarModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var user = await _userService.GetUserById(model.userId);
-            if (user != null)
-            {
-                if(model.Avatar != null)
-                {
-                var uploadResult = await _imageService.UploadImageToCloudinaryAsync(model.Avatar);
-                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        user.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
-                        await _userService.UpdateUserAsync(user.Id, user);
-                        return Ok("Upload avatar successfully");
-                    }
-                    else
-                    {
-                        return BadRequest("Something wrong!");
-                    }
-                }
-                else
-                {
-                    user.ImgAvatarPath = "";
-                }
-            }
-            return BadRequest(model);
+            var response = await _userService.DeleteUserAsync(id);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
         }
         [NonAction]
         protected int GetCurrentUserIdFromToken()
