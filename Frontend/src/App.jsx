@@ -47,6 +47,8 @@ import RentalPlacedOrder from './components/Rental/RentalPlacedOrder';
 import RentalCheckout from './components/Rental/RentalCheckout';
 import SaleOrder from './components/Order/SaleOrder';
 import ScrollToTop from './resources/ScrollToTop';
+import PaymentSuccess from './pages/AfterPayment/PaymentSuccess';
+import PaymentSuccessV2 from './pages/AfterPayment/PaymentSuccessV2';
 
 
 
@@ -80,6 +82,8 @@ function App() {
         <Route path="/membership" element={<MembershipPolicyPage />} />
         <Route path="/second-hand-rentals" element={<SecondHandRentalsPolicyPage />} />
         <Route path="/shipping" element={<ShippingPolicyPage />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-success-2" element={<PaymentSuccessV2 />} />
 
             {/* <Route path="/policies/*" element={<PolicesRoutes />} /> */}
             {/* <Route path="/productv2" element={<Productv2Page />} /> */}
