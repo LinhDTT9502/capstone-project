@@ -26,7 +26,7 @@ const SearchBar = () => {
 
   return (
     <div className="relative z-50 w-1/4 p-2 mx-auto ">
-      <div className="flex w-full bg-white border-2 border-orange-500 rounded-full p-2 mx-auto">
+      <div className="flex w-full bg-white border-2 border-orange-500 rounded-full p-2 mx-auto items-center">
         <input
           className="flex-grow bg-transparent outline-none placeholder-gray-400"
           placeholder={t("search_bar.search_placeholder")}

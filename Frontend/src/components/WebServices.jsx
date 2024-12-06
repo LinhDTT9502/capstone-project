@@ -23,7 +23,7 @@ const WebServices = () => {
           <br />
           {t("webservice.subtitle2")}
         </p>
-        <p className=" hover:text-orange-500 text-white transition">
+        <p className="text-orange-500 transition">
           {t("webservice.btn")}
           <FontAwesomeIcon
             className="pl-2 text-orange-500 text-xl"
@@ -37,7 +37,7 @@ const WebServices = () => {
           <h3 className="mt-4 text-xl font-semibold">
             {t("webservice.title3")}
           </h3>
-          <p className="mt-2 text-gray-4000">{t("webservice.subtitle3")}</p>
+          <p className="mt-2 text-gray-400">{t("webservice.subtitle3")}</p>
         </div>
         <div className="text-center">
           <FontAwesomeIcon

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { faKey  } from "@fortawesome/free-solid-svg-icons";
 
 export default function UserChangePassword() {
   const { t } = useTranslation();
@@ -37,109 +38,23 @@ export default function UserChangePassword() {
   //   }
   // };
 
-  
-
-
   return (
     <>
       <ToastContainer />
-      <Button
-                color="gray"
-                variant="text"
-                onClick={handleToggleChangePassword}
-              >
-                Thay đổi mật khẩu
-              </Button>
-      {/* <div className="container mx-auto px-20 py-5 bg-white blur-none shadow-xl rounded-lg">
-        <h2 className="text-orange-500 font-bold text-xl mb-6">
-          {t("manage_account.change_password")}
+      <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
+        <h2 className="text-orange-500 font-bold text-2xl mb-6">
+          Thay đổi mật khẩu
         </h2>
-
-        <div className="space-y-4">
-          {isChangingPassword ? (
-            <>
-              <div className="w-4/12">
-                <label className="block text-gray-700 font-semibold mb-2">
-                  {t("manage_account.current_password")}:
-                </label>
-                <input
-                  type="password"
-                  className="w-full p-2 border border-gray-300"
-                  value={oldPassword}
-                  onChange={(e) => setOldPassword(e.target.value)}
-                />
-              </div>
-
-              <div className="flex justify-between">
-                <div className="w-4/12">
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    {t("manage_account.new_password")}:
-                  </label>
-                  <input
-                    type="password"
-                    className="w-full p-2 border border-gray-300"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                  />
-                </div>
-
-                <div className="w-4/12">
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    {t("manage_account.confirm_new_password")}:
-                  </label>
-                  <input
-                    type="password"
-                    className="w-full p-2 border border-gray-300"
-                    value={confirmNewPassword}
-                    onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  />
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="w-4/12">
-              <label className="block text-gray-700 font-semibold mb-2">
-                {t("manage_account.password")}:
-              </label>
-              <input
-                type="password"
-                className="w-full p-2 bg-gray-100 text-gray-500"
-                value="*********"
-                readOnly
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="flex justify-end mt-8">
-          {isChangingPassword ? (
-            <>
-              <Button
-                color="gray"
-                variant="text"
-                onClick={handleToggleChangePassword}
-              >
-                {t("manage_account.cancel_changing_password")}
-              </Button>
-              <Button
-                color="orange"
-                variant="filled"
-                onClick={handleConfirmPasswordChange}
-              >
-                {t("manage_account.confirm_changing_password")}
-              </Button>
-            </>
-          ) : (
-            <Button
-              color="orange"
-              variant="filled"
-              onClick={handleToggleChangePassword}
-            >
-              {t("manage_account.change_password")}
-            </Button>
-          )}
-        </div>
-      </div>{" "} */}
+        <Button
+          color="gray"
+          variant="text"
+          onClick={handleToggleChangePassword}
+          className="flex items-center text-gray-800 hover:bg-orange-500 hover:text-white focus:outline-none transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg px-4 py-2 rounded-md"
+        >
+          <faKey  className="mr-2" /> 
+          Đổi mật khẩu tại đây!!!
+        </Button>
+      </div>
     </>
   );
 }

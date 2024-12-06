@@ -9,9 +9,13 @@ export function ProductCondition({ productCode, color, size, selectedCondition, 
       try {
         const response = await fetchProductCondition(productCode, color, size);
         setConditions(response);
-        // if (response.length > 0) {
-        //   setSelectedCondition(response[0].condition);
-        // }
+
+        if (!selectedCondition && response.length > 0) {
+          const availableCondition = response.find(cond => cond.status);
+          if (availableCondition) {
+            setSelectedCondition(availableCondition.condition);
+          }
+        }
       } catch (error) {
         console.error("Failed to load product conditions:", error);
       }
@@ -20,44 +24,37 @@ export function ProductCondition({ productCode, color, size, selectedCondition, 
     if (productCode && color && size) {
       loadConditions();
     }
-  }, [productCode, color, size]);
-
-  const handleConditionChange = (condition) => {
-    setSelectedCondition(condition);
-  };
+  }, [productCode, color, size, selectedCondition, setSelectedCondition]);
 
   return (
-    <div className="w-full">
-      <ul className="flex space-x-4 items-center">
-     <p><strong>Tình trạng:</strong></p>
+    <div className="space-y-2">
+      <label className="text-gray-700 font-medium">Tình trạng:</label>
+      <div className="flex flex-wrap gap-2">
         {conditions.map((condition) => (
-          <li key={condition.condition} className="flex items-center border-2 border-zinc-400 p-1">
+          <label
+            key={condition.condition}
+            className={`flex items-center justify-center px-4 py-2 rounded-lg border cursor-pointer transition-all ${
+              selectedCondition === condition.condition
+                ? "border-orange-500 bg-orange-50 text-orange-500"
+                : condition.status
+                ? "border-gray-200 hover:border-orange-200"
+                : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+            }`}
+          >
             <input
               type="radio"
-              id={`condition-${condition.condition}`}
               name="product-condition"
               value={condition.condition}
               checked={selectedCondition === condition.condition}
-              onChange={() => handleConditionChange(condition.condition)}
-              className="mr-1 "
+              onChange={() => setSelectedCondition(condition.condition)}
+              className="hidden"
               disabled={!condition.status}
             />
-            <label
-              htmlFor={`condition-${condition.condition}`}
-              className={`cursor-pointer ${
-                condition.status ? "text-black" : "text-gray-400"
-              }`}
-            >
-              {condition.condition}% {condition.status ? "" : "(Unavailable)"}
-            </label>
-          </li>
+            <span className="text-sm font-medium">{condition.condition}%</span>
+          </label>
         ))}
-      </ul>
-      {/* {selectedCondition && (
-        <div className="mt-4 text-sm">
-          Selected Condition: <strong>{selectedCondition}</strong>
-        </div>
-      )} */}
+      </div>
     </div>
   );
 }
+

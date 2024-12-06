@@ -1,7 +1,15 @@
 import { useState } from "react";
-import PaymentMethod from "../components/Payment/PaymentMethod";
 import { useLocation } from "react-router-dom";
+import PaymentMethod from "../components/Payment/PaymentMethod";
 import CheckoutButton from "../components/Payment/CheckoutButton";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  Typography,
+  List,
+  ListItem,
+} from "@material-tailwind/react";
 
 const Checkout = () => {
   const location = useLocation();
@@ -12,103 +20,171 @@ const Checkout = () => {
     setSelectedOption(event.target.value);
   };
 
-  
-  
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(amount);
+  };
 
   return (
-    <div className="min-h-screen bg-slate-200 py-10 px-4 md:px-8">
-      <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
-          {/* Payment Method Section */}
-          <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
+    <div className="min-h-screen bg-gray-100 py-8 px-4 md:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Page Title */}
+        <div className="text-center mb-5">
+          <h2 className="text-orange-500 font-bold text-3xl">
+            Tiến hành thanh toán
+          </h2>
+        </div>
+        <hr className="mb-5" />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Customer Information */}
+          <div className="bg-white p-6 shadow-lg rounded-lg">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Thông tin khách hàng
+            </h3>
+            <hr className="mb-5" />
+            <div className="space-y-4">
+              <div className="flex">
+                <p className="font-medium text-gray-700 mr-2">Người nhận:</p>
+                <p className=" text-gray-700">
+                  {selectedOrder.fullName} ({selectedOrder.gender})
+                </p>
+              </div>
+              <div className="flex">
+                <p className="font-medium text-gray-700 mr-2">Số điện thoại:</p>
+                <p className=" text-gray-700">{selectedOrder.contactPhone} </p>
+              </div>
+              <div className="flex">
+                <p className="font-medium text-gray-700 mr-2">Email:</p>
+                <p className=" text-gray-700">{selectedOrder.email}</p>
+              </div>
+              <div className="flex">
+                <p className="font-medium text-gray-700 mr-1">Địa chỉ:</p>
+                <p className=" text-gray-700">{selectedOrder.address}</p>
+              </div>
+              <div className="flex">
+                <p className="font-medium text-gray-700 mr-2">
+                  Dự kiến giao hàng:{" "}
+                </p>
+                <p className=" text-gray-700">
+                  {new Date(selectedOrder.dateOfReceipt).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Method */}
+          <div className="bg-white p-6 shadow-lg rounded-lg">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Phương thức thanh toán
+            </h3>
+            <hr className="mb-5" />
             <PaymentMethod
               selectedOption={selectedOption}
               handleOptionChange={handleOptionChange}
             />
           </div>
 
-          {/* Order Summary Section */}
+          {/* Order Summary */}
           {selectedOrder && (
-            <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
-              
+            <div className="bg-white p-6 shadow-lg rounded-lg">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">
+                Tóm tắt đơn hàng
+              </h3>
+              <hr className="mb-5" />
+              <div className="space-y-4">
+                <div className="flex">
+                  <p className="font-medium text-gray-700 mr-2">Mã đơn hàng:</p>
+                  <p className=" text-gray-700">
+                    {selectedOrder.saleOrderCode}-{selectedOrder.id}
+                  </p>
+                </div>
+                <div className="flex">
+                  <p className="font-medium text-gray-700 mr-2">
+                    Trạng thái đơn hàng:
+                  </p>
+                  <p className=" text-gray-700">{selectedOrder.orderStatus}</p>
+                </div>
+                <div className="flex">
+                  <p className="font-medium text-gray-700 mr-2">
+                    Phương thức vận chuyển:{" "}
+                  </p>
+                  <p className=" text-gray-700">
+                    {" "}
+                    {selectedOrder.deliveryMethod.replace("_", " ")}
+                  </p>
+                </div>
+              </div>
+              <hr className="mt-5 mb-5" />
 
-              <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-              <p className="text-gray-600">
-                <span className="font-medium">Order Code:</span>{" "}
-                {selectedOrder.saleOrderCode}-{selectedOrder.id}
-              </p>
-              <p className="text-gray-600">
-                <span className="font-medium">Order Status:</span> {selectedOrder.orderStatus}
-              </p>
-              <p className="text-gray-600">
-                <span className="font-medium">Delivery Method:</span>{" "}
-                {selectedOrder.deliveryMethod.replace("_", " ")}
-              </p>
-              <p className="text-gray-600">
-                <span className="font-medium">Payment Method:</span>{" "}
-                {selectedOrder.paymentMethod}
-              </p>
-              <p className="text-gray-600">
-                <span className="font-medium">Recipient:</span> {selectedOrder.fullName}{" "}
-                ({selectedOrder.gender})
-              </p>
-              <p className="text-gray-600">
-                <span className="font-medium">Contact Phone:</span>{" "}
-                {selectedOrder.contactPhone}
-              </p>
-              <p className="text-gray-600">
-                <span className="font-medium">Email:</span> {selectedOrder.email}
-              </p>
-              <p className="text-gray-600">
-                <span className="font-medium">Address:</span> {selectedOrder.address}
-              </p>
-              <p className="text-gray-600">
-                <span className="font-medium">Estimated Delivery:</span>{" "}
-                {new Date(selectedOrder.dateOfReceipt).toLocaleDateString()}
-              </p>
-              <h3 className="text-lg font-semibold mt-4">Order Items</h3>
-              <ul className="space-y-2">
+              <h4 className="text-lg font-semibold text-gray-800 mt-4 mb-2">
+                Chi tiết đơn hàng
+              </h4>
+              <div className="space-y-4">
                 {selectedOrder.saleOrderDetailVMs.$values.map((item) => (
-                  <li
-                    key={item.productId}
-                    className="flex items-center justify-between bg-white p-2 rounded-lg shadow-sm"
-                  >
-                    <div className="flex items-center">
+                  <div key={item.productId} className="flex flex-col py-3">
+                    <div className="flex flex-row items-center">
                       <img
                         src={item.imgAvatarPath}
                         alt={item.productName}
-                        className="w-12 h-12 object-cover rounded-md mr-3"
+                        className="w-16 h-16 object-cover rounded-md mr-4"
                       />
                       <div>
-                        <p className="font-medium">{item.productName}</p>
-                        <p className="text-gray-500">x{item.quantity}</p>
+                        <p className="font-medium text-gray-800">
+                          {item.productName}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {item.color} - {item.size} - {item.condition}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          x{item.quantity}
+                        </p>
+                        <p className="font-medium text-gray-700 flex flex-col items-end">
+                          {formatCurrency(item.unitPrice)}
+                        </p>
                       </div>
                     </div>
-                    <span className="text-gray-700 font-medium">
-                      ${item.unitPrice.toFixed(2)}
-                    </span>
-                  </li>
+                  </div>
                 ))}
-              </ul>
-              <div className="mt-4 border-t pt-4">
-                <p className="flex justify-between text-gray-700 font-medium">
-                  <span>Subtotal:</span>
-                  <span>${selectedOrder.subTotal.toFixed(2)}</span>
-                </p>
-                <p className="flex justify-between text-gray-700 font-medium">
-                  <span>Transport Fee:</span>
-                  <span>${selectedOrder.tranSportFee.toFixed(2)}</span>
-                </p>
-                <p className="flex justify-between text-lg font-semibold">
-                  <span>Total:</span>
-                  <span>${selectedOrder.totalAmount.toFixed(2)}</span>
-                </p>
               </div>
-              <CheckoutButton
-                paymentMethodID={selectedOption}
-                selectedOrder={selectedOrder}
-                className="mt-4"
-              />
+
+              <div className="mt-6 border-t pt-4">
+                <div className="flex justify-between mb-2">
+                  <p className="font-medium text-gray-700 mr-2">
+                    Tổng giá trị đơn hàng:
+                  </p>
+                  <p className="font-medium text-gray-700">
+                    {formatCurrency(selectedOrder.subTotal)}
+                  </p>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <p className="font-medium text-gray-700 mr-2">
+                    Phí vận chuyển:
+                  </p>
+                  <p className="font-medium text-gray-700">
+                    {formatCurrency(selectedOrder.tranSportFee)}{" "}
+                  </p>
+                </div>
+                <div className="flex justify-between mb-4">
+                  <p className="text-lg font-semibold text-gray-800">
+                    Tổng cộng:
+                  </p>
+                  <p className="text-lg font-semibold text-gray-800">
+                    {formatCurrency(selectedOrder.totalAmount)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Checkout Button */}
+              <div className="flex flex-col justify-between items-end">
+                <CheckoutButton
+                  paymentMethodID={selectedOption}
+                  selectedOrder={selectedOrder}
+                  className="mt-6 w-full bg-orange-500 text-white py-2 rounded-md"
+                />
+              </div>
             </div>
           )}
         </div>

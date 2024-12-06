@@ -68,7 +68,7 @@ const PlacedOrder = () => {
         branchId: selectedOption === "STORE_PICKUP" ? branchId : null,
         productInformations: selectedProducts.map(item => ({
           cartItemId: item.cartItemId || null,
-          productId: item.id,
+          productId: item.productId,
           productName: item.productName,
           productCode:item.productCode,
           quantity: item.quantity,

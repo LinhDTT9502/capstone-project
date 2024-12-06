@@ -16,6 +16,15 @@ import { useSelector } from 'react-redux';
 import { selectUser } from './redux/slices/authSlice';
 import UserShipment from './components/User/UserShipment';
 import UserRoutes from './routes/UserRoutes';
+// import PolicesRoutes from './routes/PoliciesRoutes';
+import ComplaintsHandlingPage from './pages/Policies/ComplaintsHandlingPage ';
+import ReturnsRefundsPage from './pages/Policies/ReturnsRefundsPage';
+import PrivacyPolicyPage from './pages/Policies/PrivacyPolicyPage';
+import PaymentPolicyPage from './pages/Policies/PaymentPolicyPage';
+import MembershipPolicyPage from './pages/Policies/MembershipPolicyPage';
+import SecondHandRentalsPolicyPage from './pages/Policies/SecondHandRentalsPolicyPage';
+import ShippingPolicyPage from './pages/Policies/ShippingPolicyPage';
+
 import Dashboard from './components/Admin/Dashboard';
 import ManageUser from './components/Admin/ManageUser';
 import ContactUs from './pages/ContactUs';
@@ -37,10 +46,14 @@ import Invoice from './pages/Invoice/Invoice';
 import RentalPlacedOrder from './components/Rental/RentalPlacedOrder';
 import RentalCheckout from './components/Rental/RentalCheckout';
 import SaleOrder from './components/Order/SaleOrder';
+import ScrollToTop from './resources/ScrollToTop';
+import PaymentSuccess from './pages/AfterPayment/PaymentSuccess';
+import PaymentSuccessV2 from './pages/AfterPayment/PaymentSuccessV2';
 
 
 
 function App() {
+  
   const user = useSelector(selectUser);
   const isStaffOrAdmin =
     user && (user.role === "staff" || user.role === "Admin");
@@ -58,8 +71,21 @@ function App() {
           </div>
           {/* <BreadcrumbsDefault/> */}
           <Routes>
+          {/* <ScrollToTop /> */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/manage-account/*" element={<UserRoutes />} />
+
+            <Route path="/complaints-handling" element={<ComplaintsHandlingPage />} />
+        <Route path="/returns-refunds" element={<ReturnsRefundsPage />} />
+        <Route path="/payment" element={<PaymentPolicyPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/membership" element={<MembershipPolicyPage />} />
+        <Route path="/second-hand-rentals" element={<SecondHandRentalsPolicyPage />} />
+        <Route path="/shipping" element={<ShippingPolicyPage />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-success-2" element={<PaymentSuccessV2 />} />
+
+            {/* <Route path="/policies/*" element={<PolicesRoutes />} /> */}
             {/* <Route path="/productv2" element={<Productv2Page />} /> */}
             <Route path="/product/*" element={<ProductRoutes />} />
             <Route path="/cart" element={<Cart />} />

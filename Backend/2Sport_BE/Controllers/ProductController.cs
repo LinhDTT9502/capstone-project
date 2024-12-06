@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 
 namespace _2Sport_BE.Controllers
@@ -784,18 +785,18 @@ namespace _2Sport_BE.Controllers
 
                     // Check if any mandatory fields are null
                     var brandValue = reader.GetValue(1)?.ToString();
-                    var categoryValue = reader.GetValue(3)?.ToString();
-                    var sportValue = reader.GetValue(4)?.ToString();
-                    var productNameValue = reader.GetValue(5)?.ToString();
-                    var productCodeValue = reader.GetValue(6)?.ToString();
-                    var quantityValue = reader.GetValue(7)?.ToString();
-                    var priceValue = reader.GetValue(8)?.ToString();
-                    var rentPriceValue = reader.GetValue(9)?.ToString();
-                    var sizeValue = reader.GetValue(10)?.ToString();
-                    var colorValue = reader.GetValue(11)?.ToString();
-                    var conditionValue = reader.GetValue(12)?.ToString();
-                    var avaImgValue = reader.GetValue(14)?.ToString();
-                    var isRent = reader.GetValue(13)?.ToString();
+                    var categoryValue = reader.GetValue(2)?.ToString();
+                    var sportValue = reader.GetValue(3)?.ToString();
+                    var productNameValue = reader.GetValue(4)?.ToString();
+                    var productCodeValue = reader.GetValue(5)?.ToString();
+                    var quantityValue = reader.GetValue(6)?.ToString();
+                    var priceValue = reader.GetValue(7)?.ToString();
+                    var rentPriceValue = reader.GetValue(8)?.ToString();
+                    var sizeValue = reader.GetValue(9)?.ToString();
+                    var colorValue = reader.GetValue(10)?.ToString();
+                    var conditionValue = reader.GetValue(11)?.ToString();
+                    var avaImgValue = reader.GetValue(13)?.ToString();
+                    var isRent = reader.GetValue(12)?.ToString();
 
                     // Check for null or empty mandatory fields
                     if (string.IsNullOrEmpty(brandValue) ||
@@ -817,38 +818,6 @@ namespace _2Sport_BE.Controllers
                     try
                     {
                         var managerDetail = await _managerService.GetManagerDetailsByUserIdAsync(managerId);
-
-
-                        //Check if brand is not exist, add new brand
-                        #region Add new brand
-                        var existedBrand = await _brandService.GetBrandsAsync(brandValue);
-                        if (existedBrand.FirstOrDefault() == null)
-                        {
-                            var brandImg = reader.GetValue(2)?.ToString();
-                            var brandImgFile = ConvertToIFormFile(brandImg);
-                            if (!string.IsNullOrEmpty(brandImg))
-                            {
-                                var uploadResult = await _imageService.UploadImageToCloudinaryAsync(brandImgFile);
-                                if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                                {
-                                    var newBrand = new Brand()
-                                    {
-                                        BrandName = brandValue,
-                                        Logo = uploadResult.SecureUrl.AbsoluteUri,
-                                    };
-                                    await _brandService.CreateANewBrandAsync(newBrand);
-                                }
-                                else
-                                {
-                                    return (int)ProductErrors.NotExcepted;
-                                }
-                            }
-                            else
-                            {
-                                return (int)ProductErrors.NullError;
-                            }
-                        }
-                        #endregion
 
                         // Assuming product creation logic if all fields are valid
                         var brand = (await _brandService.GetBrandsAsync(brandValue)).FirstOrDefault();
@@ -886,6 +855,8 @@ namespace _2Sport_BE.Controllers
                             CreateAt = DateTime.Now,
                             Status = true,
                         };
+
+                        //If there is a existed product with product code
                         if (existedProduct == null)
                         {
                             if (!string.IsNullOrEmpty(avaImgValue))
@@ -920,11 +891,11 @@ namespace _2Sport_BE.Controllers
                             await _productService.AddProduct(product);
 
                             //Add product's images into ImageVideo table
-                            var firstImgValue = reader.GetValue(15)?.ToString();
-                            var secondImgValue = reader.GetValue(16)?.ToString();
-                            var thirdImgValue = reader.GetValue(17)?.ToString();
-                            var fourthImgValue = reader.GetValue(18)?.ToString();
-                            var fifthImgValue = reader.GetValue(19)?.ToString();
+                            var firstImgValue = reader.GetValue(14)?.ToString();
+                            var secondImgValue = reader.GetValue(15)?.ToString();
+                            var thirdImgValue = reader.GetValue(16)?.ToString();
+                            var fourthImgValue = reader.GetValue(17)?.ToString();
+                            var fifthImgValue = reader.GetValue(18)?.ToString();
                             var isSuccess = await UploadProductImages(product.Id,firstImgValue, secondImgValue, thirdImgValue,
                                                         fourthImgValue, fifthImgValue);
                             
@@ -954,18 +925,24 @@ namespace _2Sport_BE.Controllers
                                                                         int.Parse(conditionValue))).FirstOrDefault();
                             if (existedProductWithSizeColorCodition == null)
                             {
-                                var newProduct = new Product(existedProduct){};
-                                newProduct.Id = 0;
-                                newProduct.Size = sizeValue;
-                                newProduct.Color = colorValue;
-                                newProduct.Condition = int.Parse(conditionValue);
-                                newProduct.Price = decimal.Parse(priceValue);
-                                newProduct.RentPrice = decimal.Parse(rentPriceValue);
-                                newProduct.CreateAt = DateTime.Now;
-                                newProduct = await _productService.AddProduct(newProduct);
+                                var newProduct = new Product(existedProduct)
+                                {
+                                    Id = 0,
+                                    Size = sizeValue,
+                                    Color = colorValue,
+                                    Condition = int.Parse(conditionValue),
+                                    Price = decimal.Parse(priceValue),
+                                    RentPrice = decimal.Parse(rentPriceValue),
+                                    CreateAt = DateTime.Now
+                                };
 
-                                var existedProductColor = newProduct.Color;
-                                if (!existedProductColor.Equals(colorValue))
+
+                                var existedProductWithProductCodeAndColor = (await _productService
+                                                            .GetProducts(_ => _.ProductCode.Equals(existedProduct.ProductCode)
+                                                            && _.Color.ToLower().Equals((colorValue.ToLower()))))
+                                                            .FirstOrDefault();
+
+                                if (existedProductWithProductCodeAndColor is null)
                                 {
                                     if (!string.IsNullOrEmpty(avaImgValue))
                                     {
@@ -983,25 +960,29 @@ namespace _2Sport_BE.Controllers
                                     {
                                         return (int)ProductErrors.NullError;
                                     }
+                                } else
+                                {
+                                    newProduct.ImgAvatarPath = existedProductWithProductCodeAndColor.ImgAvatarPath;
                                 }
+                                newProduct = await _productService.AddProduct(newProduct);
 
 
-                                if (!existedProductColor.Equals(colorValue))
+                                if (existedProductWithProductCodeAndColor is null)
                                 {
                                     //Add product's images into ImageVideo table
-                                    var firstImgValue = reader.GetValue(15)?.ToString();
-                                    var secondImgValue = reader.GetValue(16)?.ToString();
-                                    var thirdImgValue = reader.GetValue(17)?.ToString();
-                                    var fourthImgValue = reader.GetValue(18)?.ToString();
-                                    var fifthImgValue = reader.GetValue(19)?.ToString();
-                                    var isSuccess = await UploadProductImages(product.Id, firstImgValue, secondImgValue, thirdImgValue,
+                                    var firstImgValue = reader.GetValue(14)?.ToString();
+                                    var secondImgValue = reader.GetValue(15)?.ToString();
+                                    var thirdImgValue = reader.GetValue(16)?.ToString();
+                                    var fourthImgValue = reader.GetValue(17)?.ToString();
+                                    var fifthImgValue = reader.GetValue(18)?.ToString();
+                                    var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
                                                                 fourthImgValue, fifthImgValue);
 
                                     if (!isSuccess)
                                     {
                                         return (int)ProductErrors.NotExcepted;
                                     }
-                                    existedProductColor = newProduct.Color;
+
                                 } else
                                 {
                                     var images = await _imageVideosService.GetAsyncs(
@@ -1037,11 +1018,25 @@ namespace _2Sport_BE.Controllers
                                                                                         existedProductWithSizeColorCodition.Id,
                                                                                         managerDetail.Data.BranchId))
                                                                                         .FirstOrDefault();
-
-                                existedWarehouse.TotalQuantity += int.Parse(quantityValue);
-                                existedWarehouse.AvailableQuantity += int.Parse(quantityValue);
-                                await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
-                                product = existedProductWithSizeColorCodition;
+                                if (existedWarehouse == null)
+                                {
+                                    var newWarehouse = new Warehouse
+                                    {
+                                        BranchId = managerDetail.Data.BranchId,
+                                        ProductId = existedProductWithSizeColorCodition.Id,
+                                        TotalQuantity = int.Parse(quantityValue),
+                                        AvailableQuantity = int.Parse(quantityValue),
+                                    };
+                                    await _warehouseService.CreateANewWarehouseAsync(newWarehouse);
+                                    product = existedProductWithSizeColorCodition;
+                                }
+                                else
+                                {
+                                    existedWarehouse.TotalQuantity += int.Parse(quantityValue);
+                                    existedWarehouse.AvailableQuantity += int.Parse(quantityValue);
+                                    await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
+                                    product = existedProductWithSizeColorCodition;
+                                }
                             }
                         }
 
