@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -33,6 +33,26 @@ function Header() {
 
   const [prevScrollY, setPrevScrollY] = useState(0);
   const [visible, setVisible] = useState(true);
+
+  const [isPolicyDropdownOpen, setIsPolicyDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsPolicyDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleLinkClick = () => {
+    setIsPolicyDropdownOpen(false);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -89,8 +109,9 @@ function Header() {
     <>
       <div className="w-full relative z-50 pb-28">
         <div
-          className={`fixed top-0 left-0 right-0 transition-all duration-300 ease-in-out ${visible ? "transform translate-y-0" : "transform -translate-y-full"
-            }`}
+          className={`fixed top-0 left-0 right-0 transition-all duration-300 ease-in-out ${
+            visible ? "transform translate-y-0" : "transform -translate-y-full"
+          }`}
         >
           {" "}
           <div className="bg-white/95 backdrop-blur-lg font-medium text-black flex justify-between items-center relative text-xs py-2 z-50">
@@ -154,7 +175,12 @@ function Header() {
           </div>
           <div className="bg-zinc-800/80 backdrop-blur-lg text-white  flex justify-between items-center text-base font-normal py-5 pr-20  z-50">
             <div className="flex space-x-10 pl-20 ">
-              <Link to="/">{t("header.home")}</Link>
+              <Link
+                to="/"
+                className=" hover:text-orange-500 focus:text-orange-500"
+              >
+                {t("header.home")}
+              </Link>
               <Link
                 to="/product"
                 className=" hover:text-orange-500 focus:text-orange-500"
@@ -163,23 +189,92 @@ function Header() {
                 {/* <FontAwesomeIcon icon={faCaretDown} className="pl-2" /> */}
               </Link>
               {/* <Link to="/">{t("header.blog")}</Link> */}
-              <Link to="/about-us">{t("header.about")}</Link>
-              <Link to="/contact-us">{t("header.contact")}</Link>
-              <Link to="/manage-account/refund-request" className="">
+              <Link
+                to="/about-us"
+                className=" hover:text-orange-500 focus:text-orange-500"
+              >
+                {t("header.about")}
+              </Link>
+              <Link
+                to="/contact-us"
+                className=" hover:text-orange-500 focus:text-orange-500"
+              >
+                {t("header.contact")}
+              </Link>
+              <Link
+                to="/manage-account/refund-request"
+                className=" hover:text-orange-500 focus:text-orange-500"
+              >
                 Trả hàng/Hoàn tiền
               </Link>
+              <div
+                className="relative"
+                ref={dropdownRef}
+                onMouseEnter={() => setIsPolicyDropdownOpen(true)} 
+                onMouseLeave={() => setIsPolicyDropdownOpen(false)} 
+              >
+                <button className="hover:text-orange-500 transition-colors duration-200">
+                  Chính sách
+                </button>
+                {isPolicyDropdownOpen && (
+                  <div className="absolute left-0 w-80 bg-white text-black shadow-lg rounded-md py-2 z-50">
+                    <Link
+                      to="/complaints-handling"
+                      className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      Chính sách xử lý khiếu nại
+                    </Link>
+                    <Link
+                      to="/returns-refunds"
+                      className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      Chính sách đổi trả, hoàn tiền
+                    </Link>
+                    <Link
+                      to="/payment"
+                      className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      Chính sách thanh toán
+                    </Link>
+                    <Link
+                      to="/privacy"
+                      className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      Chính sách bảo mật thông tin khách hàng
+                    </Link>
+                    <Link
+                      to="/membership"
+                      className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      Chính sách dành cho membership khi thuê đồ tại 2Sport
+                    </Link>
+                    <Link
+                      to="/second-hand-rentals"
+                      className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      Chính sách khi thuê đồ 2hand tại 2Sport
+                    </Link>
+                    <Link
+                      to="/shipping"
+                      className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      Chính sách vận chuyển
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex space-x-4">
-              <SearchOrderDropDown/>
+              <SearchOrderDropDown />
               <SignInModal />
               <Link to="/cart" className="flex space-x-2">
-              <div className="relative">
-                <FontAwesomeIcon icon={faCartShopping} className="pr-1" />
-                {cartCount > 0 && token && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[0.625rem] font-bold rounded-full h-[1rem] w-4  leading-none flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
+                <div className="relative">
+                  <FontAwesomeIcon icon={faCartShopping} className="pr-1" />
+                  {cartCount > 0 && token && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[0.625rem] font-bold rounded-full h-[1rem] w-4  leading-none flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
                 </div>
                 <p>Giỏ hàng</p>
               </Link>
@@ -187,7 +282,7 @@ function Header() {
           </div>
           <motion.div
             className="progress-bar"
-            style={{ scaleX: scrollYProgress }}
+            style={{ scaleX: scrollYProgress, zIndex: "-99999" }}
           />
           {/* <BreadcrumbsDefault/> */}
         </div>

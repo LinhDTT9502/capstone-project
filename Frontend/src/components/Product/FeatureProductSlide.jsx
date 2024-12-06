@@ -12,6 +12,7 @@ export default function FeatureProductSlide() {
   const sortBy = "likes";
   const isAscending = true;
   const [images, setImages] = useState([]);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     const getFeature = async () => {
@@ -25,10 +26,9 @@ export default function FeatureProductSlide() {
             },
           }
         );
-        // console.log('Fetched Products:', productFeatured.data.data.$values);
         const products = productFeatured.data.data.$values;
         if (products && Array.isArray(products)) {
-          setImages(products);
+          setImages(products.reverse());
         } else {
           console.error("Fetched data is not an array");
         }
@@ -40,79 +40,83 @@ export default function FeatureProductSlide() {
     getFeature();
   }, []);
 
-  // Use another useEffect to monitor changes in images
   useEffect(() => {
     // console.log('Updated images state:', images);
   }, [images]);
 
-  const handlePrev = () => {
-    setCurrentIndex(
-      (prevIndex) => (prevIndex - 1 + images.length) % images.length
-    );
+ const handlePrev = () => {
+    setCurrentIndex((prevIndex) => Math.max(prevIndex - itemsPerPage, 0));
   };
 
   const handleNext = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+    setCurrentIndex((prevIndex) =>
+      Math.min(prevIndex + itemsPerPage, images.length - itemsPerPage)
+    );
   };
 
   return (
-    <>
+    <div className="container mx-auto py-8">
       <div className="flex justify-between  px-20">
-        <label className="font-alfa ">{t("fearureproduct.featured")}</label>
-        <Link to="/product">
-          <button className="font-poppins font-semibold text-orange-500">
+        <h2 className="font-alfa text-2xl mb-5">Sản phẩm mới</h2>
+        <Link
+          to="/product"
+          className="flex items-center text-orange-500 hover:text-orange-600 transition-colors duration-200"
+        >
+          <span className="font-poppins font-semibold mr-2">
             {t("fearureproduct.viewall")}
-          </button>
-          <FontAwesomeIcon
-            className="pl-2 text-orange-500"
-            icon={faArrowRight}
-          />
+          </span>
+          <FontAwesomeIcon icon={faArrowRight} />
         </Link>
       </div>
       <div className="relative px-20">
-        <div className="overflow-hidden ">
+        <div className="overflow-hidden">
           <div
-            className="flex transition-transform duration-500 ease-in-out  "
-            style={{ transform: `translateX(-${currentIndex * (100 / 8)}%)` }}
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{
+              transform: `translateX(-${(currentIndex / itemsPerPage) * 100}%)`,
+            }}
           >
             {images.map((product, index) => (
               <div
-                key={index}
-                className="min-w-64 px-2 flex flex-col hover:brightness-90 "
-              >
-                <Link className=" flex flex-col " to={`/product/${product.id}`}>
-                  <div className="bg-white">
+              key={index}
+              className="min-w-64 px-2 flex flex-col relative group"
+              style={{ flex: `0 0 ${100 / itemsPerPage}%` }} 
+            >
+                <Link
+                  className="flex flex-col"
+                  to={`/product/${product.productCode}`}
+                >
+                  <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 transform group-hover:scale-105">
                     <img
                       src={product.imgAvatarPath}
                       alt={`image ${index + 1}`}
-                      className="object-scale-down h-48 w-96 shadow-lg "
+                      className="object-contain w-full h-48"
                     />
+                    <div className="p-4">
+                      <p className="font-poppins text-orange-500 text-sm mb-1 "
+                      >
+                        {product.brandName}
+                      </p>
+                      <h3 className="font-poppins font-bold text-lg mb-2 line-clamp-2 "
+                      style={{width: "200px",}}>
+                        {product.productName}
+                      </h3>
+                      <p className="font-poppins text-zinc-500 ">
+                        {product.price.toLocaleString("vi-VN")} ₫
+                      </p>
+                    </div>
                   </div>
-                  <label className="text-wrap font-poppins text-orange-500 text-clip m-2">
-                    {product.brandName}
-                  </label>
-                  <label className="text-wrap font-poppins font-bold text-clip mb-2">
-                    {product.productName}
-                  </label>
-
-                  <label className="text-wrap font-poppins text-zinc-500 text-clip">
-                    {product.price.toLocaleString("vi-VN")} ₫
-                  </label>
                 </Link>
-                {/* <button
-                className="absolute bottom-0 left-0 right-0 flex items-center justify-center bg-orange-600 bg-opacity-75 text-white opacity-0 hover:opacity-100 transition-opacity duration-300 py-4"
-                onClick={() => handleAddToCart(product)}
-              >
-                ADD TO CART
-              </button> */}
-                {/* <div className="text-center mt-2">Category {index + 1}</div> */}
               </div>
             ))}
           </div>
         </div>
         <button
           onClick={handlePrev}
-          className="absolute w-1/12 left-20 top-1/3 transform -translate-y-1/3 "
+          className={`absolute w-1/12 left-20 top-1/3 transform -translate-y-1/3 ${
+            currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={currentIndex === 0}
         >
           <FontAwesomeIcon
             className="text-orange-500 p-2 -translate-y-1/2 -left-3 absolute rounded-full bg-white border-orange-500 border"
@@ -121,7 +125,12 @@ export default function FeatureProductSlide() {
         </button>
         <button
           onClick={handleNext}
-          className="absolute w-1/12 right-20 top-1/3 transform -translate-y-1/3 "
+          className={`absolute w-1/12 right-20 top-1/3 transform -translate-y-1/3 ${
+            currentIndex >= images.length - itemsPerPage
+              ? "opacity-50 cursor-not-allowed"
+              : ""
+          }`}
+          disabled={currentIndex >= images.length - itemsPerPage}
         >
           <FontAwesomeIcon
             className="text-orange-500 p-2 -translate-y-1/2 -right-3 absolute rounded-full bg-white border-orange-500 border"
@@ -129,6 +138,9 @@ export default function FeatureProductSlide() {
           />
         </button>
       </div>
-    </>
+      <div className="mt-10 px-20">
+        <hr className="border-t border-gray-200" />
+      </div>
+    </div>
   );
 }

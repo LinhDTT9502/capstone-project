@@ -74,11 +74,11 @@ export default function Brands() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center px-20">
+    <div className="flex flex-col px-20">
       <p className="font-alfa text-orange-500 text-3xl pt-10">
         {t("brand.name")}
       </p>
-      <ParallaxText brands={brands} baseVelocity={3} />
+      <ParallaxText brands={brands} baseVelocity={1} />
     </div>
   );
 }

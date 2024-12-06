@@ -7,6 +7,8 @@ import DeleteComment from './DeleteComment';
 const CommentList = ({ productId }) => {
   const [comments, setComments] = useState([]);
   const [replyingTo, setReplyingTo] = useState(null);
+  const [token, setToken] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   const fetchComments = async () => {
     try {
@@ -19,6 +21,19 @@ const CommentList = ({ productId }) => {
   };
 
   useEffect(() => {
+    const fetchToken = () => {
+      const storedToken = localStorage.getItem('token'); // Dùng localStorage thay vì AsyncStorage
+      if (storedToken) {
+        setToken(storedToken);
+        const decodedToken = JSON.parse(atob(storedToken.split('.')[1])); // Giải mã JWT (nếu dùng JWT)
+        setUserId(decodedToken.userId); // Giả sử bạn lưu userId trong token
+      } else {
+        setToken(null);
+        setUserId(null);
+      }
+    };
+
+    fetchToken();
     fetchComments();
   }, [productId]);
 
@@ -43,42 +58,57 @@ const CommentList = ({ productId }) => {
 
   const renderComments = (comments, level = 0) => {
     return comments.map((comment) => (
-      <div key={comment.id} className={`pl-${level * 4} mt-4`}>
-        <div className="flex space-x-4 items-start">
-          <div className="flex-1">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium text-gray-800">{comment.username}</h3>
-              <span className="text-sm text-gray-500">
-                {new Date(comment.createdAt).toLocaleString()}
-              </span>
+      <div key={comment.id} className={`pl-${level * 4} mt-6`}>
+        <div className="bg-white rounded-lg shadow-sm p-4 transition duration-300 ease-in-out hover:shadow-md">
+          <div className="flex space-x-4 items-start">
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold">
+                {comment.username.charAt(0).toUpperCase()}
+              </div>
             </div>
-            <p className="text-gray-700 mt-1">{comment.content}</p>
+            <div className="flex-1">
+              <div className="flex justify-between items-center">
+                <h3 className="font-medium text-gray-800">{comment.username}</h3>
+                <span className="text-xs text-gray-500">
+                  {new Date(comment.createdAt).toLocaleString()}
+                </span>
+              </div>
+              <p className="text-gray-700 mt-2">{comment.content}</p>
+            </div>
           </div>
+          <div className="mt-3 flex items-center space-x-4">
+            {comment.parentCommentId === 0 && (
+              <button
+                className="text-blue-500 hover:text-blue-600 text-sm font-medium transition duration-300 ease-in-out"
+                onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+              >
+                Trả lời
+              </button>
+            )}
+
+            {/* Hiển thị nút xóa chỉ khi người dùng đã đăng nhập và là chủ của bình luận */}
+            {token && userId === comment.userId && (
+              <DeleteComment
+                commentId={comment.id}
+                onDeleteSuccess={() => fetchComments()}
+              />
+            )}
+          </div>
+          {replyingTo === comment.id && comment.parentCommentId === 0 && (
+            <div className="mt-4">
+              <ReplyComment
+                productId={productId}
+                parentCommentId={comment.id}
+                onReplySuccess={() => {
+                  setReplyingTo(null);
+                  fetchComments();
+                }}
+              />
+            </div>
+          )}
         </div>
-        <div className="mt-2 flex items-center">
-          <button
-            className="text-blue-500 hover:underline text-sm"
-            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-          >
-            Trả lời
-          </button>
-          <DeleteComment
-            commentId={comment.id}
-            onDeleteSuccess={() => fetchComments()}
-          />
-        </div>
-        {replyingTo === comment.id && (
-          <ReplyComment
-            productId={productId}
-            parentCommentId={comment.id}
-            onReplySuccess={() => {
-              setReplyingTo(null);
-              fetchComments();
-            }}
-          />
-        )}
         {comment.replies?.length > 0 && (
-          <div className="ml-6 border-l-2 border-gray-300">
+          <div className="ml-6 mt-4 border-l-2 border-gray-200 pl-4">
             {renderComments(comment.replies, level + 1)}
           </div>
         )}
@@ -88,14 +118,16 @@ const CommentList = ({ productId }) => {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Bình luận:</h2>
+      <div className="bg-white shadow-lg rounded-lg p-6">
+        <h2 className="text-2xl font-semibold mb-6 text-gray-800">Bình luận</h2>
         {comments.length > 0 ? (
-          <div>{renderComments(comments)}</div>
+          <div className="space-y-6">{renderComments(comments)}</div>
         ) : (
-          <p className="text-gray-500">Chưa có bình luận nào.</p>
+          <p className="text-gray-500 italic">Chưa có bình luận nào.</p>
         )}
-        <PostComment productId={productId} onCommentPosted={fetchComments} />
+        <div className="mt-8">
+          <PostComment productId={productId} onCommentPosted={fetchComments} />
+        </div>
       </div>
     </div>
   );
