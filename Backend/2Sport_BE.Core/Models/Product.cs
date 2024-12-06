@@ -86,7 +86,6 @@ public class Product
 
     public Product(Product other)
     {
-        Id = other.Id;
         ProductName = other.ProductName;
         Price = other.Price;
         Size = other.Size;

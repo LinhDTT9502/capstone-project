@@ -16,15 +16,18 @@ namespace _2Sport_BE.Controllers
     {
         private readonly ICommentService _commentService;
         private readonly IUserService _userService;
+        private readonly INotificationService _notificationService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public CommentController(ICommentService commentService,
                                  IUserService userService,
+                                 INotificationService notificationService,
                                  IUnitOfWork unitOfWork, IMapper mapper)
         {
             _userService = userService;
             _commentService = commentService;
+            _notificationService = notificationService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -62,10 +65,19 @@ namespace _2Sport_BE.Controllers
                 }
                 var comment = _mapper.Map<CommentCM, Comment>(commentCM);
                 var isSuccess = await _commentService.AddComment(currUserId, productId, comment);
+
+
                 if (isSuccess == 1)
                 {
+                    var product = (await _unitOfWork.ProductRepository.FindAsync(productId));
+                    var isSuccessNotify = await _notificationService.NotifyForComment(currUserId, product);
+                    if (!isSuccessNotify)
+                    {
+                        return StatusCode(500, "Notify to admin failed!");
+                    }
                     return Ok("Add comment successfully!");
                 }
+
                 else if (isSuccess == -1) {
                     return StatusCode(500, "Something wrong!");
                 } else
@@ -85,11 +97,20 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var currUserId = GetCurrentUserIdFromToken();
+                var currAdminId = GetCurrentUserIdFromToken();
                 var comment = _mapper.Map<CommentCM, Comment>(commentCM);
-                var isSuccess = await _commentService.ReplyComment(currUserId, productId, parentCommentId, comment);
+                var isSuccess = await _commentService.ReplyComment(currAdminId, productId, parentCommentId, comment);
+                var parentComment = await _unitOfWork.CommentRepository.FindAsync(parentCommentId);
+                var currUserId = parentComment.UserId;
                 if (isSuccess == 1)
                 {
+                    var product = (await _unitOfWork.ProductRepository.FindAsync(productId));
+                    var isSuccessNotify = await _notificationService.NotifyForReplyComment(currAdminId, 
+                                                                            currUserId.ToString(), product);
+                    if (!isSuccessNotify)
+                    {
+                        return StatusCode(500, "Notify to admin failed!");
+                    }
                     return Ok("Add comment successfully!");
                 }
                 else if (isSuccess == -1)
