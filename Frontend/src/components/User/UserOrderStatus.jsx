@@ -147,6 +147,17 @@ const toggleExpand = (orderId) => {
                 Mã đơn hàng:{" "}
                 <span className="text-orange-500">{order.saleOrderCode}</span>
               </h4>
+              <Button
+                  color="orange"
+                  size="sm"
+                  className="mt-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/manage-account/sale-order/${order.saleOrderCode}`);
+                  }}
+                >
+                  Xem chi tiết
+                </Button>
               <p className=" text-gray-600">
                 Trạng thái thanh toán:
                 <span
