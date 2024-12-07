@@ -120,7 +120,11 @@ namespace _2Sport_BE.Controllers
         [HttpGet("sign-in-google")]
         public IActionResult GoogleLogin()
         {
-            var props = new AuthenticationProperties { RedirectUri = "api/Auth/google-response" };
+            var props = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("GoogleResponse", "Auth", null, "https")
+            };
+
             return Challenge(props, GoogleDefaults.AuthenticationScheme);
         }
         [HttpGet("google-response")]
@@ -163,7 +167,6 @@ namespace _2Sport_BE.Controllers
                     Message = "Login google successfully",
                     Data = new TokenModel()
                     {
-                        UserId = user.Id,
                         Token = token,
                         RefreshToken = refreshToken
                     }

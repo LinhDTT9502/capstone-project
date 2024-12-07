@@ -16,12 +16,16 @@ namespace _2Sport_BE.Service.Enums
         SHIPPED = 5,            // Đã giao hàng
         DELAYED = 6,            // Bị trì hoãn
         COMPLETED = 7,          // Đã hoàn tất thuê
-        EXTENDING = 8,          // Đang gia hạn
-        AWAITING_PICKUP = 9,    // Chờ nhận hàng
-        RETURN_REQUESTED = 10,  // Yêu cầu trả sản phẩm
-        RETURNED = 11,          // Đã trả sản phẩm
-        INSPECTING = 12,        // Đang kiểm tra sản phẩm
-        CLOSED = 13,            // Đơn thuê đã kết thúc
-        FAILED = 14             // Xử lý đơn thất bại
+        AWAITING_PICKUP = 8,    // Chờ nhận hàng
+        RETURN_REQUESTED = 9,  // Yêu cầu trả sản phẩm
+        RETURNED = 10,          // Đã trả sản phẩm
+        INSPECTING = 11,        // Đang kiểm tra sản phẩm
+        CLOSED = 12,            // Đơn thuê đã kết thúc
+        FAILED = 13,          // Xử lý đơn thất bại,
+        EXTENDING = 14,          // Đang gia hạn
+        EXTENDED = 15,         
+        FAILED_EXTENSION = 16,       
+
+
     }
 }
