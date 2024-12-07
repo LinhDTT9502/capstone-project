@@ -183,7 +183,7 @@ export default function UserListRental() {
                   className="mt-2"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/manage-account/user-rental/${parent.id}`);
+                    navigate(`/manage-account/user-rental/${parent.rentalOrderCode}`);
                   }}
                 >
                   Xem chi tiết

@@ -13,19 +13,21 @@ import {
   faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
 
-export default function UserRentalDetail() {
+export default function UserOrderDetail() {
   const { orderCode } = useParams();
   const navigate = useNavigate();
   const [orderDetail, setOrderDetail] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  console.log(orderCode);
+  
 
   useEffect(() => {
     const fetchOrderDetail = async () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
+          `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/get-order-by-code?orderCode=${orderCode}`,
           {
             headers: {
               accept: "*/*",
@@ -33,6 +35,8 @@ export default function UserRentalDetail() {
             },
           }
         );
+        console.log(response);
+        
 
         if (response.data.isSuccess) {
           setOrderDetail(response.data.data);
@@ -65,17 +69,13 @@ export default function UserRentalDetail() {
     email,
     contactPhone,
     address,
-    rentalOrderCode,
-    listChild,
-    productName,
-    rentPrice,
-    rentalDays,
-    totalAmount,
-    orderStatus,
+    saleOrderCode,
     paymentStatus,
+    orderStatus,
+    saleOrderDetailVMs,
   } = orderDetail;
 
-  const children = listChild?.$values || [];
+  const products = saleOrderDetailVMs?.$values || [];
 
   return (
     <div className="container mx-auto p-4 min-h-screen">
@@ -88,19 +88,6 @@ export default function UserRentalDetail() {
             <FontAwesomeIcon icon={faArrowLeft} />
             Quay lại
           </button>
-          {orderDetail.paymentStatus === "Đang chờ thanh toán" &&
-            orderDetail.deliveryMethod !== "HOME_DELIVERY" && (
-              <button
-                className="bg-purple-500 text-white text-sm rounded-full py-2 px-4 hover:bg-purple-600"
-                onClick={() =>
-                  navigate("/rental-checkout", {
-                    state: { selectedOrder: orderDetail },
-                  })
-                }
-              >
-                Tiến hành thanh toán
-              </button>
-            )}
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
@@ -144,7 +131,7 @@ export default function UserRentalDetail() {
                   className="text-blue-500"
                 />
                 <span className="font-semibold">Mã đơn hàng:</span>{" "}
-                {rentalOrderCode}
+                {saleOrderCode}
               </p>
               <p className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon
@@ -170,83 +157,49 @@ export default function UserRentalDetail() {
           <h3 className="text-lg font-semibold mb-4 text-gray-700">
             Sản phẩm chi tiết
           </h3>
-          {children.length > 0 ? (
-            children.map((child, index) => (
-              <div
-                key={child.id}
-                className="bg-gray-50 p-4 mb-4 rounded-lg shadow-sm"
-              >
-                <div className="flex flex-col md:flex-row gap-4">
-                  <img
-                    src={child.imgAvatarPath}
-                    alt={child.productName}
-                    className="w-full md:w-32 h-32 object-cover rounded"
-                  />
-                  <div className="flex-grow">
-                    <h4 className="font-semibold text-lg mb-2">
-                      {child.productName}
-                    </h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      <p>
-                        <span className="font-semibold">Color:</span>{" "}
-                        {child.color}
-                      </p>
-                      <p>
-                        <span className="font-semibold">Size:</span>{" "}
-                        {child.size}
-                      </p>
-                      <p>
-                        <span className="font-semibold">Condition:</span>{" "}
-                        {child.condition}%
-                      </p>
-                      <p>
-                        <span className="font-semibold">Quantity:</span>{" "}
-                        {child.quantity}
-                      </p>
-                      <p>
-                        <span className="font-semibold">Rent Price:</span>{" "}
-                        {child.rentPrice} ₫
-                      </p>
-                      <p>
-                        <span className="font-semibold">Total:</span>{" "}
-                        {child.totalAmount} ₫
-                      </p>
-                    </div>
-                    <p className="mt-2">
-                      <span className="font-semibold">Rental Period:</span>{" "}
-                      {new Date(child.rentalStartDate).toLocaleDateString()} -{" "}
-                      {new Date(child.rentalEndDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
+          {products.map((product) => (
+            <div
+              key={product.productId}
+              className="bg-gray-50 p-4 mb-4 rounded-lg shadow-sm"
+            >
               <div className="flex flex-col md:flex-row gap-4">
                 <img
-                  src={orderDetail.imgAvatarPath || "/placeholder.jpg"}
-                  alt={productName}
+                  src={product.imgAvatarPath}
+                  alt={product.productName}
                   className="w-full md:w-32 h-32 object-cover rounded"
                 />
                 <div className="flex-grow">
-                  <h4 className="font-semibold text-lg mb-2">{productName}</h4>
+                  <h4 className="font-semibold text-lg mb-2">
+                    {product.productName}
+                  </h4>
                   <p>
-                    <span className="font-semibold">Rent Price:</span>{" "}
-                    {rentPrice || "N/A"} ₫
+                    <span className="font-semibold">Mã sản phẩm:</span>{" "}
+                    {product.productCode}
                   </p>
                   <p>
-                    <span className="font-semibold">Rental Days:</span>{" "}
-                    {rentalDays || "N/A"}
+                    <span className="font-semibold">Màu sắc:</span>{" "}
+                    {product.color}
                   </p>
                   <p>
-                    <span className="font-semibold">Total:</span>{" "}
-                    {totalAmount || "N/A"} ₫
+                    <span className="font-semibold">Kích thước:</span>{" "}
+                    {product.size}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Số lượng:</span>{" "}
+                    {product.quantity}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Đơn giá:</span>{" "}
+                    {product.unitPrice} ₫
+                  </p>
+                  <p>
+                    <span className="font-semibold">Thành tiền:</span>{" "}
+                    {product.totalAmount} ₫
                   </p>
                 </div>
               </div>
             </div>
-          )}
+          ))}
         </div>
       </div>
     </div>

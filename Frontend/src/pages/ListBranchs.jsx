@@ -30,6 +30,13 @@ const ListBranchs = () => {
     setMap(mapInstance);
   }, []);
 
+  // map.addControl(
+  //   new MapboxGeocoder({
+  //     accessToken: mapboxgl.accessToken,
+  //     mapboxgl: mapboxgl
+  //   })
+  // );
+
   // Fetch all branches
   useEffect(() => {
     const loadBranches = async () => {
@@ -152,9 +159,8 @@ const ListBranchs = () => {
               <div
                 key={branch.id}
                 onClick={() => handleBranchClick(branch)}
-                className={`border rounded-lg p-4 mb-4 cursor-pointer hover:bg-blue-50 ${
-                  selectedBranch?.id === branch.id ? 'bg-blue-100' : ''
-                }`}
+                className={`border rounded-lg p-4 mb-4 cursor-pointer hover:bg-blue-50 ${selectedBranch?.id === branch.id ? 'bg-blue-100' : ''
+                  }`}
               >
                 <h2 className="text-xl font-semibold">{branch.branchName}</h2>
                 <p className="text-gray-600">{branch.location}</p>

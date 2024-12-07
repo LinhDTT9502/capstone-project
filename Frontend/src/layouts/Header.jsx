@@ -10,6 +10,7 @@ import {
   faUser,
   faCartShopping,
   faBinoculars,
+  faBell
 } from "@fortawesome/free-solid-svg-icons";
 import GetCurrentLocation from "../components/GetCurrentLocation";
 import { useTranslation } from "react-i18next";
@@ -23,6 +24,12 @@ import BranchSystem from "../components/BranchButton";
 import { getUserCart } from "../services/cartService";
 import { useCart } from "../components/Cart/CartContext";
 import SearchOrderDropDown from "../components/Research/SearchOrderDropDown";
+import { Menu, MenuHandler, MenuList, MenuItem, Button } from "@material-tailwind/react";
+import useOrderNotification from "../hook/Notification";
+import { useSelector } from "react-redux";
+import { selectUser } from "../redux/slices/authSlice";
+import { getNoti } from "../services/Notification/NotificationService";
+import { useNavigate } from "react-router-dom";
 
 function Header() {
   const { scrollYProgress } = useScroll();
@@ -30,7 +37,13 @@ function Header() {
   const [enabled, setEnabled] = useState(true);
   const { cartCount, setCartCount } = useCart();
   const token = localStorage.getItem("token");
-
+  const [openNoti, setOpenNoti] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [noti, setNoti] = useState([])
+  const user = useSelector(selectUser);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const navigate = useNavigate();
   const [prevScrollY, setPrevScrollY] = useState(0);
   const [visible, setVisible] = useState(true);
 
@@ -49,6 +62,18 @@ function Header() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const getNotification = async () => {
+    const data = await getNoti(user.UserId, token);
+    const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    setNoti(sortedData);
+  };
+
+  useEffect(() => {
+    getNotification();
+    console.log(noti);
+
+  }, [user]);
 
   const handleLinkClick = () => {
     setIsPolicyDropdownOpen(false);
@@ -88,18 +113,75 @@ function Header() {
     fetchCartCount();
   }, [setCartCount]);
 
-  // useEffect(() => {
-  //   const fetchCart = async () => {
+  useOrderNotification((message) => {
+    setNotifications((prev) => [...prev, message]); // Add new notification to the list
+    setUnreadCount((prev) => prev + 1); // Increment unread count
+    getNotification()
+  });
 
-  //     if (token) {
-  //       const cartData = await getUserCart(token);
-  //       const count = cartData.reduce((total, item) => total + item.quantity, 0);
-  //       setCartCount(count);
-  //     }
-  //   };
+  const handleNotiToggle = () => {
+    setOpenNoti(!openNoti);
 
-  //   fetchCart();
-  // }, []);
+    if (!openNoti) {
+      setUnreadCount(0); // Clear unread count when opening the menu
+    }
+  };
+
+
+  const highlightNumbers = (notification) => {
+    let message;
+    let id;
+
+    // Check if notification is an object or a string
+    if (typeof notification === "object") {
+      message = notification.message;
+      id = notification.id;
+    } else {
+      message = notification; // Assume it's already the message string
+    }
+
+    return message.split(/(S-\d+|T-\d+)/).map((part, index) =>
+      /(S-\d+|T-\d+)/.test(part) ? (
+        <span
+          key={index}
+          className="font-bold text-orange-500"
+          onClick={() => handleOpenModal(part, id)}
+        >
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
+  };
+
+  const handleOpenModal = async (orderCode, id) => {
+
+    const numericOrderCode = orderCode.replace(/^[A-Za-z]-/, "");
+
+    // Set the selectedOrder to the numeric part
+    setSelectedOrder(numericOrderCode);
+    const response = await fetch(`https://capstone-project-703387227873.asia-southeast1.run.app/api/Notification/update-status?id=${id}&isRead=true`, {
+      method: 'PUT',
+      headers: {
+        'accept': '*/*',
+      },
+    });
+
+    // Open the appropriate modal based on the prefix
+    if (orderCode.startsWith("S-")) {
+      navigate(`/manage-account/sale-order/${numericOrderCode}`)
+    } else if (orderCode.startsWith("T-")) {
+      navigate(`/manage-account/user-rental/${numericOrderCode}`)
+    }
+
+    getNotification();
+  };
+
+  const handleCloseModal = () => {
+    setSelectedOrder(null)
+    setModalOpen(false);
+  };
 
   const changeLanguage = () => {
     const languageValue = enabled ? "eng" : "vie";
@@ -109,9 +191,8 @@ function Header() {
     <>
       <div className="w-full relative z-50 pb-28">
         <div
-          className={`fixed top-0 left-0 right-0 transition-all duration-300 ease-in-out ${
-            visible ? "transform translate-y-0" : "transform -translate-y-full"
-          }`}
+          className={`fixed top-0 left-0 right-0 transition-all duration-300 ease-in-out ${visible ? "transform translate-y-0" : "transform -translate-y-full"
+            }`}
         >
           {" "}
           <div className="bg-white/95 backdrop-blur-lg font-medium text-black flex justify-between items-center relative text-xs py-2 z-50">
@@ -124,7 +205,7 @@ function Header() {
                 />
               </Link>
               <FontAwesomeIcon icon={faLocationDot} />
-              {/* <p>Ho Chi Minh, Viet Nam</p> */}
+     
               <GetCurrentLocation />
               <div className=" pl-5">
                 <BranchSystem />
@@ -150,14 +231,6 @@ function Header() {
             {/*search*/}
             <SearchBar />
 
-            {/* <div className="flex w-1/4 bg-white border-2 border-orange-500 rounded-full  p-2 mx-auto">
-                            <input
-                                className="flex-grow bg-transparent outline-none placeholder-gray-400"
-                                placeholder="Enter your search keywords here"
-                                type="text"
-                            />
-                            <FontAwesomeIcon icon={faMagnifyingGlass} className="items-center text-orange-500 font-medium pr-3" />
-                        </div> */}
             <div className="flex pr-20 items-center space-x-4">
               <p>
                 <FontAwesomeIcon icon={faPhone} className="pr-1" />
@@ -210,8 +283,8 @@ function Header() {
               <div
                 className="relative"
                 ref={dropdownRef}
-                onMouseEnter={() => setIsPolicyDropdownOpen(true)} 
-                onMouseLeave={() => setIsPolicyDropdownOpen(false)} 
+                onMouseEnter={() => setIsPolicyDropdownOpen(true)}
+                onMouseLeave={() => setIsPolicyDropdownOpen(false)}
               >
                 <button className="hover:text-orange-500 transition-colors duration-200">
                   Chính sách
@@ -264,10 +337,12 @@ function Header() {
                 )}
               </div>
             </div>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 justify-center items-center">
               <SearchOrderDropDown />
+
+
               <SignInModal />
-              <Link to="/cart" className="flex space-x-2">
+              <Link to="/cart" className="flex space-x-2 border-r-2 pr-4">
                 <div className="relative">
                   <FontAwesomeIcon icon={faCartShopping} className="pr-1" />
                   {cartCount > 0 && token && (
@@ -278,6 +353,42 @@ function Header() {
                 </div>
                 <p>Giỏ hàng</p>
               </Link>
+              <Menu open={openNoti} handler={setOpenNoti}>
+                <MenuHandler>
+                  <div
+                    className=" flex items-center justify-center"
+                    onClick={handleNotiToggle}
+                  >
+                    <FontAwesomeIcon icon={faBell} className="text-xl" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </div>
+                </MenuHandler>
+                <MenuList className="max-h-[40vh] overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <MenuItem>Chưa có thông báo mới</MenuItem>
+                  ) : (
+                    notifications.map((notification, index) => (
+                      <MenuItem key={index}>
+                        <p className="text-sm">{highlightNumbers(notification)}</p>
+                      </MenuItem>
+                    ))
+                  )}
+                  {noti.map((notiItem) => (
+                    <MenuItem
+                      key={notiItem.id}
+                      className={notiItem.isRead ? "bg-white" : "bg-blue-100"}
+                    // onClick={(event) => handleNotificationClick(notification.id, event)} 
+                    >
+                      <div>{highlightNumbers(notiItem)}</div>
+                    </MenuItem>
+                  ))}
+
+                </MenuList>
+              </Menu>
             </div>
           </div>
           <motion.div

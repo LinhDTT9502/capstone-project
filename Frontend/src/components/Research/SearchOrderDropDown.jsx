@@ -62,7 +62,7 @@ export default function SearchOrderDropDown() {
     >
       <div
         onMouseEnter={handleMouseEnter}
-        className="flex items-center cursor-pointer justify-center"
+        className="flex items-center cursor-pointer justify-center border-r-2 pr-4"
       >
         <FontAwesomeIcon icon={faBinoculars} className="pr-2" />
         <span>Tra cứu</span>
