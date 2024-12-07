@@ -15,38 +15,37 @@ namespace _2Sport_BE.Helpers
             CreateMap<Feedback, FeedbackVM>().ReverseMap();
             CreateMap<Feedback, FeedbackUM>().ReverseMap();
             #endregion
-
             #region RefundRequest
-            CreateMap<RefundRequest, RefundRequestCM>();
-            CreateMap<RefundRequest, RefundRequestVM>();
-            CreateMap<RefundRequest, RefundRequestUM>();
-            CreateMap<RefundRequestUM, RefundRequest>();
+            CreateMap<RefundRequest, RefundRequestCM>().ReverseMap();
+            CreateMap<RefundRequest, RefundRequestVM>().ReverseMap();
+            CreateMap<RefundRequest, RefundRequestUM>().ReverseMap();
+            CreateMap<RefundRequestUM, RefundRequest>().ReverseMap();
             #endregion
             #region SaleOrder
-            CreateMap<SaleOrderCM, SaleOrder>();
-            CreateMap<SaleOrderUM, SaleOrder>();
-            CreateMap<SaleOrder, SaleOrderVM>();
+            CreateMap<SaleOrderCM, SaleOrder>().ReverseMap();
+            CreateMap<SaleOrderUM, SaleOrder>().ReverseMap();
+            CreateMap<SaleOrder, SaleOrderVM>().ReverseMap();
             #endregion
             #region RentalOrder
-            CreateMap<RentalOrder, RentalOrderVM>();
+            CreateMap<RentalOrder, RentalOrderVM>().ReverseMap();
             #endregion
             #region User
-            CreateMap<User, UserVM>();
-            CreateMap<UserCM, User>();
+            CreateMap<User, UserVM>().ReverseMap();
+            CreateMap<UserCM, User>().ReverseMap();
             CreateMap<UserUM, User>().
                 ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<ProfileUM, User>().
                ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             #endregion
             #region Manager
-            CreateMap<Manager, ManagerVM>();
-            CreateMap<ManagerCM, Manager>();
-            CreateMap<ManagerUM, Manager>();
+            CreateMap<Manager, ManagerVM>().ReverseMap();
+            CreateMap<ManagerCM, Manager>().ReverseMap();
+            CreateMap<ManagerUM, Manager>().ReverseMap();
             #endregion
             #region Staff
-            CreateMap<Staff, StaffVM>();
-            CreateMap<StaffCM, Staff>();
-            CreateMap<StaffUM, Staff>();
+            CreateMap<Staff, StaffVM>().ReverseMap();
+            CreateMap<StaffCM, Staff>().ReverseMap();
+            CreateMap<StaffUM, Staff>().ReverseMap();
             #endregion
             #region Blog
             CreateMap<Blog, BlogVM>()
@@ -151,6 +150,11 @@ namespace _2Sport_BE.Helpers
                 .ReverseMap();
             CreateMap<WarehouseCM, Warehouse>().ReverseMap();
             CreateMap<WarehouseUM, Warehouse>().ReverseMap();
+            #endregion
+            #region Role
+            CreateMap<Role, RoleCM>().ReverseMap();
+            CreateMap<Role, RoleUM>().ReverseMap();
+            CreateMap<Role, RoleVM>().ReverseMap();
             #endregion
 
         }

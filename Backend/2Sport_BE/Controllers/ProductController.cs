@@ -397,7 +397,7 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
 
-                var managerDetail = await _managerService.GetManagerDetailByUserIdAsync(userId);
+                var managerDetail = await _managerService.GetManagerDetailsByUserIdAsync(userId);
 
 
                 if (existedProduct == null)
@@ -559,7 +559,7 @@ namespace _2Sport_BE.Controllers
                             return Unauthorized();
                         }
 
-                        var managerDetail = await _managerService.GetManagerDetailByUserIdAsync(userId);
+                        var managerDetail = await _managerService.GetManagerDetailsByUserIdAsync(userId);
 
 
                         if (existedProduct == null)
@@ -817,7 +817,7 @@ namespace _2Sport_BE.Controllers
 
                     try
                     {
-                        var managerDetail = await _managerService.GetManagerDetailByUserIdAsync(managerId);
+                        var managerDetail = await _managerService.GetManagerDetailsByUserIdAsync(managerId);
 
                         // Assuming product creation logic if all fields are valid
                         var brand = (await _brandService.GetBrandsAsync(brandValue)).FirstOrDefault();
@@ -1041,7 +1041,7 @@ namespace _2Sport_BE.Controllers
                         }
 
                         //Save import history
-                        var manager = await _managerService.GetManagerDetailByUserIdAsync(managerId);
+                        var manager = await _managerService.GetManagerDetailsByUserIdAsync(managerId);
                         var importedBranch = await _branchService.GetBranchById(manager.Data.BranchId);
                         var importHistory = new ImportHistory()
                         {
@@ -1233,7 +1233,7 @@ namespace _2Sport_BE.Controllers
 
 
                     //Save import history
-                    var manager = await _managerService.GetManagerDetailByIdAsync(userId);
+                    var manager = await _managerService.GetManagerDetailsByIdAsync(userId);
                     var importedBranch = await _branchService.GetBranchById(manager.Data.BranchId);
                     var importHistory = new ImportHistory()
                     {

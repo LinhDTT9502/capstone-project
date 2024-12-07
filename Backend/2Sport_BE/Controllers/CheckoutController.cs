@@ -81,7 +81,7 @@ namespace _2Sport_BE.Controllers
                     await _saleOrderService.UpdateSaleOrder(order);
                 }
 
-                var response = await _saleOrderService.GetSaleOrderDetailByIdAsync(order.Id);
+                var response = await _saleOrderService.GetSaleOrderDetailsByIdAsync(order.Id);
                 if (!response.IsSuccess)
                 {
                     return BadRequest(response);
@@ -99,7 +99,7 @@ namespace _2Sport_BE.Controllers
                     order.PaymentStatus = (int)PaymentStatus.IsWating;
                     await _saleOrderService.UpdateSaleOrder(order);
                 }
-                var response = await _saleOrderService.GetSaleOrderDetailByIdAsync(order.Id);
+                var response = await _saleOrderService.GetSaleOrderDetailsByIdAsync(order.Id);
                 if (!response.IsSuccess)
                 {
                     return BadRequest(response);
@@ -197,7 +197,7 @@ namespace _2Sport_BE.Controllers
                     await _rentalOrderService.UpdaterRentalOrder(order);
                 }
 
-                var response = await _rentalOrderService.GetRentalOrderByIdAsync(order.Id);
+                var response = await _rentalOrderService.GetRentalOrderDetailsByIdAsync(order.Id);
                 if (!response.IsSuccess)
                 {
                     return BadRequest(response);
@@ -216,7 +216,7 @@ namespace _2Sport_BE.Controllers
                     await _rentalOrderService.UpdaterRentalOrder(order);
                 }
 
-                var response = await _rentalOrderService.GetRentalOrderByIdAsync(order.Id);
+                var response = await _rentalOrderService.GetRentalOrderDetailsByIdAsync(order.Id);
                 if (!response.IsSuccess)
                 {
                     return BadRequest(response.Message ?? "Failed to retrieve order details.");

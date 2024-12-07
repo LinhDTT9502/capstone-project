@@ -21,7 +21,7 @@ namespace _2Sport_BE.Controllers
         [Route("GetPaymentInformationPayOs")]
         public async Task<IActionResult> GetPaymentInformationPayOs(string orderCode)
         {
-            var response = await _payOsService.GetPaymentLinkInformation(orderCode);
+            var response = await _payOsService.GetPaymentDetails(orderCode);
             if (response.IsSuccess)
             {
                 return Ok(response);

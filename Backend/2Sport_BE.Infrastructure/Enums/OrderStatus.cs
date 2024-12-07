@@ -2,13 +2,20 @@
 {
     public enum OrderStatus : int
     {
-        CANCELLED = 0,
         PENDING = 1,
         CONFIRMED = 2,
-        PAID = 3,
+        AWAITING_PAYMENT = 3,
         PROCESSING = 4,
         SHIPPED = 5,
-        DELAYED = 6,
+        DELIVERED = 6,
         COMPLETED = 7,
+        DECLINED = 8,
+        REFUNDED = 9,
+        ON_HOLD = 10,
+        AWAITING_PICKUP = 11,
+        RETURN_REQUESTED = 12,
+        RETURNED = 13,
+        FAILED = 14,
+        CANCELLED = 0
     }
 }

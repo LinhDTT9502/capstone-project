@@ -13,19 +13,18 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public string RoleName { get; set; }
         [Required(ErrorMessage = "Description is required!")]
         public string Description { get; set; }
-        [Required(ErrorMessage = "ErrorMessage is required!")]
-        public DateTime CreatedDate { get; set; }
+
     }
     public class RoleCM : RoleDTO
     {
-
     }
     public class RoleUM : RoleDTO
     {
-
     }
     public class RoleVM : RoleDTO
     {
         public int RoleId { get; set; }
+        [Required(ErrorMessage = "ErrorMessage is required!")]
+        public DateTime CreatedDate { get; set; }
     }
 }

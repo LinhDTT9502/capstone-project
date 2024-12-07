@@ -108,7 +108,7 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
 
-                var manager = await _managerService.GetManagerDetailByIdAsync(userId);
+                var manager = await _managerService.GetManagerDetailsByIdAsync(userId);
                 var admin = await _adminService.GetAdminDetailAsync(userId);
 
 

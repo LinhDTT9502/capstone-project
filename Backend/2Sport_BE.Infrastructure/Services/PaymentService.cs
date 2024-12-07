@@ -37,7 +37,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<RentalOrderVM>> ProcessCancelledRentalOrder(PaymentResponse paymentResponse);
         Task<ResponseDTO<RentalOrderVM>> ProcessCompletedRentalOrder(PaymentResponse paymentResponse);
         #endregion
-        Task<ResponseDTO<PaymentLinkInformation>> GetPaymentLinkInformation(string orderCode);
+        Task<ResponseDTO<PaymentLinkInformation>> GetPaymentDetails(string orderCode);
 
     }
     public class PayOsPaymentService : IPaymentService, IPayOsService
@@ -368,7 +368,7 @@ namespace _2Sport_BE.Infrastructure.Services
             }
         }
 
-        public async Task<ResponseDTO<PaymentLinkInformation>> GetPaymentLinkInformation(string orderCode)
+        public async Task<ResponseDTO<PaymentLinkInformation>> GetPaymentDetails(string orderCode)
         {
             var response = new ResponseDTO<PaymentLinkInformation>();
             try

@@ -67,17 +67,9 @@ namespace _2Sport_BE.Controllers
         [HttpPost]  
         public async Task<IActionResult> LogOutAsync([FromBody] TokenModel request)
         {
-            var token = await _unitOfWork.RefreshTokenRepository.GetObjectAsync(_ => _.Token == request.RefreshToken);
-            if (token == null)
-            {
-                return BadRequest("Not found token!");
-            }
-            else
-            {
-                await _refreshTokenService.RemoveToken(token);
-                _unitOfWork.Save();
-                return Ok("Query Successfully");
-            }
+            var response = await _identityService.HandleLogoutAsync(request);
+           if(response.IsSuccess) return Ok(response);
+           return BadRequest(response);
         }
 
         [Route("sign-up")]
@@ -121,7 +113,7 @@ namespace _2Sport_BE.Controllers
         [HttpPost]
         public async Task<IActionResult> RefreshAsync([FromBody] TokenModel request)
         {
-            var result = await _identityService.RefreshTokenAsync(request);
+            var result = await _identityService.RefreshAccessTokenAsync(request);
             return Ok(result);
         }
 
@@ -164,16 +156,28 @@ namespace _2Sport_BE.Controllers
                 var result = await _identityService.HandleLoginGoogle(response.Principal);
                 var token = result.Data.Token;
                 var refreshToken = result.Data.RefreshToken;
-                var script = $@"
+
+                ResponseDTO<TokenModel> model = new ResponseDTO<TokenModel>()
+                {
+                    IsSuccess = true,
+                    Message = "Login google successfully",
+                    Data = new TokenModel()
+                    {
+                        UserId = user.Id,
+                        Token = token,
+                        RefreshToken = refreshToken
+                    }
+                };
+                /*var script = $@"
                 <script>
                     window.opener.postMessage({{
                         token: '{token}',
                         refreshToken: '{refreshToken}'
                     }}, 'https://twosportshop.vercel.app/');
                     window.close();
-                </script>";
+                </script>";*/
 
-                return Content(script, "text/html");
+                return Ok(model);
             }
         }
 

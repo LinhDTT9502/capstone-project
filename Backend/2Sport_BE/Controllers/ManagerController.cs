@@ -17,7 +17,7 @@ namespace _2Sport_BE.Controllers
         }
         [HttpGet]
         [Route("get-all-managers")]
-        public async Task<IActionResult> GetAllManagers()
+        public async Task<IActionResult> ListAllManagers()
         {
             var response = await _managerService.GetAllManagerAsync();
             if (response.IsSuccess)
@@ -29,14 +29,23 @@ namespace _2Sport_BE.Controllers
         [HttpGet]
         [Route("get-manager-detail")]
         //Role User
-        public async Task<IActionResult> GetManagerDetail([FromQuery] int managerId)
+        public async Task<IActionResult> GetManagerDetails([FromQuery] int managerId)
         {
-            var admin = await _managerService.GetManagerDetailByIdAsync(managerId);
+            var admin = await _managerService.GetManagerDetailsByIdAsync(managerId);
             if (admin.IsSuccess)
             {
                 return Ok(admin);
             }
             return BadRequest(admin);
+        }
+        [HttpGet]
+        [Route("get-manager-detail/{branchId}")]
+        //Role User
+        public async Task<IActionResult> GetManagersByBranch(int branchId)
+        {
+            var managers = await _managerService.GetManagerDetailsByBranchIdAsync(branchId);
+            if (managers.IsSuccess) return Ok(managers);
+            return BadRequest(managers);
         }
         [HttpPost]
         [Route("create-manager")]
@@ -84,7 +93,7 @@ namespace _2Sport_BE.Controllers
         }
         [HttpDelete]
         [Route("delete-manager")]
-        public async Task<ActionResult<User>> DeleteManager([FromQuery] int managerId)
+        public async Task<ActionResult<User>> RemoveManager([FromQuery] int managerId)
         {
             var response = await _managerService.DeleteManagerAsync(managerId);
             if (response.IsSuccess)

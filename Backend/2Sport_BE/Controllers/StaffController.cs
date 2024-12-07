@@ -17,7 +17,7 @@ namespace _2Sport_BE.Controllers
         }
         [HttpGet]
         [Route("get-all-staffs")]
-        public async Task<IActionResult> GetAllStaffs()
+        public async Task<IActionResult> ListAllStaffs()
         {
             var response = await _staffService.GetAllStaffsAsync();
             if (response.IsSuccess)
@@ -27,11 +27,20 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
         [HttpGet]
-        [Route("get-staff-detail")]
+        [Route("get-staffs-by-branch")]
+        public async Task<IActionResult> GetStaffsByBranch(int branchId)
+        {
+            var response = await _staffService.GetStaffsByBranchId(branchId);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpGet]
+        [Route("get-staff-details")]
         //Role User
         public async Task<IActionResult> GetStaffDetail([FromQuery] int staffId)
         {
-            var admin = await _staffService.GetStaffDetailAsync(staffId);
+            var admin = await _staffService.GetStaffDetailsAsync(staffId);
             if (admin.IsSuccess)
             {
                 return Ok(admin);
@@ -39,8 +48,8 @@ namespace _2Sport_BE.Controllers
             return BadRequest(admin);
         }
         [HttpPost]
-        [Route("create-staff")]
-        public async Task<IActionResult> CreateStaff([FromBody] StaffCM staffCM)
+        [Route("create")]
+        public async Task<IActionResult> AddStaff([FromBody] StaffCM staffCM)
         {
             if (!ModelState.IsValid)
             {
@@ -56,8 +65,8 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
         [HttpPut]
-        [Route("update-staff")]
-        public async Task<IActionResult> UpdateStaff([FromQuery] int staffId, [FromBody] StaffUM staffUM)
+        [Route("update")]
+        public async Task<IActionResult> EditStaff([FromQuery] int staffId, [FromBody] StaffUM staffUM)
         {
             if (!ModelState.IsValid)
             {
@@ -72,7 +81,7 @@ namespace _2Sport_BE.Controllers
         }
         [HttpPut]
         [Route("convert-manager-to-staff")]
-        public async Task<IActionResult> ConvertManagerToStaff(int userId, int roleId, int branchId)
+        public async Task<IActionResult> EditManagerToStaff(int userId, int roleId, int branchId)
         {
             if (!ModelState.IsValid)
             {
@@ -83,8 +92,8 @@ namespace _2Sport_BE.Controllers
             return BadRequest(result);
         }
         [HttpDelete]
-        [Route("delete-admin")]
-        public async Task<ActionResult<User>> DeleteStaff([FromQuery] int staffId)
+        [Route("delete")]
+        public async Task<ActionResult<User>> RemoveStaff([FromQuery] int staffId)
         {
             var response = await _staffService.DeleteStaffAsync(staffId);
             if (response.IsSuccess)

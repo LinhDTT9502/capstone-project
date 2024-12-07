@@ -16,7 +16,6 @@ namespace _2Sport_BE.Controllers
     public class RentalOrderController : ControllerBase
     {
         private readonly IRentalOrderService _rentalOrderServices;
-        private readonly IPaymentService _paymentService;
         private readonly ICartItemService _cartItemService;
         public RentalOrderController(IRentalOrderService rentalOrderServices,
             IPaymentService paymentService,
@@ -24,13 +23,12 @@ namespace _2Sport_BE.Controllers
             )
         {
             _rentalOrderServices = rentalOrderServices;
-            _paymentService = paymentService;
             _cartItemService = cartItemService;
         }
 
         [HttpGet]
         [Route("get-all-rental-orders")]
-        public async Task<IActionResult> GetOrders()
+        public async Task<IActionResult> ListAllRentalOrders()
         {
             var response = await _rentalOrderServices.GetAllRentalOrderAsync();
             if (response.IsSuccess)
@@ -41,9 +39,9 @@ namespace _2Sport_BE.Controllers
         }
         [HttpGet]
         [Route("get-rental-order-detail")]
-        public async Task<IActionResult> GetOrderByOrderId(int orderId)
+        public async Task<IActionResult> GetRentalOrderDetailsById(int orderId)
         {
-            var response = await _rentalOrderServices.GetRentalOrderByIdAsync(orderId);
+            var response = await _rentalOrderServices.GetRentalOrderDetailsByIdAsync(orderId);
             if (response.IsSuccess)
             {
                 return Ok(response);
@@ -117,7 +115,7 @@ namespace _2Sport_BE.Controllers
                     return BadRequest(response);
                 }*/
         [HttpPost("create")]
-        public async Task<IActionResult> CreateOrder([FromBody] RentalOrderCM rentalOrderCM)
+        public async Task<IActionResult> AddRentalOrder([FromBody] RentalOrderCM rentalOrderCM)
         {
             if (!ModelState.IsValid)
             {
@@ -154,7 +152,7 @@ namespace _2Sport_BE.Controllers
             return Ok(response);
         }
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateRentalOrder([FromQuery] int orderId, [FromBody] RentalOrderUM orderUM)
+        public async Task<IActionResult> EditRentalOrder([FromQuery] int orderId, [FromBody] RentalOrderUM orderUM)
         {
             if (!ModelState.IsValid)
             {
@@ -183,9 +181,9 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpPut("update-rental-order-status")]
-        public async Task<IActionResult> ChangeOrderStatus(int orderId, int status)
+        public async Task<IActionResult> EditRentalOrderStatus(int orderId, int status)
         {
-            var response = await _rentalOrderServices.ChangeStatusRentalOrderAsync(orderId, status);
+            var response = await _rentalOrderServices.UpdateRentalOrderStatusAsync(orderId, status);
 
             if (response.IsSuccess)
             {
@@ -270,7 +268,7 @@ namespace _2Sport_BE.Controllers
         }
         [HttpPost]
         [Route("{orderId}/approve")]
-        public async Task<IActionResult> ApproveSaleOrder(int orderId)
+        public async Task<IActionResult> ApproveRentalOrder(int orderId)
         {
             var response = await _rentalOrderServices.ApproveRentalOrderAsync(orderId);
             if (response.IsSuccess)
@@ -281,13 +279,21 @@ namespace _2Sport_BE.Controllers
         }
         [HttpPost]
         [Route("{orderId}/reject")]
-        public async Task<IActionResult> RejectSaleOrder(int orderId)
+        public async Task<IActionResult> RejectRentalOrder(int orderId)
         {
             var response = await _rentalOrderServices.RejectRentalOrderAsync(orderId);
             if (response.IsSuccess)
             {
                 return Ok(response);
             }
+            return BadRequest(response);
+        }
+        [HttpDelete]
+        [Route("remove/{orderId}")]
+        public async Task<IActionResult> RemoveSaleOrder(int orderId)
+        {
+            var response = await _rentalOrderServices.DeleteRentalOrderAsync(orderId);
+            if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
 
