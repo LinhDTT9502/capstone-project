@@ -67,7 +67,7 @@ namespace _2Sport_BE.Controllers
                             {
                                 var deleteCartItem = query.Find(_ => _.CartItemId.Equals(carItem.CartItemId));
                                 query.Remove(deleteCartItem);
-                                _redisCacheService.SetData(_cartItemsKey, query);
+                                _redisCacheService.SetData(_cartItemsKey, query, TimeSpan.FromDays(30));
                                 cartItems = query.Select(_ => _mapper.Map<CartItem, CartItemVM>(_)).ToList();
                             }
                             var product = await _unitOfWork.ProductRepository.FindAsync(carItem.ProductId);
@@ -163,7 +163,7 @@ namespace _2Sport_BE.Controllers
                     }
                     existedCartItem.Quantity = addedCartItemQuantity;
                     existedCartItem.Price = addedProduct.Price * addedCartItemQuantity;
-                    _redisCacheService.SetData(_cartItemsKey, listCartItemsInCache);
+                    _redisCacheService.SetData(_cartItemsKey, listCartItemsInCache, TimeSpan.FromDays(30));
                     return Ok(existedCartItem);
                     //addedCartItem = await _cartItemService.AddExistedCartItem(existedCartItem);
 
@@ -177,7 +177,7 @@ namespace _2Sport_BE.Controllers
                     newCartItem.CartItemId = Guid.NewGuid();
                     newCartItem.UserId = userId;
                     listCartItemsInCache.Add(newCartItem);
-                    _redisCacheService.SetData(_cartItemsKey, listCartItemsInCache);
+                    _redisCacheService.SetData(_cartItemsKey, listCartItemsInCache, TimeSpan.FromDays(30));
                     return Ok(newCartItem);
                     //addedCartItem = await _cartItemService.AddNewCartItem(userId, newCartItem);
                 }
@@ -214,7 +214,7 @@ namespace _2Sport_BE.Controllers
                     {
                         listCartItems.Remove(reducedCartItem);
                     }
-                    _redisCacheService.SetData(_cartItemsKey, listCartItems);
+                    _redisCacheService.SetData(_cartItemsKey, listCartItems, TimeSpan.FromDays(30));
                 }
                 return Ok($"Reduce cart item with id: {cartItemId}");
             }
@@ -264,7 +264,7 @@ namespace _2Sport_BE.Controllers
                     updatedCartItem.Quantity = quantity;
                     updatedCartItem.Price = quantity * product.Price;
                 }
-                _redisCacheService.SetData(_cartItemsKey, listCartItems);
+                _redisCacheService.SetData(_cartItemsKey, listCartItems, TimeSpan.FromDays(30));
                 return Ok($"Update quantity cart item with id: {cartItemId}");
             }
             catch (Exception ex)
@@ -311,7 +311,7 @@ namespace _2Sport_BE.Controllers
                 }
                 await _cartItemService.UpdateProductIdOfCartItem(cartItemId, productId);
                 cartItem.ProductId = productId;
-                _redisCacheService.SetData(_cartItemsKey, listCartItems);
+                _redisCacheService.SetData(_cartItemsKey, listCartItems, TimeSpan.FromDays(30));
                 return Ok($"Updated productId in cart item with id: {cartItemId}");
             }
             catch (Exception ex)
@@ -340,7 +340,7 @@ namespace _2Sport_BE.Controllers
                     return NotFound("There is not cart item!");
                 } 
                 listCartItems.Remove(deletedCartItem);
-                _redisCacheService.SetData(_cartItemsKey, listCartItems);
+                _redisCacheService.SetData(_cartItemsKey, listCartItems, TimeSpan.FromDays(30));
                 await _cartItemService.DeleteCartItem(cartItemId);
                 return Ok($"Delete cart item with id: {cartItemId}");
             }

@@ -58,7 +58,7 @@ namespace _2Sport_BE.Service.Services.Caching
                     cartItem.ProductId = product.Id;
                     var totalPrice = product.Price * cartItem.Quantity;
                     cartItem.Price = totalPrice;
-                    _redisCacheService.SetData("CartItems", cartItem);
+                    _redisCacheService.SetData("CartItems", cartItem, TimeSpan.FromDays(30));
                     return cartItem;
                 }
                 else

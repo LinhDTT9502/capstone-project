@@ -10,6 +10,11 @@ using Hangfire.Common;
 using CloudinaryDotNet.Actions;
 using _2Sport_BE.Enums;
 using _2Sport_BE.Infrastructure.Helpers;
+using _2Sport_BE.Services.Caching;
+using _2Sport_BE.Service.Services.Caching;
+using _2Sport_BE.ViewModels;
+using Twilio.Types;
+using NuGet.Protocol.Plugins;
 
 namespace _2Sport_BE.Controllers
 {
@@ -25,14 +30,20 @@ namespace _2Sport_BE.Controllers
         private readonly IImageService _imageService;
         private readonly IPhoneNumberService _phoneNumberService;
         private readonly IMethodHelper _methodHelper;
+        private readonly IRedisCacheService _redisCacheService;
+        private readonly string _phoneNumberOTPsKey;
+
         public UserController(
             IUserService userService,
             IRefreshTokenService refreshTokenService,
             IMailService mailService,
             IImageService imageService,
             IPhoneNumberService phoneNumberService,
-            IMethodHelper methodHelper
-            )
+            IMethodHelper methodHelper,
+            IRedisCacheService redisCacheService,
+            IConfiguration configuration
+            )                                       
+
         {
             _userService = userService;
             _refreshTokenService = refreshTokenService;
@@ -40,6 +51,8 @@ namespace _2Sport_BE.Controllers
             _imageService = imageService;
             _phoneNumberService = phoneNumberService;
             _methodHelper = methodHelper;
+            _redisCacheService = redisCacheService;
+            _phoneNumberOTPsKey = configuration.GetValue<string>("RedisKeys:PhoneNumberOtps");
         }
         [HttpGet]
         [Route("get-all-users")]
@@ -333,19 +346,37 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
 
-                var isSuccess = await _phoneNumberService.SendSmsToPhoneNumber(userId, phoneNumber);
-                if (isSuccess == (int)Errors.NotFoundUser)
+                var user = await _userService.GetUserById(userId);
+                if (user is null)
                 {
                     return BadRequest("Not found user!");
                 }
+
+                var otp = GenerateOTP();
+                
+                var isSuccess = await _phoneNumberService.SendSmsToPhoneNumber(otp, phoneNumber);
                 if (isSuccess == (int)Errors.NotExcepted)
                 {
                     return StatusCode(500, "Something wrong!");
                 }
-                if (isSuccess == (int)Errors.Verified)
+                
+                var listPhoneNumberOTPsInCache = _redisCacheService.GetData<List<PhoneNumberOtp>>(_phoneNumberOTPsKey)
+                                                                        ?? new List<PhoneNumberOtp>();
+                var existedPhoneNumberOTP = listPhoneNumberOTPsInCache.Find(_ => _.PhoneNumber == phoneNumber);
+                if (existedPhoneNumberOTP is not null)
                 {
-                    return BadRequest("The account has been verified!");
+                    existedPhoneNumberOTP.OTP = otp;
+                    _redisCacheService.SetData(_phoneNumberOTPsKey, listPhoneNumberOTPsInCache, TimeSpan.FromMinutes(5));
+                } else
+                {
+                    listPhoneNumberOTPsInCache.Add(new PhoneNumberOtp()
+                    {
+                        OTP = otp,
+                        PhoneNumber = phoneNumber
+                    });
+                    _redisCacheService.SetData(_phoneNumberOTPsKey, listPhoneNumberOTPsInCache, TimeSpan.FromMinutes(5));
                 }
+                
                 return Ok("Send OTP to your number");
 
             } catch (Exception ex)
@@ -366,14 +397,64 @@ namespace _2Sport_BE.Controllers
                 {
                     return Unauthorized();
                 }
+                var user = await _userService.GetUserById(userId);
 
-                await _phoneNumberService.VerifyPhoneNumber(userId, otp);
+                var listPhoneNumberOTPsInCache = _redisCacheService.GetData<List<PhoneNumberOtp>>(_phoneNumberOTPsKey)
+                                                                        ?? new List<PhoneNumberOtp>();
+
+                var existedPhoneNumberOTP = listPhoneNumberOTPsInCache.Find(_ => _.PhoneNumber == user.PhoneNumber);
+                if (existedPhoneNumberOTP is null)
+                {
+                    return BadRequest("Mã OTP không hợp lệ!");
+                }
+                if (existedPhoneNumberOTP.OTP != otp)
+                {
+                    return BadRequest("Mã OTP không hợp lệ!");
+                }
+                user.PhoneNumberConfirmed = true;
+                await _userService.UpdateUserAsync(userId, user);
+                existedPhoneNumberOTP.OTP = 0;
+                _redisCacheService.SetData(_phoneNumberOTPsKey, listPhoneNumberOTPsInCache, TimeSpan.FromMinutes(5));
                 return Ok("Verify phone number successfully!");
             } catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpPut]
+        [Route("edit-phone-number")]
+        public async Task<IActionResult> EditPhoneNumber(string newPhoneNumber, int otp)
+        {
+            var userId = GetCurrentUserIdFromToken();
+
+            if (userId == 0)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userService.GetUserById(userId);
+
+            var listPhoneNumberOTPsInCache = _redisCacheService.GetData<List<PhoneNumberOtp>>(_phoneNumberOTPsKey)
+                                                                    ?? new List<PhoneNumberOtp>();
+
+            var existedPhoneNumberOTP = listPhoneNumberOTPsInCache.Find(_ => _.PhoneNumber == newPhoneNumber);
+            if (existedPhoneNumberOTP is null)
+            {
+                return BadRequest("Mã OTP không hợp lệ!");
+            }
+            if (existedPhoneNumberOTP.OTP != otp)
+            {
+                return BadRequest("Mã OTP không hợp lệ!");
+            }
+            user.PhoneNumber = newPhoneNumber;
+            existedPhoneNumberOTP.OTP = 0;
+            _redisCacheService.SetData(_phoneNumberOTPsKey, listPhoneNumberOTPsInCache, TimeSpan.FromMinutes(5));
+            await _userService.UpdateUserAsync(userId, user);
+            return Ok("Edit phone number succsessfuly");
+
+        }
+
         [HttpPut]
         [Route("edit-status/{userId}")]
         public async Task<IActionResult> EditStatus(int userId, [FromBody] bool status)
@@ -414,6 +495,14 @@ namespace _2Sport_BE.Controllers
             {
                 return UserId;
             }
+        }
+
+        [NonAction]
+        private int GenerateOTP()
+        {
+            Random random = new Random();
+            int otpNumber = random.Next(100000, 1000000); // Generates a number between 100000 and 999999
+            return otpNumber;
         }
     }
 }
