@@ -57,11 +57,8 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public int ParentOrderId { get; set; }            // ID của parent order
         public List<ChildOrderReturnModel> ChildOrders { get; set; }  // Danh sách child orders
 
-        // Thông tin tổng hợp
         public decimal TotalLateFee { get; set; }         // Tổng phí trễ hạn
         public decimal TotalDamageFee { get; set; }       // Tổng phí hư hỏng
-        public bool IsRestocked { get; set; }             // Tổng trạng thái nhập kho
-        public bool IsInspected { get; set; }             // Tổng trạng thái kiểm tra
     }
     public class RentalOrderCM
     {

@@ -156,16 +156,28 @@ namespace _2Sport_BE.Controllers
                 var result = await _identityService.HandleLoginGoogle(response.Principal);
                 var token = result.Data.Token;
                 var refreshToken = result.Data.RefreshToken;
-                var script = $@"
+
+                ResponseDTO<TokenModel> model = new ResponseDTO<TokenModel>()
+                {
+                    IsSuccess = true,
+                    Message = "Login google successfully",
+                    Data = new TokenModel()
+                    {
+                        UserId = user.Id,
+                        Token = token,
+                        RefreshToken = refreshToken
+                    }
+                };
+                /*var script = $@"
                 <script>
                     window.opener.postMessage({{
                         token: '{token}',
                         refreshToken: '{refreshToken}'
                     }}, 'https://twosportshop.vercel.app/');
                     window.close();
-                </script>";
+                </script>";*/
 
-                return Content(script, "text/html");
+                return Ok(model);
             }
         }
 

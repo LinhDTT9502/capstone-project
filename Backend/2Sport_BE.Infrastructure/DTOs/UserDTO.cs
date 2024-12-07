@@ -96,6 +96,9 @@ namespace _2Sport_BE.Infrastructure.DTOs
     }
     public class ChangePasswordVM
     {
+        [JsonProperty("oldPassword")]
+        [Required(ErrorMessage = "oldPassword is required")]
+        public string OldPassword { get; set; }
         [JsonProperty("newPassword")]
         [Required(ErrorMessage = "NewPassword is required")]
         public string NewPassword { get; set; }
@@ -131,8 +134,21 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public string Email { get; set; }
 
         [Required(ErrorMessage = "NewPassword is required")]
-
         public string NewPassword { get; set; }
+    }
+
+    public class ResetEmailRequesrt
+    {
+
+        [Required(ErrorMessage = "Email is required")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "OtpCode is required")]
+        public string OtpCode { get; set; }
+
+        [Required(ErrorMessage = "Token is required")]
+        public string Token { get; set; }
+
     }
     public class AvatarModel
     {

@@ -43,6 +43,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<string>> SignUpMobileAsync(RegisterModel registerModel);
         Task<ResponseDTO<int>> HandleLogoutAsync(TokenModel request);
 
+        ClaimsPrincipal GetPrincipalFromToken(string token);
     }
     public class AuthService : IAuthService
     {
@@ -279,7 +280,7 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             if (DateTime.UtcNow > storedRefreshToken.ExpireDate)
             {
-                return new AuthenticationResult { Errors = new[] { "Refresh Token đã hết hạn." } }; 
+                return new AuthenticationResult { Errors = new[] { "Refresh Token đã hết hạn." } };
             }
 
             if (storedRefreshToken.Used.HasValue && storedRefreshToken.Used == true)
@@ -311,7 +312,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
             return await AuthenticateAsync(user);
         }
-        private ClaimsPrincipal GetPrincipalFromToken(string token)
+        public ClaimsPrincipal GetPrincipalFromToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -603,7 +604,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.Data = 0;
                     return response;
                 }
-                if (refreshToken.UserId  != request.UserId)
+                if (refreshToken.UserId != request.UserId)
                 {
                     response.IsSuccess = false;
                     response.Message = "UserId không tồn tại hoặc không đúng.";
@@ -621,7 +622,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 refreshToken.Used = true;
                 await _unitOfWork.RefreshTokenRepository.UpdateAsync(refreshToken);
                 await _unitOfWork.SaveChanges();
-                
+
                 response.IsSuccess = false;
                 response.Message = "Lougout thành công";
                 response.Data = 1;

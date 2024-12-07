@@ -9,6 +9,10 @@ using System.Text;
 using Nexmo.Api;
 using static System.Net.Mime.MediaTypeNames;
 using Microsoft.AspNetCore.Http;
+using System.ComponentModel.Design;
+using _2Sport_BE.Infrastructure.Helpers;
+using Newtonsoft.Json.Linq;
+using System.Security.Claims;
 namespace _2Sport_BE.Infrastructure.Services
 {
     public interface IUserService
@@ -26,6 +30,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<bool>> DeleteUserAsync(int id);
         Task<ResponseDTO<bool>> DisableUserAsync(int id);
         Task<ResponseDTO<bool>> UpdatePasswordAsync(int id, ChangePasswordVM changePasswordVM);
+        Task<ResponseDTO<int>> UpdateEmailAsync(int userId, ResetEmailRequesrt resetEmailModel);
         Task<User> FindUserByPhoneNumber(string phoneNumber);
         Task<ResponseDTO<List<UserVM>>> GetUserByRoleIdAndBranchId(int roleId, int branchId);
     }
@@ -33,13 +38,17 @@ namespace _2Sport_BE.Infrastructure.Services
     {
         private IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IMethodHelper _methodeHelper;
+
         public UserService(
             IUnitOfWork unitOfWork,
-            IMapper mapper
+            IMapper mapper,
+            IMethodHelper methodHelper
             )
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _methodeHelper = methodHelper;
         }
         public string HashPassword(string password)
         {
@@ -363,7 +372,12 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.Message = "User not found!";
                     return response;
                 }
-
+                if (existingUser.HashPassword != HashPassword(changePasswordVM.OldPassword))
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Old password is wrong!";
+                    return response;
+                }
                 existingUser.HashPassword = HashPassword(changePasswordVM.NewPassword);
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
 
@@ -467,5 +481,67 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
 
+        public async Task<ResponseDTO<int>> UpdateEmailAsync(int uId, ResetEmailRequesrt resetEmailModel)
+        {
+            var response = new ResponseDTO<int>();
+            try
+            {
+                var principal = _methodeHelper.GetPrincipalFromToken(resetEmailModel.Token);
+
+                if (principal != null)
+                {
+                    var userId = principal.FindFirst("UserId")?.Value;
+                    var email = principal.FindFirst("Email")?.Value;
+                    var otp = principal.FindFirst("OTP")?.Value;
+
+                    var existingUser = await _unitOfWork.UserRepository.GetObjectAsync(u => uId.ToString().Equals(userId) && u.Id == uId);
+                    if (existingUser == null)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = "User not found!";
+                        response.Data = 0;
+
+                        return response;
+                    }
+                    if(email != resetEmailModel.Email)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = "Email is not matched!";
+                        response.Data = 0;
+
+                        return response;
+                    }
+                    if(otp != resetEmailModel.OtpCode)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = "OTP is not matched!";
+                        response.Data = 0;
+
+                        return response;
+                    }
+                    existingUser.UpdatedAt = DateTime.UtcNow;
+                    existingUser.Email = resetEmailModel.Email;
+                    await _unitOfWork.UserRepository.UpdateAsync(existingUser);
+
+                    response.IsSuccess = true;
+                    response.Message = "Email updated successfully.";
+                    response.Data = 1;
+                }
+                else
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Token is invalid.";
+                    response.Data = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = $"An error occurred: {ex.Message}";
+                response.Data = 0;
+            }
+
+            return response;
+        }
     }
 }

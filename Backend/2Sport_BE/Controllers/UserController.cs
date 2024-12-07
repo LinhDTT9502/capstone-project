@@ -9,6 +9,7 @@ using _2Sport_BE.Infrastructure.DTOs;
 using Hangfire.Common;
 using CloudinaryDotNet.Actions;
 using _2Sport_BE.Enums;
+using _2Sport_BE.Infrastructure.Helpers;
 
 namespace _2Sport_BE.Controllers
 {
@@ -23,12 +24,14 @@ namespace _2Sport_BE.Controllers
         private readonly IMailService _mailService;
         private readonly IImageService _imageService;
         private readonly IPhoneNumberService _phoneNumberService;
+        private readonly IMethodHelper _methodHelper;
         public UserController(
             IUserService userService,
             IRefreshTokenService refreshTokenService,
             IMailService mailService,
             IImageService imageService,
-            IPhoneNumberService phoneNumberService
+            IPhoneNumberService phoneNumberService,
+            IMethodHelper methodHelper
             )
         {
             _userService = userService;
@@ -36,6 +39,7 @@ namespace _2Sport_BE.Controllers
             _mailService = mailService;
             _imageService = imageService;
             _phoneNumberService = phoneNumberService;
+            _methodHelper = methodHelper;
         }
         [HttpGet]
         [Route("get-all-users")]
@@ -170,11 +174,11 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(response);
         }
-
+        
         [HttpPut]
-        [Route("update-password")]
+        [Route("update-password/{userId}")]
         //Role Customer
-        public async Task<IActionResult> EditPasswordAsync([FromQuery] int id, [FromBody] ChangePasswordVM changePasswordVM)
+        public async Task<IActionResult> EditPasswordAsync([FromQuery] int userId, [FromBody] ChangePasswordVM changePasswordVM)
         {
             if (!ModelState.IsValid)
             {
@@ -185,14 +189,70 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest(ModelState);
             }
-            var response = await _userService.UpdatePasswordAsync(id, changePasswordVM);
+            var response = await _userService.UpdatePasswordAsync(userId, changePasswordVM);
             if (response.IsSuccess)
             {
                 return Ok(response);
             }
             return BadRequest(response);
         }
+        [HttpPost]
+        [Route("send-otp-to-email/{userId}")]
+        public async Task<IActionResult> SendOtpToMail(int userId, [FromQuery] string email)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Email is required");
+            }
 
+            if (!_mailService.IsValidEmail(email))
+            {
+                return BadRequest("Email is invalid format!");
+            }
+            var user = await _userService.GetUserById(userId);
+            if (user is null)
+            {
+                return BadRequest("User is not found!");
+            }
+            var otp = _methodHelper.GenerateOTPCode();
+            var claims = new Dictionary<string, string>
+                            {
+                                { "UserId", userId.ToString() },
+                                { "Email", email },
+                                { "OTP", otp }
+                            };
+            var jwt = _methodHelper.GenerateJwtForStrings(claims);
+
+
+            var isSent = await _mailService.SenOTPMaillAsync(email, otp);
+
+            if (isSent)
+            {
+                return Ok(new { Message = "OTP for Changing email is sent successfully.", Token = jwt });
+            }
+            return StatusCode(500, "Unable to OTP for Changing email! Please try again later.");
+
+        }
+        [HttpPut]
+        [Route("update-email/{userId}")]
+        //Role Customer
+        public async Task<IActionResult> EditEmailAsync(int userId, [FromBody] ResetEmailRequesrt resetEmailRequesrt)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var response = await _userService.UpdateEmailAsync(userId, resetEmailRequesrt);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
         [HttpPost]
         [Route("upload-avatar")]
         public async Task<IActionResult> EditAvatar(AvatarModel model)

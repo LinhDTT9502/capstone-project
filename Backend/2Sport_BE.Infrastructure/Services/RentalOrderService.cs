@@ -907,8 +907,6 @@ namespace _2Sport_BE.Infrastructure.Services
             parentOrder.LateFee = rentalInfor.TotalLateFee != null ? rentalInfor.TotalLateFee : totalLateFee;
             parentOrder.DamageFee = rentalInfor.TotalDamageFee != null ? rentalInfor.TotalDamageFee : totalDamageFee;
             parentOrder.UpdatedAt = DateTime.Now;
-            parentOrder.IsInspected = rentalInfor.IsInspected;
-            parentOrder.IsRestocked = rentalInfor.IsRestocked;
 
             /*if (order.IsExtendRentalOrder.Value)
             {
