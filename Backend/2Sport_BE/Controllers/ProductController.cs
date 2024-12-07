@@ -468,13 +468,77 @@ namespace _2Sport_BE.Controllers
                                                                 productCM.Condition)).FirstOrDefault();
                     if (existedProductWithSizeColorCodition == null)
                     {
-                        var newProduct = existedProduct;
+                        var newProduct = new Product(existedProduct);
                         newProduct.Id = 0;
                         newProduct.Size = productCM.Size;
                         newProduct.Color = productCM.Color;
                         newProduct.Condition = productCM.Condition;
                         newProduct.Price = productCM.Price;
-                        await _productService.AddProduct(newProduct);
+
+                        var existedProductWithProductCodeAndColor = (await _productService
+                                                            .GetProducts(_ => _.ProductCode.Equals(existedProduct.ProductCode)
+                                                            && _.Color.ToLower().Equals((productCM.Color.ToLower()))))
+                                                            .FirstOrDefault();
+
+                        if (existedProductWithProductCodeAndColor is null)
+                        {
+                            if (!string.IsNullOrEmpty(productCM.MainImage.ToString()))
+                            {
+                                var imgURL = await UploadAvaImgFile(productCM.MainImage.ToString());
+                                if (imgURL != null)
+                                {
+                                    newProduct.ImgAvatarPath = imgURL;
+                                }
+                                else
+                                {
+                                    return StatusCode(500, "Something wrong!");
+                                }
+                            }
+                            else
+                            {
+                                return BadRequest("Main Image is required!");
+                            }
+                        }
+                        else
+                        {
+                            newProduct.ImgAvatarPath = existedProductWithProductCodeAndColor.ImgAvatarPath;
+                        }
+                        newProduct = await _productService.AddProduct(newProduct);
+
+
+                        if (existedProductWithProductCodeAndColor is null)
+                        {
+                            var firstImgValue = productCM.ProductImages[0].ToString();
+                            var secondImgValue = productCM.ProductImages[1].ToString();
+                            var thirdImgValue = productCM.ProductImages[2].ToString();
+                            var fourthImgValue = productCM.ProductImages[3].ToString();
+                            var fifthImgValue = productCM.ProductImages[4].ToString();
+                            var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
+                                                        fourthImgValue, fifthImgValue);
+
+                            if (!isSuccess)
+                            {
+                                return StatusCode(500, "Something wrong!");
+                            }
+
+                        }
+                        else
+                        {
+                            var images = await _imageVideosService.GetAsyncs(
+                                                        _ => _.ProductId == existedProduct.Id);
+                            foreach (var image in images)
+                            {
+                                var imageObject = new ImagesVideo()
+                                {
+                                    ProductId = newProduct.Id,
+                                    ImageUrl = image.ImageUrl,
+                                    CreateAt = DateTime.Now,
+                                    VideoUrl = null,
+                                };
+                                await _imageVideosService.AddImage(imageObject);
+                            }
+
+                        }
 
                         var warehouse = new Warehouse()
                         {
@@ -536,15 +600,14 @@ namespace _2Sport_BE.Controllers
 
         [HttpPost]
         [Route("import-product-list")]
-        public async Task<IActionResult> ImportProductList(List<ProductCM> productList)
+        public async Task<IActionResult> ImportProductList([FromForm] List<ProductCM> productList)
         {
             try
             {
                 foreach (var productCM in productList)
                 {
-                    var existedProduct = (await _productService.GetProductByProductCodeAndColor
-                                                            (productCM.ProductCode,
-                                                             productCM.Color)).FirstOrDefault();
+                    var existedProduct = (await _productService.GetProductByProductCodeAndColor(productCM.ProductCode,
+                                                                                       productCM.Color)).FirstOrDefault();
 
 
                     var product = _mapper.Map<Product>(productCM);
@@ -613,7 +676,7 @@ namespace _2Sport_BE.Controllers
                                 BranchId = managerDetail.Data.BranchId,
                                 ProductId = product.Id,
                                 TotalQuantity = productCM.Quantity,
-                                AvailableQuantity = productCM.Quantity,
+                                AvailableQuantity = productCM.Quantity
                             };
                             await _warehouseService.CreateANewWarehouseAsync(warehouse);
 
@@ -630,39 +693,105 @@ namespace _2Sport_BE.Controllers
                                                                         productCM.Condition)).FirstOrDefault();
                             if (existedProductWithSizeColorCodition == null)
                             {
-                                var newProduct = existedProduct;
+                                var newProduct = new Product(existedProduct);
+                                newProduct.Id = 0;
                                 newProduct.Size = productCM.Size;
                                 newProduct.Color = productCM.Color;
                                 newProduct.Condition = productCM.Condition;
                                 newProduct.Price = productCM.Price;
-                                await _productService.AddProduct(newProduct);
+
+                                var existedProductWithProductCodeAndColor = (await _productService
+                                                                    .GetProducts(_ => _.ProductCode.Equals(existedProduct.ProductCode)
+                                                                    && _.Color.ToLower().Equals((productCM.Color.ToLower()))))
+                                                                    .FirstOrDefault();
+
+                                if (existedProductWithProductCodeAndColor is null)
+                                {
+                                    if (!string.IsNullOrEmpty(productCM.MainImage.ToString()))
+                                    {
+                                        var imgURL = await UploadAvaImgFile(productCM.MainImage.ToString());
+                                        if (imgURL != null)
+                                        {
+                                            newProduct.ImgAvatarPath = imgURL;
+                                        }
+                                        else
+                                        {
+                                            return StatusCode(500, "Something wrong!");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return BadRequest("Main Image is required!");
+                                    }
+                                }
+                                else
+                                {
+                                    newProduct.ImgAvatarPath = existedProductWithProductCodeAndColor.ImgAvatarPath;
+                                }
+                                newProduct = await _productService.AddProduct(newProduct);
+
+
+                                if (existedProductWithProductCodeAndColor is null)
+                                {
+                                    var firstImgValue = productCM.ProductImages[0].ToString();
+                                    var secondImgValue = productCM.ProductImages[1].ToString();
+                                    var thirdImgValue = productCM.ProductImages[2].ToString();
+                                    var fourthImgValue = productCM.ProductImages[3].ToString();
+                                    var fifthImgValue = productCM.ProductImages[4].ToString();
+                                    var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
+                                                                fourthImgValue, fifthImgValue);
+
+                                    if (!isSuccess)
+                                    {
+                                        return StatusCode(500, "Something wrong!");
+                                    }
+
+                                }
+                                else
+                                {
+                                    var images = await _imageVideosService.GetAsyncs(
+                                                                _ => _.ProductId == existedProduct.Id);
+                                    foreach (var image in images)
+                                    {
+                                        var imageObject = new ImagesVideo()
+                                        {
+                                            ProductId = newProduct.Id,
+                                            ImageUrl = image.ImageUrl,
+                                            CreateAt = DateTime.Now,
+                                            VideoUrl = null,
+                                        };
+                                        await _imageVideosService.AddImage(imageObject);
+                                    }
+
+                                }
+
+                                var warehouse = new Warehouse()
+                                {
+                                    BranchId = managerDetail.Data.BranchId,
+                                    ProductId = newProduct.Id,
+                                    TotalQuantity = productCM.Quantity,
+                                    AvailableQuantity = productCM.Quantity
+                                };
+                                await _warehouseService.CreateANewWarehouseAsync(warehouse);
                             }
                             else
                             {
+
                                 var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(
                                                                                         existedProductWithSizeColorCodition.Id,
                                                                                         managerDetail.Data.BranchId))
                                                                                         .FirstOrDefault();
-                                if (existedWarehouse != null)
-                                {
-                                    existedWarehouse.TotalQuantity += productCM.Quantity;
-                                    existedWarehouse.AvailableQuantity += productCM.Quantity;
-                                    await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
-                                }
-                                else
-                                {
-                                    //var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
-                                    var warehouse = new Warehouse()
-                                    {
-                                        BranchId = managerDetail.Data.BranchId,
-                                        ProductId = existedProductWithSizeColorCodition.Id,
-                                        TotalQuantity = productCM.Quantity,
-                                        AvailableQuantity = productCM.Quantity,
-                                    };
-                                    await _warehouseService.CreateANewWarehouseAsync(warehouse);
-                                }
+
+                                existedWarehouse.TotalQuantity += productCM.Quantity;
+                                existedWarehouse.AvailableQuantity += productCM.Quantity;
+                                await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
                             }
 
+                        }
+
+                        if (existedProduct != null)
+                        {
+                            product = existedProduct;
                         }
 
                         //Save import history
@@ -674,7 +803,7 @@ namespace _2Sport_BE.Controllers
                             ProductName = product.ProductName,
                             ProductCode = product.ProductCode,
                             Price = product.Price,
-                            RentPrice =  product.RentPrice,
+                            RentPrice = product.RentPrice,
                             Color = product.Color,
                             Size = product.Size,
                             Condition = product.Condition,
@@ -684,6 +813,7 @@ namespace _2Sport_BE.Controllers
                         };
                         await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
 
+                        return Ok("Add product successfully!");
                     }
 
                     catch (Exception e)
