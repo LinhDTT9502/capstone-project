@@ -66,14 +66,15 @@ namespace _2Sport_BE.Controllers
                 var comment = _mapper.Map<CommentCM, Comment>(commentCM);
                 var isSuccess = await _commentService.AddComment(currUserId, productId, comment);
 
-
+                var coordinators = await _userService.GetUserWithConditionAsync(_ => _.RoleId == 16);
                 if (isSuccess == 1)
                 {
                     var product = (await _unitOfWork.ProductRepository.FindAsync(productId));
-                    var isSuccessNotify = await _notificationService.NotifyForComment(currUserId, product);
+                    var isSuccessNotify = await _notificationService.NotifyForComment(currUserId, 
+                                                                    coordinators.ToList(), product);
                     if (!isSuccessNotify)
                     {
-                        return StatusCode(500, "Notify to admin failed!");
+                        return StatusCode(500, "Notify to coordinator failed!");
                     }
                     return Ok("Add comment successfully!");
                 }
@@ -93,7 +94,8 @@ namespace _2Sport_BE.Controllers
 
         [HttpPost]
         [Route("reply-comment/{productId}")]
-        public async Task<IActionResult> ReplyComment(int productId, [FromQuery]int parentCommentId, CommentCM commentCM)
+        public async Task<IActionResult> ReplyComment(int productId, [FromQuery]int parentCommentId, 
+                                                            CommentCM commentCM)
         {
             try
             {
@@ -105,8 +107,8 @@ namespace _2Sport_BE.Controllers
                 if (isSuccess == 1)
                 {
                     var product = (await _unitOfWork.ProductRepository.FindAsync(productId));
-                    var isSuccessNotify = await _notificationService.NotifyForReplyComment(currAdminId, 
-                                                                            currUserId.ToString(), product);
+                    var isSuccessNotify = await _notificationService
+                                            .NotifyForReplyComment(currUserId.ToString(), product);
                     if (!isSuccessNotify)
                     {
                         return StatusCode(500, "Notify to admin failed!");
