@@ -112,7 +112,7 @@ const ProductDetails = () => {
   if (error) {
     return <div>{t("product_details.error")}</div>;
   }
-
+y
   return (
     <div className="container mx-auto px-4 md:px-20 py-10 bg-white rounded-lg shadow-lg">
       {product && (
@@ -122,7 +122,7 @@ const ProductDetails = () => {
               <img
                 src={displayImage}
                 alt={product.imgAvatarName || "Product Image"}
-                className="w-full-2 object-contain rounded-lg"
+                className="w-full object-contain rounded-lg"
               />
               <div className="flex flex-wrap mt-4 gap-2">
                 {product.listImages?.$values.map((image, index) => (
