@@ -112,7 +112,7 @@ const ProductDetails = () => {
   if (error) {
     return <div>{t("product_details.error")}</div>;
   }
-y
+
   return (
     <div className="container mx-auto px-4 md:px-20 py-10 bg-white rounded-lg shadow-lg">
       {product && (

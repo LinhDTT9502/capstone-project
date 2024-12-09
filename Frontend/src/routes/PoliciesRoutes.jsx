@@ -5,6 +5,7 @@ import PaymentPolicyPage from '../pages/PaymentPolicyPage';
 import MembershipPolicyPage from '../pages/MembershipPolicyPage';
 import SecondHandRentalsPolicyPage from '../pages/SecondHandRentalsPolicyPage';
 import ShippingPolicyPage from '../pages/ShippingPolicyPage';
+import PrivacyPolicyPage from "../pages/Policies/PrivacyPolicyPage";
 // import other policy pages
 
 function PoliciesRoutes() {
