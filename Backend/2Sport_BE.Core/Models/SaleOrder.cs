@@ -99,6 +99,6 @@ public class SaleOrder
     public virtual PaymentMethod PaymentMethod { get; set; }
     public virtual User User { get; set; }
     public virtual Branch Branch { get; set; }
-    public virtual ICollection<RefundRequest> Refunds { get; set; }
+    public virtual ICollection<RefundRequest> RefundRequests { get; set; }
     #endregion
 }

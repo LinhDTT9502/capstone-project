@@ -22,10 +22,5 @@ namespace _2Sport_BE.Service.Enums
         INSPECTING = 11,        // Đang kiểm tra sản phẩm
         CLOSED = 12,            // Đơn thuê đã kết thúc
         FAILED = 13,          // Xử lý đơn thất bại,
-        EXTENDING = 14,          // Đang gia hạn
-        EXTENDED = 15,         
-        FAILED_EXTENSION = 16,       
-
-
     }
 }

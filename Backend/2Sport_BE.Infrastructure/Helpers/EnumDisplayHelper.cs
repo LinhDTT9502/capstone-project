@@ -41,7 +41,6 @@ namespace _2Sport_BE.Service.Helpers
         { RentalOrderStatus.SHIPPED, "Đã giao hàng" },
         { RentalOrderStatus.DELAYED, "Bị trì hoãn" },
         { RentalOrderStatus.COMPLETED, "Đã hoàn tất thuê" },
-        { RentalOrderStatus.EXTENDING, "Đang gia hạn" },
         { RentalOrderStatus.AWAITING_PICKUP, "Chờ nhận hàng" },
         { RentalOrderStatus.RETURN_REQUESTED, "Yêu cầu trả sản phẩm" },
         { RentalOrderStatus.RETURNED, "Đã trả sản phẩm" },
@@ -64,7 +63,11 @@ namespace _2Sport_BE.Service.Helpers
         { MemberLevel.Normal_Member, "Thành viên thường" },
         { MemberLevel.Silver_Member, "Thành viên bạc" },
         { MemberLevel.Gold_Member, "Thành viên vàng" },
-        { MemberLevel.Diamond_Member, "Thành viên kim cương" }
+        { MemberLevel.Diamond_Member, "Thành viên kim cương" },
+
+        {ExtensionRequestStatus.PENDING, "Đang chờ xử lý"},
+        {ExtensionRequestStatus.APPROVED, "Chấp nhận yêu cầu gia hạn"},
+        {ExtensionRequestStatus.REJECTED, "Từ chối yêu cầu gia hạn"},
     };
 
         public static string GetDisplayName(Enum enumValue)

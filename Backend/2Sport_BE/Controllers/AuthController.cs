@@ -184,42 +184,6 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        //Login Facebook chua xong     
-        [HttpGet("signin-facebook")]
-        public IActionResult FaceBookLogin()
-        {
-            var redirectUrl = Url.Action("FacebookResponse", "Auth");
-            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
-            return Challenge(properties, FacebookDefaults.AuthenticationScheme);
-        }
-        [HttpGet("facebook-response")]
-        public async Task<IActionResult> FacebookResponse()
-        {
-            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            if (!result.Succeeded)
-                return BadRequest();
-            // Lấy thông tin người dùng
-            var claims = result.Principal.Identities
-                .FirstOrDefault()?.Claims.Select(claim => new
-                {
-                    claim.Type,
-                    claim.Value
-                });
-            var email = result.Principal.FindFirstValue(ClaimTypes.Email);
-            var name = result.Principal.FindFirstValue(ClaimTypes.GivenName) ??
-                                   result.Principal.FindFirstValue(ClaimTypes.Name);
-            var lastName = result.Principal.FindFirstValue(ClaimTypes.Surname);
-
-
-            return Ok(new
-            {
-                Email = email,
-                Name = name,
-                LastName = lastName,
-                Claims = claims
-            });
-        }
-
         [HttpPost("forgot-password-request")]
         public async Task<IActionResult> SendResetPasswordEmail([FromBody] SendEmailRequest request)
         {

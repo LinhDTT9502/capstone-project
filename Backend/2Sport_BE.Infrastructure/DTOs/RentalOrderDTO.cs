@@ -88,9 +88,6 @@ namespace _2Sport_BE.Infrastructure.DTOs
     }
     public class RentalOrderVM
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [Column("Id")]
         public int Id { get; set; }
 
         #region BranchInformation
@@ -147,7 +144,6 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         public int RentalDays { get; set; }
 
-
         public decimal? SubTotal { get; set; }
 
         public decimal? TranSportFee { get; set; }
@@ -168,25 +164,26 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         public string? DepositStatus { get; set; }
 
-        public decimal? DepositAmount { get; set; } = decimal.Zero;
+        public decimal? DepositAmount { get; set; }
         #endregion
 
         #region ReturnInformation
-        public DateTime? ReturnDate { get; set; } = null;
+        public DateTime? ReturnDate { get; set; }
 
-        public decimal? LateFee { get; set; } = decimal.Zero;
+        public decimal? LateFee { get; set; }
 
-        public decimal? DamageFee { get; set; } = decimal.Zero;
+        public decimal? DamageFee { get; set; }
 
-        public bool? IsRestocked { get; set; } = false;
+        public bool? IsRestocked { get; set; }
 
-        public bool? IsInspected { get; set; } = false;
+        public bool? IsInspected { get; set; }
 
-        public bool? IsExtended { get; set; } = false;
+        public bool? IsExtended { get; set; }
 
-        public int? ExtensionDays { get; set; } = 0;
+        public int? ExtensionDays { get; set; }
 
-        public decimal? ExtensionCost { get; set; } = decimal.Zero;
+        public decimal? ExtensionCost { get; set; }
+        public string? ExtensionStatus { get; set; }
         #endregion
 
         #region AuditInformation
@@ -197,9 +194,11 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public string? PaymentLink { get; set; }
         public List<RentalOrderVM>? childOrders { get; set; }
     }
-    public class ExtendRentalModel
+    public class ExtensionRequestModel
     {
-        public int ChildOrderId { get; set; }
+        public int ParentOrderId { get; set; }
+        public int? ChildOrderId { get; set; }
         public int ExtensionDays { get; set; }
+
     }
 }

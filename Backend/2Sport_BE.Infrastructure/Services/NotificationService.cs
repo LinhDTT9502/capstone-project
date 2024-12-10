@@ -4,6 +4,7 @@ using _2Sport_BE.Infrastructure.Hubs;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -20,6 +21,12 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<Notification>> UpdateNotificationStatus(int notificationId, bool isRead);
         Task<bool> NotifyForComment(int userId, Product product);
         Task<bool> NotifyForReplyComment(int currAdminId, string currUserId, Product product);
+        Task NotifyForExtensionRequestAsync(string parentOrderCode, string childOrderCode, int? brachId = null);
+
+        Task NotifyForRejectExtensionRequestAsync(string orderCode, int userId, string reason);
+        Task SendNoifyToUser(int userId, int branchId, string message);
+        Task NotifyToGroupAsync(string message, int? branchId = null);
+
     }
     public class NotificationService : INotificationService
     {
@@ -33,8 +40,8 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task NotifyForCreatingNewOrderAsync(string orderCode, bool isRentalOrder, int? branchId = null)
         {
             var message = isRentalOrder
-                ? $"Đơn hàng thuê có mã là T-{orderCode} vừa được tạo."
-                : $"Đơn hàng có mã là S-{orderCode} vừa được tạo.";
+                ? $"Đơn hàng thuê T-{orderCode} vừa được tạo."
+                : $"Đơn hàng bán S-{orderCode} vừa được tạo.";
 
             List<int> userIdList = new List<int>();
 
@@ -128,7 +135,7 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             string message = isRentalOrder
                 ? $"Thanh toán cho đơn hàng thuê T-{orderCode} đã bị hủy."
-                : $"Thanh toán cho đơn hàng S-{orderCode} đã bị hủy.";
+                : $"Thanh toán cho đơn hàng bán S-{orderCode} đã bị hủy.";
 
             try
             {
@@ -187,7 +194,7 @@ namespace _2Sport_BE.Infrastructure.Services
             // Xây dựng thông báo dựa trên loại đơn hàng
             string message = isRentalOrder
                 ? $"Thanh toán cho đơn hàng thuê T-{orderCode} thành công."
-                : $"Thanh toán cho đơn hàng S-{orderCode} thành công.";
+                : $"Thanh toán cho đơn hàng bán S-{orderCode} thành công.";
 
             try
             {
@@ -366,6 +373,181 @@ namespace _2Sport_BE.Infrastructure.Services
                 return false;
             }
 
+        }
+
+        public async Task NotifyForExtensionRequestAsync(string parentOrderCode, string? childOrderCode = null, int? branchId = null)
+        {
+            var message = $"Đơn hàng thuê T-{parentOrderCode} yêu cầu gia hạn.";
+            if(childOrderCode != null)
+            {
+                message = $"Đơn hàng thuê T-{childOrderCode} yêu cầu gia hạn.";
+            }
+            List<int> userIdList = new List<int>();
+
+            try
+            {
+                if (branchId.HasValue)
+                {
+                    var staffs = await _unitOfWork.StaffRepository.GetAsync(s => s.BranchId == branchId);
+                    var managers = await _unitOfWork.ManagerRepository.GetAsync(m => m.BranchId == branchId);
+
+                    if (staffs != null && staffs.Any())
+                    {
+                        userIdList.AddRange(staffs.Select(s => s.UserId.Value));
+                    }
+
+                    if (managers != null && managers.Any())
+                    {
+                        userIdList.AddRange(managers.Select(m => m.UserId.Value));
+                    }
+
+                    await _notificationHub.SendMessageToGroup($"Branch_{branchId}", message);
+                }
+                if (userIdList.Any())
+                {
+                    var notifications = userIdList.Select(userId => new Notification
+                    {
+                        UserId = userId,
+                        Message = message,
+                        Type = "Extension request Noti",
+                        CreatedAt = DateTime.UtcNow,
+                        IsRead = false
+                    }).ToList();
+
+                    await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
+        public async Task NotifyForRejectExtensionRequestAsync(string orderCode, int userId, string reason)
+        {
+            var message = $"Đơn hàng thuê T-{orderCode} bị từ chối yêu cầu gia hạn. ";
+
+            try
+            {
+                if (userId != null)
+                {
+                    var user = await _unitOfWork.UserRepository.GetObjectAsync(s => s.Id == userId);
+                    if (user != null) 
+                    await _notificationHub.SendNotificationToCustomer(user.Id.ToString(), message);
+
+                    var notifications = new Notification
+                    {
+                        UserId = userId,
+                        Message = message + "Lý do: " + reason,
+                        Type = "Extension request rej Noti",
+                        CreatedAt = DateTime.UtcNow,
+                        IsRead = false
+                    };
+                    await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
+        public async Task SendNoifyToUser(int userId,int branchId, string message)
+        {
+            try
+            {
+                List<int> userIdList = new List<int>();
+
+                if (branchId != null)
+                {
+                    var staffs = await _unitOfWork.StaffRepository.GetAsync(s => s.BranchId == branchId);
+                    var managers = await _unitOfWork.ManagerRepository.GetAsync(m => m.BranchId == branchId);
+
+                    if (staffs != null && staffs.Any())
+                    {
+                        userIdList.AddRange(staffs.Select(s => s.UserId.Value));
+                    }
+
+                    if (managers != null && managers.Any())
+                    {
+                        userIdList.AddRange(managers.Select(m => m.UserId.Value));
+                    }
+
+                    await _notificationHub.SendMessageToGroup($"Branch_{branchId}", message);
+                }
+                if (userId != null)
+                {
+                    var user = await _unitOfWork.UserRepository.GetObjectAsync(s => s.Id == userId);
+                    if (user != null)
+                        await _notificationHub.SendNotificationToCustomer(user.Id.ToString(), message);
+
+                    var notifications = new Notification
+                    {
+                        UserId = userId,
+                        Message = message,
+                        Type = "Normal",
+                        CreatedAt = DateTime.UtcNow,
+                        IsRead = false
+                    };
+                    await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+        public async Task NotifyToGroupAsync(string message, int? branchId = null)
+        {
+            List<int> userIdList = new List<int>();
+            try
+            {
+                if (branchId.HasValue)
+                {
+                    var staffs = await _unitOfWork.StaffRepository.GetAsync(s => s.BranchId == branchId);
+                    var managers = await _unitOfWork.ManagerRepository.GetAsync(m => m.BranchId == branchId);
+
+                    if (staffs != null && staffs.Any())
+                    {
+                        userIdList.AddRange(staffs.Select(s => s.UserId.Value));
+                    }
+
+                    if (managers != null && managers.Any())
+                    {
+                        userIdList.AddRange(managers.Select(m => m.UserId.Value));
+                    }
+
+                    await _notificationHub.SendMessageToGroup($"Branch_{branchId}", message);
+                }
+                else
+                {
+                    var coordinators = await _unitOfWork.UserRepository.GetAsync(u => u.RoleId == (int)UserRole.OrderCoordinator);
+                    if (coordinators != null && coordinators.Any())
+                    {
+                        userIdList.AddRange(coordinators.Select(c => c.Id));
+                    }
+
+                    await _notificationHub.SendMessageToGroup("Coordinator", message);
+                }
+
+                if (userIdList.Any())
+                {
+                    var notifications = userIdList.Select(userId => new Notification
+                    {
+                        UserId = userId,
+                        Message = message,
+                        Type = "Created Order Noti",
+                        CreatedAt = DateTime.UtcNow,
+                        IsRead = false
+                    }).ToList();
+
+                    await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
     }
 }

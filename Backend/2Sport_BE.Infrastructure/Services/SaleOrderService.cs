@@ -592,41 +592,53 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task<ResponseDTO<int>> DeleteSaleOrderAsync(int id)
         {
             var response = new ResponseDTO<int>();
-            try
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
-                var SaleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == id);
-                if (SaleOrder == null)
+                try
                 {
-                    response.IsSuccess = false;
-                    response.Message = $"SaleOrder with id = {id} is not found!";
-                    response.Data = 0;
-                    return response;
-                }
-                else
-                {
-                    var deleteItem = await _orderDetailService.DeleteOrderDetailsByOrderId(SaleOrder.Id);
-                    if (deleteItem)
-                    {
-                        await _unitOfWork.SaleOrderRepository.DeleteAsync(id);
-                        response.IsSuccess = true;
-                        response.Message = $"Remove SaleOrder with id = {id} successfully";
-                        response.Data = 1;
-                    }
-                    else
+                    var SaleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == id, new string[] { "OrderDetails", "RefundRequests" });
+                    if (SaleOrder == null)
                     {
                         response.IsSuccess = false;
-                        response.Message = $"Remove SaleOrder with id = {id} failed";
+                        response.Message = $"SaleOrder with id = {id} is not found!";
                         response.Data = 0;
-                    }                
+                        return response;
+                    }
+                    else if (SaleOrder.RefundRequests.Count > 0)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = $"SaleOrder with id = {id} has refund requests. Delete failed!";
+                        response.Data = 0;
+                        return response;
+                    }
+
+                    if (SaleOrder.OrderDetails.Any())
+                    {
+                        foreach (var orderDetail in SaleOrder.OrderDetails.ToList())
+                        {
+                            await _unitOfWork.OrderDetailRepository.DeleteAsync(orderDetail);
+                        }
+                    }
+
+                    await _unitOfWork.SaleOrderRepository.DeleteAsync(SaleOrder);
+
+                    await _unitOfWork.SaveChanges();
+                    await transaction.CommitAsync();
+
+                    response.IsSuccess = true;
+                    response.Message = $"Remove SaleOrder with id = {id} successfully";
+                    response.Data = 1;
                 }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    response.IsSuccess = false;
+                    response.Message = ex.Message;
+                }
             }
             return response;
         }
+
         #region CRUD_SALE_ORDER_BASIC
         public async Task<SaleOrder> FindSaleOrderById(int orderId)
         {

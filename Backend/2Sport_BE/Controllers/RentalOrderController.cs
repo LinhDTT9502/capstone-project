@@ -103,17 +103,6 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(response);
         }
-        /*        [HttpGet]
-                [Route("get-orders-by-date-and-status")]
-                public async Task<IActionResult> GetOrdersByOrderCode(DateTime startDate, DateTime endDate, int status)
-                {
-                    var response = await _orderService.GetOrdersByMonthAndStatus(startDate, endDate, status);
-                    if (response.IsSuccess)
-                    {
-                        return Ok(response);
-                    }
-                    return BadRequest(response);
-                }*/
         [HttpPost("create")]
         public async Task<IActionResult> AddRentalOrder([FromBody] RentalOrderCM rentalOrderCM)
         {
@@ -134,21 +123,6 @@ namespace _2Sport_BE.Controllers
                     await _cartItemService.DeleteCartItem(item.CartItemId.Value);
                 }
             }
-            return Ok(response);
-        }
-        [HttpPut("request-extend")]
-        public async Task<IActionResult> RequestExtendRentalPeriod([FromBody] ExtendRentalModel extendRentalModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Invalid request data.");
-            }
-            var response = await _rentalOrderServices.ProcessExtendRentalPeriod(extendRentalModel);
-            if (!response.IsSuccess)
-            {
-                return StatusCode(500, response);
-            }
-
             return Ok(response);
         }
         [HttpPut("update")]
@@ -179,7 +153,14 @@ namespace _2Sport_BE.Controllers
             }
             return Ok(response);
         }
-
+        [HttpPost("request-cancel/{rentalOrderId}")]
+        public async Task<IActionResult> RequestExtension(int rentalOrderId)
+        {
+            var result = await _rentalOrderServices.CancelRentalOrderAsync(rentalOrderId);
+            if (result.IsSuccess)
+                return Ok(result);
+            return BadRequest(result);
+        }
         [HttpPut("update-rental-order-status")]
         public async Task<IActionResult> EditRentalOrderStatus(int orderId, int status)
         {
@@ -191,68 +172,7 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(response);
         }
-        /*        [HttpGet]
-                [Route("revenue-summary")]
-                public async Task<IActionResult> GetSalesOrdersByStatus([FromQuery] DateTime? startDate,
-                                                                        [FromQuery] DateTime? endDate,
-                                                                        [FromQuery] int? status)
-                {
-                    try
-                    {
-                        var query = await _orderService.GetAllSaleOrderQueryableAsync();
-                        if (startDate.HasValue)
-                        {
-                            query = query.Where(o => o.CreatedAt >= startDate.Value);
-                        }
-                        if (endDate.HasValue)
-                        {
-                            query = query.Where(o => o.CreatedAt <= endDate.Value);
-                        }
-
-                        // Lọc theo trạng thái đơn hàng
-                        if (status.HasValue)
-                        {
-                            query = query.Where(o => o.OrderStatus == status.Value);
-                        }
-
-                        var totalRevenue = await query.SumAsync(o => o.TotalAmount);
-                        var totalOrders = await query.CountAsync();
-
-                        decimal totalRevenueInMonth = (decimal)query.Sum(_ => _.TotalAmount);
-                        int ordersInMonth = query.Count();
-                        int ordersInLastMonth = 1;
-                        bool isIncrease;
-                        double orderGrowthRatio = PercentageChange(ordersInMonth, ordersInLastMonth, out isIncrease);
-
-                        SaleOrdersSales ordersSales = new SaleOrdersSales
-                        {
-                            SaleOrderGrowthRatio = totalOrders,
-                            TotalIntoMoney = totalRevenue,
-                            TotalSaleOrders = 0,
-                            IsIncrease = true
-                        };
-
-                        ResponseModel<SaleOrdersSales> response = new ResponseModel<SaleOrdersSales>
-                        {
-                            IsSuccess = true,
-                            Message = "Query Successfully",
-                            Data = ordersSales
-                        };
-
-                        return Ok(response);
-                    }
-                    catch (Exception ex)
-                    {
-                        ResponseModel<OrdersSales> response = new ResponseModel<OrdersSales>
-                        {
-                            IsSuccess = false,
-                            Message = "Something went wrong: " + ex.Message,
-                            Data = null
-                        };
-                        return BadRequest(response);
-                    }
-                }*/
-
+  
         [HttpPut]
         [Route("assign-branch")]
         public async Task<IActionResult> AssignBranch(int orderId, int branchId)
@@ -295,6 +215,31 @@ namespace _2Sport_BE.Controllers
             var response = await _rentalOrderServices.DeleteRentalOrderAsync(orderId);
             if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
+        }
+
+        [HttpPost("request-extension/{rentalOrderId}")]
+        public async Task<IActionResult> RequestExtension(ExtensionRequestModel model)
+        {
+            var result = await _rentalOrderServices.RequestExtensionAsync(model);
+            if (result.IsSuccess)
+                return Ok(result);
+            return BadRequest(result);
+        }
+        [HttpPost("approve-extension/{rentalOrderId}")]
+        public async Task<IActionResult> ApproveExtension(string rentalOrderCode)
+        {
+            var result = await _rentalOrderServices.ApproveExtensionAsync(rentalOrderCode);
+            if (result.IsSuccess)
+                return Ok(result);
+            return BadRequest(result);
+        }
+        [HttpPost("reject-extension/{rentalOrderId}")]
+        public async Task<IActionResult> RejectExtension(string rentalOrderCode, [FromBody] string rejectionReason)
+        {
+            var result = await _rentalOrderServices.RejectExtensionAsync(rentalOrderCode, rejectionReason);
+            if (result.IsSuccess)
+                return Ok(result);
+            return BadRequest(result);
         }
 
     }

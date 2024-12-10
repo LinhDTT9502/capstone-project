@@ -11,6 +11,11 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using MailKit.Search;
 using _2Sport_BE.Service.Helpers;
 using StackExchange.Redis;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.Ocsp;
+using Pipelines.Sockets.Unofficial.Arenas;
+using Microsoft.CodeAnalysis.Semantics;
 
 
 namespace _2Sport_BE.Infrastructure.Services
@@ -30,7 +35,6 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<int>> UpdateRentalOrderStatusAsync(int orderId, int status);
         Task<ResponseDTO<int>> DeleteRentalOrderAsync(int rentalOrderId);
         Task<ResponseDTO<int>> CancelRentalOrderAsync(int orderId);
-        Task<ResponseDTO<RentalOrderVM>> ProcessExtendRentalPeriod(ExtendRentalModel extendRentalModel);
         Task<ResponseDTO<RentalOrderVM>> ReturnOrder(ParentOrderReturnModel rentalInfor);
 
         Task<RentalOrder> FindRentalOrderByOrderCode(string orderCode);
@@ -47,6 +51,9 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<int>> UpdateBranchForRentalOrder(int orderId, int branchId);
         Task<ResponseDTO<RentalOrderVM>> ApproveRentalOrderAsync(int orderId);
         Task<ResponseDTO<RentalOrderVM>> RejectRentalOrderAsync(int orderId);
+        Task<ResponseDTO<int>> RequestExtensionAsync(ExtensionRequestModel extensionRequest);
+        Task<ResponseDTO<int>> ApproveExtensionAsync(string rentalOrderCode);
+        Task<ResponseDTO<int>> RejectExtensionAsync(string rentalOrderCode, string rejectionReason);
     }
 
     public class RentalOrderService : IRentalOrderService
@@ -213,6 +220,9 @@ namespace _2Sport_BE.Infrastructure.Services
             rentalOrderVM.PaymentStatus = rentalOrder.PaymentStatus != null
                 ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(rentalOrder.PaymentStatus.Value)
                 : "N/A";
+            rentalOrderVM.ExtensionStatus = rentalOrder.ExtensionStatus != null
+               ? EnumDisplayHelper.GetEnumDescription<ExtensionRequestStatus>(rentalOrder.ExtensionStatus.Value)
+               : "N/A";
             rentalOrderVM.DeliveryMethod = _deliveryMethodService.GetDescription(rentalOrder.DeliveryMethod);
         }
 
@@ -548,8 +558,21 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<int>();
             try
             {
-                var toDelete = await _unitOfWork.RentalOrderRepository.GetObjectAsync(_ => _.Id == rentalOrderId);
-                
+                var toDelete = await _unitOfWork.RentalOrderRepository.GetObjectAsync(_ => _.Id == rentalOrderId, "RefundRequests");
+                if(toDelete == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"SaleOrder with id = {rentalOrderId} is not found!";
+                    response.Data = 0;
+                    return response;
+                }
+                if(toDelete.RefundRequests.Count > 0)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"SaleOrder with id = {rentalOrderId} has refund requests. Deleted fail!";
+                    response.Data = 0;
+                    return response;
+                }
                 if (toDelete != null)
                 {
                     var childs = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode == toDelete.RentalOrderCode);
@@ -832,49 +855,37 @@ namespace _2Sport_BE.Infrastructure.Services
                 var order = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
                 if (order is null)
                 {
-
+                    response.IsSuccess = false;
+                    response.Message = $"Order is not found!";
+                    response.Data = 0;
+                }
+                else if (order.OrderStatus != (int)OrderStatus.PENDING)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"Order cannot canceled now!";
+                    response.Data = 0;
                 }
                 else
                 {
                     order.OrderStatus = (int)OrderStatus.CANCELLED;
                     await _unitOfWork.RentalOrderRepository.UpdateAsync(order);
-                    //Thong bao den truc page
+                    await _notificationService.NotifyToGroupAsync($"Đơn hàn T-{order.RentalOrderCode} bị hủy bởi khách hàng", order.BranchId);
 
+                    response.IsSuccess = true;
+                    response.Message = $"Order is canceled successfully!";
+                    response.Data = 1;
                 }
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-            throw new NotImplementedException();
-        }
-
-        public async Task<ResponseDTO<RentalOrderVM>> ProcessExtendRentalPeriod(ExtendRentalModel extendRental)
-        {
-            var response = new ResponseDTO<RentalOrderVM>();
-            try
-            {
-                var rentalOrder = _unitOfWork.RentalOrderRepository.FindObject(o => o.Id == extendRental.ChildOrderId);
-                if (rentalOrder is null) return GenerateErrorResponse("The order are not found");
-
-                rentalOrder.IsExtended = true;
-                rentalOrder.ExtensionDays = extendRental.ExtensionDays;
-                rentalOrder.RentalEndDate = rentalOrder.RentalEndDate.Value.AddDays(extendRental.ExtensionDays);
-                rentalOrder.ExtensionCost = CalculateExtensionCost(extendRental.ExtensionDays, rentalOrder);
-                rentalOrder.TotalAmount = rentalOrder.TotalAmount + rentalOrder.ExtensionCost.Value;
-
-                await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
-
-                response = GenerateSuccessResponse(rentalOrder, null, "Created Application for extension");
+                return response;
             }
             catch (Exception ex)
             {
-                response = GenerateErrorResponse(ex.Message);
-            }
-            return response;
-        }
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                response.Data = 0;
 
+                return response;
+            }
+        }
         public async Task<ResponseDTO<RentalOrderVM>> ReturnOrder(ParentOrderReturnModel rentalInfor)
         {
             var parentOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id.Equals(rentalInfor.ParentOrderId));
@@ -921,7 +932,6 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = GenerateSuccessResponse(parentOrder, childOrders.ToList(), "Updated Succesfully");
             return response;
         }
-
         public async Task<ResponseDTO<List<RentalOrderVM>>> GetRentalOrderByParentCodeAsync(string parentCode)
         {
             var response = new ResponseDTO<List<RentalOrderVM>>();
@@ -1237,6 +1247,215 @@ namespace _2Sport_BE.Infrastructure.Services
                 response.Message = $"Error: {ex.Message}";
 
             }
+            return response;
+        }
+
+        public async Task<ResponseDTO<int>> RequestExtensionAsync(ExtensionRequestModel extensionRequest)
+        {
+            var parent = await _unitOfWork.RentalOrderRepository.GetObjectAsync(r => r.Id == extensionRequest.ParentOrderId);
+            if (parent == null)
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = false,
+                    Message = "Order not found."
+                };
+
+            if (parent.OrderStatus < (int)OrderStatus.SHIPPED)
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = false,
+                    Message = "Order's status does not meet extension requirements."
+                };
+
+            var extensionDays = extensionRequest.ExtensionDays;
+            if (extensionRequest.ChildOrderId != null)
+            {
+                var child = await _unitOfWork.RentalOrderRepository.GetObjectAsync(r => r.Id == extensionRequest.ChildOrderId);
+                if (child.ExtensionStatus == (int)ExtensionRequestStatus.PENDING)
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "An extension request is already pending."
+                    };
+
+                if (child.OrderStatus < (int)OrderStatus.SHIPPED)
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "Order's status does not meet extension requirements."
+                    };
+
+
+                child.ExtensionStatus = (int)ExtensionRequestStatus.PENDING;
+                child.ExtensionDays = extensionDays;
+
+                await _unitOfWork.RentalOrderRepository.UpdateAsync(child);
+                await _unitOfWork.SaveChanges();
+
+                await _notificationService.NotifyForExtensionRequestAsync(parent.RentalOrderCode, child.ParentOrderCode, child.BranchId ?? parent.BranchId);
+
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = true,
+                    Message = "Extension request submitted successfully.",
+                    Data = 1
+                };
+            }
+            else
+            {
+                if (parent.ExtensionStatus == (int)ExtensionRequestStatus.PENDING)
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "An extension request is already pending."
+                    };
+
+                parent.ExtensionStatus = (int)ExtensionRequestStatus.PENDING;
+                parent.ExtensionDays = extensionRequest.ExtensionDays;        
+
+                await _unitOfWork.RentalOrderRepository.UpdateAsync(parent);
+                await _unitOfWork.SaveChanges();
+
+                await _notificationService.NotifyForExtensionRequestAsync(parent.RentalOrderCode, null, parent.BranchId);
+
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = true,
+                    Message = "Extension request submitted successfully.",
+                    Data = 1
+                };
+            }
+        }
+
+        public async Task<ResponseDTO<int>> ApproveExtensionAsync(string rentalOrderCode)
+        {
+            try
+            {
+                var rentalOrder = await _unitOfWork.RentalOrderRepository
+                    .GetObjectAsync(r => r.RentalOrderCode == rentalOrderCode);
+
+                if (rentalOrder == null)
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "Order not found."
+                    };
+
+                if (rentalOrder.ExtensionStatus != (int)ExtensionRequestStatus.PENDING)
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "No pending extension request found."
+                    };
+
+                rentalOrder.ExtensionStatus = (int)ExtensionRequestStatus.APPROVED;
+                rentalOrder.IsExtended = true;
+
+                rentalOrder.ExtendedDueDate = rentalOrder.RentalEndDate.Value.AddDays(rentalOrder.ExtensionDays.Value);
+                rentalOrder.ExtensionCost = rentalOrder.RentPrice * rentalOrder.ExtensionDays * rentalOrder.Quantity;
+
+                await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
+
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = true,
+                    Message = "Extension request approved successfully.",
+                    Data = 1
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = false,
+                    Message = $"An error occurred while processing the extension request: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ResponseDTO<int>> RejectExtensionAsync(string rentalOrderCode, string rejectionReason)
+        {
+            try
+            {
+                var rentalOrder = await _unitOfWork.RentalOrderRepository
+                    .GetObjectAsync(r => r.RentalOrderCode == rentalOrderCode);
+
+                if (rentalOrder == null)
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "Order not found."
+                    };
+
+                if (rentalOrder.ExtensionStatus != (int)ExtensionRequestStatus.PENDING)
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "No pending extension request found."
+                    };
+
+                rentalOrder.ExtensionStatus = (int)ExtensionRequestStatus.REJECTED;
+                rentalOrder.IsExtended = false; 
+
+                rentalOrder.ExtendedDueDate = null;
+
+                await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
+                if(rentalOrder.UserId != null || rentalOrder.UserId.Value > 0)
+                {
+                    await _notificationService
+                        .NotifyForRejectExtensionRequestAsync(rentalOrder.RentalOrderCode, rentalOrder.UserId.Value, rejectionReason);
+                }
+                
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = true,
+                    Message = "Extension request rejected successfully.",
+                    Data = 1
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = false,
+                    Message = $"An error occurred while processing the extension rejection: {ex.Message}"
+                };
+            }
+        }
+        public async Task<ResponseDTO<List<RentalOrderVM>>> GetRentalOrdersByBranchAndExtensionStatus(int branchId, int extensionStatus)
+        {
+            var response = new ResponseDTO<List<RentalOrderVM>>();
+
+            try
+            {
+                var orders = await _unitOfWork.RentalOrderRepository
+                    .GetAsync(o => o.UserId == branchId && o.ExtensionStatus.Value == extensionStatus);
+
+                if (orders != null && orders.Any())
+                {
+                    var resultList = orders.Select(rentalOrder =>
+                    {
+                        var result = _mapper.Map<RentalOrderVM>(rentalOrder);
+                        MapToRentalOrderVM(rentalOrder, result);
+                        return result;
+                    }).ToList();
+
+                    response.IsSuccess = true;
+                    response.Message = "Orders retrieved successfully";
+                    response.Data = resultList;
+                }
+                else
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"No orders found";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = $"Error: {ex.Message}";
+            }
+
             return response;
         }
     }
