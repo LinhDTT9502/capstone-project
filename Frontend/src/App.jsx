@@ -25,16 +25,11 @@ import MembershipPolicyPage from './pages/Policies/MembershipPolicyPage';
 import SecondHandRentalsPolicyPage from './pages/Policies/SecondHandRentalsPolicyPage';
 import ShippingPolicyPage from './pages/Policies/ShippingPolicyPage';
 
-import Dashboard from './components/Admin/Dashboard';
-import ManageUser from './components/Admin/ManageUser';
 import ContactUs from './pages/ContactUs';
 import AboutUs from './pages/AboutUs';
 import OrderSuccess from './components/Payment/OrderSuccess';
 import OrderCancel from './components/Payment/OrderCancel';
-import SidebarStaff from './layouts/SidebarStaff';
-import Warehouse from './components/Staff/Warehouse'
 import PrivateRoute from './components/PrivateRoute';
-import AdminRoutes from './routes/AdminRoutes';
 import PlacedOrder from './components/Order/PlacedOrder';
 import Cart from './pages/Cart';
 import GuestOrder from './pages/GuestOrder';
@@ -55,8 +50,7 @@ import PaymentSuccessV2 from './pages/AfterPayment/PaymentSuccessV2';
 function App() {
   
   const user = useSelector(selectUser);
-  const isStaffOrAdmin =
-    user && (user.role === "staff" || user.role === "Admin");
+  
   return (
     <>
       {/* {!isStaffOrAdmin && ( */}
@@ -101,13 +95,10 @@ function App() {
             <Route path="/shipment" element={<UserShipment />} />
             <Route path="/branch-system" element={<ListBranchs />} />
 
-            {/* <Route path="/dashboard" element={<Dashboard />} /> */}
-            <Route path="/manage-user" element={<ManageUser />} />
             <Route path="/contact-us" element={<ContactUs />} />
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/order_success" element={<OrderSuccess />} />
             <Route path="/order_cancel" element={<OrderCancel />} />
-            <Route path="/employee/warehouse" element={<Warehouse />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
           <Footer />

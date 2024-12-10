@@ -12,6 +12,7 @@ import {
   faMoneyBillWave,
   faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
+import { Button } from "@material-tailwind/react";
 
 export default function UserOrderDetail() {
   const { orderCode } = useParams();
@@ -55,6 +56,7 @@ export default function UserOrderDetail() {
     fetchOrderDetail();
   }, [orderCode]);
 
+
   if (isLoading)
     return (
       <div className="flex justify-center items-center h-screen">
@@ -76,6 +78,25 @@ export default function UserOrderDetail() {
   } = orderDetail;
 
   const products = saleOrderDetailVMs?.$values || [];
+  
+  // Hàm render nút "Thanh toán"
+  const renderPaymentButton = () => {
+    if (
+      orderDetail.paymentStatus === "Đang chờ thanh toán" &&
+      orderDetail.deliveryMethod !== "HOME_DELIVERY"
+    ) {
+      return (
+        <Button
+          className="bg-green-700 text-white text-sm rounded-full py-2 px-4 w-40 mt-4"
+          onClick={() =>
+            navigate("/checkout", { state: { selectedOrder: orderDetail } })
+          }
+        >
+          Thanh Toán
+        </Button>
+      );
+    }
+  };
 
   return (
     <div className="container mx-auto p-4 min-h-screen">
@@ -88,6 +109,11 @@ export default function UserOrderDetail() {
             <FontAwesomeIcon icon={faArrowLeft} />
             Quay lại
           </button>
+              <div className="flex flex-col">
+                {" "}
+                {/* Nút thanh toán */}
+                {renderPaymentButton()}
+              </div>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">

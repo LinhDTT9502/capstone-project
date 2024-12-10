@@ -43,11 +43,6 @@ export default function SignInModal() {
       // const currentTime = Date.now() / 1000;
       // console.log(currentTime);
       setIsSignInOpen(false);
-      if (decoded.role === "Admin") {
-        navigate('/admin/dashboard');
-      } else if (decoded.role === "Employee") {
-        navigate('/employee/warehouse');
-      }
     } catch (error) {
       // Handle error inside authenticateUser
     }
