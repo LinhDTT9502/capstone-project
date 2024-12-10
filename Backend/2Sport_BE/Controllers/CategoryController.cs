@@ -119,10 +119,14 @@ namespace _2Sport_BE.Controllers
 
         [HttpPost]
         [Route("add-categories")]
-        public async Task<IActionResult> AddCategories(List<CategoryCM> newCategoryCMs)
+        public async Task<IActionResult> AddCategories([FromForm] CategoryCM[] newCategoryCMs)
         {
             try
             {
+                // Log the incoming request body for debugging
+                var requestBody = Request.Form;
+                Console.WriteLine("Request Body: " + requestBody);
+
                 foreach (var newCategoryCM in newCategoryCMs)
                 {
                     var newCategory = _mapper.Map<Category>(newCategoryCM);

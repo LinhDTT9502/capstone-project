@@ -25,6 +25,9 @@ namespace _2Sport_BE.Repository.Models
         [Column("Type")]
         public string? Type { get; set; }
 
+        [Column("ReferenceLink", TypeName = "nvarchar(100)")]
+        public string? ReferenceLink { get; set; }
+
         [Column("ReadAt")]
         public DateTime? ReadAt { get; set; }  // Thay đổi tên cột
 

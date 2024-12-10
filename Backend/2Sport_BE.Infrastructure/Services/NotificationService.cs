@@ -5,6 +5,7 @@ using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.CodeAnalysis.Semantics;
+using Twilio.Rest.Api.V2010.Account;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -19,14 +20,14 @@ namespace _2Sport_BE.Infrastructure.Services
         //
         Task<ResponseDTO<List<Notification>>> GetNotificationByUserId(int userId);
         Task<ResponseDTO<Notification>> UpdateNotificationStatus(int notificationId, bool isRead);
-        Task<bool> NotifyForComment(int userId, Product product);
-        Task<bool> NotifyForReplyComment(int currAdminId, string currUserId, Product product);
         Task NotifyForExtensionRequestAsync(string parentOrderCode, string childOrderCode, int? brachId = null);
 
         Task NotifyForRejectExtensionRequestAsync(string orderCode, int userId, string reason);
         Task SendNoifyToUser(int userId, int branchId, string message);
         Task NotifyToGroupAsync(string message, int? branchId = null);
 
+        Task<bool> NotifyForComment(int currUserId, List<User> coordinators, Product product);
+        Task<bool> NotifyForReplyComment(string currUserId, Product product);
     }
     public class NotificationService : INotificationService
     {
@@ -324,43 +325,51 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
 
-        public async Task<bool> NotifyForComment(int userId, Product product)
+        public async Task<bool> NotifyForComment(int currUserId, List<User> coordinators, Product product)
         {
             try
             {
-                var commentedUser = await _unitOfWork.UserRepository.FindAsync(userId);
-                var message = $"{commentedUser.UserName} đã đặt câu hỏi trong sản phẩm {product.ProductName}";
-                var notifications = new Notification()
-                {
-                    UserId = userId,
-                    Message = message,
-                    Type = "Comment Noti",
-                    CreatedAt = DateTime.UtcNow,
-                    IsRead = false
-                };
-                await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+                var commentedUser = await _unitOfWork.UserRepository.FindAsync(currUserId);
 
-                await _notificationHub.SendMessageToGroup("Admin", message);
+                foreach (var coordinator in coordinators)
+                {
+                    var message = $"{commentedUser.UserName} đã đặt câu hỏi trong sản phẩm {product.ProductName}";
+                    var notifications = new Notification()
+                    {
+                        UserId = coordinator.Id,
+                        Message = message,
+                        Type = "Comment Noti",
+                        CreatedAt = DateTime.UtcNow,
+                        IsRead = false,
+                        ReferenceLink = $"localhost:5173/product/{product.ProductCode}"
+                    };
+                    await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+
+                    await _notificationHub.SendMessageToGroup("Coordinator", message);
+                }
                 return true;
-            } catch (Exception ex)
+
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return false;
             }
         }
 
-        public async Task<bool> NotifyForReplyComment(int currAdminId, string currUserId, Product product)
+        public async Task<bool> NotifyForReplyComment(string currUserId, Product product)
         {
             try
             {
                 var message = $"Quản trị viên đã trả lời câu hỏi của bạn trong sản phẩm {product.ProductName}";
                 var notifications = new Notification()
                 {
-                    UserId = currAdminId,
+                    UserId = int.Parse(currUserId),
                     Message = message,
                     Type = "Comment Noti",
                     CreatedAt = DateTime.UtcNow,
-                    IsRead = false
+                    IsRead = false,
+                    ReferenceLink = $"localhost:5173/product/{product.ProductCode}"
                 };
                 await _unitOfWork.NotificationRepository.InsertAsync(notifications);
 

@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import { selectUser } from "../../redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
-import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons";
+import { faCaretDown, faCaretUp, faShoppingBag } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const statusColors = {
@@ -96,7 +96,10 @@ export default function UserListRental() {
       </div>
     );
   if (error)
-    return <p className="text-center text-red-500 mt-4">Lỗi: {error}</p>;
+    return <div className="text-center text-gray-500 mt-32 flex flex-col items-center justify-center">
+  <FontAwesomeIcon icon={faShoppingBag} className="text-6xl mb-2" />
+  <p>Bạn chưa có sản phẩm nào</p>
+</div>;
 
   return (
     <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[70vh] overflow-y-auto">

@@ -13,13 +13,22 @@ export const signIn = (userName, password) => {
   });
 };
 
-export const signUp = (userData) => {
-  return axios.post(`${API_BASE_URL}/sign-up`, userData, {
+// export const signUp = (userData) => {
+//   return axios.post(`${API_BASE_URL}/sign-up`, userData, {
+//     headers: {
+//       'Content-Type': 'application/json'
+//     }
+//   });
+// };
+
+export const mobileSignUp = (userData) => {
+  return axios.post(`${API_BASE_URL}/sign-up-mobile`, userData, {
     headers: {
-      'Content-Type': 'application/json'
-    }
+      "Content-Type": "application/json",
+    },
   });
 };
+
 
 export const signOut = (data) => {
   return axios.post(`${API_BASE_URL}/sign-out`, data, {
@@ -65,3 +74,15 @@ export const resetPassword = (data) => {
 // }, (error) => {
 //   return Promise.reject(error);
 // });
+
+export const verifyAccountMobileAPI = async ({ username, email, otpCode }) => {
+  return axios.post(
+    `${API_BASE_URL}/verify-account-mobile`,
+    { username, email, otpCode },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
