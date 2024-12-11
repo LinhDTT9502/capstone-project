@@ -29,6 +29,7 @@ const ProductDetails = () => {
   const [warning, setWarning] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
   const [comments, setComments] = useState([]);
+  
 
   useEffect(() => {
     const getProduct = async () => {
@@ -39,6 +40,7 @@ const ProductDetails = () => {
           selectedSize,
           selectedCondition
         );
+        
         if (productData.length > 0) {
           setProduct(productData[0]);
           setDisplayImage(productData[0].imgAvatarPath);
@@ -74,6 +76,7 @@ const ProductDetails = () => {
       fetchImage();
     }
   }, [selectedColor, productCode]);
+
 
   const handleRentalClick = () => {
     if (!selectedColor || !selectedSize || !selectedCondition) {
@@ -159,6 +162,9 @@ const ProductDetails = () => {
                   productCode={productCode}
                   selectedColor={selectedColor}
                   setSelectedColor={setSelectedColor}
+                  selectedSize={selectedSize}
+                  setSelectedSize={setSelectedSize}
+                  setSelectedCondition={setSelectedCondition}
                 />
                 <ProductSize
                   productCode={productCode}

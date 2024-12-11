@@ -278,7 +278,7 @@ function Header() {
                 to="/manage-account/refund-request"
                 className=" hover:text-orange-500 focus:text-orange-500"
               >
-                Trả hàng/Hoàn tiền
+                Hoàn tiền
               </Link>
               <div
                 className="relative"
