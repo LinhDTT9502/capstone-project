@@ -73,24 +73,7 @@ const toggleExpand = (orderId) => {
     return formattedAmount;
   };
 
-  // Hàm render nút "Thanh toán"
-  const renderPaymentButton = (order) => {
-    if (
-      order.paymentStatus === "Đang chờ thanh toán" &&
-      order.deliveryMethod !== "HOME_DELIVERY"
-    ) {
-      return (
-        <Button
-          className="bg-green-700 text-white text-sm rounded-full py-2 px-4 w-40 mt-4"
-          onClick={() =>
-            navigate("/checkout", { state: { selectedOrder: order } })
-          }
-        >
-          Thanh Toán
-        </Button>
-      );
-    }
-  };
+  
 
   if (isLoading)
     return (
@@ -150,17 +133,7 @@ const toggleExpand = (orderId) => {
                 Mã đơn hàng:{" "}
                 <span className="text-orange-500">{order.saleOrderCode}</span>
               </h4>
-              <Button
-                  color="orange"
-                  size="sm"
-                  className="mt-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/manage-account/sale-order/${order.saleOrderCode}`);
-                  }}
-                >
-                  Xem chi tiết
-                </Button>
+              
               <p className=" text-gray-600">
                 Trạng thái thanh toán:
                 <span
@@ -193,7 +166,7 @@ const toggleExpand = (orderId) => {
                 >
                   {order.orderStatus}
                 </span>
-                <FontAwesomeIcon
+                {/* <FontAwesomeIcon
                 key={order.saleOrderCode}
                   icon={
                     expandedOrderId === order.saleOrderCode
@@ -201,13 +174,20 @@ const toggleExpand = (orderId) => {
                       : faCaretDown
                   }
                   className="w-6 h-6 text-gray-500"
-                />
+                /> */}
               </div>
-              <div className="flex flex-col">
-                {" "}
-                {/* Nút thanh toán */}
-                {renderPaymentButton(order)}
-              </div>
+              <Button
+                  color="orange"
+                  size="sm"
+                  className="mt-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/manage-account/sale-order/${order.saleOrderCode}`);
+                  }}
+                >
+                  Xem chi tiết
+                </Button>
+            
             </div>
           </div>
 

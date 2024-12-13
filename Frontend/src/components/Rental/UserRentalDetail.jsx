@@ -19,6 +19,8 @@ export default function UserRentalDetail() {
   const [orderDetail, setOrderDetail] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [isInputVisible, setIsInputVisible] = useState(false);
 
   useEffect(() => {
     const fetchOrderDetail = async () => {
@@ -61,21 +63,66 @@ export default function UserRentalDetail() {
     return <div className="text-center text-red-500 mt-4">Error: {error}</div>;
 
   const {
+    id,
     fullName,
     email,
     contactPhone,
     address,
     rentalOrderCode,
-    listChild,
+    childOrders,
+    isExtended,
     productName,
     rentPrice,
-    rentalDays,
+    rentalStartDate,
+    rentalEndDate,
     totalAmount,
     orderStatus,
     paymentStatus,
   } = orderDetail;
+  console.log(orderDetail);
 
-  const children = listChild?.$values || [];
+
+  const children = childOrders?.$values || [];
+
+  const handleExtendOrder = async (order) => {
+    if (!selectedDate) {
+      alert("Please select a valid date before extending the order.");
+      return;
+    }
+
+    const selectedDateObj = new Date(selectedDate); // Convert selectedDate to a Date object
+    const rentalEndDateObj = new Date(order.rentalEndDate); // Convert rentalEndDate to a Date object
+    
+    const extensionDays = Math.ceil(
+      (selectedDateObj - rentalEndDateObj) / (1000 * 60 * 60 * 24)
+    );
+    
+    console.log(extensionDays);
+    
+    
+
+    try {
+      const response = await axios.put(
+        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/request-extend`,
+        {
+          childOrderId: order.id,
+          extensionDays: extensionDays,
+        },
+        {
+          headers: {
+            accept: "*/*",
+          
+          },
+        }
+      );
+
+      alert("Bạn đã gia hạn thành công");
+    } catch (error) {
+      console.error("Error extending order:", error);
+      alert("Failed to extend the order. Please try again.");
+    }
+  };
+
 
   return (
     <div className="container mx-auto p-4 min-h-screen">
@@ -88,6 +135,14 @@ export default function UserRentalDetail() {
             <FontAwesomeIcon icon={faArrowLeft} />
             Quay lại
           </button>
+          {orderDetail.orderStatus === "Chờ xử lý" &&
+              <button
+                className="bg-red-500 text-white text-sm rounded-full py-2 px-4"
+                // onClick={() =>}
+              >
+                Hủy đơn hàng
+              </button>
+            }
           {orderDetail.paymentStatus === "Đang chờ thanh toán" &&
             orderDetail.deliveryMethod !== "HOME_DELIVERY" && (
               <button
@@ -176,6 +231,24 @@ export default function UserRentalDetail() {
                 key={child.id}
                 className="bg-gray-50 p-4 mb-4 rounded-lg shadow-sm"
               >
+               {!child.isExtended && 
+                <button 
+                className="bg-orange-500 rounded text-white p-2"
+                onClick={() => setIsInputVisible(!isInputVisible)}>
+                   Gia hạn đơn thuê
+                 </button> } 
+                {isInputVisible && (
+                  <div>
+                    <input
+                      type="date"
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      min={child.rentalEndDate.split("T")[0]} 
+                    />
+                    <button onClick={() => handleExtendOrder(child)}>
+                     Xác nhận ngày gia hạn
+                    </button>
+                  </div>
+                )}
                 <div className="flex flex-col md:flex-row gap-4">
                   <img
                     src={child.imgAvatarPath}
@@ -223,6 +296,24 @@ export default function UserRentalDetail() {
             ))
           ) : (
             <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
+               {!isExtended && 
+               <button 
+               className="bg-orange-500 rounded text-white p-2"
+               onClick={() => setIsInputVisible(!isInputVisible)}>
+                  Gia hạn đơn thuê
+                </button> } 
+                {isInputVisible && (
+                  <div>
+                    <input
+                      type="date"
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      min={rentalEndDate.split("T")[0]} 
+                    />
+                    <button onClick={() => handleExtendOrder(orderDetail)}>
+                     Xác nhận ngày gia hạn
+                    </button>
+                  </div>
+                )}
               <div className="flex flex-col md:flex-row gap-4">
                 <img
                   src={orderDetail.imgAvatarPath || "/placeholder.jpg"}
@@ -235,9 +326,10 @@ export default function UserRentalDetail() {
                     <span className="font-semibold">Rent Price:</span>{" "}
                     {rentPrice || "N/A"} ₫
                   </p>
-                  <p>
-                    <span className="font-semibold">Rental Days:</span>{" "}
-                    {rentalDays || "N/A"}
+                  <p className="mt-2">
+                    <span className="font-semibold">Rental Period:</span>{" "}
+                    {new Date(rentalStartDate).toLocaleDateString()} -{" "}
+                    {new Date(rentalEndDate).toLocaleDateString()}
                   </p>
                   <p>
                     <span className="font-semibold">Total:</span>{" "}
