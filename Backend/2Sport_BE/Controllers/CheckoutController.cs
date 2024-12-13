@@ -43,18 +43,13 @@ namespace _2Sport_BE.Controllers
         [Route("checkout-sale-order")]
         public async Task<IActionResult> CheckoutSaleOrder(CheckoutModel checkoutModel)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
 
             var order = await _saleOrderService.FindSaleOrderById(checkoutModel.OrderID)
                          ?? await _saleOrderService.FindSaleOrderByCode(checkoutModel.OrderCode);
+            if (order == null) return BadRequest("Order not found.");
 
-            if (order == null)
-            {
-                return BadRequest("Order not found.");
-            }
             /*if(order.PaymentStatus != (int)PaymentStatus.IsWating || (order.PaymentStatus == (int)PaymentStatus.IsCanceled && order.OrderStatus == (int)OrderStatus.CANCELLED))
             {
                 return BadRequest("PaymentStatus is not allowed to checkout.");
@@ -63,16 +58,10 @@ namespace _2Sport_BE.Controllers
             if (checkoutModel.PaymentMethodID == (int)OrderMethods.PayOS || checkoutModel.PaymentMethodID == (int)OrderMethods.VnPay)
             {
                 var paymentService = _paymentFactory.GetPaymentService(checkoutModel.PaymentMethodID);
-                if (paymentService == null)
-                {
-                    return BadRequest("Phương thức thanh toán không hợp lệ.");
-                }
+                if (paymentService == null) return BadRequest("Phương thức thanh toán không hợp lệ.");
 
                 var createdLink = await paymentService.ProcessSaleOrderPayment(order.Id, HttpContext);
-                if (!createdLink.IsSuccess)
-                {
-                    return BadRequest(createdLink);
-                }
+                if (!createdLink.IsSuccess) return BadRequest(createdLink);
 
 
                 if (order.PaymentMethodId != checkoutModel.PaymentMethodID)
@@ -82,13 +71,12 @@ namespace _2Sport_BE.Controllers
                 }
 
                 var response = await _saleOrderService.GetSaleOrderDetailsByIdAsync(order.Id);
-                if (!response.IsSuccess)
+                if (response.IsSuccess)
                 {
-                    return BadRequest(response);
+                    response.Data.PaymentLink = createdLink.Data;
+                    return Ok(response);
                 }
-
-                response.Data.PaymentLink = createdLink.Data;
-                return Ok(response);
+                return BadRequest(response);
             }
             else if (checkoutModel.PaymentMethodID == (int)OrderMethods.COD || checkoutModel.PaymentMethodID == (int)OrderMethods.BankTransfer)
             {
@@ -100,11 +88,10 @@ namespace _2Sport_BE.Controllers
                     await _saleOrderService.UpdateSaleOrder(order);
                 }
                 var response = await _saleOrderService.GetSaleOrderDetailsByIdAsync(order.Id);
-                if (!response.IsSuccess)
-                {
-                    return BadRequest(response);
-                }
-                return Ok(response);
+
+                if (!response.IsSuccess) return Ok(response);
+                return BadRequest(response);
+
             }
             return BadRequest("Unsupported payment method.");
         }
@@ -178,33 +165,34 @@ namespace _2Sport_BE.Controllers
                     order.DepositStatus = (int)DepositStatus.Partially_Pending;
                     createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext, true);
                 }
-                else 
+                else if(checkoutModel.TransactionType == "DEPOSIT_100")
                 {
                     createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext, false);
                     order.DepositStatus = (int)DepositStatus.Pending;
-                } 
-
-                if (!createdLink.IsSuccess)
-                {
-                    return BadRequest(createdLink);
                 }
+                else
+                {
+                    return BadRequest("Loại giao dịch không hợp lệ.");
+                }
+
+                if (!createdLink.IsSuccess) return BadRequest(createdLink);
+
 
                 if (order.PaymentMethodId != checkoutModel.PaymentMethodID)
                 {
                     order.PaymentMethodId = checkoutModel.PaymentMethodID;
                     order.PaymentStatus = (int)PaymentStatus.IsWating;
-
                     await _rentalOrderService.UpdaterRentalOrder(order);
                 }
 
                 var response = await _rentalOrderService.GetRentalOrderDetailsByIdAsync(order.Id);
-                if (!response.IsSuccess)
-                {
-                    return BadRequest(response);
-                }
 
-                response.Data.PaymentLink = createdLink.Data;
-                return Ok(response);
+                if (response.IsSuccess)
+                {
+                    response.Data.PaymentLink = createdLink.Data;
+                    return Ok(response);
+                }
+                return BadRequest(response);
             }
             else if (checkoutModel.PaymentMethodID == (int)OrderMethods.COD || checkoutModel.PaymentMethodID == (int)OrderMethods.BankTransfer)
             {
@@ -217,11 +205,9 @@ namespace _2Sport_BE.Controllers
                 }
 
                 var response = await _rentalOrderService.GetRentalOrderDetailsByIdAsync(order.Id);
-                if (!response.IsSuccess)
-                {
-                    return BadRequest(response.Message ?? "Failed to retrieve order details.");
-                }
-                return Ok(response);
+                 
+                if (response.IsSuccess) return Ok(response);
+                return BadRequest(response);
             }
             return BadRequest("Unsupported payment method.");
         }

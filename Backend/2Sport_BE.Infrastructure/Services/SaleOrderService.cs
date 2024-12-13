@@ -46,6 +46,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
         #endregion
 
+        Task<ResponseDTO<int>> CancelSaleOrderAsync(int orderId);
     }
     public class SaleOrderService : ISaleOrderService
     {
@@ -667,22 +668,26 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             try
             {
-                var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == id, new string[] {"OrderDetails" } );
-                if (saleOrder == null) return GenerateErrorResponse($"SaleOrder with id = {id} is not found!");
+                var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == id, new string[] { "OrderDetails" });
+                if (saleOrder == null)
+                    return GenerateErrorResponse($"SaleOrder with id = {id} is not found!");
+
+                if (!IsValidStatusTransition((OrderStatus)saleOrder.OrderStatus, (OrderStatus)orderStatus))
+                    return GenerateErrorResponse($"Invalid status transition from {saleOrder.OrderStatus} to {orderStatus}.");
 
                 saleOrder.OrderStatus = orderStatus;
                 await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
-                string message = "";
+                string message = "Order status updated successfully.";
 
                 if (saleOrder.OrderStatus == (int)OrderStatus.COMPLETED)
                 {
                     var loyaltyUpdateResponse = await _customerDetailService.UpdateLoyaltyPoints(saleOrder.Id);
-                    if (loyaltyUpdateResponse.IsSuccess) message = "Order status updated and loyalty points awarded successfully.";
-                    else message = "Order status updated, but there was an error updating loyalty points.";
-
+                    if (loyaltyUpdateResponse.IsSuccess)
+                        message = "Order status updated and loyalty points awarded successfully.";
+                    else
+                        message = "Order status updated, but there was an error updating loyalty points.";
                 }
-                else message = "Order status updated successfully.";
 
                 return GenerateSuccessResponse(saleOrder, message);
             }
@@ -691,6 +696,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 return GenerateErrorResponse(ex.Message);
             }
         }
+
         public async Task<bool> UpdatePaymentStatusOfSaleOrder(string orderCode, int paymentStatus)
         {
             bool response = false;
@@ -908,5 +914,89 @@ namespace _2Sport_BE.Infrastructure.Services
             }
 
         }
+
+        public async Task<ResponseDTO<int>> CancelSaleOrderAsync(int orderId)
+        {
+            var response = new ResponseDTO<int>();
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var order = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId);
+
+                    if (order is null)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = "Không tìm thấy đơn hàng!";
+                        response.Data = 0;
+                        return response;
+                    }
+
+                    if (order.OrderStatus != (int)OrderStatus.PENDING)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = "Đơn hàng không thể hủy ở trạng thái hiện tại!";
+                        response.Data = 0;
+                        return response;
+                    }
+
+                    order.OrderStatus = (int)OrderStatus.CANCELLED;
+                    await _unitOfWork.SaleOrderRepository.UpdateAsync(order);
+
+                    await _notificationService.NotifyToGroupAsync(
+                        $"Đơn hàng S-{order.SaleOrderCode} đã bị hủy bởi khách hàng",
+                        order.BranchId
+                    );
+
+                    await transaction.CommitAsync();
+
+                    response.IsSuccess = true;
+                    response.Message = "Đơn hàng đã được hủy thành công!";
+                    response.Data = 1;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+
+                    response.IsSuccess = false;
+                    response.Message = $"Đã xảy ra lỗi: {ex.Message}";
+                    response.Data = 0;
+                }
+            }
+            return response;
+        }
+
+        private bool IsValidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus)
+        {
+            switch (currentStatus)
+            {
+                case OrderStatus.PENDING:
+                    return newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.CONFIRMED;
+                case OrderStatus.CONFIRMED:
+                    return newStatus == OrderStatus.PROCESSING || newStatus == OrderStatus.CANCELLED;
+                case OrderStatus.PROCESSING:
+                    return newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.CANCELLED;
+                case OrderStatus.SHIPPED:
+                    return newStatus == OrderStatus.DELIVERED || newStatus == OrderStatus.RETURN_PROCESSING;
+                case OrderStatus.DELIVERED:
+                    return newStatus == OrderStatus.COMPLETED || newStatus == OrderStatus.RETURN_PROCESSING;
+                case OrderStatus.RETURN_PROCESSING:
+                    return newStatus == OrderStatus.RETURNED;
+                case OrderStatus.RETURNED:
+                    return newStatus == OrderStatus.REFUND_PROCESSING || newStatus == OrderStatus.COMPLETED;
+                case OrderStatus.REFUND_PROCESSING:
+                    return newStatus == OrderStatus.REFUNDED;
+                case OrderStatus.REFUNDED:
+                    return newStatus == OrderStatus.COMPLETED;
+                case OrderStatus.CANCELLED:
+                case OrderStatus.DECLINED:
+                case OrderStatus.COMPLETED:
+                    return false; // Không cho phép chuyển từ các trạng thái này
+                default:
+                    return false;
+            }
+        }
+
+
     }
 }
