@@ -1,4 +1,5 @@
-﻿using _2Sport_BE.Infrastructure.Services;
+﻿using _2Sport_BE.Infrastructure.DTOs;
+using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Service.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,14 +16,23 @@ namespace _2Sport_BE.Controllers
             _refundRequestService = refundRequestService;
         }
         [HttpGet("getAll")]
-        public async Task<IActionResult> GetAllRefundRequests([FromQuery] string status = null, [FromQuery] int? branchId = null)
+        public async Task<IActionResult> GetAllRefundRequests([FromQuery] string orderType, [FromQuery] string status = null, [FromQuery] int? branchId = null)
         {
-            var result = await _refundRequestService.GetAllRefundRequests(status, branchId);
-
-            if (result.IsSuccess)
-                return Ok(result);
+            var response = new ResponseDTO<List<RefundRequestVM>>();
+            if(orderType == "1")
+            {
+                response = await _refundRequestService.GetAllSaleRefundRequests(status, branchId);
+            }else if(orderType == "2")
+            {
+                response = await _refundRequestService.GetAllRentalRefundRequests(status, branchId);
+            }
             else
-                return BadRequest(result);
+            {
+
+            }
+
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
         }
         [HttpPost("create")]
         public async Task<IActionResult> CreateRefundRequest([FromBody] RefundRequestCM refundRequestCM)

@@ -30,12 +30,10 @@ namespace _2Sport_BE.Service.DTOs
         public string? PaymentGatewayTransactionID { get; set; }
 
         public int? ProcessedBy { get; set; }
-
         public string StaffName { get; set; }
         public string StaffNotes { get; set; }
         public string? Status { get; set; }
 
-        public DateTime? UpdatedAt { get; set; }
     }
     public class RefundRequestVM
     {

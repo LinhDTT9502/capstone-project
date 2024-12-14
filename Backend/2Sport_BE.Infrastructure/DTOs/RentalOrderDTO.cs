@@ -186,6 +186,9 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public string? ExtensionStatus { get; set; }
         #endregion
 
+        public string? Reason { get; set; }
+        public string? TransactionId { get; set; }
+
         #region AuditInformation
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
