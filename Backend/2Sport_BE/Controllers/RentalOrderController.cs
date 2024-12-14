@@ -138,7 +138,7 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpPost("request-cancel/{rentalOrderId}")]
-        public async Task<IActionResult> RequestCancelOrder(int rentalOrderId, [FromBody] string reason)
+        public async Task<IActionResult> RequestCancelOrder(int rentalOrderId, [FromQuery] string reason)
         {
             var response = await _rentalOrderServices.CancelRentalOrderAsync(rentalOrderId, reason);
             if (response.IsSuccess) return Ok(response);
@@ -199,7 +199,7 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
 
-        [HttpPost("approve-extension/{rentalOrderId}")]
+        [HttpPost("approve-extension/{rentalOrderCode}")]
         public async Task<IActionResult> ApproveExtension(string rentalOrderCode)
         {
             var response = await _rentalOrderServices.ApproveExtensionAsync(rentalOrderCode);
@@ -207,8 +207,8 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
 
-        [HttpPost("reject-extension/{rentalOrderId}")]
-        public async Task<IActionResult> RejectExtension(string rentalOrderCode, [FromBody] string rejectionReason)
+        [HttpPost("reject-extension/{rentalOrderCode}")]
+        public async Task<IActionResult> RejectExtension(string rentalOrderCode, [FromQuery] string rejectionReason)
         {
             var response = await _rentalOrderServices.RejectExtensionAsync(rentalOrderCode, rejectionReason);
             if (response.IsSuccess) return Ok(response);

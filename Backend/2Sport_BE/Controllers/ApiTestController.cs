@@ -15,12 +15,21 @@ namespace _2Sport_BE.Controllers
         private readonly IPayOsService _payOsService;
         private readonly IVnPayService _vnPayService;
         private readonly IUnitOfWork _unitOfWork;
-        public ApiTestController(IPaymentService paymentService, IPayOsService payOsService, IVnPayService vnPayService, IUnitOfWork unitOfWork)
+        private readonly ISaleOrderService _saleOrderService;
+        private readonly IRentalOrderService _rentalOrderService;
+        public ApiTestController(IPaymentService paymentService,
+            IPayOsService payOsService,
+            IVnPayService vnPayService,
+            IUnitOfWork unitOfWork,
+            ISaleOrderService saleOrderService,
+            IRentalOrderService rentalOrderService)
         {
             _paymentService = paymentService;
             _payOsService = payOsService;
             _vnPayService = vnPayService;
             _unitOfWork = unitOfWork;
+            _saleOrderService = saleOrderService;
+            _rentalOrderService = rentalOrderService;
         }
         [HttpGet]
         [Route("Get-Payment-Information")]
@@ -28,7 +37,8 @@ namespace _2Sport_BE.Controllers
         {
             if (orderType == 1)//sale
             {
-                var order = await _unitOfWork.SaleOrderRepository.GetObjectAsync(_ => _.SaleOrderCode == orderCode);
+                var query = await  _saleOrderService.GetSaleOrderBySaleOrderCode(orderCode);
+                var order = query.Data;
                 if(order == null) { return NotFound(); }
                 if (order.PaymentMethodId == (int)OrderMethods.PayOS)
                 {
@@ -42,7 +52,7 @@ namespace _2Sport_BE.Controllers
                             OrderCode = response.Data.orderCode.ToString(),
                             PaymentStatus = response.Data.status,
                             PaymentDate = DateTime.SpecifyKind(DateTime.Parse(response.Data.createdAt), DateTimeKind.Utc).ToString(),
-                            BankName = response.Data.transactions.FirstOrDefault().counterAccountBankName ?? "UNKNOWN"
+                            BankName = response.Data.transactions.FirstOrDefault() !=  null ? response.Data.transactions.FirstOrDefault().counterAccountBankName : "UNKNOWN"
                         };
                         return Ok(paymentInfo);
                     }
@@ -62,8 +72,8 @@ namespace _2Sport_BE.Controllers
             }
             else if (orderType == 2)
             {
-
-                var order =  _unitOfWork.RentalOrderRepository.FindObject(_ => _.RentalOrderCode == orderCode);
+                var query = await _rentalOrderService.GetRentalOrderByOrderCodeAsync(orderCode);
+                var order = query.Data;
                 if(order == null) return NotFound();
 
                 if (order.PaymentMethodId == (int)OrderMethods.PayOS)
@@ -78,7 +88,7 @@ namespace _2Sport_BE.Controllers
                             OrderCode = response.Data.orderCode.ToString(),
                             PaymentStatus = response.Data.status,
                             PaymentDate = DateTime.SpecifyKind(DateTime.Parse(response.Data.createdAt), DateTimeKind.Utc).ToString(),
-                            BankName = response.Data.transactions.FirstOrDefault().counterAccountBankName ?? "UNKNOWN"
+                            BankName = response.Data.transactions.FirstOrDefault() != null ? response.Data.transactions.FirstOrDefault().counterAccountBankName : "UNKNOWN"
                         };
                         return Ok(paymentInfo);
                     }

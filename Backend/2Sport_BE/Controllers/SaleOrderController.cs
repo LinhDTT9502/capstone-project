@@ -131,7 +131,7 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpPost("request-cancel/{saleOrderId}")]
-        public async Task<IActionResult> RequestCancelOrder(int saleOrderId, [FromBody] string reason)
+        public async Task<IActionResult> RequestCancelOrder(int saleOrderId, [FromQuery] string reason)
         {
             var response = await _orderService.CancelSaleOrderAsync(saleOrderId, reason);
 

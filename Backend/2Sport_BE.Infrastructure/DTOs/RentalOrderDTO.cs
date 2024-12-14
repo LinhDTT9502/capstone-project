@@ -187,6 +187,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
         #endregion
 
         public string? Reason { get; set; }
+        public string? TransactionId { get; set; }
 
         #region AuditInformation
         public DateTime? CreatedAt { get; set; }

@@ -88,6 +88,8 @@ namespace _2Sport_BE.Infrastructure.DTOs
         #region AuditInformation
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public string? Reason { get; set; }
+        public string? TransactionId {  get; set; }
         #endregion  
         public string? PaymentMethod { get; set; }
         public string? PaymentLink { get; set; }

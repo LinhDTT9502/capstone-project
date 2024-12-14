@@ -286,7 +286,7 @@ namespace _2Sport_BE.Infrastructure.Services
             try
             {
                 var orders = await _unitOfWork.RentalOrderRepository
-                    .GetAsync(o => o.UserId == branchId && o.ExtensionStatus.Value == extensionStatus);
+                    .GetAsync(o => o.BranchId == branchId && o.ExtensionStatus.Value == extensionStatus);
 
                 if (orders != null && orders.Any())
                 {
@@ -1127,7 +1127,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         Message = "An extension request is already pending."
                     };
 
-                if (child.OrderStatus < (int)OrderStatus.SHIPPED)
+                if (child.OrderStatus < (int)OrderStatus.DELIVERED)
                     return new ResponseDTO<int>
                     {
                         IsSuccess = false,
