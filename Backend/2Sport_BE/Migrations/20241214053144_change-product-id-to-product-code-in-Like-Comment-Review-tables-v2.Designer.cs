@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241214053144_change-product-id-to-product-code-in-Like-Comment-Review-tables-v2")]
+    partial class changeproductidtoproductcodeinLikeCommentReviewtablesv2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -731,10 +734,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Discount");
 
-                    b.Property<decimal?>("Height")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("Height");
-
                     b.Property<string>("ImgAvatarPath")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -743,10 +742,6 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<bool>("IsRent")
                         .HasColumnType("bit");
-
-                    b.Property<decimal?>("Length")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("Length");
 
                     b.Property<string>("Offers")
                         .HasColumnType("nvarchar")
@@ -783,14 +778,6 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<bool?>("Status")
                         .HasColumnType("bit");
-
-                    b.Property<decimal?>("Weight")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("Weight");
-
-                    b.Property<decimal?>("Width")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("Width");
 
                     b.HasKey("Id");
 

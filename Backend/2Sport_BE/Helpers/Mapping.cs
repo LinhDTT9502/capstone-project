@@ -131,7 +131,7 @@ namespace _2Sport_BE.Helpers
             #endregion
             #region Import
             CreateMap<ImportHistory, ImportVM>()
-                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
+                .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.Manager.User.FullName))
                 .ReverseMap();
             CreateMap<ImportCM, ImportHistory>().ReverseMap();
             CreateMap<ImportUM, ImportHistory>().ReverseMap();
