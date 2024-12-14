@@ -191,7 +191,7 @@ namespace _2Sport_BE.Controllers
         }
 
 
-        [HttpPost("request-extension/{rentalOrderId}")]
+        [HttpPost("request-extension")]
         public async Task<IActionResult> RequestExtension(ExtensionRequestModel model)
         {
             var response = await _rentalOrderServices.RequestExtensionAsync(model);

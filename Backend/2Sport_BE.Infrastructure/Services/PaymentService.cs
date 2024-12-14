@@ -543,6 +543,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     saleOrder.PaymentStatus = (int)PaymentStatus.IsPaid;
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
                     await _notificationService.NotifyPaymentPaid(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
+                    return _saleOrderService.GenerateSuccessResponse(saleOrder, "Completed");
                 }
                 else
                 {
@@ -566,9 +567,8 @@ namespace _2Sport_BE.Infrastructure.Services
                         }
                     }
                     await _notificationService.NotifyPaymentCancellation(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
-                }
-
-                return _saleOrderService.GenerateSuccessResponse(saleOrder, "Payment status updated successfully.");
+                    return _saleOrderService.GenerateSuccessResponse(saleOrder, "Canceled");
+                }           
             }
             else
             {
@@ -580,10 +580,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var vnPayLib = new VnPayLibrary();
             var response = vnPayLib.GetFullResponseData(collections, _configuration["Vnpay:HashSecret"]);
 
-            if (response == null || response.Data == null)
-            {
-                return _rentalOrderService.GenerateErrorResponse("Invalid response data!");
-            }
+            if (response == null || response.Data == null) return _rentalOrderService.GenerateErrorResponse("Invalid response data!");
 
             var rentalOrder = _unitOfWork.RentalOrderRepository.FindObject(o => o.RentalOrderCode == response.Data.OrderCode);
             if (rentalOrder == null) return _rentalOrderService.GenerateErrorResponse("Order not found!");
@@ -635,6 +632,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 }
                 await _notificationService.NotifyPaymentCancellation(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
+                return _rentalOrderService.GenerateSuccessResponse(rentalOrder, null, "Canceled.");
             }
             else
             {
@@ -645,10 +643,8 @@ namespace _2Sport_BE.Infrastructure.Services
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                 await _notificationService.NotifyPaymentPaid(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
-
+                return _rentalOrderService.GenerateSuccessResponse(rentalOrder, null, "Completed.");
             }
-
-                return _rentalOrderService.GenerateSuccessResponse(rentalOrder, null, "Payment status updated successfully.");
         }
 
         public string QueryTransaction(string orderCode, DateTime payDate, HttpContext context)
