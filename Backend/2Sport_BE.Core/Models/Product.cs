@@ -34,6 +34,18 @@ public class Product
     [Column("Condition")]
     public int? Condition { get; set; }
 
+    [Column("Height")]
+    public decimal? Height { get; set; }
+
+    [Column("Length")]
+    public decimal? Length { get; set; }
+
+    [Column("Width")]
+    public decimal? Width { get; set; }
+
+    [Column("Weight")]
+    public decimal? Weight { get; set; }
+
     [Column("Offers", TypeName = "nvarchar")]
     [MaxLength]
     public string? Offers { get; set; }

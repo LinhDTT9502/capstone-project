@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241214044900_change-product-id-to-product-code-in-Like-Comment-Review-tables")]
+    partial class changeproductidtoproductcodeinLikeCommentReviewtables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -731,10 +734,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Discount");
 
-                    b.Property<decimal?>("Height")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("Height");
-
                     b.Property<string>("ImgAvatarPath")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -743,10 +742,6 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<bool>("IsRent")
                         .HasColumnType("bit");
-
-                    b.Property<decimal?>("Length")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("Length");
 
                     b.Property<string>("Offers")
                         .HasColumnType("nvarchar")
@@ -783,14 +778,6 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<bool?>("Status")
                         .HasColumnType("bit");
-
-                    b.Property<decimal?>("Weight")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("Weight");
-
-                    b.Property<decimal?>("Width")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("Width");
 
                     b.HasKey("Id");
 
@@ -985,10 +972,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("Email");
 
-                    b.Property<DateTime?>("ExtendedDueDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("ExtendedDueDate");
-
                     b.Property<decimal?>("ExtensionCost")
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("ExtensionCost");
@@ -996,10 +979,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<int?>("ExtensionDays")
                         .HasColumnType("int")
                         .HasColumnName("ExtensionDays");
-
-                    b.Property<int?>("ExtensionStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("ExtensionStatus");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -1807,11 +1786,11 @@ namespace _2Sport_BE.Migrations
             modelBuilder.Entity("_2Sport_BE.Repository.Models.RefundRequest", b =>
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.RentalOrder", "RentalOrder")
-                        .WithMany("RefundRequests")
+                        .WithMany()
                         .HasForeignKey("RentalOrderID");
 
                     b.HasOne("_2Sport_BE.Repository.Models.SaleOrder", "SaleOrder")
-                        .WithMany("RefundRequests")
+                        .WithMany("Refunds")
                         .HasForeignKey("SaleOrderID");
 
                     b.Navigation("RentalOrder");
@@ -1982,11 +1961,6 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Warehouses");
                 });
 
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.RentalOrder", b =>
-                {
-                    b.Navigation("RefundRequests");
-                });
-
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Role", b =>
                 {
                     b.Navigation("Users");
@@ -1996,7 +1970,7 @@ namespace _2Sport_BE.Migrations
                 {
                     b.Navigation("OrderDetails");
 
-                    b.Navigation("RefundRequests");
+                    b.Navigation("Refunds");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ShipmentDetail", b =>

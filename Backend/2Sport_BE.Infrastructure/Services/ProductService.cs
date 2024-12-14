@@ -85,11 +85,13 @@ namespace _2Sport_BE.Service.Services
                 }
 
                 //delete likes include deleted products
-                var likes = await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                var likes = await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductCode.ToLower()
+                                                        .Equals(deletedProduct.ProductCode.ToLower()));
                 await _unitOfWork.LikeRepository.DeleteRangeAsync(likes);
 
                 //delete reviews include deleted products
-                var reviews = await _unitOfWork.ReviewRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                var reviews = await _unitOfWork.ReviewRepository.GetAsync(_ => _.ProductCode.ToLower()
+                                                        .Equals(deletedProduct.ProductCode.ToLower()));
                 await _unitOfWork.ReviewRepository.DeleteRangeAsync(reviews);
 
                 //delete imagesVideos include deleted products

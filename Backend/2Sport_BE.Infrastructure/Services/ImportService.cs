@@ -14,6 +14,7 @@ namespace _2Sport_BE.Infrastructure.Services
     public interface IImportHistoryService
     {
         Task<IQueryable<ImportHistory>> ListAllAsync();
+        Task<IQueryable<ImportHistory>> ListImportHistoriesByBranchId(int branchId);
         Task<IQueryable<ImportHistory>> GetImportHistory(Expression<Func<ImportHistory, bool>> filter = null,
                                 string includeProperties = "");
         Task<IQueryable<ImportHistory>> GetImportHistoryById(int? id);
@@ -73,6 +74,14 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task<IQueryable<ImportHistory>> ListAllAsync()
         {
             IEnumerable<ImportHistory> listAll = await _unitOfWork.ImportHistoryRepository.GetAllAsync();
+            return listAll.AsQueryable();
+        }
+
+        public async Task<IQueryable<ImportHistory>> ListImportHistoriesByBranchId(int branchId)
+        {
+            var manager = (await _unitOfWork.ManagerRepository.GetAsync(_ => _.BranchId == branchId)).FirstOrDefault();
+            IEnumerable<ImportHistory> listAll = await _unitOfWork.ImportHistoryRepository
+                                                    .GetAsync(_ => _.ManagerId == manager.Id);
             return listAll.AsQueryable();
         }
 
