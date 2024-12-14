@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241214042011_modify_rental_and_sale_order")]
+    partial class modify_rental_and_sale_order
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1096,11 +1099,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("decimal")
                         .HasColumnName("TranSportFee");
 
-                    b.Property<string>("TransactionId")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("TransactionId");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2")
                         .HasColumnName("UpdatedAt");
@@ -1284,11 +1282,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<decimal?>("TranSportFee")
                         .HasColumnType("decimal")
                         .HasColumnName("TranSportFee");
-
-                    b.Property<string>("TransactionId")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("TransactionId");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2")

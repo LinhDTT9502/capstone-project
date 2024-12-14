@@ -18,7 +18,9 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<RefundRequestVM>> CreateRefundRequest(RefundRequestCM refundRequestCM);
         Task<ResponseDTO<bool>> UpdateRefundRequest(int refundRequestId, RefundRequestUM refundRequestUM);
         Task<ResponseDTO<bool>> DeleteRefundRequest(int refundRequestId);
-        Task<ResponseDTO<List<RefundRequestVM>>> GetAllRefundRequests(string status = null, int? branchId = null);
+        Task<ResponseDTO<List<RefundRequestVM>>> GetAllSaleRefundRequests(string status = null, int? branchId = null);
+        Task<ResponseDTO<List<RefundRequestVM>>> GetAllRentalRefundRequests(string status = null, int? branchId = null);
+
     }
     public class RefundRequestService : IRefundRequestService
     {
@@ -179,13 +181,13 @@ namespace _2Sport_BE.Infrastructure.Services
             throw new NotImplementedException();
         }
 
-        public async Task<ResponseDTO<List<RefundRequestVM>>> GetAllRefundRequests(string status = null, int? branchId = null)
+        public async Task<ResponseDTO<List<RefundRequestVM>>> GetAllSaleRefundRequests(string status = null, int? branchId = null)
         {
             var response = new ResponseDTO<List<RefundRequestVM>>();
 
             try
             {
-                var refundRequests = await _unitOfwork.RefundRequestRepository.GetAllAsync();
+                var refundRequests = await _unitOfwork.RefundRequestRepository.GetAsync(_ => _.SaleOrderID != null || _.SaleOrderCode != null);
 
                 if (!string.IsNullOrEmpty(status))
                 {
@@ -210,7 +212,37 @@ namespace _2Sport_BE.Infrastructure.Services
                 return response;
             }
         }
+        public async Task<ResponseDTO<List<RefundRequestVM>>> GetAllRentalRefundRequests(string status = null, int? branchId = null)
+        {
+            var response = new ResponseDTO<List<RefundRequestVM>>();
 
+            try
+            {
+                var refundRequests = await _unitOfwork.RefundRequestRepository.GetAsync(_ => _.RentalOrderID != null || _.RentalOrderCode != null);
+
+                if (!string.IsNullOrEmpty(status))
+                {
+                    refundRequests = refundRequests.Where(r => r.Status == status).ToList();
+                }
+                if (branchId.HasValue)
+                {
+                    refundRequests = refundRequests.Where(r => r.BranchId == branchId.Value).ToList();
+                }
+
+                var refundRequestVMs = refundRequests.Select(r => _mapper.Map<RefundRequestVM>(r)).ToList();
+
+                response.IsSuccess = true;
+                response.Message = "Refund requests retrieved successfully.";
+                response.Data = refundRequestVMs;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = $"An error occurred: {ex.Message}";
+                return response;
+            }
+        }
         public async Task<ResponseDTO<bool>> UpdateRefundRequest(int refundRequestId, RefundRequestUM refundRequestUM)
         {
             var response = new ResponseDTO<bool>();

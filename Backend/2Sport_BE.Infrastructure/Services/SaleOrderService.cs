@@ -46,7 +46,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
         #endregion
 
-        Task<ResponseDTO<int>> CancelSaleOrderAsync(int orderId);
+        Task<ResponseDTO<int>> CancelSaleOrderAsync(int orderId, string reason);
     }
     public class SaleOrderService : ISaleOrderService
     {
@@ -727,7 +727,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var result = _mapper.Map<SaleOrderVM>(order);
 
             result.OrderStatus = order.OrderStatus != null
-                ? EnumDisplayHelper.GetEnumDescription<RentalOrderStatus>(order.OrderStatus.Value)
+                ? EnumDisplayHelper.GetEnumDescription<OrderStatus>(order.OrderStatus.Value)
                 : "N/A";
 
             result.PaymentStatus = order.PaymentStatus != null
@@ -915,7 +915,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
         }
 
-        public async Task<ResponseDTO<int>> CancelSaleOrderAsync(int orderId)
+        public async Task<ResponseDTO<int>> CancelSaleOrderAsync(int orderId, string reason)
         {
             var response = new ResponseDTO<int>();
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
@@ -939,7 +939,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         response.Data = 0;
                         return response;
                     }
-
+                    order.Reason = reason;
                     order.OrderStatus = (int)OrderStatus.CANCELLED;
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(order);
 

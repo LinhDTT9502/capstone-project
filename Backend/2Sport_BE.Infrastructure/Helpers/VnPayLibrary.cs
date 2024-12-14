@@ -20,6 +20,7 @@ public class PaymentResponseModel
     public string OrderCode { get; set; }
     public decimal Amount { get; set; }
     public string TransactionStatus { get; set; }
+    public string TxnRef { get; set; }
 }
 public class VnPayLibrary
 {
@@ -49,6 +50,7 @@ public class VnPayLibrary
         var vnPayTranId = Convert.ToInt64(vnPay.GetResponseData("vnp_TransactionNo"));
         var amount = Convert.ToDecimal(vnPay.GetResponseData("vnp_Amount"));
         var transactionStatus = vnPay.GetResponseData("vnp_TransactionStatus");
+        var txnRef = vnPay.GetResponseData("vnp_TxnRef");
         var vnpResponseCode = vnPay.GetResponseData("vnp_ResponseCode");
         var vnpSecureHash =
             collection.FirstOrDefault(k => k.Key == "vnp_SecureHash").Value; //hash của dữ liệu trả về
@@ -79,6 +81,7 @@ public class VnPayLibrary
                 OrderCode = orderCode,
                 TransactionStatus = transactionStatus,
                 Amount = amount/100,
+                TxnRef = txnRef
             }
         };
     }

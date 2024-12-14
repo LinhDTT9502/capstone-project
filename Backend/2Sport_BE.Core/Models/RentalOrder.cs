@@ -118,6 +118,13 @@ namespace _2Sport_BE.Repository.Models
         [Column("Note", TypeName = "nvarchar")]
         [MaxLength(500)]
         public string? Note { get; set; }
+        [Column("Reason", TypeName = "nvarchar")]
+        [MaxLength(500)]
+        public string? Reason { get; set; }
+
+        [Column("TransactionId", TypeName = "nvarchar")]
+        [MaxLength(100)]
+        public string? TransactionId { get; set; }
         #endregion
 
         #region PaymentInformation

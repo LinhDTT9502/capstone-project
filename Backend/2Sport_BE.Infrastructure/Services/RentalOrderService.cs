@@ -34,7 +34,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<bool> UpdatePaymentStatus(string orderCode, int paymentStatus);
         Task<ResponseDTO<int>> DeleteRentalOrderAsync(int rentalOrderId);
 
-        Task<ResponseDTO<int>> CancelRentalOrderAsync(int orderId);
+        Task<ResponseDTO<int>> CancelRentalOrderAsync(int orderId, string reason);
         Task<ResponseDTO<RentalOrderVM>> ReturnOrder(ParentOrderReturnModel rentalInfor);
         Task<RentalOrder> FindRentalOrderByOrderCode(string orderCode);
         Task<RentalOrder> FindRentalOrderById(int orderId);
@@ -836,7 +836,7 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
 
-        public async Task<ResponseDTO<int>> CancelRentalOrderAsync(int orderId)
+        public async Task<ResponseDTO<int>> CancelRentalOrderAsync(int orderId, string reason)
         {
             var response = new ResponseDTO<int>();
             using (var transaction = await _unitOfWork.BeginTransactionAsync())
@@ -862,6 +862,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
 
                     order.OrderStatus = (int)OrderStatus.CANCELLED;
+                    order.Reason = reason;
                     await _unitOfWork.RentalOrderRepository.UpdateAsync(order);
 
                     var childs = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode == order.RentalOrderCode);
@@ -871,6 +872,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         foreach (var child in childs)
                         {
                             child.OrderStatus = (int)OrderStatus.CANCELLED;
+                            child.Reason = reason;
                             await _unitOfWork.RentalOrderRepository.UpdateAsync(child);
                         }
                     }

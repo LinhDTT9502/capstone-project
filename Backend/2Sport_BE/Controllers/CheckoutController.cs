@@ -67,6 +67,7 @@ namespace _2Sport_BE.Controllers
                 if (order.PaymentMethodId != checkoutModel.PaymentMethodID)
                 {
                     order.PaymentMethodId = checkoutModel.PaymentMethodID;
+                    order.PaymentStatus = (int)PaymentStatus.IsWating;
                     await _saleOrderService.UpdateSaleOrder(order);
                 }
 

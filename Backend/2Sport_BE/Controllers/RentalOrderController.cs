@@ -138,9 +138,9 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpPost("request-cancel/{rentalOrderId}")]
-        public async Task<IActionResult> RequestCancelOrder(int rentalOrderId)
+        public async Task<IActionResult> RequestCancelOrder(int rentalOrderId, [FromBody] string reason)
         {
-            var response = await _rentalOrderServices.CancelRentalOrderAsync(rentalOrderId);
+            var response = await _rentalOrderServices.CancelRentalOrderAsync(rentalOrderId, reason);
             if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
