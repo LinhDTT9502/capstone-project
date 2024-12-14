@@ -13,8 +13,7 @@ namespace _2Sport_BE.Service.Services
 		Task AddReview(Review review);
 		Task<IQueryable<Review>> GetReviewsOfProduct(string productCode);
         Task<IQueryable<Review>> GetAllReviews();
-
-	}
+    }
     public class ReviewService : IReviewService
 	{
 		private readonly IUnitOfWork _unitOfWork;

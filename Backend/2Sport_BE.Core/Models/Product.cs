@@ -22,7 +22,7 @@ public class Product
     [MaxLength(50)]
     public string? Size { get; set; }
 
-    [Column("Description", TypeName = "text")]
+    [Column("Description", TypeName = "nvarchar(MAX)")]
     public string? Description { get; set; }
 
     public bool? Status { get; set; }
@@ -46,7 +46,7 @@ public class Product
     [Column("Weight")]
     public decimal? Weight { get; set; }
 
-    [Column("Offers", TypeName = "nvarchar")]
+    [Column("Offers", TypeName = "nvarchar(MAX)")]
     [MaxLength]
     public string? Offers { get; set; }
 
