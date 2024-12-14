@@ -35,7 +35,23 @@ namespace _2Sport_BE.Controllers
 			}
 		}
 
-		[HttpPost]
+
+        [HttpGet]
+        [Route("get-all-reviews-of-product/{productCode}")]
+        public async Task<IActionResult> GetAllReviewsOfProoduct(string productCode)
+        {
+            try
+            {
+                var allReviews = await _reviewService.GetReviewsOfProduct(productCode);
+                return Ok(allReviews.ToList());
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPost]
 		[Route("add-review/{productCode}")]
 		public async Task<IActionResult> AddReview(string productCode, ReviewCM reviewCM)
 		{

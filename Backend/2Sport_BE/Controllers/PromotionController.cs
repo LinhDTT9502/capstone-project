@@ -1,4 +1,5 @@
 ﻿using _2Sport_BE.Helpers;
+using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
@@ -43,19 +44,20 @@ namespace _2Sport_BE.Controllers
             
         }
 
-        [HttpPost]
-        [Route("create-and-update-promotion/{productCode}")]
-        public async Task<IActionResult> CreateAndUpdatePromotion(string productCode, int percentDiscount)
+        [HttpPut]
+        [Route("create-and-update-promotion/{productName}")]
+        public async Task<IActionResult> CreateAndUpdatePromotion(string productName, int percentDiscount)
         {
             try
             {
-                var query = await _productService.GetProductsByProductCode(productCode);
+                var query = await _productService.GetProductsByProductName(productName);
 
                 foreach (var product in query)
                 {
                     product.Discount = percentDiscount;
-                    await _productService.UpdateProduct(product);
+                    
                 }
+                await _productService.UpdateProducts(query);
                 return Ok("Create/Update discount for product successfully!");
             }
             catch (Exception ex)

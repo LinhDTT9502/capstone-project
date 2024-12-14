@@ -1401,31 +1401,6 @@ namespace _2Sport_BE.Controllers
 
         }
 
-        [HttpPut]
-        [Route("edit-description-of-product/{productCode}")]
-        public async Task<IActionResult> EditDescriptionOfProduct(string productCode, string description)
-        {
-            try
-            {
-                var editedProduct = await _productService.GetProductsByProductCode(productCode);
-                if (editedProduct == null)
-                {
-                    return BadRequest($"There is no any products with product code {productCode}");
-                }
-
-                foreach (var product in editedProduct.ToList())
-                {
-                    product.Description = description;
-                    await _productService.UpdateProduct(product);
-                }
-                
-                return Ok("Save successfully!");
-            } catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
         [HttpDelete]
         [Route("delete-product/{productId}")]
         public async Task<IActionResult> DeleteProduct(int productId)
@@ -1473,6 +1448,61 @@ namespace _2Sport_BE.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpPut]
+        [Route("edit-description-of-product/{productCode}")]
+        public async Task<IActionResult> EditDescriptionOfPrduct (string productCode, string description)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+
+                var products = await _productService.GetProductsByProductCode(productCode);
+                foreach (var product in products)
+                {
+                    product.Description = description;
+                }
+                await _productService.UpdateProducts(products);
+                return Ok("save successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Something wrong!");
+            }
+        }
+
+
+
+        [HttpPut]
+        [Route("edit-offers-of-product/{categoryId}")]
+        public async Task<IActionResult> EditOffersnOfPrduct(int categoryId, string offers)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+
+                var products = await _productService.GetProductsByCategoryId(categoryId);
+                foreach (var product in products)
+                {
+                    product.Offers = offers;
+                }
+                await _productService.UpdateProducts(products);
+                return Ok("save successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Something wrong!");
             }
         }
 
