@@ -49,7 +49,9 @@ import SaleOrder from './components/Order/SaleOrder';
 import ScrollToTop from './resources/ScrollToTop';
 import PaymentSuccess from './pages/AfterPayment/PaymentSuccess';
 import PaymentSuccessV2 from './pages/AfterPayment/PaymentSuccessV2';
-
+import BlogList from './pages/BlogList';
+import BlogDetail from './pages/BlogDetail';
+import BlogRoutes from './routes/BlogRoutes';
 
 
 function App() {
@@ -85,6 +87,9 @@ function App() {
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-success-2" element={<PaymentSuccessV2 />} />
 
+        {/* <Route path='/blog-list' element={<BlogList/>}/>
+        <Route path='/blog-detail' element={<BlogDetail/>}/> */}
+
             {/* <Route path="/policies/*" element={<PolicesRoutes />} /> */}
             {/* <Route path="/productv2" element={<Productv2Page />} /> */}
             <Route path="/product/*" element={<ProductRoutes />} />
@@ -108,6 +113,8 @@ function App() {
             <Route path="/order_success" element={<OrderSuccess />} />
             <Route path="/order_cancel" element={<OrderCancel />} />
             <Route path="/employee/warehouse" element={<Warehouse />} />
+            <Route path="/blog/*" element={<BlogRoutes />} />
+
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
           <Footer />
