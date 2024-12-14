@@ -33,12 +33,12 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpGet]
-        [Route("get-all-comments/{productId}")]
-        public async Task<IActionResult> GetAllComments(int productId)
+        [Route("get-all-comments/{productCode}")]
+        public async Task<IActionResult> GetAllComments(string productCode)
         {
             try
             {
-                var allCommentInProduct = (await _commentService.GetAllComment(productId)).ToList();
+                var allCommentInProduct = (await _commentService.GetAllComment(productCode)).ToList();
                 var result = _mapper.Map<List<CommentVM>>(allCommentInProduct);
                 foreach (var item in result)
                 {
@@ -53,8 +53,8 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpPost]
-        [Route("comment/{productId}")]
-        public async Task<IActionResult> Comment(int productId, CommentCM commentCM)
+        [Route("comment/{productCode}")]
+        public async Task<IActionResult> Comment(string productCode, CommentCM commentCM)
         {
             try
             {
@@ -64,12 +64,14 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
                 var comment = _mapper.Map<CommentCM, Comment>(commentCM);
-                var isSuccess = await _commentService.AddComment(currUserId, productId, comment);
+                var isSuccess = await _commentService.AddComment(currUserId, productCode, comment);
 
                 var coordinators = await _userService.GetUserWithConditionAsync(_ => _.RoleId == 16);
                 if (isSuccess == 1)
                 {
-                    var product = (await _unitOfWork.ProductRepository.FindAsync(productId));
+                    var product = (await _unitOfWork.ProductRepository.GetAsync(_ => _.ProductCode.ToLower()
+                                                                                    .Equals(productCode.ToLower())))
+                                                                                    .FirstOrDefault();
                     var isSuccessNotify = await _notificationService.NotifyForComment(currUserId, 
                                                                     coordinators.ToList(), product);
                     if (!isSuccessNotify)
@@ -93,20 +95,22 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpPost]
-        [Route("reply-comment/{productId}")]
-        public async Task<IActionResult> ReplyComment(int productId, [FromQuery]int parentCommentId, 
+        [Route("reply-comment/{productCode}")]
+        public async Task<IActionResult> ReplyComment(string productCode, [FromQuery]int parentCommentId, 
                                                             CommentCM commentCM)
         {
             try
             {
                 var currAdminId = GetCurrentUserIdFromToken();
                 var comment = _mapper.Map<CommentCM, Comment>(commentCM);
-                var isSuccess = await _commentService.ReplyComment(currAdminId, productId, parentCommentId, comment);
+                var isSuccess = await _commentService.ReplyComment(currAdminId, productCode, parentCommentId, comment);
                 var parentComment = await _unitOfWork.CommentRepository.FindAsync(parentCommentId);
                 var currUserId = parentComment.UserId;
                 if (isSuccess == 1)
                 {
-                    var product = (await _unitOfWork.ProductRepository.FindAsync(productId));
+                    var product = (await _unitOfWork.ProductRepository.GetAsync(_ => _.ProductCode.ToLower()
+                                                                                    .Equals(productCode.ToLower())))
+                                                                                    .FirstOrDefault();
                     var isSuccessNotify = await _notificationService
                                             .NotifyForReplyComment(currUserId.ToString(), product);
                     if (!isSuccessNotify)

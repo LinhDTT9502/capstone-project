@@ -37,7 +37,8 @@ namespace _2Sport_BE.Controllers
 		{
 			try
 			{
-				return Ok(await _likeService.GetLikesOfProduct());
+				var likes = (await _likeService.GetLikesOfProduct()).ToList();
+                return Ok(likes);
 			}
 			catch (Exception ex)
 			{
@@ -64,7 +65,7 @@ namespace _2Sport_BE.Controllers
                     var addedLike = new Like
                     {
                         UserId = userId,
-                        ProductId = product.Id,
+                        ProductCode = product.ProductCode,
                         //User = user,
                         //Product = product,
                     };

@@ -88,9 +88,9 @@ namespace _2Sport_BE.Controllers
                 productVM.CategoryName = category.CategoryName;
                 var sport = await _sportService.GetSportById(productVM.SportId);
                 productVM.SportName = sport.Name;
-                var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                var reviews = await _reviewService.GetReviewsOfProduct(product.ProductCode);
                 productVM.Reviews = reviews.ToList();
-                var numOfLikes = await _likeService.CountLikesOfProduct(productId);
+                var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                 productVM.Likes = numOfLikes;
                 productVM.ListImages.Add(productVM.ImgAvatarPath);
                 productVM.ListImages.Reverse();
@@ -143,9 +143,9 @@ namespace _2Sport_BE.Controllers
                     productVM.CategoryName = category.CategoryName;
                     var sport = await _sportService.GetSportById(productVM.SportId);
                     productVM.SportName = sport.Name;
-                    var reviews = await _reviewService.GetReviewsOfProductByProductCode(productCode);
+                    var reviews = await _reviewService.GetReviewsOfProduct(productCode);
                     productVM.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikesOfProduct(productVM.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(productCode);
                     productVM.Likes = numOfLikes;
                     productVM.ListImages.Add(productVM.ImgAvatarPath);
                     productVM.ListImages.Reverse();
@@ -206,9 +206,7 @@ namespace _2Sport_BE.Controllers
                 var result = _mapper.Map<List<Product>, List<ProductVM>>(query.ToList());
                 foreach (var product in result)
                 {
-                    var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
-                    product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                     product.Likes = numOfLikes;
                     product.ListImages.Add(product.ImgAvatarPath);
                     product.ListImages.Reverse();
@@ -281,9 +279,9 @@ namespace _2Sport_BE.Controllers
 
                 foreach (var product in result)
                 {
-                    var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                    var reviews = await _reviewService.GetReviewsOfProduct(product.ProductCode);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                     product.Likes = numOfLikes;
                 }
 
@@ -318,9 +316,9 @@ namespace _2Sport_BE.Controllers
 
                 foreach (var product in result)
                 {
-                    var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                    var reviews = await _reviewService.GetReviewsOfProduct(product.ProductCode);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                     product.Likes = numOfLikes;
                 }
 
@@ -363,9 +361,9 @@ namespace _2Sport_BE.Controllers
 
                 foreach (var product in result)
                 {
-                    var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                    var reviews = await _reviewService.GetReviewsOfProduct(product.ProductCode);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                     product.Likes = numOfLikes;
                 }
 
@@ -474,6 +472,10 @@ namespace _2Sport_BE.Controllers
                         newProduct.Color = productCM.Color;
                         newProduct.Condition = productCM.Condition;
                         newProduct.Price = productCM.Price;
+                        newProduct.Height = productCM.Height;
+                        newProduct.Weight = productCM.Weight;
+                        newProduct.Length = productCM.Length;
+                        newProduct.Width = productCM.Width;
 
                         var existedProductWithProductCodeAndColor = (await _productService
                                                             .GetProducts(_ => _.ProductCode.Equals(existedProduct.ProductCode)
@@ -699,6 +701,10 @@ namespace _2Sport_BE.Controllers
                                 newProduct.Color = productCM.Color;
                                 newProduct.Condition = productCM.Condition;
                                 newProduct.Price = productCM.Price;
+                                newProduct.Height = productCM.Height;
+                                newProduct.Weight = productCM.Weight;
+                                newProduct.Length = productCM.Length;
+                                newProduct.Width = productCM.Width;
 
                                 var existedProductWithProductCodeAndColor = (await _productService
                                                                     .GetProducts(_ => _.ProductCode.Equals(existedProduct.ProductCode)
@@ -925,8 +931,12 @@ namespace _2Sport_BE.Controllers
                     var sizeValue = reader.GetValue(9)?.ToString();
                     var colorValue = reader.GetValue(10)?.ToString();
                     var conditionValue = reader.GetValue(11)?.ToString();
-                    var avaImgValue = reader.GetValue(13)?.ToString();
-                    var isRent = reader.GetValue(12)?.ToString();
+                    var lengthValue = reader.GetValue(12)?.ToString();
+                    var widthValue = reader.GetValue(13)?.ToString();
+                    var heightValue = reader.GetValue(14)?.ToString();
+                    var weightValue = reader.GetValue(15)?.ToString();
+                    var avaImgValue = reader.GetValue(17)?.ToString();
+                    var isRent = reader.GetValue(16)?.ToString();
 
                     // Check for null or empty mandatory fields
                     if (string.IsNullOrEmpty(brandValue) ||
@@ -940,7 +950,10 @@ namespace _2Sport_BE.Controllers
                         string.IsNullOrEmpty(colorValue) ||
                         string.IsNullOrEmpty(conditionValue) ||
                         string.IsNullOrEmpty(avaImgValue) ||
-                        string.IsNullOrEmpty(isRent))
+                        string.IsNullOrEmpty(heightValue)||
+                        string.IsNullOrEmpty(weightValue) ||
+                        string.IsNullOrEmpty(lengthValue) ||
+                        string.IsNullOrEmpty(widthValue))
                     {
                         return (int)ProductErrors.NullError;
                     }
@@ -984,6 +997,10 @@ namespace _2Sport_BE.Controllers
                             RentPrice = 0,
                             CreateAt = DateTime.Now,
                             Status = true,
+                            Height = decimal.TryParse(heightValue, out var height) ? height : 0,
+                            Weight = decimal.TryParse(weightValue, out var weigth) ? weigth : 0,
+                            Length = decimal.TryParse(lengthValue, out var length) ? length : 0,
+                            Width = decimal.TryParse(widthValue, out var width) ? width : 0,
                         };
 
                         //If there is a existed product with product code
@@ -1021,11 +1038,11 @@ namespace _2Sport_BE.Controllers
                             await _productService.AddProduct(product);
 
                             //Add product's images into ImageVideo table
-                            var firstImgValue = reader.GetValue(14)?.ToString();
-                            var secondImgValue = reader.GetValue(15)?.ToString();
-                            var thirdImgValue = reader.GetValue(16)?.ToString();
-                            var fourthImgValue = reader.GetValue(17)?.ToString();
-                            var fifthImgValue = reader.GetValue(18)?.ToString();
+                            var firstImgValue = reader.GetValue(18)?.ToString();
+                            var secondImgValue = reader.GetValue(19)?.ToString();
+                            var thirdImgValue = reader.GetValue(20)?.ToString();
+                            var fourthImgValue = reader.GetValue(21)?.ToString();
+                            var fifthImgValue = reader.GetValue(22)?.ToString();
                             var isSuccess = await UploadProductImages(product.Id,firstImgValue, secondImgValue, thirdImgValue,
                                                         fourthImgValue, fifthImgValue);
                             
@@ -1100,11 +1117,11 @@ namespace _2Sport_BE.Controllers
                                 if (existedProductWithProductCodeAndColor is null)
                                 {
                                     //Add product's images into ImageVideo table
-                                    var firstImgValue = reader.GetValue(14)?.ToString();
-                                    var secondImgValue = reader.GetValue(15)?.ToString();
-                                    var thirdImgValue = reader.GetValue(16)?.ToString();
-                                    var fourthImgValue = reader.GetValue(17)?.ToString();
-                                    var fifthImgValue = reader.GetValue(18)?.ToString();
+                                    var firstImgValue = reader.GetValue(18)?.ToString();
+                                    var secondImgValue = reader.GetValue(19)?.ToString();
+                                    var thirdImgValue = reader.GetValue(20)?.ToString();
+                                    var fourthImgValue = reader.GetValue(21)?.ToString();
+                                    var fifthImgValue = reader.GetValue(22)?.ToString();
                                     var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
                                                                 fourthImgValue, fifthImgValue);
 
@@ -1385,18 +1402,23 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpPut]
-        [Route("edit-description-of-product/{productId}")]
-        public async Task<IActionResult> EditDescriptionOfProduct(int productId, string description)
+        [Route("edit-description-of-product/{productCode}")]
+        public async Task<IActionResult> EditDescriptionOfProduct(string productCode, string description)
         {
             try
             {
-                var editedProduct = await _productService.GetProductById(productId);
+                var editedProduct = await _productService.GetProductsByProductCode(productCode);
                 if (editedProduct == null)
                 {
-                    return BadRequest($"There is no any products with id {productId}");
+                    return BadRequest($"There is no any products with product code {productCode}");
                 }
-                editedProduct.Description = description;
-                await _productService.UpdateProduct(editedProduct);
+
+                foreach (var product in editedProduct.ToList())
+                {
+                    product.Description = description;
+                    await _productService.UpdateProduct(product);
+                }
+                
                 return Ok("Save successfully!");
             } catch (Exception ex)
             {
