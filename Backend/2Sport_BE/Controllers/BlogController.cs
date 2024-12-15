@@ -309,6 +309,96 @@ namespace _2Sport_BE.Controllers
             
         }
 
+        [HttpPost]
+        [Route("upload-an-image")]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+
+                if (file == null || file.Length == 0)
+                    return BadRequest("No file uploaded.");
+
+                // Specify folder name
+                string folderName = "blog_images";
+
+                var result = await _imageService.UploadImageToCloudinaryAsync(file, folderName);
+
+                if (result.Error != null)
+                    return BadRequest(result.Error.Message);
+
+                return Ok(new
+                {
+                    PublicId = result.PublicId,
+                    Url = result.SecureUrl.ToString()
+                });
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        // List all images in a folder
+        [HttpGet("list-images")]
+        public async Task<IActionResult> ListImages()
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+                var imageUrls = await _imageService.ListImagesAsync("blog_images");
+
+                return Ok(imageUrls);
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            
+        }
+
+        // List all images in a folder
+        [HttpDelete("delete-image")]
+        public async Task<IActionResult> DeleteImage(string imageUrl)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+
+                // Extract the file name without the extension
+                string fileName = imageUrl.Substring(imageUrl.LastIndexOf('/') + 1); // Get "2sport-cau-giay.jpg"
+                fileName = fileName.Substring(0, fileName.LastIndexOf('.')); // Remove ".jpg"
+
+                var isSucess = await _imageService.DeleteAnImage(fileName);
+
+                if (!isSucess)
+                {
+                    return BadRequest("Delete failed");
+                }
+                return Ok("Delete successully!");
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
+
         protected int GetCurrentUserIdFromToken()
         {
             int UserId = 0;

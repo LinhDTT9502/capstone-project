@@ -149,7 +149,7 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPut]
         [Route("update-brand/{brandId}")]
         public async Task<IActionResult> UpdateBrand(int brandId, BrandUM brandUM)
         {
@@ -183,13 +183,13 @@ namespace _2Sport_BE.Controllers
 
         }
 
-        [HttpPost]
+        [HttpDelete]
         [Route("delete-brand/{brandId}")]
         public async Task<IActionResult> DeleteBrand(int brandId)
         {
             try
             {
-                var deletedBrand = await (await _brandService.GetBrandById(brandId)).FirstOrDefaultAsync();
+                var deletedBrand =  (await _brandService.GetBrandById(brandId)).FirstOrDefault();
                 if (deletedBrand != null)
                 {
                     deletedBrand.Status = !deletedBrand.Status;
