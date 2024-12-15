@@ -119,8 +119,8 @@ namespace _2Sport_BE.Controllers
         public async Task<IActionResult> ChangeOrderStatus(int orderId, int status)
         {
             var response = await _orderService.UpdateSaleOrderStatusAsync(orderId, status);
-
-            return BadRequest("Invalid request data.");
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
         }
 
         [HttpPut("assign-branch")]

@@ -232,7 +232,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     if (saleOrder == null)
                         return _saleOrderService.GenerateErrorResponse($"SaleOrder with code {paymentResponse.OrderCode} is not found!");
 
-                    saleOrder.PaymentStatus = (int)PaymentStatus.IsCanceled;
+                    saleOrder.PaymentStatus = (int)PaymentStatus.CANCELED;
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
                     //Cập nhật lại số luọng sản phẩm của chi nhánh đó thông qua update lại warehouse
@@ -275,7 +275,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 {
                     return _saleOrderService.GenerateErrorResponse($"SaleOrder with code {paymentResponse.OrderCode} is not found!");
                 }
-                saleOrder.PaymentStatus = (int)PaymentStatus.IsPaid;
+                saleOrder.PaymentStatus = (int)PaymentStatus.PAID;
                 await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
                 await _notificationService.NotifyPaymentPaid(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
@@ -298,9 +298,9 @@ namespace _2Sport_BE.Infrastructure.Services
                     if (rentalOrder == null)
                         return _rentalOrderService.GenerateErrorResponse($"Rental Order with code {paymentResponse.OrderCode} is not found!");
 
-                    rentalOrder.PaymentStatus = (int)PaymentStatus.IsCanceled;
-                    rentalOrder.DepositStatus = (int)PaymentStatus.IsCanceled;
-
+                    rentalOrder.PaymentStatus = (int)PaymentStatus.CANCELED;
+                    rentalOrder.DepositStatus = (int)PaymentStatus.CANCELED;
+                    rentalOrder.OrderStatus = (int)RentalOrderStatus.CANCELED;
                     var childOrders = await _unitOfWork.RentalOrderRepository
                                        .GetAsync(od => od.ParentOrderCode == rentalOrder.RentalOrderCode);
                     if (rentalOrder.BranchId != null)
@@ -309,8 +309,9 @@ namespace _2Sport_BE.Infrastructure.Services
                         {
                             foreach (var item in childOrders)
                             {
-                                item.PaymentStatus = (int)PaymentStatus.IsCanceled;
-                                item.DepositStatus = (int)DepositStatus.Not_Paid;
+                                item.PaymentStatus = (int)PaymentStatus.CANCELED;
+                                item.DepositStatus = (int)DepositStatus.NOT_PAID;
+                                item.OrderStatus = (int)RentalOrderStatus.CANCELED;
                                 item.TransactionId = item.ParentOrderCode;
 
                                 var productInWarehouse = await _unitOfWork.WarehouseRepository
@@ -361,11 +362,8 @@ namespace _2Sport_BE.Infrastructure.Services
                 if (rentalOrder == null)
                     return _rentalOrderService.GenerateErrorResponse($"Rental Order with code {paymentResponse.OrderCode} is not found!");
 
-                // Cập nhật trạng thái SaleOrder thành "Completed"
-                rentalOrder.PaymentStatus = (int)PaymentStatus.IsDeposited;
-
-                if (rentalOrder.DepositStatus == (int)DepositStatus.Partially_Pending) rentalOrder.DepositStatus = (int)DepositStatus.Partially_Paid;
-                else rentalOrder.DepositStatus = (int)DepositStatus.Paid;
+                if (rentalOrder.DepositStatus == (int)DepositStatus.PARTIALLY_PENDING) rentalOrder.DepositStatus = (int)DepositStatus.PARTIALLY_PENDING;
+                else rentalOrder.DepositStatus = (int)DepositStatus.FULL_PAID;
 
                 rentalOrder.UpdatedAt = DateTime.UtcNow;
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
@@ -554,7 +552,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 if (response.Data.TransactionStatus == "00")//Success
                 {
                     saleOrder.TransactionId = response.Data.TxnRef;
-                    saleOrder.PaymentStatus = (int)PaymentStatus.IsPaid;
+                    saleOrder.PaymentStatus = (int)PaymentStatus.PAID;
                     saleOrder.UpdatedAt = DateTime.UtcNow;
 
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
@@ -564,7 +562,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 else
                 {
                     saleOrder.TransactionId = response.Data.TxnRef;
-                    saleOrder.PaymentStatus = (int)PaymentStatus.IsCanceled;
+                    saleOrder.PaymentStatus = (int)PaymentStatus.CANCELED;
                     saleOrder.OrderStatus = (int)OrderStatus.CANCELLED;
                     saleOrder.UpdatedAt = DateTime.UtcNow;
 
@@ -605,15 +603,13 @@ namespace _2Sport_BE.Infrastructure.Services
             var rentalOrder = _unitOfWork.RentalOrderRepository.FindObject(o => o.RentalOrderCode == response.Data.OrderCode);
             if (rentalOrder == null) return _rentalOrderService.GenerateErrorResponse("Order not found!");
 
-
-            // Determine deposit status based on the response code
             DepositStatus newDepositStatus = response.Data.TransactionStatus == "00"
-                ? (rentalOrder.DepositStatus == (int)DepositStatus.Partially_Pending ? DepositStatus.Partially_Paid : DepositStatus.Paid)
-                : DepositStatus.Not_Paid;
+                ? (rentalOrder.DepositStatus == (int)DepositStatus.PARTIALLY_PENDING ? DepositStatus.PARTIALLY_PAID : DepositStatus.FULL_PAID)
+                : DepositStatus.CANCELED;
 
             PaymentStatus paymentStatus = response.Data.TransactionStatus == "00"
-                ? PaymentStatus.IsDeposited
-                : PaymentStatus.IsCanceled;
+                ? PaymentStatus.PENDING
+                : PaymentStatus.CANCELED;
 
             var childOrders = await _unitOfWork.RentalOrderRepository
                                      .GetAsync(od => od.ParentOrderCode == rentalOrder.RentalOrderCode);
@@ -627,7 +623,8 @@ namespace _2Sport_BE.Infrastructure.Services
                         {
                             item.PaymentStatus = (int)paymentStatus;
                             item.DepositStatus = (int)newDepositStatus;
-                            item.OrderStatus = (int)OrderStatus.CANCELLED;
+                            item.OrderStatus = (int)RentalOrderStatus.CANCELED;
+
                             item.TransactionId = response.Data.TxnRef;
                             item.UpdatedAt = DateTime.UtcNow;
 
@@ -657,7 +654,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 rentalOrder.PaymentStatus = (int)paymentStatus;
                 rentalOrder.DepositAmount = (int)newDepositStatus;
-                rentalOrder.OrderStatus = (int)OrderStatus.CANCELLED;
+                rentalOrder.OrderStatus = (int)RentalOrderStatus.CANCELED;
                 rentalOrder.UpdatedAt = DateTime.UtcNow;
                 rentalOrder.TransactionId = response.Data.TxnRef;
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
