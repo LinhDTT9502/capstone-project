@@ -3,6 +3,7 @@ using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
+using Google.Cloud.Storage.V1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -110,6 +111,52 @@ namespace _2Sport_BE.Controllers
             };
         }
 
+        //[HttpPost]
+        //[Route("upload-image-in-text-editor")]
+        //public async Task<IActionResult> UploadImageInTextEditor(IFormFile file, [FromQuery] string subfolderPath = "")
+        //{
+        //    if (file == null || file.Length == 0)
+        //    {
+        //        return BadRequest("No file uploaded.");
+        //    }
+        //    string filter = "*.png,*.gif,*.jpg,*.jpeg";
+        //    if (filter.Contains(Path.GetExtension(file.FileName)))
+        //    {
+        //        var fileName = Path.GetFileName(file.FileName);
+
+        //        // Combine paths: RootPath/Media/(optional subfolderPath)/fileName
+        //        var rootPath = _environment.WebRootPath ?? _environment.ContentRootPath;
+        //        var mediaDirectory = Path.Combine(rootPath, "Media");
+        //        var targetDirectory = string.IsNullOrEmpty(subfolderPath)
+        //            ? mediaDirectory
+        //            : Path.Combine(mediaDirectory, subfolderPath);
+        //        var filePath = Path.Combine(targetDirectory, fileName);
+
+        //        // Ensure the directory exists
+        //        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+
+        //        using (var stream = new FileStream(filePath, FileMode.Create))
+        //        {
+        //            await file.CopyToAsync(stream);
+        //        }
+
+        //        var fileUrl = "";
+        //        if (subfolderPath != "")
+        //        {
+        //            fileUrl = $"{Request.Scheme}://{Request.Host}/api/ImageVideo/view-image?fileName={fileName}" +
+        //                $"&subFolderPath={subfolderPath}";
+        //        } else
+        //        {
+        //            fileUrl = $"{Request.Scheme}://{Request.Host}/api/ImageVideo/view-image?fileName={fileName}";
+        //        }
+        //        return Ok(new { FileUrl = fileUrl });
+        //    }
+        //    else
+        //    {
+        //        return null;
+        //    }
+        //}
+
         [HttpPost]
         [Route("upload-image-in-text-editor")]
         public async Task<IActionResult> UploadImageInTextEditor(IFormFile file, [FromQuery] string subfolderPath = "")
@@ -123,28 +170,27 @@ namespace _2Sport_BE.Controllers
             {
                 var fileName = Path.GetFileName(file.FileName);
 
-                // Combine paths: RootPath/Media/(optional subfolderPath)/fileName
-                var rootPath = _environment.WebRootPath ?? _environment.ContentRootPath;
-                var mediaDirectory = Path.Combine(rootPath, "Media");
-                var targetDirectory = string.IsNullOrEmpty(subfolderPath)
-                    ? mediaDirectory
-                    : Path.Combine(mediaDirectory, subfolderPath);
-                var filePath = Path.Combine(targetDirectory, fileName);
+                string bucketName = "YOUR_BUCKET_NAME"; // Replace with your GCP bucket name
+                var storageClient = StorageClient.Create();
+                var objectName = string.IsNullOrEmpty(subfolderPath)
+                    ? fileName
+                    : $"{subfolderPath}/{fileName}";
 
-                // Ensure the directory exists
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                // Upload the file to Google Cloud Storage
+                using (var stream = file.OpenReadStream())
                 {
-                    await file.CopyToAsync(stream);
+                    await storageClient.UploadObjectAsync(bucketName, objectName, file.ContentType, stream);
                 }
 
+                // Construct the file URL
+                var fileUrlStorage = $"https://storage.googleapis.com/{bucketName}/{objectName}";
                 var fileUrl = "";
                 if (subfolderPath != "")
                 {
                     fileUrl = $"{Request.Scheme}://{Request.Host}/api/ImageVideo/view-image?fileName={fileName}" +
                         $"&subFolderPath={subfolderPath}";
-                } else
+                }
+                else
                 {
                     fileUrl = $"{Request.Scheme}://{Request.Host}/api/ImageVideo/view-image?fileName={fileName}";
                 }
@@ -156,24 +202,24 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("create-folder-in-text-editor")]
-        public async Task<IActionResult> CreateFolder(string folderName)
-        {
-            // Get the root path of the project
-            var rootPath = _environment.ContentRootPath;
+        //[HttpPost]
+        //[Route("create-folder-in-text-editor")]
+        //public async Task<IActionResult> CreateFolder(string folderName)
+        //{
+        //    // Get the root path of the project
+        //    var rootPath = _environment.ContentRootPath;
 
-            // Create a path for "RootPath/Media/YourFolderName"
-            var mediaSubdirectoryPath = Path.Combine(rootPath, "Media", folderName);
+        //    // Create a path for "RootPath/Media/YourFolderName"
+        //    var mediaSubdirectoryPath = Path.Combine(rootPath, "Media", folderName);
 
-            // Create the directory if it doesn't exist
-            if (!Directory.Exists(mediaSubdirectoryPath))
-            {
-                Directory.CreateDirectory(mediaSubdirectoryPath);
-                return Ok("Create folder successfully!");
-            }
-            return Ok("Create folder failed!");
-        }
+        //    // Create the directory if it doesn't exist
+        //    if (!Directory.Exists(mediaSubdirectoryPath))
+        //    {
+        //        Directory.CreateDirectory(mediaSubdirectoryPath);
+        //        return Ok("Create folder successfully!");
+        //    }
+        //    return Ok("Create folder failed!");
+        //}
 
         [HttpDelete("delete-image-of-text-editor")]
         public IActionResult DeleteImage([FromQuery] string fileName, [FromQuery] string subfolderPath = "")

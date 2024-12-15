@@ -46,6 +46,21 @@ namespace _2Sport_BE.Controllers
 			}
 		}
 
+        [HttpGet]
+        [Route("get-likes-of-product/{productCode}")]
+        public async Task<IActionResult> GetLikesOfProduct(string productCode)
+        {
+            try
+            {
+                var likes = (await _likeService.GetLikesOfProduct(productCode)).ToList();
+                return Ok(likes);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
         [HttpPost]
 		[Route("like-product/{productCode}")]
 		public async Task<IActionResult> LikeProduct(string productCode)

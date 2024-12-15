@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241214093759_modify-offers-and-description-columns-in-Product-table")]
+    partial class modifyoffersanddescriptioncolumnsinProducttable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -985,10 +988,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("Email");
 
-                    b.Property<DateTime?>("ExtendedDueDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("ExtendedDueDate");
-
                     b.Property<decimal?>("ExtensionCost")
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("ExtensionCost");
@@ -996,10 +995,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<int?>("ExtensionDays")
                         .HasColumnType("int")
                         .HasColumnName("ExtensionDays");
-
-                    b.Property<int?>("ExtensionStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("ExtensionStatus");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -1037,11 +1032,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar")
                         .HasColumnName("Note");
 
-                    b.Property<string>("OrderImage")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("OrderImage");
-
                     b.Property<int?>("OrderStatus")
                         .HasColumnType("int")
                         .HasColumnName("OrderStatus");
@@ -1074,11 +1064,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<int?>("Quantity")
                         .HasColumnType("int")
                         .HasColumnName("Quantity");
-
-                    b.Property<string>("Reason")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("Reason");
 
                     b.Property<decimal?>("RentPrice")
                         .HasColumnType("decimal")
@@ -1120,11 +1105,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<decimal?>("TranSportFee")
                         .HasColumnType("decimal")
                         .HasColumnName("TranSportFee");
-
-                    b.Property<string>("TransactionId")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("TransactionId");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2")
@@ -1277,11 +1257,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar")
                         .HasColumnName("Note");
 
-                    b.Property<string>("OrderImage")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("OrderImage");
-
                     b.Property<int?>("OrderStatus")
                         .HasColumnType("int")
                         .HasColumnName("OrderStatus");
@@ -1293,11 +1268,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<int?>("PaymentStatus")
                         .HasColumnType("int")
                         .HasColumnName("PaymentStatus");
-
-                    b.Property<string>("Reason")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("Reason");
 
                     b.Property<string>("SaleOrderCode")
                         .HasMaxLength(50)
@@ -1318,11 +1288,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<decimal?>("TranSportFee")
                         .HasColumnType("decimal")
                         .HasColumnName("TranSportFee");
-
-                    b.Property<string>("TransactionId")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("TransactionId");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2")
@@ -1837,11 +1802,11 @@ namespace _2Sport_BE.Migrations
             modelBuilder.Entity("_2Sport_BE.Repository.Models.RefundRequest", b =>
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.RentalOrder", "RentalOrder")
-                        .WithMany("RefundRequests")
+                        .WithMany()
                         .HasForeignKey("RentalOrderID");
 
                     b.HasOne("_2Sport_BE.Repository.Models.SaleOrder", "SaleOrder")
-                        .WithMany("RefundRequests")
+                        .WithMany("Refunds")
                         .HasForeignKey("SaleOrderID");
 
                     b.Navigation("RentalOrder");
@@ -2012,11 +1977,6 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Warehouses");
                 });
 
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.RentalOrder", b =>
-                {
-                    b.Navigation("RefundRequests");
-                });
-
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Role", b =>
                 {
                     b.Navigation("Users");
@@ -2026,7 +1986,7 @@ namespace _2Sport_BE.Migrations
                 {
                     b.Navigation("OrderDetails");
 
-                    b.Navigation("RefundRequests");
+                    b.Navigation("Refunds");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ShipmentDetail", b =>

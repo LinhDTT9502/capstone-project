@@ -7,6 +7,7 @@
     public class SportVM : SportDTO
     {
         public int Id { get; set; }
+        public bool Status { get; set; }
     }
 
     public class SportCM : SportDTO
