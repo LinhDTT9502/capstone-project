@@ -144,7 +144,7 @@ namespace _2Sport_BE.Infrastructure.Services
             try
             {
                 var warehouses = (await _unitOfWork.WarehouseRepository
-                        .GetAsync(_ => _.ProductId > 0));// Ensures that the warehouse has a related product
+                        .GetAsync(_ => _.ProductId > 0 && _.AvailableQuantity > 0));// Ensures that the warehouse has a related product
 
                 foreach (var warehouse in warehouses)
                 {
