@@ -209,17 +209,29 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 });
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider.GetRequiredService<IRentalOrderService>();
-
+    var rentalOrderService = scope.ServiceProvider.GetRequiredService<IRentalOrderService>();
+    var saleOrderService = scope.ServiceProvider.GetRequiredService<ISaleOrderService>();
     app.Lifetime.ApplicationStarted.Register(() =>
     {
         var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
+
         recurringJobs.AddOrUpdate(
         "CheckRentalExpiration",
-        () => services.CheckRentalOrdersForExpiration(),
-
+        () => rentalOrderService.CheckRentalOrdersForExpiration(),
         Cron.Daily
-    );
+        );
+
+        recurringJobs.AddOrUpdate(
+           "CheckPendingRentalOrder",
+           () => rentalOrderService.CheckPendingOrderForget(),
+           Cron.Hourly
+       );
+        recurringJobs.AddOrUpdate(
+           "CheckPendingSaleOrder",
+           () => saleOrderService.CheckPendingOrderForget(),
+           Cron.Hourly
+       );
+
     });
 }
 

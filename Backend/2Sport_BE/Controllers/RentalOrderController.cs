@@ -4,6 +4,7 @@ using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Infrastructure.Hubs;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Service.Services;
+using _2Sport_BE.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -17,13 +18,15 @@ namespace _2Sport_BE.Controllers
     {
         private readonly IRentalOrderService _rentalOrderServices;
         private readonly ICartItemService _cartItemService;
+        private readonly IImageService _imageService;
         public RentalOrderController(IRentalOrderService rentalOrderServices,
-            IPaymentService paymentService,
-            ICartItemService cartItemService
+            ICartItemService cartItemService,
+            IImageService imageService
             )
         {
             _rentalOrderServices = rentalOrderServices;
             _cartItemService = cartItemService;
+            _imageService = imageService;
         }
 
         [HttpGet("get-all-rental-orders")]
@@ -213,6 +216,38 @@ namespace _2Sport_BE.Controllers
             var response = await _rentalOrderServices.RejectExtensionAsync(rentalOrderCode, rejectionReason);
             if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
+        }
+
+        [HttpPost("upload-rental-order-image")]
+        public async Task<IActionResult> UploadOrderImage(RentalOrderImageModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var order = await _rentalOrderServices.FindRentalOrderById(model.parentOrderId);
+            if (order == null) return NotFound();
+            else
+            {
+                if (model.OrderImage != null)
+                {
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(model.OrderImage);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        order.OrderImage = uploadResult.SecureUrl.AbsoluteUri;
+                        await _rentalOrderServices.UpdaterRentalOrder(order);
+                        return Ok("Upload avatar successfully");
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
+                else
+                {
+                    return BadRequest("Image is null");
+                }
+            }
         }
 
     }

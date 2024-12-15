@@ -125,6 +125,9 @@ namespace _2Sport_BE.Repository.Models
         [Column("TransactionId", TypeName = "nvarchar")]
         [MaxLength(100)]
         public string? TransactionId { get; set; }
+        [Column("OrderImage", TypeName = "nvarchar")]
+        [MaxLength(500)]
+        public string? OrderImage { get; set; }
         #endregion
 
         #region PaymentInformation

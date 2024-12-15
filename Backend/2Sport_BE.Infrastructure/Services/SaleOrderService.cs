@@ -47,6 +47,7 @@ namespace _2Sport_BE.Infrastructure.Services
         #endregion
 
         Task<ResponseDTO<int>> CancelSaleOrderAsync(int orderId, string reason);
+        Task CheckPendingOrderForget();
     }
     public class SaleOrderService : ISaleOrderService
     {
@@ -80,6 +81,15 @@ namespace _2Sport_BE.Infrastructure.Services
             _mailService = mailService;
             _orderDetailService = orderDetailService;
         }
+        public async Task CheckPendingOrderForget()
+        {
+            var pendingOrders = await _unitOfWork.SaleOrderRepository.GetAsync(o => o.CreatedAt.Value.AddHours(1) == DateTime.Now.Date);
+            foreach (var order in pendingOrders)
+            {
+                await _notificationService.NotifyForPendingOrderAsync(order.SaleOrderCode, false, order.CreatedAt.Value, order.BranchId);
+            }
+        }
+
         private void AssignSaleProduct(ProductInfor productInformation, OrderDetail orderDetail)
         {
             orderDetail.ProductId = productInformation.ProductId;
@@ -582,7 +592,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(saleOrder.PaymentStatus.Value)
                 : "N/A";
             saleOrderVM.OrderStatus = saleOrder.OrderStatus != null
-              ? EnumDisplayHelper.GetEnumDescription<RentalOrderStatus>(saleOrder.OrderStatus.Value)
+              ? EnumDisplayHelper.GetEnumDescription<OrderStatus>(saleOrder.OrderStatus.Value)
               : "N/A";
             saleOrderVM.PaymentMethod = saleOrder.PaymentMethodId.HasValue
                                 ? Enum.GetName(typeof(OrderMethods), saleOrder.PaymentMethodId.Value)
@@ -855,20 +865,8 @@ namespace _2Sport_BE.Infrastructure.Services
                         if (SaleOrder.OrderStatus == (int)OrderStatus.CONFIRMED)
                             return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
 
-                        SaleOrder.OrderStatus = (int)OrderStatus.CONFIRMED;
-
-                        foreach (var item in SaleOrder.OrderDetails)
-                        {
-                            var productInWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(item.ProductId.Value, SaleOrder.BranchId)).FirstOrDefault();
-                            if (productInWarehouse == null)
-                            {
-                                await transaction.RollbackAsync();
-                                return GenerateErrorResponse($"Failed to update stock for product {item.ProductName}");
-                            }
-                            productInWarehouse.AvailableQuantity -= item.Quantity;
-                            await _warehouseService.UpdateWarehouseAsync(productInWarehouse);
-                        }
-
+                        SaleOrder.OrderStatus = (int)OrderStatus.PENDING;
+                        SaleOrder.UpdatedAt = DateTime.UtcNow;
                         await _unitOfWork.SaleOrderRepository.UpdateAsync(SaleOrder);
                         await transaction.CommitAsync(); 
 

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace _2Sport_BE.Infrastructure.DTOs
@@ -90,6 +91,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public DateTime? UpdatedAt { get; set; }
         public string? Reason { get; set; }
         public string? TransactionId {  get; set; }
+        public string? OrderImage { get; set; }
         #endregion  
         public string? PaymentMethod { get; set; }
         public string? PaymentLink { get; set; }
@@ -113,5 +115,10 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public int OrderID { get; set; }
         public string OrderCode { get; set; }
         public string? TransactionType { get; set; }
+    }
+    public class SaleOrderImageModel
+    {
+        public int SaleOrderId { get; set; }
+        public IFormFile OrderImage { get; set; }
     }
 }

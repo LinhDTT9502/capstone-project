@@ -15,6 +15,7 @@ namespace _2Sport_BE.Infrastructure.Services
     public interface IRentalOrderService
     {
         Task CheckRentalOrdersForExpiration();//Background Jobs
+        Task CheckPendingOrderForget();
 
         Task<ResponseDTO<List<RentalOrderVM>>> GetAllRentalOrderAsync();
         Task<ResponseDTO<List<RentalOrderVM>>> GetOrdersByUserIdAsync(int userId);
@@ -87,6 +88,14 @@ namespace _2Sport_BE.Infrastructure.Services
             {
                 await _notificationService.SendRentalOrderExpirationNotificationAsync(order.UserId.ToString(), order.RentalOrderCode, (DateTime)order.RentalEndDate);
                 await _mailService.SendRentalOrderReminder(order, order.Email);
+            }
+        }
+        public async Task CheckPendingOrderForget()
+        {
+            var pendingOrders = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.CreatedAt.Value.AddHours(1) == DateTime.Now.Date&& o.ParentOrderCode == null);
+            foreach (var order in pendingOrders)
+            {
+                await _notificationService.NotifyForPendingOrderAsync(order.RentalOrderCode, true, order.CreatedAt.Value, order.BranchId);
             }
         }
         #endregion
@@ -1003,39 +1012,11 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
                     else
                     {
-                        if (rentalOrder.OrderStatus == (int)OrderStatus.CONFIRMED)
+                        if (rentalOrder.OrderStatus >= (int)RentalOrderStatus.CONFIRMED)
                             return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
 
-                        rentalOrder.OrderStatus = (int)OrderStatus.CONFIRMED;
-                        if (childOrder.Any())
-                        {
-                            foreach (var item in childOrder.ToList())
-                            {
-                                item.OrderStatus = (int)OrderStatus.CONFIRMED;
-                                var productInWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(item.ProductId.Value, item.BranchId)).FirstOrDefault();
-                                if (productInWarehouse == null)
-                                {
-                                    await transaction.RollbackAsync();
-                                    return GenerateErrorResponse($"Failed to update stock for product {item.ProductName}");
-                                }
-                                productInWarehouse.AvailableQuantity -= item.Quantity;
-                                await _warehouseService.UpdateWarehouseAsync(productInWarehouse);
-                                await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
-                            }
-                        }
-                        else
-                        {
-                            var productInWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(rentalOrder.ProductId.Value, rentalOrder.BranchId)).FirstOrDefault();
-                            if (productInWarehouse == null)
-                            {
-                                await transaction.RollbackAsync();
-                                return GenerateErrorResponse($"Failed to update stock for product {rentalOrder.ProductName}");
-                            }
-                            productInWarehouse.AvailableQuantity -= rentalOrder.Quantity;
-                            await _warehouseService.UpdateWarehouseAsync(productInWarehouse);
-                        }
-
-
+                        rentalOrder.OrderStatus = (int)RentalOrderStatus.PENDING;
+                        rentalOrder.UpdatedAt = DateTime.UtcNow;
                         await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                         await transaction.CommitAsync();
@@ -1066,17 +1047,23 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
                     else
                     {
+                        if (rentalOrder.OrderStatus >= (int)RentalOrderStatus.CONFIRMED)
+                            return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
+
                         var childOrder = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode.Equals(rentalOrder.RentalOrderCode));
 
-                        rentalOrder.OrderStatus = (int)OrderStatus.PENDING;
+                        rentalOrder.OrderStatus = (int)RentalOrderStatus.PENDING;
+                        rentalOrder.UpdatedAt = DateTime.UtcNow;
+
                         rentalOrder.BranchId = null;
 
                         if (childOrder.Any())
                         {
                             foreach (var item in childOrder.ToList())
                             {
-                                item.OrderStatus = (int)OrderStatus.PENDING;
+                                item.OrderStatus = (int)RentalOrderStatus.PENDING;
                                 item.BranchId = null;
+                                item.UpdatedAt = DateTime.UtcNow;
                                 await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
                             }
                         }

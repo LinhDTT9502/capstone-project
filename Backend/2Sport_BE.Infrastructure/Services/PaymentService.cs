@@ -24,6 +24,7 @@ namespace _2Sport_BE.Infrastructure.Services
         public string BankName { get; set; }
         public string PaymentDate { get; set; }
         public string PaymentStatus { get; set; }
+        public string PaymentMethod { get; set; }
     }
     public class PayOSSettings
     {
@@ -429,7 +430,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<RentalOrderVM>> PaymentRentalOrderExecute(IQueryCollection collections);
         Task<ResponseDTO<SaleOrderVM>> PaymentSaleOrderExecute(IQueryCollection collections);
 
-        public PaymentInfor QueryTransaction(string orderCode, string transactionId, DateTime payDate, HttpContext context);
+        public PaymentInfor QueryTransaction(string orderCode, string transactionId,string paymentMethod, DateTime payDate, HttpContext context);
     }
     public class VnPayPaymentService : IPaymentService, IVnPayService
     {
@@ -627,7 +628,6 @@ namespace _2Sport_BE.Infrastructure.Services
                             item.PaymentStatus = (int)paymentStatus;
                             item.DepositStatus = (int)newDepositStatus;
                             item.OrderStatus = (int)OrderStatus.CANCELLED;
-
                             item.TransactionId = response.Data.TxnRef;
                             item.UpdatedAt = DateTime.UtcNow;
 
@@ -657,7 +657,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 rentalOrder.PaymentStatus = (int)paymentStatus;
                 rentalOrder.DepositAmount = (int)newDepositStatus;
-                rentalOrder.OrderStatus = (int)OrderStatus.CANCELLED; 
+                rentalOrder.OrderStatus = (int)OrderStatus.CANCELLED;
                 rentalOrder.UpdatedAt = DateTime.UtcNow;
                 rentalOrder.TransactionId = response.Data.TxnRef;
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
@@ -667,7 +667,7 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             else
             {
-                rentalOrder.UpdatedAt = DateTime.Now;
+                rentalOrder.UpdatedAt = DateTime.UtcNow;
                 rentalOrder.DepositStatus = (int)newDepositStatus;
                 rentalOrder.PaymentStatus = (int)paymentStatus;
                 rentalOrder.DepositAmount = response.Data.Amount;
@@ -680,95 +680,121 @@ namespace _2Sport_BE.Infrastructure.Services
             }
         }
 
-        public PaymentInfor QueryTransaction(string orderCode, string transactionId, DateTime payDate, HttpContext context)
+        public PaymentInfor QueryTransaction(string orderCode, string transactionId,string paymentMethod, DateTime payDate, HttpContext context)
         {
-
-            var pay = new VnPayLibrary();
-            var vnp_Api = _configuration["Vnpay:vnp_Api"];
-
-            var vnp_HashSecret = _configuration["Vnpay:HashSecret"];
-
-            var vnp_RequestId = DateTime.Now.Ticks.ToString();
-            var vnp_Version = _configuration["Vnpay:Version"];
-            var vnp_Command = "querydr";
-            var vnp_TmnCode = _configuration["Vnpay:TmnCode"];
-            var vnp_TxnRef = transactionId;
-            var vnp_OrderInfo = $"Thanh toan don hang mua: {orderCode}";
-            var vnp_TransactionDate = _methodHelper.GetFormattedDateInGMT7(payDate);
-            var vnp_CreateDate = DateTime.Now.ToString("yyyyMMddHHmmss");
-            var vnp_IpAddr = pay.GetIpAddress(context);
-
-            var signData = $"{vnp_RequestId}|{vnp_Version}|{vnp_Command}|{vnp_TmnCode}|{vnp_TxnRef}|{vnp_TransactionDate}|{vnp_CreateDate}|{vnp_IpAddr}|{vnp_OrderInfo}";
-            var vnp_SecureHash = pay.HmacSha512(vnp_HashSecret, signData);
-
-            var qdrData = new
+            try
             {
-                vnp_RequestId,
-                vnp_Version,
-                vnp_Command,
-                vnp_TmnCode,
-                vnp_TxnRef,
-                vnp_OrderInfo,
-                vnp_TransactionDate,
-                vnp_CreateDate,
-                vnp_IpAddr,
-                vnp_SecureHash
-            };
+                var pay = new VnPayLibrary();
+                var vnp_Api = _configuration["Vnpay:vnp_Api"];
+                var vnp_HashSecret = _configuration["Vnpay:HashSecret"];
+                var vnp_RequestId = DateTime.Now.Ticks.ToString();
+                var vnp_Version = _configuration["Vnpay:Version"];
+                var vnp_Command = "querydr";
+                var vnp_TmnCode = _configuration["Vnpay:TmnCode"];
+                var vnp_TxnRef = transactionId;
+                var vnp_OrderInfo = $"Thanh toan don hang mua: {orderCode}";
+                var vnp_TransactionDate = _methodHelper.GetFormattedDateInGMT7(payDate);
+                var vnp_CreateDate = DateTime.Now.ToString("yyyyMMddHHmmss");
+                var vnp_IpAddr = pay.GetIpAddress(context);
 
-            var jsonData = JsonConvert.SerializeObject(qdrData);
+                var signData = $"{vnp_RequestId}|{vnp_Version}|{vnp_Command}|{vnp_TmnCode}|{vnp_TxnRef}|{vnp_TransactionDate}|{vnp_CreateDate}|{vnp_IpAddr}|{vnp_OrderInfo}";
+                var vnp_SecureHash = pay.HmacSha512(vnp_HashSecret, signData);
 
-            var httpWebRequest = (HttpWebRequest)WebRequest.Create(vnp_Api);
-            httpWebRequest.ContentType = "application/json";
-            httpWebRequest.Method = "POST";
-
-            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
-            {
-                streamWriter.Write(jsonData);
-            }
-
-            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-            {
-                string response = streamReader.ReadToEnd();
-                var tempDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
-
-                var dictionary = new Dictionary<string, StringValues>();
-                foreach (var item in tempDictionary)
+                var qdrData = new
                 {
-                    dictionary.Add(item.Key, new StringValues(item.Value ?? string.Empty));
-                }
-
-                var queryCollection = new QueryCollection(dictionary);
-
-     
-                DateTime parsedDateTime = DateTime.MinValue;
-                if (queryCollection.TryGetValue("vnp_PayDate", out var payDateValue) && !StringValues.IsNullOrEmpty(payDateValue))
-                {
-                    if (!DateTime.TryParseExact(payDateValue.ToString(), "yyyyMMddHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDateTime))
-                    {
-                        parsedDateTime = DateTime.MinValue;
-                    }
-                }
-
-                var paymentInfor = new PaymentInfor()
-                {
-                    AmountPaid = queryCollection.TryGetValue("vnp_Amount", out var amountValue) && !StringValues.IsNullOrEmpty(amountValue)
-                        ? amountValue.ToString()
-                        : "0",
-                    BankName = queryCollection.TryGetValue("vnp_BankCode", out var bankCodeValue) && !StringValues.IsNullOrEmpty(bankCodeValue)
-                        ? bankCodeValue.ToString()
-                        : "UNKNOWN",
-                    OrderCode = orderCode,
-                    PaymentStatus = queryCollection.TryGetValue("vnp_TransactionStatus", out var transactionStatusValue) && transactionStatusValue == "00"
-                        ? "PAID"
-                        : "CANCELED",
-                    PaymentDate = parsedDateTime == DateTime.MinValue
-                        ? "N/A"
-                        : parsedDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
+                    vnp_RequestId,
+                    vnp_Version,
+                    vnp_Command,
+                    vnp_TmnCode,
+                    vnp_TxnRef,
+                    vnp_OrderInfo,
+                    vnp_TransactionDate,
+                    vnp_CreateDate,
+                    vnp_IpAddr,
+                    vnp_SecureHash
                 };
 
-                return paymentInfor;
+                var jsonData = JsonConvert.SerializeObject(qdrData);
+
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create(vnp_Api);
+                httpWebRequest.ContentType = "application/json";
+                httpWebRequest.Method = "POST";
+
+                using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+                {
+                    streamWriter.Write(jsonData);
+                }
+
+                var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                {
+                    string response = streamReader.ReadToEnd();
+
+                    var tempDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+                    if (tempDictionary == null || tempDictionary.Count == 0)
+                        throw new Exception("Response dictionary is null or empty.");
+
+                    var dictionary = new Dictionary<string, StringValues>();
+                    foreach (var item in tempDictionary)
+                    {
+                        dictionary.Add(item.Key, new StringValues(item.Value ?? string.Empty));
+                    }
+
+                    var queryCollection = new QueryCollection(dictionary);
+
+                    DateTime parsedDateTime = DateTime.MinValue;
+                    if (queryCollection.TryGetValue("vnp_PayDate", out var payDateValue) && !StringValues.IsNullOrEmpty(payDateValue))
+                    {
+                        if (!DateTime.TryParseExact(payDateValue.ToString(), "yyyyMMddHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDateTime))
+                        {
+                            parsedDateTime = DateTime.MinValue;
+                        }
+                    }
+
+                    var paymentInfor = new PaymentInfor()
+                    {
+                        AmountPaid = queryCollection.TryGetValue("vnp_Amount", out var amountValue) && !StringValues.IsNullOrEmpty(amountValue)
+                            ? amountValue.ToString()
+                            : "0",
+                        BankName = queryCollection.TryGetValue("vnp_BankCode", out var bankCodeValue) && !StringValues.IsNullOrEmpty(bankCodeValue)
+                            ? bankCodeValue.ToString()
+                            : "UNKNOWN",
+                        OrderCode = orderCode,
+                        PaymentStatus = queryCollection.TryGetValue("vnp_TransactionStatus", out var transactionStatusValue) && transactionStatusValue == "00"
+                            ? "PAID"
+                            : "CANCELED",
+                        PaymentDate = parsedDateTime == DateTime.MinValue
+                            ? "N/A"
+                            : parsedDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
+                    };
+
+                    return paymentInfor;
+                }
+            }
+            catch (WebException ex)
+            {
+                using (var responseStream = ex.Response?.GetResponseStream())
+                {
+                    if (responseStream != null)
+                    {
+                        using (var reader = new StreamReader(responseStream))
+                        {
+                            var errorResponse = reader.ReadToEnd();
+                            throw new Exception($"HTTP request failed with error: {errorResponse}", ex);
+                        }
+                    }
+                }
+                throw new Exception("HTTP request failed and no response was received.", ex);
+            }
+            catch (JsonException ex)
+            {
+                throw new Exception("Failed to parse JSON response.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"An error occurred while querying the transaction: {ex.Message}", ex);
             }
         }
+
     }
 }

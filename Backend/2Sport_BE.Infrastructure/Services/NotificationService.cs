@@ -11,7 +11,7 @@ namespace _2Sport_BE.Infrastructure.Services
 {
     public interface INotificationService
     {
-        Task NotifyForCreatingNewOrderAsync(string orderCode, bool isRentalOrder, int? brachId = null);
+        Task NotifyForCreatingNewOrderAsync(string orderCode, bool isRentalOrder, int? branchId = null);
         Task NotifyForRejectOrderAsync(string orderCode, int branchId);
         Task NotifyPaymentCancellation(string orderCode, bool isRentalOrder, int? branchId = null);
         Task NotifyPaymentPaid(string orderCode, bool isRentalOrder, int? branchId = null);
@@ -20,8 +20,8 @@ namespace _2Sport_BE.Infrastructure.Services
         //
         Task<ResponseDTO<List<Notification>>> GetNotificationByUserId(int userId);
         Task<ResponseDTO<Notification>> UpdateNotificationStatus(int notificationId, bool isRead);
-        Task NotifyForExtensionRequestAsync(string parentOrderCode, string childOrderCode, int? brachId = null);
-
+        Task NotifyForExtensionRequestAsync(string parentOrderCode, string childOrderCode, int? branchId = null);
+        Task NotifyForPendingOrderAsync(string orderCode, bool isRentalOrder, DateTime date, int? branchId = null);
         Task NotifyForRejectExtensionRequestAsync(string orderCode, int userId, string reason);
         Task SendNoifyToUser(int userId, int branchId, string message);
         Task NotifyToGroupAsync(string message, int? branchId = null);
@@ -546,6 +546,65 @@ namespace _2Sport_BE.Infrastructure.Services
                         UserId = userId,
                         Message = message,
                         Type = "Created Order Noti",
+                        CreatedAt = DateTime.UtcNow,
+                        IsRead = false
+                    }).ToList();
+
+                    await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
+        public async Task NotifyForPendingOrderAsync(string orderCode, bool isRentalOrder, DateTime date, int? branchId = null)
+        {
+            var message = isRentalOrder
+                           ? $"Đơn hàng thuê T-{orderCode} chưa được xét duyệt. Đã được tạo: {date}"
+                           : $"Đơn hàng bán S-{orderCode} chưa được xét duyệt.  Đã được tạo: {date}";
+
+            List<int> userIdList = new List<int>();
+
+            try
+            {
+                if (branchId.HasValue)
+                {
+                    var staffs = await _unitOfWork.StaffRepository.GetAsync(s => s.BranchId == branchId);
+                    var managers = await _unitOfWork.ManagerRepository.GetAsync(m => m.BranchId == branchId);
+
+                    if (staffs != null && staffs.Any())
+                    {
+                        userIdList.AddRange(staffs.Select(s => s.UserId.Value));
+                    }
+
+                    if (managers != null && managers.Any())
+                    {
+                        userIdList.AddRange(managers.Select(m => m.UserId.Value));
+                    }
+
+                    await _notificationHub.SendMessageToGroup($"Branch_{branchId}", message);
+                }
+                else
+                {
+                    var coordinators = await _unitOfWork.UserRepository.GetAsync(u => u.RoleId == (int)UserRole.OrderCoordinator);
+                    if (coordinators != null && coordinators.Any())
+                    {
+                        userIdList.AddRange(coordinators.Select(c => c.Id));
+                    }
+
+                    await _notificationHub.SendMessageToGroup("Coordinator", message);
+                }
+
+                // Lưu thông báo vào cơ sở dữ liệu
+                if (userIdList.Any())
+                {
+                    var notifications = userIdList.Select(userId => new Notification
+                    {
+                        UserId = userId,
+                        Message = message,
+                        Type = "Pending Order Reminder",
                         CreatedAt = DateTime.UtcNow,
                         IsRead = false
                     }).ToList();

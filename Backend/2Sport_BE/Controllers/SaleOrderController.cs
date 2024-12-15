@@ -5,6 +5,7 @@ using _2Sport_BE.Infrastructure.Helpers;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
+using _2Sport_BE.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -16,14 +17,15 @@ namespace _2Sport_BE.Controllers
     {
         private readonly ISaleOrderService _orderService;
         private readonly ICartItemService _cartItemService;
+        private readonly IImageService _imageService;
 
         public SaleOrderController(ISaleOrderService orderService,
                                 ICartItemService cartItemService,
-                                IMethodHelper methodHelper,
-                                IPaymentService paymentService)
+                                IImageService imageService)
         {
             _orderService = orderService;
             _cartItemService = cartItemService;
+            _imageService = imageService;
         }
         [HttpGet("get-all-sale-orders")]
         public async Task<IActionResult> ListAllSaleOrder()
@@ -188,6 +190,39 @@ namespace _2Sport_BE.Controllers
             catch
             {
                 return UserId;
+            }
+        }
+
+        [HttpPost]
+        [Route("upload-sale-order-image")]
+        public async Task<IActionResult> UploadOrderImage(SaleOrderImageModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var order = await _orderService.FindSaleOrderById(model.SaleOrderId);
+            if(order == null) return NotFound();
+            else
+            {
+                if (model.OrderImage != null)
+                {
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(model.OrderImage);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        order.OrderImage = uploadResult.SecureUrl.AbsoluteUri;
+                        await _orderService.UpdateSaleOrder(order);
+                        return Ok("Upload avatar successfully");
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
+                else
+                {
+                    return BadRequest("Image is null");
+                }
             }
         }
     }

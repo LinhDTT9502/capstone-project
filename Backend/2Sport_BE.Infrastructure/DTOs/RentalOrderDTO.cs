@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
 
@@ -188,6 +189,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         public string? Reason { get; set; }
         public string? TransactionId { get; set; }
+        public string? OrderImage { get; set; }
 
         #region AuditInformation
         public DateTime? CreatedAt { get; set; }
@@ -203,5 +205,10 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public int? ChildOrderId { get; set; }
         public int ExtensionDays { get; set; }
 
+    }
+    public class RentalOrderImageModel
+    {
+        public int parentOrderId { get; set; }
+        public IFormFile OrderImage { get; set; }
     }
 }
