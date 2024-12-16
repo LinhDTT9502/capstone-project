@@ -9,6 +9,8 @@ using _2Sport_BE.Services;
 using _2Sport_BE.Service.Helpers;
 using Pipelines.Sockets.Unofficial.Arenas;
 using System.ComponentModel.DataAnnotations;
+using ValidationResult = _2Sport_BE.Infrastructure.Helpers.ValidationResult;
+using StackExchange.Redis;
 
 
 namespace _2Sport_BE.Infrastructure.Services
@@ -845,11 +847,22 @@ namespace _2Sport_BE.Infrastructure.Services
                 rentalOrder.OrderStatus = newStatus;
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
-               /* if (rentalOrder.OrderStatus == (int)OrderStatus.COMPLETED)
+                if (rentalOrder.OrderStatus == (int)OrderStatus.COMPLETED)
                 {
                     var loyaltyUpdateResponse = await _customerService.UpdateLoyaltyPointsRental(rentalOrder.Id);
                 }
-*/
+
+                var childs = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode == rentalOrder.RentalOrderCode);
+
+                if (childs != null && childs.Any())
+                {
+                    foreach (var child in childs)
+                    {
+                        child.OrderStatus = newStatus;
+                        await _unitOfWork.RentalOrderRepository.UpdateAsync(child);
+                    }
+                }
+
                 return new ResponseDTO<int>
                 {
                     IsSuccess = true,
@@ -1191,7 +1204,6 @@ namespace _2Sport_BE.Infrastructure.Services
                         Message = "Order's status does not meet extension requirements."
                     };
 
-
                 child.ExtensionStatus = (int)ExtensionRequestStatus.PENDING;
                 child.ExtensionDays = extensionDays;
 
@@ -1328,7 +1340,6 @@ namespace _2Sport_BE.Infrastructure.Services
                 };
             }
         }
-
 
 
         public ResponseDTO<RentalOrderVM> GenerateSuccessResponse(RentalOrder order, List<RentalOrder>? listChild, string messagge)
@@ -1500,7 +1511,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var currentOrderStatus = rentalOrder.OrderStatus;
             var paymentStatus = rentalOrder.PaymentStatus;
             var depositStatus = rentalOrder.DepositStatus;
-
+            var paymentMethod = rentalOrder.PaymentMethodId;
             switch (newStatus)
             {
                 case (int)RentalOrderStatus.PENDING:
@@ -1522,10 +1533,11 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 case (int)RentalOrderStatus.PROCESSING:
                     if (currentOrderStatus != (int)RentalOrderStatus.CONFIRMED ||
-                        (depositStatus != (int)DepositStatus.PARTIALLY_PAID && depositStatus != (int)DepositStatus.FULL_PAID))
+                        (paymentMethod != (int)OrderMethods.COD && (depositStatus != (int)DepositStatus.PARTIALLY_PAID && depositStatus != (int)DepositStatus.FULL_PAID)))
                     {
                         return ValidationResult.Invalid("Đơn hàng chỉ có thể xử lý khi đã được xác nhận và có đặt cọc (một phần hoặc đầy đủ).");
                     }
+
                     break;
 
                 case (int)RentalOrderStatus.SHIPPED:
@@ -1575,27 +1587,6 @@ namespace _2Sport_BE.Infrastructure.Services
             }
 
             return ValidationResult.Valid();
-        }
-    }
-    public class ValidationResult
-    {
-        public bool IsValid { get; private set; }
-        public string ErrorMessage { get; private set; }
-
-        private ValidationResult(bool isValid, string errorMessage)
-        {
-            IsValid = isValid;
-            ErrorMessage = errorMessage;
-        }
-
-        public static ValidationResult Valid()
-        {
-            return new ValidationResult(true, string.Empty);
-        }
-
-        public static ValidationResult Invalid(string errorMessage)
-        {
-            return new ValidationResult(false, errorMessage);
         }
     }
 }
