@@ -20,36 +20,39 @@ export default function UserRentalDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [isInputVisible, setIsInputVisible] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [reason, setReason] = useState("");
+
+
+  const fetchOrderDetail = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
+        {
+          headers: {
+            accept: "*/*",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.isSuccess) {
+        setOrderDetail(response.data.data);
+      } else {
+        setError("Failed to fetch order details");
+      }
+    } catch (err) {
+      setError(
+        err.message || "An error occurred while fetching order details"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchOrderDetail = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get(
-          `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
-          {
-            headers: {
-              accept: "*/*",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (response.data.isSuccess) {
-          setOrderDetail(response.data.data);
-        } else {
-          setError("Failed to fetch order details");
-        }
-      } catch (err) {
-        setError(
-          err.message || "An error occurred while fetching order details"
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchOrderDetail();
   }, [orderCode]);
 
@@ -85,44 +88,85 @@ export default function UserRentalDetail() {
   const children = childOrders?.$values || [];
 
   const handleExtendOrder = async (order) => {
+    console.log(order);
+    console.log(id);
+    const payload = id === order.id
+    ? { parentOrderId: id, childOrderId: null }
+    : { parentOrderId: id, childOrderId: order.id };
+console.log(payload);
+  
     if (!selectedDate) {
       alert("Please select a valid date before extending the order.");
       return;
     }
-
+  
     const selectedDateObj = new Date(selectedDate); // Convert selectedDate to a Date object
     const rentalEndDateObj = new Date(order.rentalEndDate); // Convert rentalEndDate to a Date object
-    
+  
     const extensionDays = Math.ceil(
       (selectedDateObj - rentalEndDateObj) / (1000 * 60 * 60 * 24)
     );
-    
+  
     console.log(extensionDays);
-    
-    
+  
+    // Determine parentOrderId and childOrderId based on the condition
 
+  
     try {
-      const response = await axios.put(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/request-extend`,
+      const response = await axios.post(
+        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/request-extension`,
         {
-          childOrderId: order.id,
+          ...payload, // Spread the payload object into the request body
           extensionDays: extensionDays,
         },
         {
           headers: {
             accept: "*/*",
-          
           },
         }
       );
-
       alert("Bạn đã gia hạn thành công");
     } catch (error) {
       console.error("Error extending order:", error);
       alert("Failed to extend the order. Please try again.");
     }
   };
+  
 
+  const handleCancelOrder = async () => {
+    if (!reason.trim()) {
+      alert("Vui lòng nhập lý do hủy đơn hàng.");
+      return;
+    }
+
+    const confirmCancel = window.confirm(
+      "Bạn có chắc chắn muốn hủy đơn hàng này không?"
+    );
+
+    if (!confirmCancel) {
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/request-cancel/${id}?reason=${encodeURIComponent(
+          reason
+        )}`,
+        null, // No request body needed
+        {
+          headers: {
+            accept: "*/*",
+          },
+        }
+      );
+      fetchOrderDetail();
+      alert("Bạn đã hủy đơn hàng thành công");
+      setShowModal(false); // Close the modal after success
+    } catch (error) {
+      console.error("Error cancel order:", error);
+      alert("Failed to cancel the order. Please try again.");
+    }
+  };
 
   return (
     <div className="container mx-auto p-4 min-h-screen">
@@ -136,13 +180,41 @@ export default function UserRentalDetail() {
             Quay lại
           </button>
           {orderDetail.orderStatus === "Chờ xử lý" &&
-              <button
-                className="bg-red-500 text-white text-sm rounded-full py-2 px-4"
-                // onClick={() =>}
-              >
-                Hủy đơn hàng
-              </button>
-            }
+            <button
+              className="bg-red-500 text-white text-sm rounded-full py-2 px-4"
+              onClick={() => setShowModal(true)}
+            >
+              Hủy đơn hàng
+            </button>
+          }
+          {showModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white p-6 rounded-md shadow-lg w-96">
+                <h2 className="text-lg font-semibold mb-4">Xác nhận hủy đơn hàng</h2>
+                <textarea
+                  className="w-full border rounded-md p-2 mb-4"
+                  rows="4"
+                  placeholder="Vui lòng nhập lý do hủy đơn hàng"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                ></textarea>
+                <div className="flex justify-end space-x-4">
+                  <button
+                    className="bg-gray-500 text-white py-2 px-4 rounded-md"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Đóng
+                  </button>
+                  <button
+                    className="bg-red-500 text-white py-2 px-4 rounded-md"
+                    onClick={handleCancelOrder}
+                  >
+                    Xác nhận hủy
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {orderDetail.paymentStatus === "Đang chờ thanh toán" &&
             orderDetail.deliveryMethod !== "HOME_DELIVERY" && (
               <button
@@ -231,21 +303,21 @@ export default function UserRentalDetail() {
                 key={child.id}
                 className="bg-gray-50 p-4 mb-4 rounded-lg shadow-sm"
               >
-               {!child.isExtended && 
-                <button 
-                className="bg-orange-500 rounded text-white p-2"
-                onClick={() => setIsInputVisible(!isInputVisible)}>
-                   Gia hạn đơn thuê
-                 </button> } 
-                {isInputVisible && (
+                {!child.isExtended && orderStatus ==="Đã giao hàng" &&
+                  <button
+                    className="bg-orange-500 rounded text-white p-2"
+                    onClick={() => setExpandedId(expandedId === child.id ? null : child.id)}>
+                    Gia hạn đơn thuê
+                  </button>}
+                  {expandedId === child.id && (
                   <div>
                     <input
                       type="date"
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      min={child.rentalEndDate.split("T")[0]} 
+                      min={child.rentalEndDate.split("T")[0]}
                     />
                     <button onClick={() => handleExtendOrder(child)}>
-                     Xác nhận ngày gia hạn
+                      Xác nhận ngày gia hạn
                     </button>
                   </div>
                 )}
@@ -296,24 +368,24 @@ export default function UserRentalDetail() {
             ))
           ) : (
             <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
-               {!isExtended && 
-               <button 
-               className="bg-orange-500 rounded text-white p-2"
-               onClick={() => setIsInputVisible(!isInputVisible)}>
+              {!isExtended &&
+                <button
+                  className="bg-orange-500 rounded text-white p-2"
+                  onClick={() => setExpandedId(expandedId === id ? null : id)}>
                   Gia hạn đơn thuê
-                </button> } 
-                {isInputVisible && (
-                  <div>
-                    <input
-                      type="date"
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      min={rentalEndDate.split("T")[0]} 
-                    />
-                    <button onClick={() => handleExtendOrder(orderDetail)}>
-                     Xác nhận ngày gia hạn
-                    </button>
-                  </div>
-                )}
+                </button>}
+                {expandedId === id && (
+                <div>
+                  <input
+                    type="date"
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    min={rentalEndDate.split("T")[0]}
+                  />
+                  <button onClick={() => handleExtendOrder(orderDetail)}>
+                    Xác nhận ngày gia hạn
+                  </button>
+                </div>
+              )}
               <div className="flex flex-col md:flex-row gap-4">
                 <img
                   src={orderDetail.imgAvatarPath || "/placeholder.jpg"}
