@@ -35,6 +35,7 @@ namespace _2Sport_BE.Service.Services
 
         public async Task CreateANewBranchAsync(Branch branch)
         {
+            branch.CreatedAt = DateTime.Now;
             branch.Status = true;
             await _unitOfWork.BranchRepository.InsertAsync(branch);
         }

@@ -74,6 +74,7 @@ namespace _2Sport_BE.Controllers
 					Status = true,
 					UserId = userId,
 					ProductCode = productCode,
+					CreatedAt = DateTime.Now,
 				};
 				await _reviewService.AddReview(addedReview);
 				_unitOfWork.Save();

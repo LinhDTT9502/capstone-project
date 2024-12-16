@@ -71,6 +71,7 @@ namespace _2Sport_BE.Controllers
                 foreach (var newSport in newSports)
                 {
                     newSport.Status = true;
+                    newSport.CreatedAt = DateTime.Now;
                 }
                 await _sportService.AddSports(newSports);
                 return Ok("Add new sports successfully!");
