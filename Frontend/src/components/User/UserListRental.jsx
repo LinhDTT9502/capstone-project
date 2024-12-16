@@ -97,9 +97,9 @@ export default function UserListRental() {
     );
   if (error)
     return <div className="text-center text-gray-500 mt-32 flex flex-col items-center justify-center">
-  <FontAwesomeIcon icon={faShoppingBag} className="text-6xl mb-2" />
-  <p>Bạn chưa có sản phẩm nào</p>
-</div>;
+      <FontAwesomeIcon icon={faShoppingBag} className="text-6xl mb-2" />
+      <p>Bạn chưa có sản phẩm nào</p>
+    </div>;
 
   return (
     <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[70vh] overflow-y-auto">
@@ -119,11 +119,10 @@ export default function UserListRental() {
           ].map((status) => (
             <button
               key={status}
-              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
-                selectedStatus === status
-                  ? "bg-orange-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${selectedStatus === status
+                ? "bg-orange-500 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
               onClick={() => setSelectedStatus(status)}
             >
               {status}
@@ -142,21 +141,27 @@ export default function UserListRental() {
               onClick={() => toggleExpand(parent.id)}
             >
               <div>
-              <h4 className="font-semibold text-lg text-gray-800">
-                Mã đơn hàng:{" "}
-                <span className="text-orange-500">{parent.rentalOrderCode}</span>
-              </h4>
+                <h4 className="font-semibold text-lg text-gray-800">
+                  Mã đơn hàng:{" "}
+                  <span className="text-orange-500">{parent.rentalOrderCode}</span>
+                  <span
+                    className={`px-3 py-1 ml-2.5 rounded-full text-xs font-medium ${statusColors[parent.orderStatus] ||
+                      "bg-gray-100 text-gray-800"
+                      }`}
+                  >
+                    {parent.orderStatus}
+                  </span>
+                </h4>
                 <p className=" text-gray-600">
-                Phương thức:
-                <span
-                  className={`ml-2 font-medium ${
-                    paymentStatusColors[parent.paymentStatus] ||
-                    "text-gray-800"
-                  }`}
-                >
-                  {parent.paymentStatus}
-                </span> 
-              </p>
+                  Phương thức:
+                  <span
+                    className={`ml-2 font-medium ${paymentStatusColors[parent.paymentStatus] ||
+                      "text-gray-800"
+                      }`}
+                  >
+                    {parent.paymentStatus}
+                  </span>
+                </p>
                 <p className="text-gray-600">
                   Hình thức nhận hàng: {parent.deliveryMethod}
                 </p>
@@ -171,19 +176,16 @@ export default function UserListRental() {
                   }).format(parent.totalAmount)}</span>
                 </p>
               </div>
-              <div className="flex flex-col items-end">
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    statusColors[parent.orderStatus] ||
-                    "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {parent.orderStatus}
-                </span>
+              <div className="flex flex-col w-1/4 h-auto items-end">
+                <img
+                  src={parent.orderImage}
+                  alt={parent.orderImage}
+                  className="w-full h-auto object-contain rounded"
+                />
                 <Button
                   color="orange"
                   size="sm"
-                  className="mt-2"
+                  className="w-full"
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/manage-account/user-rental/${parent.rentalOrderCode}`);

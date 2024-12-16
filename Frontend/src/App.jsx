@@ -6,7 +6,6 @@ import LandingPage from './pages/LandingPage';
 import ProductPage from './pages/ProductPage';
 import Productv2Page from './pages/Productv2Page';
 import Footer from './layouts/Footer';
-import ManageAccount from './pages/ManageAccount';
 import { BreadcrumbsDefault } from './layouts/BreadcrumbsDefault';
 import NotFoundPage from './pages/NotFoundPage';
 import ProductList from './pages/ProductList';
@@ -48,7 +47,7 @@ import PaymentSuccess from './pages/AfterPayment/PaymentSuccess';
 import PaymentSuccessV2 from './pages/AfterPayment/PaymentSuccessV2';
 import ZaloButton from './components/Social/ZaloButton';
 import FacebookButton from './components/Social/FacebookButton';
-
+import BlogRoutes from './routes/BlogRoutes';
 
 
 function App() {
@@ -93,32 +92,39 @@ function App() {
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-success-2" element={<PaymentSuccessV2 />} />
 
-          {/* <Route path="/policies/*" element={<PolicesRoutes />} /> */}
-          {/* <Route path="/productv2" element={<Productv2Page />} /> */}
-          <Route path="/product/*" element={<ProductRoutes />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/placed-order" element={<PlacedOrder />} />
-          <Route path="/sale-order" element={<SaleOrder />} />
-          <Route path="/rental-order" element={<RentalOrder />} />
-          <Route path="/rental-placed-order" element={<RentalPlacedOrder />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/rental-checkout" element={<RentalCheckout />} />
-          <Route path="/invoice" element={<Invoice />} />
-          <Route path="/guest-order" element={<GuestOrder />} />
-          <Route path="/guest-order/:orderId" element={<GuestOrderDetail />} />
-          <Route path="/guest-rent-order" element={<GuestRentOrder />} />
-          <Route path="/guest-rent-order/:orderId" element={<GuestRentOrderDetail />} />
-          <Route path="/shipment" element={<UserShipment />} />
-          <Route path="/branch-system" element={<ListBranchs />} />
+        {/* <Route path='/blog-list' element={<BlogList/>}/>
+        <Route path='/blog-detail' element={<BlogDetail/>}/> */}
 
-          <Route path="/contact-us" element={<ContactUs />} />
-          <Route path="/about-us" element={<AboutUs />} />
-          <Route path="/order_success" element={<OrderSuccess />} />
-          <Route path="/order_cancel" element={<OrderCancel />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-        <Footer />
-      </div>
+            {/* <Route path="/policies/*" element={<PolicesRoutes />} /> */}
+            {/* <Route path="/productv2" element={<Productv2Page />} /> */}
+            <Route path="/product/*" element={<ProductRoutes />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/placed-order" element={<PlacedOrder />} />
+            <Route path="/sale-order" element={<SaleOrder />} />
+            <Route path="/rental-order" element={<RentalOrder />} />
+            <Route path="/rental-placed-order" element={<RentalPlacedOrder />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/rental-checkout" element={<RentalCheckout />} />
+            <Route path="/invoice" element={<Invoice />} />
+            <Route path="/guest-order" element={<GuestOrder />} />
+            <Route path="/guest-order/:orderId" element={<GuestOrderDetail />} />
+            <Route path="/shipment" element={<UserShipment />} />
+            <Route path="/branch-system" element={<ListBranchs />} />
+
+            {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+          
+            <Route path="/contact-us" element={<ContactUs />} />
+            <Route path="/about-us" element={<AboutUs />} />
+            <Route path="/order_success" element={<OrderSuccess />} />
+            <Route path="/order_cancel" element={<OrderCancel />} />
+          
+            <Route path="/blog/*" element={<BlogRoutes />} />
+
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+          <Footer />
+        </div>
+
       {/* )}
       <Routes>
         <Route

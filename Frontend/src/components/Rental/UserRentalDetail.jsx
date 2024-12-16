@@ -11,6 +11,7 @@ import {
   faShoppingCart,
   faMoneyBillWave,
   faCalendarAlt,
+  faTruck
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function UserRentalDetail() {
@@ -24,6 +25,25 @@ export default function UserRentalDetail() {
   const [showModal, setShowModal] = useState(false);
   const [reason, setReason] = useState("");
 
+
+  const statusColors = {
+    "Chờ xử lý": "bg-yellow-100 text-yellow-800",
+    "Đã xác nhận đơn": "bg-blue-100 text-blue-800",
+    "Đã thanh toán": "bg-green-100 text-green-800",
+    "Đang xử lý": "bg-purple-100 text-purple-800",
+    "Đã giao hàng": "bg-indigo-100 text-indigo-800",
+    "Bị trì hoãn": "bg-red-100 text-red-800",
+    "Đã hủy": "bg-red-200 text-red-900",
+    "Hoàn thành": "bg-teal-100 text-teal-800",
+
+  };
+
+  const paymentStatusColors = {
+    "Đang chờ thanh toán": "text-yellow-800",
+    "Đã đặt cọc": "text-blue-800",
+    "Đã thanh toán": "text-green-800",
+    "Đã hủy": "btext-red-800",
+  };
 
   const fetchOrderDetail = async () => {
     try {
@@ -81,7 +101,8 @@ export default function UserRentalDetail() {
     totalAmount,
     orderStatus,
     paymentStatus,
-    extensionStatus
+    deliveryMethod,
+    imgAvatarPath
   } = orderDetail;
   console.log(orderDetail);
 
@@ -180,60 +201,13 @@ export default function UserRentalDetail() {
             <FontAwesomeIcon icon={faArrowLeft} />
             Quay lại
           </button>
-          {orderDetail.orderStatus === "Chờ xử lý" &&
-            <button
-              className="bg-red-500 text-white text-sm rounded-full py-2 px-4"
-              onClick={() => setShowModal(true)}
-            >
-              Hủy đơn hàng
-            </button>
-          }
-          {showModal && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <div className="bg-white p-6 rounded-md shadow-lg w-96">
-                <h2 className="text-lg font-semibold mb-4">Xác nhận hủy đơn hàng</h2>
-                <textarea
-                  className="w-full border rounded-md p-2 mb-4"
-                  rows="4"
-                  placeholder="Vui lòng nhập lý do hủy đơn hàng"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                ></textarea>
-                <div className="flex justify-end space-x-4">
-                  <button
-                    className="bg-gray-500 text-white py-2 px-4 rounded-md"
-                    onClick={() => setShowModal(false)}
-                  >
-                    Đóng
-                  </button>
-                  <button
-                    className="bg-red-500 text-white py-2 px-4 rounded-md"
-                    onClick={handleCancelOrder}
-                  >
-                    Xác nhận hủy
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-          {orderDetail.paymentStatus === "Đang chờ thanh toán" &&
-            orderDetail.deliveryMethod !== "HOME_DELIVERY" && (
-              <button
-                className="bg-purple-500 text-white text-sm rounded-full py-2 px-4 hover:bg-purple-600"
-                onClick={() =>
-                  navigate("/rental-checkout", {
-                    state: { selectedOrder: orderDetail },
-                  })
-                }
-              >
-                Tiến hành thanh toán
-              </button>
-            )}
+
+
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
           <h2 className="text-2xl font-bold mb-4 text-gray-800">
-            Chi tiết đơn hàng
+            Chi tiết đơn hàng - <span className="text-orange-500">#{rentalOrderCode}</span>
           </h2>
           <hr className="mb-5" />
           <div className="grid md:grid-cols-2 gap-6">
@@ -251,15 +225,15 @@ export default function UserRentalDetail() {
               </p>
               <p className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon icon={faPhone} className="text-blue-500" />
-                <span className="font-semibold">Số điện thoại:</span>{" "}
-                {contactPhone}
+                <span className="font-semibold">Số điện thoại:</span> {contactPhone}
               </p>
-              <p className="flex items-center gap-2 mb-2">
+              <p className="flex items-start gap-2 mb-2">
                 <FontAwesomeIcon
                   icon={faMapMarkerAlt}
                   className="text-blue-500"
                 />
-                <span className="font-semibold">Địa chỉ:</span> {address}
+                <span className="font-semibold flex-shrink-0">Địa chỉ:</span>
+                <span className="break-words">{address}</span>
               </p>
             </div>
             <div>
@@ -272,7 +246,12 @@ export default function UserRentalDetail() {
                   className="text-blue-500"
                 />
                 <span className="font-semibold">Mã đơn hàng:</span>{" "}
-                {rentalOrderCode}
+                <i>{rentalOrderCode}</i>
+              </p>
+              <p className="flex items-start gap-2 mb-2 w-full">
+                <FontAwesomeIcon icon={faTruck} className="text-blue-500" />
+                <span className="font-semibold flex-shrink-0">Phương thức nhận hàng:</span>
+                <span className="break-words">{deliveryMethod}</span>
               </p>
               <p className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon
@@ -280,7 +259,14 @@ export default function UserRentalDetail() {
                   className="text-blue-500"
                 />
                 <span className="font-semibold">Tình trạng thanh toán:</span>{" "}
-                {paymentStatus}
+                <span
+                  className={`py-2 px-2.5 mr-1.5 rounded-full text-xs font-bold ${statusColors[paymentStatus] ||
+                    "bg-gray-100 text-gray-800"
+                    }`}
+                >
+                  {paymentStatus}
+                </span>
+
               </p>
               <p className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon
@@ -288,7 +274,13 @@ export default function UserRentalDetail() {
                   className="text-blue-500"
                 />
                 <span className="font-semibold">Tình trạng đơn hàng:</span>{" "}
-                {orderStatus}
+                <span
+                  className={`px-2.5 py-2 mr-5 rounded-full text-xs font-bold ${statusColors[orderStatus] ||
+                    "bg-gray-100 text-gray-800"
+                    }`}
+                >
+                  {orderStatus}
+                </span>
               </p>
             </div>
           </div>
@@ -302,14 +294,9 @@ export default function UserRentalDetail() {
             children.map((child, index) => (
               <div
                 key={child.id}
-                className="bg-gray-50 p-4 mb-4 rounded-lg shadow-sm"
+                className="bg-gray-50 p-4 mb-4 rounded-lg shadow-sm "
               >
-                {!child.isExtended && child.extensionStatus !== "1" && orderStatus === "Đã giao hàng" &&
-                  <button
-                    className="bg-orange-500 rounded text-white p-2"
-                    onClick={() => setExpandedId(expandedId === child.id ? null : child.id)}>
-                    Gia hạn đơn thuê
-                  </button>}
+
                 {expandedId === child.id && (
                   <div>
                     <input
@@ -329,52 +316,55 @@ export default function UserRentalDetail() {
                     className="w-full md:w-32 h-32 object-cover rounded"
                   />
                   <div className="flex-grow">
-                    <h4 className="font-semibold text-lg mb-2">
+                    <h4 className="font-semibold text-lg mb-2 text-orange-500">
                       {child.productName}
                     </h4>
                     <div className="grid grid-cols-2 gap-2">
                       <p>
-                        <span className="font-semibold">Color:</span>{" "}
+                        <span className="font-semibold">Màu sắc:</span>{" "}
                         {child.color}
                       </p>
                       <p>
-                        <span className="font-semibold">Size:</span>{" "}
+                        <span className="font-semibold">Kích thước:</span>{" "}
                         {child.size}
                       </p>
                       <p>
-                        <span className="font-semibold">Condition:</span>{" "}
+                        <span className="font-semibold">Tình trạng:</span>{" "}
                         {child.condition}%
                       </p>
                       <p>
-                        <span className="font-semibold">Quantity:</span>{" "}
+                        <span className="font-semibold">Số lượng:</span>{" "}
                         {child.quantity}
                       </p>
                       <p>
-                        <span className="font-semibold">Rent Price:</span>{" "}
-                        {child.rentPrice} ₫
+                        <span className="font-semibold">Giá thuê:</span>{" "}
+                        <i>{child.rentPrice.toLocaleString("vi-VN")}₫</i>
                       </p>
                       <p>
-                        <span className="font-semibold">Total:</span>{" "}
-                        {child.totalAmount} ₫
+                        <span className="font-semibold">Tổng tiền:</span>{" "}
+                        <i>{child.subTotal.toLocaleString("vi-VN")}₫</i>
                       </p>
                     </div>
                     <p className="mt-2">
-                      <span className="font-semibold">Rental Period:</span>{" "}
+                      <span className="font-semibold">Thời gian thuê:</span>{" "}
                       {new Date(child.rentalStartDate).toLocaleDateString()} -{" "}
                       {new Date(child.rentalEndDate).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
+                <div className="flex justify-end font-bold">
+                  {!child.isExtended && orderStatus === "Đã giao hàng" &&
+                    <button
+                      className="bg-orange-500 rounded text-white p-2 hover:bg-orange-600"
+                      onClick={() => setExpandedId(expandedId === child.id ? null : child.id)}>
+                      Yêu cầu gia hạn
+                    </button>}
+                </div>
               </div>
             ))
           ) : (
             <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
-              {!isExtended  && extensionStatus !== "1" && orderStatus === "Đã giao hàng" &&
-                <button
-                  className="bg-orange-500 rounded text-white p-2"
-                  onClick={() => setExpandedId(expandedId === id ? null : id)}>
-                  Gia hạn đơn thuê
-                </button>}
+
               {expandedId === id && (
                 <div>
                   <input
@@ -389,30 +379,118 @@ export default function UserRentalDetail() {
               )}
               <div className="flex flex-col md:flex-row gap-4">
                 <img
-                  src={orderDetail.imgAvatarPath || "/placeholder.jpg"}
-                  alt={productName}
+                  src={imgAvatarPath}
+                  alt={orderDetail.productName}
                   className="w-full md:w-32 h-32 object-cover rounded"
                 />
                 <div className="flex-grow">
-                  <h4 className="font-semibold text-lg mb-2">{productName}</h4>
-                  <p>
-                    <span className="font-semibold">Rent Price:</span>{" "}
-                    {rentPrice || "N/A"} ₫
-                  </p>
+                  <h4 className="font-semibold text-lg mb-2 text-orange-500">
+                    {orderDetail.productName}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <p>
+                      <span className="font-semibold">Màu sắc:</span>{" "}
+                      {orderDetail.color}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Kích thước:</span>{" "}
+                      {orderDetail.size}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Tình trạng:</span>{" "}
+                      {orderDetail.condition}%
+                    </p>
+                    <p>
+                      <span className="font-semibold">Số lượng:</span>{" "}
+                      {orderDetail.quantity}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Giá thuê:</span>{" "}
+                      <i>{orderDetail.rentPrice.toLocaleString("vi-VN")}₫</i>
+                    </p>
+                    <p>
+                      <span className="font-semibold">Tổng tiền:</span>{" "}
+                      <i>{orderDetail.subTotal.toLocaleString("vi-VN")}₫</i>
+                    </p>
+                  </div>
                   <p className="mt-2">
-                    <span className="font-semibold">Rental Period:</span>{" "}
-                    {new Date(rentalStartDate).toLocaleDateString()} -{" "}
-                    {new Date(rentalEndDate).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Total:</span>{" "}
-                    {totalAmount || "N/A"} ₫
+                    <span className="font-semibold">Thời gian thuê:</span>{" "}
+                    {new Date(orderDetail.rentalStartDate).toLocaleDateString()} -{" "}
+                    {new Date(orderDetail.rentalEndDate).toLocaleDateString()}
                   </p>
                 </div>
+              </div>
+              <div className="flex justify-end">
+                {!isExtended &&
+                  <button
+                    className="bg-orange-500 rounded text-white p-2 hover:bg-orange-600 font-bold"
+                    onClick={() => setExpandedId(expandedId === id ? null : id)}>
+                    Yêu cầu gia hạn
+                  </button>}
               </div>
             </div>
           )}
         </div>
+        <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
+          <p className="text-xl flex justify-between"><b>Tạm tính: </b><i>{orderDetail.subTotal.toLocaleString('vi-VN')}₫</i></p>
+          <p className="text-xl py-2 flex justify-between"><b>Phí vận chuyển: </b>{orderDetail.transportFee || "Đang chờ"}</p>
+          <p className="text-xl flex justify-between"><b>Tổng tiền: </b><i className="text-orange-500 font-bold">{orderDetail.totalAmount.toLocaleString('vi-VN')}₫</i></p>
+          <div className="flex space-x-4 pt-4 justify-end">
+            {(paymentStatus === "Đang chờ thanh toán" || paymentStatus === "N/A") &&
+              orderDetail.deliveryMethod !== "HOME_DELIVERY" && (
+                <button
+                  className="bg-purple-500 font-bold text-white text-sm rounded-full py-2 px-4 hover:bg-purple-600"
+                  onClick={() =>
+                    navigate("/rental-checkout", {
+                      state: { selectedOrder: orderDetail },
+                    })
+                  }
+                >
+                  Thanh toán
+                </button>
+              )}
+            {orderDetail.orderStatus === "Chờ xử lý" &&
+              <button
+                className="bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600"
+                onClick={() => setShowModal(true)}
+              >
+                Hủy đơn hàng
+              </button>
+            }
+          </div>
+
+        </div>
+
+
+        {showModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white p-6 rounded-md shadow-lg w-96">
+              <h2 className="text-lg font-semibold">Xác nhận hủy đơn hàng</h2>
+              <p className="mb-4 text-sm"><i>Bạn có chắc rằng hủy đơn hàng này không?</i></p>
+              <textarea
+                className="w-full border rounded-md p-2 mb-4"
+                rows="4"
+                placeholder="Vui lòng nhập lý do hủy đơn hàng"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+              ></textarea>
+              <div className="flex justify-end space-x-4">
+                <button
+                  className="bg-gray-500 text-white py-2 px-4 rounded-md"
+                  onClick={() => setShowModal(false)}
+                >
+                  Đóng
+                </button>
+                <button
+                  className="bg-red-500 text-white py-2 px-4 rounded-md"
+                  onClick={handleCancelOrder}
+                >
+                  Xác nhận
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

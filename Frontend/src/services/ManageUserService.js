@@ -1,5 +1,5 @@
 import { fetchAllUsers as apiFetchAllUsers,  } from '../api/apiManageUser';
-import { updatePassword as apiUpdatePassword, changeEmail, sendOtpForEmailChange} from '../api/apiUser'
+import { updatePassword as apiUpdatePassword, changeEmail, sendSmsOtpApi, editPhoneNumberApi } from '../api/apiUser'
 import { toast } from "react-toastify";
 
 export const fetchAllUsers = async (token) => {
@@ -29,24 +29,23 @@ export const updatePassword = (userId, oldPassword, newPassword) => async (dispa
   }
 };
 
-
-export const sendSmsOtpService = async (phoneNumber) => {
+export const sendSmsOtp = async (phoneNumber, token) => {
   try {
-    const response = await sendSmsOtp(phoneNumber);
+    const response = await sendSmsOtpApi(phoneNumber, token);
+    toast.success("OTP đã được gửi thành công!");
     return response.data;
   } catch (error) {
-    console.error("Error sending SMS OTP:", error);
-    throw new Error("Lỗi gửi OTP đến số điện thoại");
+    throw error;
   }
 };
 
-export const verifyPhoneNumberService = async (otp) => {
+export const editPhoneNumberService = async (newPhoneNumber, otp) => {
   try {
-    const response = await verifyPhoneNumber(otp);
+    const response = await editPhoneNumberApi(newPhoneNumber, otp);
     return response.data;
   } catch (error) {
-    console.error("Error verifying phone number:", error);
-    throw new Error("Lỗi xác thực số điện thoại bằng OTP");
+    console.error("Error updating phone number:", error);
+    throw new Error("Không thể cập nhật số điện thoại.");
   }
 };
 
