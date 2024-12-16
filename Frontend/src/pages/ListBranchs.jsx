@@ -77,10 +77,14 @@ const ListBranchs = () => {
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${mapboxgl.accessToken}`
       );
       const data = await response.json();
+      console.log(data);
+      
 
       if (data.features.length > 0) {
         const coordinates = data.features[0].geometry.coordinates;
-        geocodeCache.set(location, coordinates); // Cache the result
+        geocodeCache.set(location, coordinates); 
+        console.log(coordinates);
+        
         return coordinates;
       } else {
         console.warn(`No coordinates found for location: ${location}`);
@@ -174,7 +178,7 @@ const ListBranchs = () => {
       </div>
 
       {/* Right Column: Map */}
-      <div className="w-2/3 h-fit">
+      <div className="max-h-[70vh] w-full overflow-y-auto ">
         <div id="map" className=""></div>
       </div>
     </div>
