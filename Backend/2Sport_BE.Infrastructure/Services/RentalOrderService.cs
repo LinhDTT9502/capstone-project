@@ -1547,6 +1547,13 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
                     break;
 
+                case (int)OrderStatus.DELIVERED:
+                    if (currentOrderStatus != (int)OrderStatus.SHIPPED)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể đánh dấu là đã giao khi đang ở trạng thái đã vận chuyển.");
+                    }
+                    break;
+
                 case (int)RentalOrderStatus.AWAITING_PICKUP:
                     if (currentOrderStatus != (int)RentalOrderStatus.PROCESSING)
                     {
