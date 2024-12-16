@@ -55,7 +55,7 @@ export default function UserDropdown() {
         >
             <div 
               onMouseEnter={handleMouseEnter}
-            className="justify-between flex text-left items-center">
+            className="justify-between flex text-left items-center border-r-2 pr-4">
                 <button>
                 <FontAwesomeIcon icon={faUser} className="pr-1" />
                 {user.FullName}

@@ -25,6 +25,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
     public class ManagerVM : ManagerDTO
     {
         public int Id { get; set; }
+        public bool IsActive { get; set; }
         public UserVM UserVM { get; set; }
         public DateTime? EndDate { get; set; }
 

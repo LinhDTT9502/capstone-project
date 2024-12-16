@@ -22,6 +22,7 @@
     {
         public int StaffId { get; set; }
         public DateTime? EndDate { get; set; }
+        public bool IsActive { get; set; } 
         public UserVM UserVM { get; set; }
     }
 }

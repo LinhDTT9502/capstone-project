@@ -67,17 +67,9 @@ namespace _2Sport_BE.Controllers
         [HttpPost]  
         public async Task<IActionResult> LogOutAsync([FromBody] TokenModel request)
         {
-            var token = await _unitOfWork.RefreshTokenRepository.GetObjectAsync(_ => _.Token == request.RefreshToken);
-            if (token == null)
-            {
-                return BadRequest("Not found token!");
-            }
-            else
-            {
-                await _refreshTokenService.RemoveToken(token);
-                _unitOfWork.Save();
-                return Ok("Query Successfully");
-            }
+            var response = await _identityService.HandleLogoutAsync(request);
+           if(response.IsSuccess) return Ok(response);
+           return BadRequest(response);
         }
 
         [Route("sign-up")]
@@ -121,14 +113,18 @@ namespace _2Sport_BE.Controllers
         [HttpPost]
         public async Task<IActionResult> RefreshAsync([FromBody] TokenModel request)
         {
-            var result = await _identityService.RefreshTokenAsync(request);
+            var result = await _identityService.RefreshAccessTokenAsync(request);
             return Ok(result);
         }
 
         [HttpGet("sign-in-google")]
         public IActionResult GoogleLogin()
         {
-            var props = new AuthenticationProperties { RedirectUri = "api/Auth/google-response" };
+            var props = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("GoogleResponse", "Auth", null, "https")
+            };
+
             return Challenge(props, GoogleDefaults.AuthenticationScheme);
         }
         [HttpGet("google-response")]
@@ -164,53 +160,28 @@ namespace _2Sport_BE.Controllers
                 var result = await _identityService.HandleLoginGoogle(response.Principal);
                 var token = result.Data.Token;
                 var refreshToken = result.Data.RefreshToken;
-                var script = $@"
+
+                ResponseDTO<TokenModel> model = new ResponseDTO<TokenModel>()
+                {
+                    IsSuccess = true,
+                    Message = "Login google successfully",
+                    Data = new TokenModel()
+                    {
+                        Token = token,
+                        RefreshToken = refreshToken
+                    }
+                };
+                /*var script = $@"
                 <script>
                     window.opener.postMessage({{
                         token: '{token}',
                         refreshToken: '{refreshToken}'
                     }}, 'https://twosportshop.vercel.app/');
                     window.close();
-                </script>";
+                </script>";*/
 
-                return Content(script, "text/html");
+                return Ok(model);
             }
-        }
-
-        //Login Facebook chua xong     
-        [HttpGet("signin-facebook")]
-        public IActionResult FaceBookLogin()
-        {
-            var redirectUrl = Url.Action("FacebookResponse", "Auth");
-            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
-            return Challenge(properties, FacebookDefaults.AuthenticationScheme);
-        }
-        [HttpGet("facebook-response")]
-        public async Task<IActionResult> FacebookResponse()
-        {
-            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            if (!result.Succeeded)
-                return BadRequest();
-            // Lấy thông tin người dùng
-            var claims = result.Principal.Identities
-                .FirstOrDefault()?.Claims.Select(claim => new
-                {
-                    claim.Type,
-                    claim.Value
-                });
-            var email = result.Principal.FindFirstValue(ClaimTypes.Email);
-            var name = result.Principal.FindFirstValue(ClaimTypes.GivenName) ??
-                                   result.Principal.FindFirstValue(ClaimTypes.Name);
-            var lastName = result.Principal.FindFirstValue(ClaimTypes.Surname);
-
-
-            return Ok(new
-            {
-                Email = email,
-                Name = name,
-                LastName = lastName,
-                Claims = claims
-            });
         }
 
         [HttpPost("forgot-password-request")]

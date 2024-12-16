@@ -18,30 +18,60 @@ namespace _2Sport_BE.Controllers
         private readonly IImportHistoryService _importService;
         private readonly IWarehouseService _warehouseService;
         private readonly IProductService _productService;
+        private readonly IManagerService _managerService;
         private readonly IMapper _mapper;
         private static readonly char[] characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
         public ImportHistoryController(IImportHistoryService importService, 
                                 IWarehouseService warehouseService,
                                 IProductService productService,
+                                IManagerService managerService,
                                 IMapper mapper)
         {
             _importService = importService;
             _warehouseService = warehouseService;
             _productService = productService;
+            _managerService = managerService;
             _mapper = mapper;
         }
+
         [HttpGet]
         [Route("list-all-import-histories")]
         public async Task<IActionResult> ListAllAsync()
         {
             try
             {
-                var query = (await _importService.ListAllAsync()).Include(_ => _.Product).ToList();
-                foreach (var item in query)
-                {
-                    item.Product = await _productService.GetProductById((int)item.ProductId);
-                }
+                var query = (await _importService.ListAllAsync()).Include("Product")
+                                                                 .Include("Manager");
+
                 var result = _mapper.Map<List<ImportVM>>(query);
+                foreach (var item in result)
+                {
+                    item.ManagerName = (await _managerService.GetManagerDetailsByIdAsync(item.ManagerId))
+                                            .Data.UserVM.FullName;
+                }
+                return Ok(new { total = result.Count(), data = result });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
+        [HttpGet]
+        [Route("list-all-import-histories-by-branchId/{branchId}")]
+        public async Task<IActionResult> ListAllAsyncByBranchId(int branchId)
+        {
+            try
+            {
+                var query = (await _importService.ListImportHistoriesByBranchId(branchId))
+                                                .Include(_ => _.Product).ToList();
+                
+                var result = _mapper.Map<List<ImportVM>>(query);
+                foreach (var item in result)
+                {
+                    item.ManagerName = (await _managerService.GetManagerDetailsByIdAsync(item.ManagerId))
+                                            .Data.UserVM.FullName;
+                }
                 return Ok(new { total = result.Count(), data = result });
             }
             catch (Exception e)
@@ -51,17 +81,12 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpDelete]
-        [Route("delete-import-histories/{productId}")]
-        public async Task<IActionResult> DeleteImportHistories(int productId)
+        [Route("delete-import-history/{importHistoryId}")]
+        public async Task<IActionResult> DeleteImportHistories(int importHistoryId)
         {
             try
             {
-                var deletedImportHistories = (await _importService.GetImportHistorysAsync(productId)).ToList();
-                if (deletedImportHistories.Count <= 0)
-                {
-                    return BadRequest($"Cannot find import histories with product id: {productId}");
-                }
-                await _importService.DeleteImportHistories(deletedImportHistories);
+                await _importService.DeleteImportHistoryAsync(importHistoryId);
                 return Ok("Delete import histories successfully!");
             }
             catch (Exception e)

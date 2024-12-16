@@ -27,6 +27,10 @@ namespace _2Sport_BE.ViewModels
         public string? Description { get; set; }
         public string Color { get; set; }
         public int Condition { get; set; }
+        public decimal? Height { get; set; }
+        public decimal? Length { get; set; }
+        public decimal? Width { get; set; }
+        public decimal? Weight { get; set; }
         public string? Offers { get; set; }
         public int? Discount { get; set; }
 

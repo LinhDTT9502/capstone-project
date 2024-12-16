@@ -13,10 +13,10 @@ namespace _2Sport_BE.Service.Services
 	public interface ILikeService
 	{
 		Task LikeProduct(Like like);
-		Task<int> CountLikesOfProduct(int productId);
-        Task<int> CountLikeOfProductByProductCode(string productCode);
+		Task<int> CountLikesOfProduct(string productCode);
         Task<IQueryable<Like>> GetLikesOfProduct();
 		Task DeleteLikes(IEnumerable<Like> likes);
+        Task<IQueryable<Like>> GetLikesOfProduct(string productCode);
     }
 
     public class LikeService : ILikeService
@@ -32,14 +32,16 @@ namespace _2Sport_BE.Service.Services
 
 		public async Task<IQueryable<Like>> GetLikesOfProduct()
 		{
-			return (await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductId > 0)).ToList().AsQueryable();
+			var likes = (await _unitOfWork.LikeRepository.GetAsync(_ => !string.IsNullOrEmpty(_.ProductCode))).AsQueryable();
+			return likes;
 		}
         public async Task LikeProduct(Like like)
         {
             try
             {
                 var liked = (await _unitOfWork.LikeRepository.GetAsync(_ => _.UserId == like.UserId
-                                                                && _.ProductId == like.ProductId)).FirstOrDefault();
+                                                                && _.ProductCode.ToLower()
+                                                                .Equals(like.ProductCode.ToLower()))).FirstOrDefault();
                 if (liked != null)
                 {
                     await _unitOfWork.LikeRepository.DeleteAsync(liked);
@@ -55,11 +57,12 @@ namespace _2Sport_BE.Service.Services
             }
         }
 
-        public async Task<int> CountLikesOfProduct(int productId)
+        public async Task<int> CountLikesOfProduct(string productCode)
 		{
 			try
 			{
-				var likes = (await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductId == productId)).ToList();
+				var likes = (await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductCode.ToLower()
+                                                                    .Equals(productCode.ToLower()))).ToList();
 				var numOfLikes = likes.Count();
 				return numOfLikes;
 			} catch (Exception ex)
@@ -80,19 +83,11 @@ namespace _2Sport_BE.Service.Services
 			}
         }
 
-
-        public async Task<int> CountLikeOfProductByProductCode(string productCode)
+        public async Task<IQueryable<Like>> GetLikesOfProduct(string productCode)
         {
-            try
-            {
-                var likes = (await _unitOfWork.LikeRepository.GetAsync(_ => _.Product.ProductCode.Equals(productCode)));
-                var numOfLikes = likes.Count();
-                return numOfLikes;
-            }
-            catch (Exception ex)
-            {
-                return 0;
-            }
+            var likes = (await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductCode.ToLower()
+                                                                        .Equals(productCode.ToLower()))).AsQueryable();
+            return likes;
         }
     }
 

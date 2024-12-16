@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 
 namespace _2Sport_BE.Controllers
@@ -87,9 +88,9 @@ namespace _2Sport_BE.Controllers
                 productVM.CategoryName = category.CategoryName;
                 var sport = await _sportService.GetSportById(productVM.SportId);
                 productVM.SportName = sport.Name;
-                var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                var reviews = await _reviewService.GetReviewsOfProduct(product.ProductCode);
                 productVM.Reviews = reviews.ToList();
-                var numOfLikes = await _likeService.CountLikesOfProduct(productId);
+                var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                 productVM.Likes = numOfLikes;
                 productVM.ListImages.Add(productVM.ImgAvatarPath);
                 productVM.ListImages.Reverse();
@@ -142,9 +143,9 @@ namespace _2Sport_BE.Controllers
                     productVM.CategoryName = category.CategoryName;
                     var sport = await _sportService.GetSportById(productVM.SportId);
                     productVM.SportName = sport.Name;
-                    var reviews = await _reviewService.GetReviewsOfProductByProductCode(productCode);
+                    var reviews = await _reviewService.GetReviewsOfProduct(productCode);
                     productVM.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikesOfProduct(productVM.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(productCode);
                     productVM.Likes = numOfLikes;
                     productVM.ListImages.Add(productVM.ImgAvatarPath);
                     productVM.ListImages.Reverse();
@@ -205,9 +206,7 @@ namespace _2Sport_BE.Controllers
                 var result = _mapper.Map<List<Product>, List<ProductVM>>(query.ToList());
                 foreach (var product in result)
                 {
-                    var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
-                    product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                     product.Likes = numOfLikes;
                     product.ListImages.Add(product.ImgAvatarPath);
                     product.ListImages.Reverse();
@@ -280,9 +279,9 @@ namespace _2Sport_BE.Controllers
 
                 foreach (var product in result)
                 {
-                    var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                    var reviews = await _reviewService.GetReviewsOfProduct(product.ProductCode);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                     product.Likes = numOfLikes;
                 }
 
@@ -317,9 +316,9 @@ namespace _2Sport_BE.Controllers
 
                 foreach (var product in result)
                 {
-                    var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                    var reviews = await _reviewService.GetReviewsOfProduct(product.ProductCode);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                     product.Likes = numOfLikes;
                 }
 
@@ -362,9 +361,9 @@ namespace _2Sport_BE.Controllers
 
                 foreach (var product in result)
                 {
-                    var reviews = await _reviewService.GetReviewsOfProduct(product.Id);
+                    var reviews = await _reviewService.GetReviewsOfProduct(product.ProductCode);
                     product.Reviews = reviews.ToList();
-                    var numOfLikes = await _likeService.CountLikesOfProduct(product.Id);
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                     product.Likes = numOfLikes;
                 }
 
@@ -396,7 +395,7 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
 
-                var managerDetail = await _managerService.GetManagerDetailByUserIdAsync(userId);
+                var managerDetail = await _managerService.GetManagerDetailsByUserIdAsync(userId);
 
 
                 if (existedProduct == null)
@@ -467,13 +466,81 @@ namespace _2Sport_BE.Controllers
                                                                 productCM.Condition)).FirstOrDefault();
                     if (existedProductWithSizeColorCodition == null)
                     {
-                        var newProduct = existedProduct;
+                        var newProduct = new Product(existedProduct);
                         newProduct.Id = 0;
                         newProduct.Size = productCM.Size;
                         newProduct.Color = productCM.Color;
                         newProduct.Condition = productCM.Condition;
                         newProduct.Price = productCM.Price;
-                        await _productService.AddProduct(newProduct);
+                        newProduct.Height = productCM.Height;
+                        newProduct.Weight = productCM.Weight;
+                        newProduct.Length = productCM.Length;
+                        newProduct.Width = productCM.Width;
+
+                        var existedProductWithProductCodeAndColor = (await _productService
+                                                            .GetProducts(_ => _.ProductCode.Equals(existedProduct.ProductCode)
+                                                            && _.Color.ToLower().Equals((productCM.Color.ToLower()))))
+                                                            .FirstOrDefault();
+
+                        if (existedProductWithProductCodeAndColor is null)
+                        {
+                            if (!string.IsNullOrEmpty(productCM.MainImage.ToString()))
+                            {
+                                var imgURL = await UploadAvaImgFile(productCM.MainImage.ToString());
+                                if (imgURL != null)
+                                {
+                                    newProduct.ImgAvatarPath = imgURL;
+                                }
+                                else
+                                {
+                                    return StatusCode(500, "Something wrong!");
+                                }
+                            }
+                            else
+                            {
+                                return BadRequest("Main Image is required!");
+                            }
+                        }
+                        else
+                        {
+                            newProduct.ImgAvatarPath = existedProductWithProductCodeAndColor.ImgAvatarPath;
+                        }
+                        newProduct = await _productService.AddProduct(newProduct);
+
+
+                        if (existedProductWithProductCodeAndColor is null)
+                        {
+                            var firstImgValue = productCM.ProductImages[0].ToString();
+                            var secondImgValue = productCM.ProductImages[1].ToString();
+                            var thirdImgValue = productCM.ProductImages[2].ToString();
+                            var fourthImgValue = productCM.ProductImages[3].ToString();
+                            var fifthImgValue = productCM.ProductImages[4].ToString();
+                            var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
+                                                        fourthImgValue, fifthImgValue);
+
+                            if (!isSuccess)
+                            {
+                                return StatusCode(500, "Something wrong!");
+                            }
+
+                        }
+                        else
+                        {
+                            var images = await _imageVideosService.GetAsyncs(
+                                                        _ => _.ProductId == existedProduct.Id);
+                            foreach (var image in images)
+                            {
+                                var imageObject = new ImagesVideo()
+                                {
+                                    ProductId = newProduct.Id,
+                                    ImageUrl = image.ImageUrl,
+                                    CreateAt = DateTime.Now,
+                                    VideoUrl = null,
+                                };
+                                await _imageVideosService.AddImage(imageObject);
+                            }
+
+                        }
 
                         var warehouse = new Warehouse()
                         {
@@ -535,15 +602,14 @@ namespace _2Sport_BE.Controllers
 
         [HttpPost]
         [Route("import-product-list")]
-        public async Task<IActionResult> ImportProductList(List<ProductCM> productList)
+        public async Task<IActionResult> ImportProductList([FromForm] List<ProductCM> productList)
         {
             try
             {
                 foreach (var productCM in productList)
                 {
-                    var existedProduct = (await _productService.GetProductByProductCodeAndColor
-                                                            (productCM.ProductCode,
-                                                             productCM.Color)).FirstOrDefault();
+                    var existedProduct = (await _productService.GetProductByProductCodeAndColor(productCM.ProductCode,
+                                                                                       productCM.Color)).FirstOrDefault();
 
 
                     var product = _mapper.Map<Product>(productCM);
@@ -558,7 +624,7 @@ namespace _2Sport_BE.Controllers
                             return Unauthorized();
                         }
 
-                        var managerDetail = await _managerService.GetManagerDetailByUserIdAsync(userId);
+                        var managerDetail = await _managerService.GetManagerDetailsByUserIdAsync(userId);
 
 
                         if (existedProduct == null)
@@ -612,7 +678,7 @@ namespace _2Sport_BE.Controllers
                                 BranchId = managerDetail.Data.BranchId,
                                 ProductId = product.Id,
                                 TotalQuantity = productCM.Quantity,
-                                AvailableQuantity = productCM.Quantity,
+                                AvailableQuantity = productCM.Quantity
                             };
                             await _warehouseService.CreateANewWarehouseAsync(warehouse);
 
@@ -629,39 +695,109 @@ namespace _2Sport_BE.Controllers
                                                                         productCM.Condition)).FirstOrDefault();
                             if (existedProductWithSizeColorCodition == null)
                             {
-                                var newProduct = existedProduct;
+                                var newProduct = new Product(existedProduct);
+                                newProduct.Id = 0;
                                 newProduct.Size = productCM.Size;
                                 newProduct.Color = productCM.Color;
                                 newProduct.Condition = productCM.Condition;
                                 newProduct.Price = productCM.Price;
-                                await _productService.AddProduct(newProduct);
+                                newProduct.Height = productCM.Height;
+                                newProduct.Weight = productCM.Weight;
+                                newProduct.Length = productCM.Length;
+                                newProduct.Width = productCM.Width;
+
+                                var existedProductWithProductCodeAndColor = (await _productService
+                                                                    .GetProducts(_ => _.ProductCode.Equals(existedProduct.ProductCode)
+                                                                    && _.Color.ToLower().Equals((productCM.Color.ToLower()))))
+                                                                    .FirstOrDefault();
+
+                                if (existedProductWithProductCodeAndColor is null)
+                                {
+                                    if (!string.IsNullOrEmpty(productCM.MainImage.ToString()))
+                                    {
+                                        var imgURL = await UploadAvaImgFile(productCM.MainImage.ToString());
+                                        if (imgURL != null)
+                                        {
+                                            newProduct.ImgAvatarPath = imgURL;
+                                        }
+                                        else
+                                        {
+                                            return StatusCode(500, "Something wrong!");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return BadRequest("Main Image is required!");
+                                    }
+                                }
+                                else
+                                {
+                                    newProduct.ImgAvatarPath = existedProductWithProductCodeAndColor.ImgAvatarPath;
+                                }
+                                newProduct = await _productService.AddProduct(newProduct);
+
+
+                                if (existedProductWithProductCodeAndColor is null)
+                                {
+                                    var firstImgValue = productCM.ProductImages[0].ToString();
+                                    var secondImgValue = productCM.ProductImages[1].ToString();
+                                    var thirdImgValue = productCM.ProductImages[2].ToString();
+                                    var fourthImgValue = productCM.ProductImages[3].ToString();
+                                    var fifthImgValue = productCM.ProductImages[4].ToString();
+                                    var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
+                                                                fourthImgValue, fifthImgValue);
+
+                                    if (!isSuccess)
+                                    {
+                                        return StatusCode(500, "Something wrong!");
+                                    }
+
+                                }
+                                else
+                                {
+                                    var images = await _imageVideosService.GetAsyncs(
+                                                                _ => _.ProductId == existedProduct.Id);
+                                    foreach (var image in images)
+                                    {
+                                        var imageObject = new ImagesVideo()
+                                        {
+                                            ProductId = newProduct.Id,
+                                            ImageUrl = image.ImageUrl,
+                                            CreateAt = DateTime.Now,
+                                            VideoUrl = null,
+                                        };
+                                        await _imageVideosService.AddImage(imageObject);
+                                    }
+
+                                }
+
+                                var warehouse = new Warehouse()
+                                {
+                                    BranchId = managerDetail.Data.BranchId,
+                                    ProductId = newProduct.Id,
+                                    TotalQuantity = productCM.Quantity,
+                                    AvailableQuantity = productCM.Quantity
+                                };
+                                await _warehouseService.CreateANewWarehouseAsync(warehouse);
                             }
                             else
                             {
+
                                 var existedWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(
                                                                                         existedProductWithSizeColorCodition.Id,
                                                                                         managerDetail.Data.BranchId))
                                                                                         .FirstOrDefault();
-                                if (existedWarehouse != null)
-                                {
-                                    existedWarehouse.TotalQuantity += productCM.Quantity;
-                                    existedWarehouse.AvailableQuantity += productCM.Quantity;
-                                    await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
-                                }
-                                else
-                                {
-                                    //var branch = (await _branchService.GetBranchByManagerId(userId)).FirstOrDefault();
-                                    var warehouse = new Warehouse()
-                                    {
-                                        BranchId = managerDetail.Data.BranchId,
-                                        ProductId = existedProductWithSizeColorCodition.Id,
-                                        TotalQuantity = productCM.Quantity,
-                                        AvailableQuantity = productCM.Quantity,
-                                    };
-                                    await _warehouseService.CreateANewWarehouseAsync(warehouse);
-                                }
+
+                                existedWarehouse.TotalQuantity += productCM.Quantity;
+                                existedWarehouse.AvailableQuantity += productCM.Quantity;
+                                await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
                             }
 
+                        }
+
+                        if (existedProduct != null)
+                        {
+                            product = existedProduct;
                         }
 
                         //Save import history
@@ -673,7 +809,7 @@ namespace _2Sport_BE.Controllers
                             ProductName = product.ProductName,
                             ProductCode = product.ProductCode,
                             Price = product.Price,
-                            RentPrice =  product.RentPrice,
+                            RentPrice = product.RentPrice,
                             Color = product.Color,
                             Size = product.Size,
                             Condition = product.Condition,
@@ -683,6 +819,7 @@ namespace _2Sport_BE.Controllers
                         };
                         await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
 
+                        return Ok("Add product successfully!");
                     }
 
                     catch (Exception e)
@@ -784,18 +921,22 @@ namespace _2Sport_BE.Controllers
 
                     // Check if any mandatory fields are null
                     var brandValue = reader.GetValue(1)?.ToString();
-                    var categoryValue = reader.GetValue(3)?.ToString();
-                    var sportValue = reader.GetValue(4)?.ToString();
-                    var productNameValue = reader.GetValue(5)?.ToString();
-                    var productCodeValue = reader.GetValue(6)?.ToString();
-                    var quantityValue = reader.GetValue(7)?.ToString();
-                    var priceValue = reader.GetValue(8)?.ToString();
-                    var rentPriceValue = reader.GetValue(9)?.ToString();
-                    var sizeValue = reader.GetValue(10)?.ToString();
-                    var colorValue = reader.GetValue(11)?.ToString();
-                    var conditionValue = reader.GetValue(12)?.ToString();
-                    var avaImgValue = reader.GetValue(14)?.ToString();
-                    var isRent = reader.GetValue(13)?.ToString();
+                    var categoryValue = reader.GetValue(2)?.ToString();
+                    var sportValue = reader.GetValue(3)?.ToString();
+                    var productNameValue = reader.GetValue(4)?.ToString();
+                    var productCodeValue = reader.GetValue(5)?.ToString();
+                    var quantityValue = reader.GetValue(6)?.ToString();
+                    var priceValue = reader.GetValue(7)?.ToString();
+                    var rentPriceValue = reader.GetValue(8)?.ToString();
+                    var sizeValue = reader.GetValue(9)?.ToString();
+                    var colorValue = reader.GetValue(10)?.ToString();
+                    var conditionValue = reader.GetValue(11)?.ToString();
+                    var lengthValue = reader.GetValue(12)?.ToString();
+                    var widthValue = reader.GetValue(13)?.ToString();
+                    var heightValue = reader.GetValue(14)?.ToString();
+                    var weightValue = reader.GetValue(15)?.ToString();
+                    var avaImgValue = reader.GetValue(17)?.ToString();
+                    var isRent = reader.GetValue(16)?.ToString();
 
                     // Check for null or empty mandatory fields
                     if (string.IsNullOrEmpty(brandValue) ||
@@ -809,46 +950,17 @@ namespace _2Sport_BE.Controllers
                         string.IsNullOrEmpty(colorValue) ||
                         string.IsNullOrEmpty(conditionValue) ||
                         string.IsNullOrEmpty(avaImgValue) ||
-                        string.IsNullOrEmpty(isRent))
+                        string.IsNullOrEmpty(heightValue)||
+                        string.IsNullOrEmpty(weightValue) ||
+                        string.IsNullOrEmpty(lengthValue) ||
+                        string.IsNullOrEmpty(widthValue))
                     {
                         return (int)ProductErrors.NullError;
                     }
 
                     try
                     {
-                        var managerDetail = await _managerService.GetManagerDetailByUserIdAsync(managerId);
-
-
-                        //Check if brand is not exist, add new brand
-                        #region Add new brand
-                        var existedBrand = await _brandService.GetBrandsAsync(brandValue);
-                        if (existedBrand.FirstOrDefault() == null)
-                        {
-                            var brandImg = reader.GetValue(2)?.ToString();
-                            var brandImgFile = ConvertToIFormFile(brandImg);
-                            if (!string.IsNullOrEmpty(brandImg))
-                            {
-                                var uploadResult = await _imageService.UploadImageToCloudinaryAsync(brandImgFile);
-                                if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                                {
-                                    var newBrand = new Brand()
-                                    {
-                                        BrandName = brandValue,
-                                        Logo = uploadResult.SecureUrl.AbsoluteUri,
-                                    };
-                                    await _brandService.CreateANewBrandAsync(newBrand);
-                                }
-                                else
-                                {
-                                    return (int)ProductErrors.NotExcepted;
-                                }
-                            }
-                            else
-                            {
-                                return (int)ProductErrors.NullError;
-                            }
-                        }
-                        #endregion
+                        var managerDetail = await _managerService.GetManagerDetailsByUserIdAsync(managerId);
 
                         // Assuming product creation logic if all fields are valid
                         var brand = (await _brandService.GetBrandsAsync(brandValue)).FirstOrDefault();
@@ -885,7 +997,13 @@ namespace _2Sport_BE.Controllers
                             RentPrice = 0,
                             CreateAt = DateTime.Now,
                             Status = true,
+                            Height = decimal.TryParse(heightValue, out var height) ? height : 0,
+                            Weight = decimal.TryParse(weightValue, out var weigth) ? weigth : 0,
+                            Length = decimal.TryParse(lengthValue, out var length) ? length : 0,
+                            Width = decimal.TryParse(widthValue, out var width) ? width : 0,
                         };
+
+                        //If there is a existed product with product code
                         if (existedProduct == null)
                         {
                             if (!string.IsNullOrEmpty(avaImgValue))
@@ -920,11 +1038,11 @@ namespace _2Sport_BE.Controllers
                             await _productService.AddProduct(product);
 
                             //Add product's images into ImageVideo table
-                            var firstImgValue = reader.GetValue(15)?.ToString();
-                            var secondImgValue = reader.GetValue(16)?.ToString();
-                            var thirdImgValue = reader.GetValue(17)?.ToString();
-                            var fourthImgValue = reader.GetValue(18)?.ToString();
-                            var fifthImgValue = reader.GetValue(19)?.ToString();
+                            var firstImgValue = reader.GetValue(18)?.ToString();
+                            var secondImgValue = reader.GetValue(19)?.ToString();
+                            var thirdImgValue = reader.GetValue(20)?.ToString();
+                            var fourthImgValue = reader.GetValue(21)?.ToString();
+                            var fifthImgValue = reader.GetValue(22)?.ToString();
                             var isSuccess = await UploadProductImages(product.Id,firstImgValue, secondImgValue, thirdImgValue,
                                                         fourthImgValue, fifthImgValue);
                             
@@ -954,18 +1072,24 @@ namespace _2Sport_BE.Controllers
                                                                         int.Parse(conditionValue))).FirstOrDefault();
                             if (existedProductWithSizeColorCodition == null)
                             {
-                                var newProduct = new Product(existedProduct){};
-                                newProduct.Id = 0;
-                                newProduct.Size = sizeValue;
-                                newProduct.Color = colorValue;
-                                newProduct.Condition = int.Parse(conditionValue);
-                                newProduct.Price = decimal.Parse(priceValue);
-                                newProduct.RentPrice = decimal.Parse(rentPriceValue);
-                                newProduct.CreateAt = DateTime.Now;
-                                newProduct = await _productService.AddProduct(newProduct);
+                                var newProduct = new Product(existedProduct)
+                                {
+                                    Id = 0,
+                                    Size = sizeValue,
+                                    Color = colorValue,
+                                    Condition = int.Parse(conditionValue),
+                                    Price = decimal.Parse(priceValue),
+                                    RentPrice = decimal.Parse(rentPriceValue),
+                                    CreateAt = DateTime.Now
+                                };
 
-                                var existedProductColor = newProduct.Color;
-                                if (!existedProductColor.Equals(colorValue))
+
+                                var existedProductWithProductCodeAndColor = (await _productService
+                                                            .GetProducts(_ => _.ProductCode.Equals(existedProduct.ProductCode)
+                                                            && _.Color.ToLower().Equals((colorValue.ToLower()))))
+                                                            .FirstOrDefault();
+
+                                if (existedProductWithProductCodeAndColor is null)
                                 {
                                     if (!string.IsNullOrEmpty(avaImgValue))
                                     {
@@ -983,25 +1107,29 @@ namespace _2Sport_BE.Controllers
                                     {
                                         return (int)ProductErrors.NullError;
                                     }
+                                } else
+                                {
+                                    newProduct.ImgAvatarPath = existedProductWithProductCodeAndColor.ImgAvatarPath;
                                 }
+                                newProduct = await _productService.AddProduct(newProduct);
 
 
-                                if (!existedProductColor.Equals(colorValue))
+                                if (existedProductWithProductCodeAndColor is null)
                                 {
                                     //Add product's images into ImageVideo table
-                                    var firstImgValue = reader.GetValue(15)?.ToString();
-                                    var secondImgValue = reader.GetValue(16)?.ToString();
-                                    var thirdImgValue = reader.GetValue(17)?.ToString();
-                                    var fourthImgValue = reader.GetValue(18)?.ToString();
-                                    var fifthImgValue = reader.GetValue(19)?.ToString();
-                                    var isSuccess = await UploadProductImages(product.Id, firstImgValue, secondImgValue, thirdImgValue,
+                                    var firstImgValue = reader.GetValue(18)?.ToString();
+                                    var secondImgValue = reader.GetValue(19)?.ToString();
+                                    var thirdImgValue = reader.GetValue(20)?.ToString();
+                                    var fourthImgValue = reader.GetValue(21)?.ToString();
+                                    var fifthImgValue = reader.GetValue(22)?.ToString();
+                                    var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
                                                                 fourthImgValue, fifthImgValue);
 
                                     if (!isSuccess)
                                     {
                                         return (int)ProductErrors.NotExcepted;
                                     }
-                                    existedProductColor = newProduct.Color;
+
                                 } else
                                 {
                                     var images = await _imageVideosService.GetAsyncs(
@@ -1037,16 +1165,30 @@ namespace _2Sport_BE.Controllers
                                                                                         existedProductWithSizeColorCodition.Id,
                                                                                         managerDetail.Data.BranchId))
                                                                                         .FirstOrDefault();
-
-                                existedWarehouse.TotalQuantity += int.Parse(quantityValue);
-                                existedWarehouse.AvailableQuantity += int.Parse(quantityValue);
-                                await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
-                                product = existedProductWithSizeColorCodition;
+                                if (existedWarehouse == null)
+                                {
+                                    var newWarehouse = new Warehouse
+                                    {
+                                        BranchId = managerDetail.Data.BranchId,
+                                        ProductId = existedProductWithSizeColorCodition.Id,
+                                        TotalQuantity = int.Parse(quantityValue),
+                                        AvailableQuantity = int.Parse(quantityValue),
+                                    };
+                                    await _warehouseService.CreateANewWarehouseAsync(newWarehouse);
+                                    product = existedProductWithSizeColorCodition;
+                                }
+                                else
+                                {
+                                    existedWarehouse.TotalQuantity += int.Parse(quantityValue);
+                                    existedWarehouse.AvailableQuantity += int.Parse(quantityValue);
+                                    await _warehouseService.UpdateWarehouseAsync(existedWarehouse);
+                                    product = existedProductWithSizeColorCodition;
+                                }
                             }
                         }
 
                         //Save import history
-                        var manager = await _managerService.GetManagerDetailByUserIdAsync(managerId);
+                        var manager = await _managerService.GetManagerDetailsByUserIdAsync(managerId);
                         var importedBranch = await _branchService.GetBranchById(manager.Data.BranchId);
                         var importHistory = new ImportHistory()
                         {
@@ -1238,7 +1380,7 @@ namespace _2Sport_BE.Controllers
 
 
                     //Save import history
-                    var manager = await _managerService.GetManagerDetailByIdAsync(userId);
+                    var manager = await _managerService.GetManagerDetailsByIdAsync(userId);
                     var importedBranch = await _branchService.GetBranchById(manager.Data.BranchId);
                     var importHistory = new ImportHistory()
                     {
@@ -1257,26 +1399,6 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(ex);
             }
 
-        }
-
-        [HttpPut]
-        [Route("edit-description-of-product/{productId}")]
-        public async Task<IActionResult> EditDescriptionOfProduct(int productId, string description)
-        {
-            try
-            {
-                var editedProduct = await _productService.GetProductById(productId);
-                if (editedProduct == null)
-                {
-                    return BadRequest($"There is no any products with id {productId}");
-                }
-                editedProduct.Description = description;
-                await _productService.UpdateProduct(editedProduct);
-                return Ok("Save successfully!");
-            } catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
         }
 
         [HttpDelete]
@@ -1326,6 +1448,61 @@ namespace _2Sport_BE.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpPut]
+        [Route("edit-description-of-product/{productCode}")]
+        public async Task<IActionResult> EditDescriptionOfPrduct (string productCode, string description)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+
+                var products = await _productService.GetProductsByProductCode(productCode);
+                foreach (var product in products)
+                {
+                    product.Description = description;
+                }
+                await _productService.UpdateProducts(products);
+                return Ok("save successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Something wrong!");
+            }
+        }
+
+
+
+        [HttpPut]
+        [Route("edit-offers-of-product/{categoryId}")]
+        public async Task<IActionResult> EditOffersnOfPrduct(int categoryId, string offers)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+
+                var products = await _productService.GetProductsByCategoryId(categoryId);
+                foreach (var product in products)
+                {
+                    product.Offers = offers;
+                }
+                await _productService.UpdateProducts(products);
+                return Ok("save successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Something wrong!");
             }
         }
 

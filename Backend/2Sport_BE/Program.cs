@@ -19,6 +19,7 @@ using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Infrastructure.Hubs;
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 //Setting Mail
@@ -26,7 +27,10 @@ builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("AppSe
 //Setting PayOs
 builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOSSettings"));
 //Register SignalR
-builder.Services.AddSignalR();
+builder.Services.AddSignalR().AddHubOptions<NotificationHub>(options =>
+{
+    options.EnableDetailedErrors = true;
+}); ;
 builder.Services.AddHttpContextAccessor();
 builder.Services.Register();
 //Register Hangfire
@@ -58,7 +62,7 @@ builder.Services.AddSingleton(tokenValidationParameters);
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
@@ -66,17 +70,30 @@ builder.Services.AddAuthentication(options =>
         options.RequireHttpsMetadata = false;
         options.SaveToken = true;
         options.TokenValidationParameters = tokenValidationParameters;
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var path = context.HttpContext.Request.Path;
+                if (path.StartsWithSegments("/notificationHub"))
+                {
+                    context.Token = context.Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+                }
+                return Task.CompletedTask;
+            }
+        };
     })
    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
    .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
    {
        options.ClientId = builder.Configuration["Auth0:ClientId"];
        options.ClientSecret = builder.Configuration["Auth0:ClientSecret"];
+       options.CallbackPath = "/signin-google";
        options.Scope.Add(builder.Configuration["Auth0:ProfileAccess"]);
        options.Scope.Add(builder.Configuration["Auth0:EmailAccess"]);
        options.Scope.Add(builder.Configuration["Auth0:BirthDayAccess"]);
        options.Scope.Add(builder.Configuration["Auth0:PhoneAccess"]);
-       
+
    })
    .AddFacebook(facebookOptions =>
    {
@@ -151,11 +168,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-    
+
 // Configure the HTTP request pipeline.
 
-    app.UseSwagger();
-    app.UseSwaggerUI();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseRouting();
@@ -167,10 +184,13 @@ app.UseStaticFiles();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
-    endpoints.MapHub<NotificationHub>("/notificationHub").RequireAuthorization();
+    endpoints.MapHub<NotificationHub>("/notificationHub", opts =>
+    {
+        opts.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+    }).RequireCors("CorsPolicy");
 
 });
-
+app.UseWebSockets();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 app.UseHangfireServer();
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
@@ -189,18 +209,30 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 });
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider.GetRequiredService<IRentalOrderService>();
-
+    var rentalOrderService = scope.ServiceProvider.GetRequiredService<IRentalOrderService>();
+    var saleOrderService = scope.ServiceProvider.GetRequiredService<ISaleOrderService>();
     app.Lifetime.ApplicationStarted.Register(() =>
     {
         var recurringJobs = app.Services.GetRequiredService<IRecurringJobManager>();
+
         recurringJobs.AddOrUpdate(
         "CheckRentalExpiration",
-        () => services.CheckRentalOrdersForExpiration(),
-                
+        () => rentalOrderService.CheckRentalOrdersForExpiration(),
         Cron.Daily
-    );
+        );
+
+        recurringJobs.AddOrUpdate(
+           "CheckPendingRentalOrder",
+           () => rentalOrderService.CheckPendingOrderForget(),
+           Cron.Hourly
+       );
+        recurringJobs.AddOrUpdate(
+           "CheckPendingSaleOrder",
+           () => saleOrderService.CheckPendingOrderForget(),
+           Cron.Hourly
+       );
+
     });
 }
 
-    app.Run();
+app.Run();

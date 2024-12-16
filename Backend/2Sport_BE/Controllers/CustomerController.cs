@@ -15,8 +15,8 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpGet]
-        [Route("get-loyal-points")]
-        public async Task<IActionResult> GetPointByUserId([FromQuery] int userId)
+        [Route("get-loyal-points/{userId}")]
+        public async Task<IActionResult> GetLoyaltyPointByUserId(int userId)
         {
             var response = await _customerDetailService.GetPointByUserId(userId);
             if (response.IsSuccess)
@@ -26,7 +26,7 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
         [HttpPost("add-points")]
-        public async Task<IActionResult> AddPoints(string phoneNumber, int points)
+        public async Task<IActionResult> AddLoyaltyPoints(string phoneNumber, int points)
         {
             if (string.IsNullOrEmpty(phoneNumber) || points <= 0)
             {
@@ -42,5 +42,7 @@ namespace _2Sport_BE.Controllers
 
             return Ok(result);
         }
+
+
     }
 }

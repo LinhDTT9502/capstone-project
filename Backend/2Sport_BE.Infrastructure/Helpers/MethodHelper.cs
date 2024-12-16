@@ -1,22 +1,58 @@
 ﻿using _2Sport_BE.Infrastructure.DTOs;
+using _2Sport_BE.Repository.Models;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace _2Sport_BE.Infrastructure.Helpers
 {
+    public class ValidationResult
+    {
+        public bool IsValid { get; private set; }
+        public string ErrorMessage { get; private set; }
+
+        private ValidationResult(bool isValid, string errorMessage)
+        {
+            IsValid = isValid;
+            ErrorMessage = errorMessage;
+        }
+
+        public static ValidationResult Valid()
+        {
+            return new ValidationResult(true, string.Empty);
+        }
+
+        public static ValidationResult Invalid(string errorMessage)
+        {
+            return new ValidationResult(false, errorMessage);
+        }
+    }
     public interface IMethodHelper
     {
         string GenerateOrderCode();
         string GenerateOTPCode();
+        string GenerateJwtForStrings(Dictionary<string, string> claims);
 
         bool AreAnyStringsNullOrEmpty(PaymentResponse response);
         bool CheckValidOfRentalDate(DateTime startDate, DateTime endDate, DateTime receivedDate);
         string HashPassword(string password);
-        public string GetFormattedDateInGMT7(DateTime date);
+        string GetFormattedDateInGMT7(DateTime date);
+        ClaimsPrincipal GetPrincipalFromToken(string token);
     }
     public class MethodHelper : IMethodHelper
-    {
+    {   
+        private readonly IConfiguration _configuration;
+        private readonly TokenValidationParameters _tokenValidationParameters;
+
+        public MethodHelper(IConfiguration configuration, TokenValidationParameters tokenValidationParameters)
+        {
+            _configuration = configuration;
+            _tokenValidationParameters = tokenValidationParameters;
+        }
         public string GetFormattedDateInGMT7(DateTime date)
         {
             // Chuyển đổi thời gian sang GMT+7
@@ -88,6 +124,68 @@ namespace _2Sport_BE.Infrastructure.Helpers
             }
 
             return true;
+        }
+        public string GenerateJwtForStrings(Dictionary<string, string> claims)
+        {         
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            try
+            {
+                var symmetricKey = Encoding.UTF8.GetBytes(_configuration.GetSection("ServiceConfiguration:JwtSettings:Secret").Value);
+
+                var Subject = new List<Claim>();
+                if (claims != null && claims.Count > 0)
+                {
+                    foreach (var claim in claims)
+                    {
+                        Subject.Add(new Claim(claim.Key, claim.Value));
+                    }
+                }
+
+                var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(Subject),
+                    Expires = DateTime.UtcNow.AddMinutes(5),
+                    SigningCredentials = new SigningCredentials
+                    (new SymmetricSecurityKey(symmetricKey), SecurityAlgorithms.HmacSha256Signature)
+                };
+
+                var token = tokenHandler.CreateToken(tokenDescriptor);
+                string result = tokenHandler.WriteToken(token);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+        public ClaimsPrincipal GetPrincipalFromToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            try
+            {
+                var tokenValidationParameters = _tokenValidationParameters.Clone();
+                tokenValidationParameters.ValidateLifetime = false;
+                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var validatedToken);//
+                if (!IsJwtWithValidSecurityAlgorithm(validatedToken))
+                {
+                    return null;
+                }
+
+                return principal;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        private bool IsJwtWithValidSecurityAlgorithm(SecurityToken validatedToken)
+        {
+            return (validatedToken is JwtSecurityToken jwtSecurityToken) &&
+                   jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+                       StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

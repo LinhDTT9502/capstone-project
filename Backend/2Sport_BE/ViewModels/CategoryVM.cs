@@ -18,9 +18,11 @@ namespace _2Sport_BE.ViewModels
 
     public class CategoryCM : CategoryDTO
     {
+        public string? SportName { get; set; }
         public int? SportId { get; set; }
         public IFormFile CategoryImage { get; set; }
     }
+
 
     public class CategoryUM : CategoryDTO
     {

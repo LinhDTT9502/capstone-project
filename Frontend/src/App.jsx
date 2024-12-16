@@ -25,20 +25,17 @@ import MembershipPolicyPage from './pages/Policies/MembershipPolicyPage';
 import SecondHandRentalsPolicyPage from './pages/Policies/SecondHandRentalsPolicyPage';
 import ShippingPolicyPage from './pages/Policies/ShippingPolicyPage';
 
-import Dashboard from './components/Admin/Dashboard';
-import ManageUser from './components/Admin/ManageUser';
 import ContactUs from './pages/ContactUs';
 import AboutUs from './pages/AboutUs';
 import OrderSuccess from './components/Payment/OrderSuccess';
 import OrderCancel from './components/Payment/OrderCancel';
-import SidebarStaff from './layouts/SidebarStaff';
-import Warehouse from './components/Staff/Warehouse'
 import PrivateRoute from './components/PrivateRoute';
-import AdminRoutes from './routes/AdminRoutes';
 import PlacedOrder from './components/Order/PlacedOrder';
 import Cart from './pages/Cart';
 import GuestOrder from './pages/GuestOrder';
 import GuestOrderDetail from './pages/GuestOrderDetail';
+import GuestRentOrder from './pages/GuestRentOrder';
+import GuestRentOrderDetail from './pages/GuestRentOrderDetail';
 import BranchSystem from './components/BranchButton';
 import ListBranchs from './pages/ListBranchs';
 import RentalOrder from './components/Rental/RentalOrder';
@@ -55,37 +52,36 @@ import BlogRoutes from './routes/BlogRoutes';
 
 
 function App() {
-  
+
   const user = useSelector(selectUser);
-  const isStaffOrAdmin =
-    user && (user.role === "staff" || user.role === "Admin");
+
   return (
     <>
       {/* {!isStaffOrAdmin && ( */}
-        <div>
-          <Header />
-          <div className="z-50 relative">
-            <div className="fixed bottom-0 left-0 mb-4 ml-4">
-              <div className="bg-blue-500 text-white py-2 px-4 rounded">
-                <BranchSystem />
-              </div>
+      <div>
+        <Header />
+        <div className="z-50 relative">
+          <div className="fixed bottom-0 left-0 mb-4 ml-4">
+            <div className="bg-blue-500 text-white py-2 px-4 rounded">
+              <BranchSystem />
             </div>
           </div>
-          {/* <BreadcrumbsDefault/> */}
-          <Routes>
+        </div>
+        {/* <BreadcrumbsDefault/> */}
+        <Routes>
           {/* <ScrollToTop /> */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/manage-account/*" element={<UserRoutes />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/manage-account/*" element={<UserRoutes />} />
 
-            <Route path="/complaints-handling" element={<ComplaintsHandlingPage />} />
-        <Route path="/returns-refunds" element={<ReturnsRefundsPage />} />
-        <Route path="/payment" element={<PaymentPolicyPage />} />
-        <Route path="/privacy" element={<PrivacyPolicyPage />} />
-        <Route path="/membership" element={<MembershipPolicyPage />} />
-        <Route path="/second-hand-rentals" element={<SecondHandRentalsPolicyPage />} />
-        <Route path="/shipping" element={<ShippingPolicyPage />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-success-2" element={<PaymentSuccessV2 />} />
+          <Route path="/complaints-handling" element={<ComplaintsHandlingPage />} />
+          <Route path="/returns-refunds" element={<ReturnsRefundsPage />} />
+          <Route path="/payment" element={<PaymentPolicyPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/membership" element={<MembershipPolicyPage />} />
+          <Route path="/second-hand-rentals" element={<SecondHandRentalsPolicyPage />} />
+          <Route path="/shipping" element={<ShippingPolicyPage />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-success-2" element={<PaymentSuccessV2 />} />
 
         {/* <Route path='/blog-list' element={<BlogList/>}/>
         <Route path='/blog-detail' element={<BlogDetail/>}/> */}
@@ -119,6 +115,7 @@ function App() {
           </Routes>
           <Footer />
         </div>
+
       {/* )}
       <Routes>
         <Route

@@ -68,6 +68,11 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var newSports = _mapper.Map<List<Sport>>(newSportCMs);
+                foreach (var newSport in newSports)
+                {
+                    newSport.Status = true;
+                    newSport.CreatedAt = DateTime.Now;
+                }
                 await _sportService.AddSports(newSports);
                 return Ok("Add new sports successfully!");
             } catch (Exception ex)
@@ -77,12 +82,13 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpPut]
-        [Route("update-sport")] 
-        public async Task<IActionResult> UpdateSport(SportUM sport)
+        [Route("update-sport/{sportId}")] 
+        public async Task<IActionResult> UpdateSport(int sportId, SportUM sport)
         {
             try
             {
-                var updatedSport = _mapper.Map<SportUM, Sport>(sport);
+                var updatedSport = await _sportService.GetSportById(sportId);
+                updatedSport.Name = sport.Name;
                 await _sportService.UpdateSport(updatedSport);
                 await _unitOfWork.SaveChanges();
                 return Ok(updatedSport);
@@ -94,7 +100,7 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpDelete]
-        [Route("delete-sport")]
+        [Route("delete-sport/{sportId}")]
         public async Task<IActionResult> DeleteSport(int sportId)
         {
             try

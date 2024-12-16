@@ -35,9 +35,25 @@ namespace _2Sport_BE.Controllers
 			}
 		}
 
-		[HttpPost]
-		[Route("add-review/{productId}")]
-		public async Task<IActionResult> AddReview(int productId, ReviewCM reviewCM)
+
+        [HttpGet]
+        [Route("get-all-reviews-of-product/{productCode}")]
+        public async Task<IActionResult> GetAllReviewsOfProoduct(string productCode)
+        {
+            try
+            {
+                var allReviews = await _reviewService.GetReviewsOfProduct(productCode);
+                return Ok(allReviews.ToList());
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPost]
+		[Route("add-review/{productCode}")]
+		public async Task<IActionResult> AddReview(string productCode, ReviewCM reviewCM)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -57,7 +73,8 @@ namespace _2Sport_BE.Controllers
 					ReviewContent = reviewCM.Review1,
 					Status = true,
 					UserId = userId,
-					ProductId = productId,
+					ProductCode = productCode,
+					CreatedAt = DateTime.Now,
 				};
 				await _reviewService.AddReview(addedReview);
 				_unitOfWork.Save();

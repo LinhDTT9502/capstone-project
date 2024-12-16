@@ -13,9 +13,9 @@ namespace _2Sport_BE.Service.Services
 {
     public interface ICommentService
     {
-        Task<int> AddComment (int userId, int productId, Comment comment);
-        Task<int> ReplyComment (int userId, int productId, int parentCommentId, Comment comment);
-        Task<IQueryable<Comment>> GetAllComment (int productId);
+        Task<int> AddComment (int userId, string productCode, Comment comment);
+        Task<int> ReplyComment (int userId, string productCode, int parentCommentId, Comment comment);
+        Task<IQueryable<Comment>> GetAllComment (string productCode);
         Task<ResponseDTO<int>> UpdateComment (int currUserId, int commentId, Comment newComment);
         Task<ResponseDTO<int>> DeleteComment (int userId, int commentId); 
     }
@@ -28,12 +28,12 @@ namespace _2Sport_BE.Service.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<int> AddComment(int userId, int productId, Comment comment)
+        public async Task<int> AddComment(int userId, string productCode, Comment comment)
         {
             try
             {
                 comment.UserId = userId;
-                comment.ProductId = productId;
+                comment.ProductCode = productCode;
                 comment.CreatedAt = DateTime.Now;
                 await _unitOfWork.CommentRepository.InsertAsync(comment);
                 await _unitOfWork.SaveChanges();
@@ -85,19 +85,20 @@ namespace _2Sport_BE.Service.Services
 
         }
 
-        public async Task<IQueryable<Comment>> GetAllComment(int productId)
+        public async Task<IQueryable<Comment>> GetAllComment(string productCode)
         {
-            return (await _unitOfWork.CommentRepository.GetAsync(_ => _.ProductId == productId))
+            return (await _unitOfWork.CommentRepository.GetAsync(_ => _.ProductCode.ToLower()
+                                                                        .Equals(productCode.ToLower())))
                                                        .AsQueryable()
                                                        .Include(_ => _.User);
         }
 
-        public async Task<int> ReplyComment(int userId, int productId, int parentCommentId, Comment comment)
+        public async Task<int> ReplyComment(int userId, string productCode, int parentCommentId, Comment comment)
         {
             try
             {
                 comment.UserId = userId;
-                comment.ProductId = productId;
+                comment.ProductCode = productCode;
                 comment.ParentCommentId = parentCommentId;
                 comment.CreatedAt = DateTime.Now;
                 await _unitOfWork.CommentRepository.InsertAsync(comment);

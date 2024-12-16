@@ -16,7 +16,7 @@ namespace _2Sport_BE.ViewModels
 		public virtual Product Product { get; set; }
 		public virtual User User { get; set; }
 		public int? UserId { get; set; }
-		public int? ProductId { get; set; }
+		public string? ProductCode { get; set; }
 	}
 
 	public class ReviewCM : ReviewDTO

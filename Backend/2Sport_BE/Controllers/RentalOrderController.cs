@@ -4,6 +4,7 @@ using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Infrastructure.Hubs;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Service.Services;
+using _2Sport_BE.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -16,108 +17,84 @@ namespace _2Sport_BE.Controllers
     public class RentalOrderController : ControllerBase
     {
         private readonly IRentalOrderService _rentalOrderServices;
-        private readonly IPaymentService _paymentService;
         private readonly ICartItemService _cartItemService;
+        private readonly IImageService _imageService;
         public RentalOrderController(IRentalOrderService rentalOrderServices,
-            IPaymentService paymentService,
-            ICartItemService cartItemService
+            ICartItemService cartItemService,
+            IImageService imageService
             )
         {
             _rentalOrderServices = rentalOrderServices;
-            _paymentService = paymentService;
             _cartItemService = cartItemService;
+            _imageService = imageService;
         }
 
-        [HttpGet]
-        [Route("get-all-rental-orders")]
-        public async Task<IActionResult> GetOrders()
+        [HttpGet("get-all-rental-orders")]
+        public async Task<IActionResult> ListAllRentalOrders()
         {
             var response = await _rentalOrderServices.GetAllRentalOrderAsync();
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
+            if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
-        [HttpGet]
-        [Route("get-rental-order-detail")]
-        public async Task<IActionResult> GetOrderByOrderId(int orderId)
+
+        [HttpGet("get-rental-order-detail")]
+        public async Task<IActionResult> GetRentalOrderDetailsById(int orderId)
         {
-            var response = await _rentalOrderServices.GetRentalOrderByIdAsync(orderId);
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
+            var response = await _rentalOrderServices.GetRentalOrderDetailsByIdAsync(orderId);
+            if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
-        [HttpGet]
-        [Route("get-rental-order-by-user")]
+
+        [HttpGet("get-rental-order-by-user")]
         public async Task<IActionResult> GetOrdersByUserId(int userId)
         {
             var response = await _rentalOrderServices.GetOrdersByUserIdAsync(userId);
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
+            if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
-        [HttpGet]
-        [Route("get-rental-by-parent-code")]
+
+        [HttpGet("get-rental-by-parent-code")]
         public async Task<IActionResult> GetOrderByParentCode(string parentCode)
         {
             var response = await _rentalOrderServices.GetRentalOrderByParentCodeAsync(parentCode);
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
+            if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
-        [HttpGet]
-        [Route("get-rental-orders-by-status")]
+
+        [HttpGet("get-rental-orders-by-status")]
         public async Task<IActionResult> GetOrdersByStatus(int? orderStatus, int? paymentStatus)
         {
             var response = await _rentalOrderServices.GetRentalOrdersByStatusAsync(orderStatus, paymentStatus);
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
+            if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
-        [HttpGet]
-        [Route("get-rental-order-by-orderCode")]
+
+        [HttpGet("get-rental-order-by-orderCode")]
         public async Task<IActionResult> GetOrdersByOrderCode(string orderCode)
         {
             var response = await _rentalOrderServices.GetRentalOrderByOrderCodeAsync(orderCode);
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
+            if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
-        [HttpGet]
-        [Route("get-orders-by-branch")]
+
+        [HttpGet("get-orders-by-branch")]
         public async Task<IActionResult> GetOrdersByBranchId(int branchId)
         {
             var response = await _rentalOrderServices.GetRentalOrdersByBranchAsync(branchId);
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
+            if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
-        /*        [HttpGet]
-                [Route("get-orders-by-date-and-status")]
-                public async Task<IActionResult> GetOrdersByOrderCode(DateTime startDate, DateTime endDate, int status)
-                {
-                    var response = await _orderService.GetOrdersByMonthAndStatus(startDate, endDate, status);
-                    if (response.IsSuccess)
-                    {
-                        return Ok(response);
-                    }
-                    return BadRequest(response);
-                }*/
+
+        [HttpGet("get-extension-orders/{extensionStatus}")]
+        public async Task<IActionResult> GetExtensionOrders(int extensionStatus,[FromQuery]int branchId)
+        {
+            var response = await _rentalOrderServices.GetRentalOrdersByBranchAndExtensionStatus(branchId, extensionStatus);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
         [HttpPost("create")]
-        public async Task<IActionResult> CreateOrder([FromBody] RentalOrderCM rentalOrderCM)
+        public async Task<IActionResult> AddRentalOrder([FromBody] RentalOrderCM rentalOrderCM)
         {
             if (!ModelState.IsValid)
             {
@@ -138,23 +115,9 @@ namespace _2Sport_BE.Controllers
             }
             return Ok(response);
         }
-        [HttpPut("request-extend")]
-        public async Task<IActionResult> RequestExtendRentalPeriod([FromBody] ExtendRentalModel extendRentalModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Invalid request data.");
-            }
-            var response = await _rentalOrderServices.ProcessExtendRentalPeriod(extendRentalModel);
-            if (!response.IsSuccess)
-            {
-                return StatusCode(500, response);
-            }
 
-            return Ok(response);
-        }
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateRentalOrder([FromQuery] int orderId, [FromBody] RentalOrderUM orderUM)
+        public async Task<IActionResult> EditRentalOrder([FromQuery] int orderId, [FromBody] RentalOrderUM orderUM)
         {
             if (!ModelState.IsValid)
             {
@@ -167,128 +130,142 @@ namespace _2Sport_BE.Controllers
             }
             return Ok(response);
         }
+
+        [HttpPut("update-rental-order-status/{orderId}")]
+        public async Task<IActionResult> EditRentalOrderStatus(int orderId, [FromQuery]int orderStatus)
+        {
+            var response = await _rentalOrderServices.UpdateRentalOrderStatusAsync(orderId, orderStatus);
+
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
+        [HttpPut("update-rental-payment-status/{orderId}")]
+        public async Task<IActionResult> EditRentalPaymentStatus(int orderId, [FromQuery]int paymentStatus)
+        {
+            var response = await _rentalOrderServices.UpdateRentalPaymentStatus(orderId, paymentStatus);
+             
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpPut("update-rental-deposit-status/{orderId}")]
+        public async Task<IActionResult> EditRentalDepositStatus(int orderId, [FromQuery] int depositStatus)
+        {
+            var response = await _rentalOrderServices.UpdateRentalDepositStatus(orderId, depositStatus);
+
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
         [HttpPut("return")]
         public async Task<IActionResult> ProcessReturn([FromBody] ParentOrderReturnModel returnData)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Invalid request data.");
-            }
+            if (!ModelState.IsValid) return BadRequest("Invalid request data.");
             var response = await _rentalOrderServices.ReturnOrder(returnData);
-            if (!response.IsSuccess)
-            {
-                return StatusCode(500, response);
-            }
+            if (!response.IsSuccess) return StatusCode(500, response);
             return Ok(response);
         }
 
-        [HttpPut("update-rental-order-status")]
-        public async Task<IActionResult> ChangeOrderStatus(int orderId, int status)
-        {
-            var response = await _rentalOrderServices.ChangeStatusRentalOrderAsync(orderId, status);
-
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
-            return BadRequest(response);
-        }
-        /*        [HttpGet]
-                [Route("revenue-summary")]
-                public async Task<IActionResult> GetSalesOrdersByStatus([FromQuery] DateTime? startDate,
-                                                                        [FromQuery] DateTime? endDate,
-                                                                        [FromQuery] int? status)
-                {
-                    try
-                    {
-                        var query = await _orderService.GetAllSaleOrderQueryableAsync();
-                        if (startDate.HasValue)
-                        {
-                            query = query.Where(o => o.CreatedAt >= startDate.Value);
-                        }
-                        if (endDate.HasValue)
-                        {
-                            query = query.Where(o => o.CreatedAt <= endDate.Value);
-                        }
-
-                        // Lọc theo trạng thái đơn hàng
-                        if (status.HasValue)
-                        {
-                            query = query.Where(o => o.OrderStatus == status.Value);
-                        }
-
-                        var totalRevenue = await query.SumAsync(o => o.TotalAmount);
-                        var totalOrders = await query.CountAsync();
-
-                        decimal totalRevenueInMonth = (decimal)query.Sum(_ => _.TotalAmount);
-                        int ordersInMonth = query.Count();
-                        int ordersInLastMonth = 1;
-                        bool isIncrease;
-                        double orderGrowthRatio = PercentageChange(ordersInMonth, ordersInLastMonth, out isIncrease);
-
-                        SaleOrdersSales ordersSales = new SaleOrdersSales
-                        {
-                            SaleOrderGrowthRatio = totalOrders,
-                            TotalIntoMoney = totalRevenue,
-                            TotalSaleOrders = 0,
-                            IsIncrease = true
-                        };
-
-                        ResponseModel<SaleOrdersSales> response = new ResponseModel<SaleOrdersSales>
-                        {
-                            IsSuccess = true,
-                            Message = "Query Successfully",
-                            Data = ordersSales
-                        };
-
-                        return Ok(response);
-                    }
-                    catch (Exception ex)
-                    {
-                        ResponseModel<OrdersSales> response = new ResponseModel<OrdersSales>
-                        {
-                            IsSuccess = false,
-                            Message = "Something went wrong: " + ex.Message,
-                            Data = null
-                        };
-                        return BadRequest(response);
-                    }
-                }*/
-
-        [HttpPut]
-        [Route("assign-branch")]
+        [HttpPut("assign-branch")]
         public async Task<IActionResult> AssignBranch(int orderId, int branchId)
         {
             var response = await _rentalOrderServices.UpdateBranchForRentalOrder(orderId, branchId);
-
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
+            if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
 
         }
-        [HttpPost]
-        [Route("{orderId}/approve")]
-        public async Task<IActionResult> ApproveSaleOrder(int orderId)
+
+        [HttpPost("request-cancel/{rentalOrderId}")]
+        public async Task<IActionResult> RequestCancelOrder(int rentalOrderId, [FromQuery] string reason)
+        {
+            var response = await _rentalOrderServices.CancelRentalOrderAsync(rentalOrderId, reason);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpPost("{orderId}/approve")]
+        public async Task<IActionResult> ApproveRentalOrder(int orderId)
         {
             var response = await _rentalOrderServices.ApproveRentalOrderAsync(orderId);
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
+            if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
-        [HttpPost]
-        [Route("{orderId}/reject")]
-        public async Task<IActionResult> RejectSaleOrder(int orderId)
+
+        [HttpPost("{orderId}/reject")]
+        public async Task<IActionResult> RejectRentalOrder(int orderId)
         {
             var response = await _rentalOrderServices.RejectRentalOrderAsync(orderId);
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
+            if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
+        }
+
+        [HttpDelete("remove/{orderId}")]
+        public async Task<IActionResult> RemoveSaleOrder(int orderId)
+        {
+            var response = await _rentalOrderServices.DeleteRentalOrderAsync(orderId);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
+
+        [HttpPost("request-extension")]
+        public async Task<IActionResult> RequestExtension(ExtensionRequestModel model)
+        {
+            var response = await _rentalOrderServices.RequestExtensionAsync(model);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpPost("approve-extension/{rentalOrderCode}")]
+        public async Task<IActionResult> ApproveExtension(string rentalOrderCode)
+        {
+            var response = await _rentalOrderServices.ApproveExtensionAsync(rentalOrderCode);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpPost("reject-extension/{rentalOrderCode}")]
+        public async Task<IActionResult> RejectExtension(string rentalOrderCode, [FromQuery] string rejectionReason)
+        {
+            var response = await _rentalOrderServices.RejectExtensionAsync(rentalOrderCode, rejectionReason);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpPost("upload-rental-order-image")]
+        public async Task<IActionResult> UploadOrderImage(RentalOrderImageModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var order = await _rentalOrderServices.FindRentalOrderById(model.parentOrderId);
+            if (order == null) return NotFound();
+            else
+            {
+                if (model.OrderImage != null)
+                {
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(model.OrderImage);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        order.OrderImage = uploadResult.SecureUrl.AbsoluteUri;
+                        await _rentalOrderServices.UpdaterRentalOrder(order);
+                        return Ok("Upload avatar successfully");
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
+                else
+                {
+                    return Ok("No updated");
+                }
+            }
         }
 
     }

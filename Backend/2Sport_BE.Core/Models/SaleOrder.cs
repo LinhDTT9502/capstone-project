@@ -70,6 +70,15 @@ public class SaleOrder
     [Column("Note", TypeName = "nvarchar")]
     [MaxLength(500)]
     public string? Note { get; set; }
+    [Column("Reason", TypeName = "nvarchar")]
+    [MaxLength(500)]
+    public string? Reason { get; set; }
+    [Column("TransactionId", TypeName = "nvarchar")]
+    [MaxLength(100)]
+    public string? TransactionId { get; set; }
+    [Column("OrderImage", TypeName = "nvarchar")]
+    [MaxLength(500)]
+    public string? OrderImage { get; set; }
     #endregion
 
     #region PaymentInformation
@@ -99,6 +108,6 @@ public class SaleOrder
     public virtual PaymentMethod PaymentMethod { get; set; }
     public virtual User User { get; set; }
     public virtual Branch Branch { get; set; }
-    public virtual ICollection<RefundRequest> Refunds { get; set; }
+    public virtual ICollection<RefundRequest> RefundRequests { get; set; }
     #endregion
 }

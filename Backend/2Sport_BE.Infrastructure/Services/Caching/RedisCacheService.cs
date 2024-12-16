@@ -6,7 +6,7 @@ namespace _2Sport_BE.Services.Caching
     public interface IRedisCacheService
     {
         T? GetData<T>(string key);
-        void SetData<T>(string key, T data);
+        void SetData<T>(string key, T data, TimeSpan time);
     }
 
     public class RedisCacheService : IRedisCacheService
@@ -31,11 +31,11 @@ namespace _2Sport_BE.Services.Caching
             return JsonSerializer.Deserialize<T>(data);
         }
 
-        public void SetData<T>(string key, T data)
+        public void SetData<T>(string key, T data, TimeSpan timeSpan)
         {
             var options = new DistributedCacheEntryOptions()
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7)
+                AbsoluteExpirationRelativeToNow = timeSpan
             };
             _cache?.SetString(key, JsonSerializer.Serialize(data), options);
         }

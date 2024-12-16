@@ -17,10 +17,8 @@ public class Like
 
     [Column("UserId")]
     public int? UserId { get; set; }
-
-    [Column("ProductId")]
-    public int? ProductId { get; set; }
-
-    public virtual Product Product { get; set; }
     public virtual User User { get; set; }
+
+    [Column("ProductCode", TypeName = "nvarchar(15)")]
+    public string ProductCode { get; set; }
 }

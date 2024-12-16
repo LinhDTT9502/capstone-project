@@ -22,7 +22,7 @@ public class Product
     [MaxLength(50)]
     public string? Size { get; set; }
 
-    [Column("Description", TypeName = "text")]
+    [Column("Description", TypeName = "nvarchar(MAX)")]
     public string? Description { get; set; }
 
     public bool? Status { get; set; }
@@ -34,7 +34,19 @@ public class Product
     [Column("Condition")]
     public int? Condition { get; set; }
 
-    [Column("Offers", TypeName = "nvarchar")]
+    [Column("Height")]
+    public decimal? Height { get; set; }
+
+    [Column("Length")]
+    public decimal? Length { get; set; }
+
+    [Column("Width")]
+    public decimal? Width { get; set; }
+
+    [Column("Weight")]
+    public decimal? Weight { get; set; }
+
+    [Column("Offers", TypeName = "nvarchar(MAX)")]
     [MaxLength]
     public string? Offers { get; set; }
 
@@ -86,7 +98,6 @@ public class Product
 
     public Product(Product other)
     {
-        Id = other.Id;
         ProductName = other.ProductName;
         Price = other.Price;
         Size = other.Size;

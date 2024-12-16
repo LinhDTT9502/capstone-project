@@ -9,6 +9,12 @@ using _2Sport_BE.Infrastructure.DTOs;
 using Hangfire.Common;
 using CloudinaryDotNet.Actions;
 using _2Sport_BE.Enums;
+using _2Sport_BE.Infrastructure.Helpers;
+using _2Sport_BE.Services.Caching;
+using _2Sport_BE.Service.Services.Caching;
+using _2Sport_BE.ViewModels;
+using Twilio.Types;
+using NuGet.Protocol.Plugins;
 
 namespace _2Sport_BE.Controllers
 {
@@ -23,19 +29,30 @@ namespace _2Sport_BE.Controllers
         private readonly IMailService _mailService;
         private readonly IImageService _imageService;
         private readonly IPhoneNumberService _phoneNumberService;
+        private readonly IMethodHelper _methodHelper;
+        private readonly IRedisCacheService _redisCacheService;
+        private readonly string _phoneNumberOTPsKey;
+
         public UserController(
             IUserService userService,
             IRefreshTokenService refreshTokenService,
             IMailService mailService,
             IImageService imageService,
-            IPhoneNumberService phoneNumberService
-            )
+            IPhoneNumberService phoneNumberService,
+            IMethodHelper methodHelper,
+            IRedisCacheService redisCacheService,
+            IConfiguration configuration
+            )                                       
+
         {
             _userService = userService;
             _refreshTokenService = refreshTokenService;
             _mailService = mailService;
             _imageService = imageService;
             _phoneNumberService = phoneNumberService;
+            _methodHelper = methodHelper;
+            _redisCacheService = redisCacheService;
+            _phoneNumberOTPsKey = configuration.GetValue<string>("RedisKeys:PhoneNumberOtps");
         }
         [HttpGet]
         [Route("get-all-users")]
@@ -70,7 +87,7 @@ namespace _2Sport_BE.Controllers
         [HttpGet]
         [Route("get-users-detail")]
         //Role User
-        public async Task<IActionResult> GetUserDetail([FromQuery] int userId)
+        public async Task<IActionResult> GetUserDetails([FromQuery] int userId)
         {
             try
             {
@@ -83,6 +100,24 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(e);
             }
         }
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail(string token, string email)
+        {
+            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(email) && _.Token.Equals(token))).FirstOrDefault();
+            if (user is null)
+            {
+                return BadRequest("Email or Token are invalid!");
+            }
+            if (user.EmailConfirmed)
+            {
+                return Ok("Your email verified!");
+            }
+            user.EmailConfirmed = true;
+            user.Token = null;
+            await _userService.UpdateUserAsync(user.Id, user);
+            return Ok(new { Message = "Email verified successfully." });
+        }
+
         [HttpGet]
         [Route("get-profile")]
         //Role User
@@ -100,13 +135,13 @@ namespace _2Sport_BE.Controllers
         }
         [HttpPost]
         [Route("create-user")]
-        public async Task<IActionResult> CreateUser([FromBody] UserCM userCM)
+        public async Task<IActionResult> AddNewUser([FromBody] UserCM userCM)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var response = await _userService.AddUserAsync(userCM);
+            var response = await _userService.CreateUserAsync(userCM);
 
             if (response.IsSuccess)
             {
@@ -118,7 +153,7 @@ namespace _2Sport_BE.Controllers
         [HttpPut]
         [Route("update-user")]
         //Role Admin
-        public async Task<IActionResult> UpdateUserAsync([FromQuery] int id, [FromBody] UserUM userUM)
+        public async Task<IActionResult> EditUserAsync([FromQuery] int id, [FromBody] UserUM userUM)
         {
             if (!ModelState.IsValid)
             {
@@ -134,7 +169,7 @@ namespace _2Sport_BE.Controllers
         [HttpPut]
         [Route("update-profile")]
         //Role Customer
-        public async Task<IActionResult> UpdateProfileAsync([FromQuery] int id, [FromBody] ProfileUM profileUM)
+        public async Task<IActionResult> EditProfileAsync([FromQuery] int id, [FromBody] ProfileUM profileUM)
         {
             if (!ModelState.IsValid)
             {
@@ -152,11 +187,11 @@ namespace _2Sport_BE.Controllers
             }
             return BadRequest(response);
         }
-
+        
         [HttpPut]
-        [Route("update-password")]
+        [Route("update-password/{userId}")]
         //Role Customer
-        public async Task<IActionResult> UpdatePasswordAsync([FromQuery] int id, [FromBody] ChangePasswordVM changePasswordVM)
+        public async Task<IActionResult> EditPasswordAsync([FromQuery] int userId, [FromBody] ChangePasswordVM changePasswordVM)
         {
             if (!ModelState.IsValid)
             {
@@ -167,26 +202,103 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest(ModelState);
             }
-            var response = await _userService.UpdatePasswordAsync(id, changePasswordVM);
+            var response = await _userService.UpdatePasswordAsync(userId, changePasswordVM);
             if (response.IsSuccess)
             {
                 return Ok(response);
             }
             return BadRequest(response);
+        }
+        [HttpPost]
+        [Route("send-otp-to-email/{userId}")]
+        public async Task<IActionResult> SendOtpToMail(int userId, [FromQuery] string email)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Email is required");
+            }
+
+            if (!_mailService.IsValidEmail(email))
+            {
+                return BadRequest("Email is invalid format!");
+            }
+            var user = await _userService.GetUserById(userId);
+            if (user is null)
+            {
+                return BadRequest("User is not found!");
+            }
+            var otp = _methodHelper.GenerateOTPCode();
+            var claims = new Dictionary<string, string>
+                            {
+                                { "UserId", userId.ToString() },
+                                { "Email", email },
+                                { "OTP", otp }
+                            };
+            var jwt = _methodHelper.GenerateJwtForStrings(claims);
+
+
+            var isSent = await _mailService.SenOTPMaillAsync(email, otp);
+
+            if (isSent)
+            {
+                return Ok(new { Message = "OTP for Changing email is sent successfully.", Token = jwt });
+            }
+            return StatusCode(500, "Unable to OTP for Changing email! Please try again later.");
+
+        }
+        [HttpPut]
+        [Route("update-email/{userId}")]
+        //Role Customer
+        public async Task<IActionResult> EditEmailAsync(int userId, [FromBody] ResetEmailRequesrt resetEmailRequesrt)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var response = await _userService.UpdateEmailAsync(userId, resetEmailRequesrt);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpPost]
+        [Route("upload-avatar")]
+        public async Task<IActionResult> EditAvatar(AvatarModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var user = await _userService.GetUserById(model.userId);
+            if (user != null)
+            {
+                if (model.Avatar != null)
+                {
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(model.Avatar);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        user.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
+                        await _userService.UpdateUserAsync(user.Id, user);
+                        return Ok("Upload avatar successfully");
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
+                else
+                {
+                    user.ImgAvatarPath = "";
+                }
+            }
+            return BadRequest(model);
         }
 
-        [HttpDelete]
-        [Route("delete-user")]
-        //Role Admin
-        public async Task<ActionResult<User>> DeleteUser([FromQuery] int id)
-        {
-            var response = await _userService.RemoveUserAsync(id);
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
-            return BadRequest(response);
-        }
         [HttpPost("send-verification-email")]
         public async Task<IActionResult> SendVerificationEmail([FromBody] SendEmailRequest request)
         {
@@ -234,19 +346,37 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
 
-                var isSuccess = await _phoneNumberService.SendSmsToPhoneNumber(userId, phoneNumber);
-                if (isSuccess == (int)Errors.NotFoundUser)
+                var user = await _userService.GetUserById(userId);
+                if (user is null)
                 {
                     return BadRequest("Not found user!");
                 }
+
+                var otp = GenerateOTP();
+                
+                var isSuccess = await _phoneNumberService.SendSmsToPhoneNumber(otp, phoneNumber);
                 if (isSuccess == (int)Errors.NotExcepted)
                 {
                     return StatusCode(500, "Something wrong!");
                 }
-                if (isSuccess == (int)Errors.Verified)
+                
+                var listPhoneNumberOTPsInCache = _redisCacheService.GetData<List<PhoneNumberOtp>>(_phoneNumberOTPsKey)
+                                                                        ?? new List<PhoneNumberOtp>();
+                var existedPhoneNumberOTP = listPhoneNumberOTPsInCache.Find(_ => _.PhoneNumber == phoneNumber);
+                if (existedPhoneNumberOTP is not null)
                 {
-                    return BadRequest("The account has been verified!");
+                    existedPhoneNumberOTP.OTP = otp;
+                    _redisCacheService.SetData(_phoneNumberOTPsKey, listPhoneNumberOTPsInCache, TimeSpan.FromMinutes(5));
+                } else
+                {
+                    listPhoneNumberOTPsInCache.Add(new PhoneNumberOtp()
+                    {
+                        OTP = otp,
+                        PhoneNumber = phoneNumber
+                    });
+                    _redisCacheService.SetData(_phoneNumberOTPsKey, listPhoneNumberOTPsInCache, TimeSpan.FromMinutes(5));
                 }
+                
                 return Ok("Send OTP to your number");
 
             } catch (Exception ex)
@@ -267,8 +397,24 @@ namespace _2Sport_BE.Controllers
                 {
                     return Unauthorized();
                 }
+                var user = await _userService.GetUserById(userId);
 
-                await _phoneNumberService.VerifyPhoneNumber(userId, otp);
+                var listPhoneNumberOTPsInCache = _redisCacheService.GetData<List<PhoneNumberOtp>>(_phoneNumberOTPsKey)
+                                                                        ?? new List<PhoneNumberOtp>();
+
+                var existedPhoneNumberOTP = listPhoneNumberOTPsInCache.Find(_ => _.PhoneNumber == user.PhoneNumber);
+                if (existedPhoneNumberOTP is null)
+                {
+                    return BadRequest("Mã OTP không hợp lệ!");
+                }
+                if (existedPhoneNumberOTP.OTP != otp)
+                {
+                    return BadRequest("Mã OTP không hợp lệ!");
+                }
+                user.PhoneNumberConfirmed = true;
+                await _userService.UpdateUserAsync(userId, user);
+                existedPhoneNumberOTP.OTP = 0;
+                _redisCacheService.SetData(_phoneNumberOTPsKey, listPhoneNumberOTPsInCache, TimeSpan.FromMinutes(5));
                 return Ok("Verify phone number successfully!");
             } catch (Exception ex)
             {
@@ -276,61 +422,55 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        [HttpGet("verify-email")]
-        public async Task<IActionResult> VerifyEmail(string token, string email)
+        [HttpPut]
+        [Route("edit-phone-number")]
+        public async Task<IActionResult> EditPhoneNumber(string newPhoneNumber, int otp)
         {
-            var user = (await _userService.GetUserWithConditionAsync(_ => _.Email.Equals(email) && _.Token.Equals(token))).FirstOrDefault();
-            if (user is null)
-            {
-                return BadRequest("Email or Token are invalid!");
-            }
-            if (user.EmailConfirmed)
-            {
-                return Ok("Your email verified!");
-            }
-            user.EmailConfirmed = true;
-            user.Token = null;
-            await _userService.UpdateUserAsync(user.Id, user);
-            return Ok(new { Message = "Email verified successfully." });
-        }
-        [HttpGet("verify-phone-number")]
-        public async Task<IActionResult> VerifyPhoneNumber(string from, string to)
-        {
-            var response = await _userService.VerifyPhoneNumber(from, to);
+            var userId = GetCurrentUserIdFromToken();
 
-            return Ok(response);
+            if (userId == 0)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userService.GetUserById(userId);
+
+            var listPhoneNumberOTPsInCache = _redisCacheService.GetData<List<PhoneNumberOtp>>(_phoneNumberOTPsKey)
+                                                                    ?? new List<PhoneNumberOtp>();
+
+            var existedPhoneNumberOTP = listPhoneNumberOTPsInCache.Find(_ => _.PhoneNumber == newPhoneNumber);
+            if (existedPhoneNumberOTP is null)
+            {
+                return BadRequest("Mã OTP không hợp lệ!");
+            }
+            if (existedPhoneNumberOTP.OTP != otp)
+            {
+                return BadRequest("Mã OTP không hợp lệ!");
+            }
+            user.PhoneNumber = newPhoneNumber;
+            existedPhoneNumberOTP.OTP = 0;
+            _redisCacheService.SetData(_phoneNumberOTPsKey, listPhoneNumberOTPsInCache, TimeSpan.FromMinutes(5));
+            await _userService.UpdateUserAsync(userId, user);
+            return Ok("Edit phone number succsessfuly");
+
         }
-        [HttpPost]
-        [Route("upload-avatar")]
-        public async Task<IActionResult> UpdateAvatar(AvatarModel model)
+
+        [HttpPut]
+        [Route("edit-status/{userId}")]
+        public async Task<IActionResult> EditStatus(int userId, [FromBody] bool status)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var user = await _userService.GetUserById(model.userId);
-            if (user != null)
-            {
-                if(model.Avatar != null)
-                {
-                var uploadResult = await _imageService.UploadImageToCloudinaryAsync(model.Avatar);
-                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        user.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
-                        await _userService.UpdateUserAsync(user.Id, user);
-                        return Ok("Upload avatar successfully");
-                    }
-                    else
-                    {
-                        return BadRequest("Something wrong!");
-                    }
-                }
-                else
-                {
-                    user.ImgAvatarPath = "";
-                }
-            }
-            return BadRequest(model);
+            var response = await _userService.UpdateStatus(userId, status);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+        [HttpDelete]
+        [Route("delete-user")]
+        //Role Admin
+        public async Task<ActionResult<User>> RemoveUser([FromQuery] int id)
+        {
+            var response = await _userService.DeleteUserAsync(id);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
         }
         [NonAction]
         protected int GetCurrentUserIdFromToken()
@@ -355,6 +495,14 @@ namespace _2Sport_BE.Controllers
             {
                 return UserId;
             }
+        }
+
+        [NonAction]
+        private int GenerateOTP()
+        {
+            Random random = new Random();
+            int otpNumber = random.Next(100000, 1000000); // Generates a number between 100000 and 999999
+            return otpNumber;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
@@ -9,6 +11,7 @@ namespace _2Sport_BE.Infrastructure.Hubs
         Task SendMessageToGroup(string groupName, string message);
         Task SendNotificationToCustomer(string userId, string message);
     }
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class NotificationHub : Hub
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -47,6 +50,10 @@ namespace _2Sport_BE.Infrastructure.Hubs
                     string branchGroupName = $"Branch_{branchId}";
                     await Groups.AddToGroupAsync(Context.ConnectionId, branchGroupName);
                 }
+            }
+            else if (userRole == "Admin")
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, "Admin");
             }
             await base.OnConnectedAsync();
         }

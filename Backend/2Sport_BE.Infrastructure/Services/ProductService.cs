@@ -1,6 +1,7 @@
 ﻿using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.DTOs;
+using Google.Api.Gax.ResourceNames;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -38,6 +39,9 @@ namespace _2Sport_BE.Service.Services
         Task<List<SizeStatusDTO>> GetSizesOfProduct(string productCode, string color);
         Task<List<ConditionStatusDTO>> GetConditionsOfProduct(string productCode, string color, string size);
         Task<IQueryable<Product>> GetProductByProductCodeAndColor(string productCode, string color);
+        Task UpdateProducts(IQueryable<Product> products);
+        Task<IQueryable<Product>> GetProductsByProductName(string productName);
+        Task<IQueryable<Product>> GetProductsByCategoryId(int categoryId);
     }
     public class ProductService : IProductService
     {
@@ -85,11 +89,13 @@ namespace _2Sport_BE.Service.Services
                 }
 
                 //delete likes include deleted products
-                var likes = await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                var likes = await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductCode.ToLower()
+                                                        .Equals(deletedProduct.ProductCode.ToLower()));
                 await _unitOfWork.LikeRepository.DeleteRangeAsync(likes);
 
                 //delete reviews include deleted products
-                var reviews = await _unitOfWork.ReviewRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                var reviews = await _unitOfWork.ReviewRepository.GetAsync(_ => _.ProductCode.ToLower()
+                                                        .Equals(deletedProduct.ProductCode.ToLower()));
                 await _unitOfWork.ReviewRepository.DeleteRangeAsync(reviews);
 
                 //delete imagesVideos include deleted products
@@ -288,6 +294,30 @@ namespace _2Sport_BE.Service.Services
             var query = await _unitOfWork.ProductRepository.GetAsync(_ => _.Status == true && _.ProductCode
                                                        .ToLower().Equals(productCode.ToLower()) &&
                                                        _.Color.ToLower().Equals(color.ToLower()));
+            return query.AsQueryable();
+        }
+
+        public async Task UpdateProducts(IQueryable<Product> products)
+        {
+            try
+            {
+                await _unitOfWork.ProductRepository.UpdateRangeAsync(products.ToList());
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            } 
+        }
+
+        public async Task<IQueryable<Product>> GetProductsByProductName(string productName)
+        {
+            var query = await _unitOfWork.ProductRepository.GetAsync(_ => _.ProductName
+                                                       .ToLower().Equals(productName.ToLower()), "ImagesVideos");
+            return query.AsQueryable();
+        }
+
+        public async Task<IQueryable<Product>> GetProductsByCategoryId(int categoryId)
+        {
+            var query = await _unitOfWork.ProductRepository.GetAsync(_ => _.CategoryId == categoryId, "ImagesVideos");
             return query.AsQueryable();
         }
     }

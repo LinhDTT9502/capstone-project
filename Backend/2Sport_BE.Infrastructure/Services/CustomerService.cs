@@ -1,6 +1,8 @@
 ﻿using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Infrastructure.DTOs;
+using _2Sport_BE.Infrastructure.Enums;
+using StackExchange.Redis;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -8,7 +10,9 @@ namespace _2Sport_BE.Infrastructure.Services
     {
         Task<ResponseDTO<CustomerVM>> GetPointByUserId(int userId);
         Task<ResponseDTO<bool>> UpdateLoyaltyPoints(int orderId);
+        Task<ResponseDTO<bool>> UpdateLoyaltyPointsRental(int rentalOrderId);
         Task<ResponseDTO<int>> AddMemberPointByPhoneNumber(string phoneNumber, int point);
+        Task<ResponseDTO<int>> CreateCusomerAsync(CustomerCM customerCM);
     }
     public class CustomerService : ICustomerService
     {
@@ -57,7 +61,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<bool>();
             try
             {
-                var order = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId, new string[] {"User"});
+                var order = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId, new string[] { "User" });
                 if (order.UserId == null || order.User is null)
                 {
                     response.IsSuccess = false;
@@ -94,6 +98,49 @@ namespace _2Sport_BE.Infrastructure.Services
                 return response;
             }
         }
+        public async Task<ResponseDTO<bool>> UpdateLoyaltyPointsRental(int orderId)
+        {
+            var response = new ResponseDTO<bool>();
+            try
+            {
+                var order = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId, new string[] { "User" });
+                if (order.UserId == null || order.User is null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = $"UserId is null for updating the loyal point!";
+                    return response;
+                }
+                var customerDetail = await _unitOfWork.CustomerDetailRepository.GetObjectAsync(cd => cd.UserId == order.UserId);
+
+                if (customerDetail == null)
+                {
+                    //add detail
+                    customerDetail = new Customer()
+                    {
+                        JoinedAt = DateTime.UtcNow,
+                        LoyaltyPoints = Convert.ToInt32(order.SubTotal),
+                        MembershipLevel = "Normal_Member",
+                        UserId = order.UserId
+                    };
+                    await _unitOfWork.CustomerDetailRepository.InsertAsync(customerDetail);
+                }
+
+                customerDetail.LoyaltyPoints += Convert.ToInt32(order.SubTotal);
+                customerDetail.MembershipLevel = UpdateMembershipLevel(customerDetail.LoyaltyPoints);
+                await _unitOfWork.CustomerDetailRepository.UpdateAsync(customerDetail);
+
+                response.IsSuccess = true;
+                response.Message = "Updated The Loyal Point successfully!";
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return response;
+            }
+        }
+
         public async Task<ResponseDTO<int>> AddMemberPointByPhoneNumber(string phoneNumber, int point)
         {
             var response = new ResponseDTO<int>();
@@ -158,6 +205,39 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             return "Normal_Member";
         }
-    }
 
+        public async Task<ResponseDTO<int>> CreateCusomerAsync(CustomerCM customerCM)
+        {
+            var customerDetail = await _unitOfWork.CustomerDetailRepository.GetObjectAsync(cd => cd.UserId == customerCM.UserId);
+
+            if (customerDetail == null)
+            {
+                customerDetail = new Customer()
+                {
+                    JoinedAt = DateTime.UtcNow,
+                    LoyaltyPoints = 0,
+                    MembershipLevel = MemberLevel.Normal_Member.ToString(),
+                    UserId = customerCM.UserId,
+                    
+                };
+                await _unitOfWork.CustomerDetailRepository.InsertAsync(customerDetail);
+
+                return new ResponseDTO<int>()
+                {
+                    Data = 1,
+                    IsSuccess = true,
+                    Message = "Created Successfully"
+                };
+            }
+            else
+            {
+                return new ResponseDTO<int>()
+                {
+                    Data = 0,
+                    IsSuccess = false,
+                    Message = "Created Failed"
+                };
+            }
+        }
+    }
 }

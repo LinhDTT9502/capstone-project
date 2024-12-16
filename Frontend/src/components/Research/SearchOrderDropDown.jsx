@@ -35,7 +35,7 @@ export default function SearchOrderDropDown() {
     if (user) {
       navigate("/manage-account/user-rental");
     } else {
-      navigate("/guest-order");
+      navigate("/guest-rent-order");
     }
   };
 
@@ -50,7 +50,7 @@ export default function SearchOrderDropDown() {
   const handleMouseLeave = () => {
     timeoutRef.current = setTimeout(() => {
       setIsOpen(false);
-    }, 500); 
+    }, 500);
   };
 
   return (
@@ -62,7 +62,7 @@ export default function SearchOrderDropDown() {
     >
       <div
         onMouseEnter={handleMouseEnter}
-        className="flex items-center cursor-pointer justify-center"
+        className="flex items-center cursor-pointer justify-center border-r-2 pr-4"
       >
         <FontAwesomeIcon icon={faBinoculars} className="pr-2" />
         <span>Tra cứu</span>

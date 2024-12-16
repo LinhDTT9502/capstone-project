@@ -118,6 +118,16 @@ namespace _2Sport_BE.Repository.Models
         [Column("Note", TypeName = "nvarchar")]
         [MaxLength(500)]
         public string? Note { get; set; }
+        [Column("Reason", TypeName = "nvarchar")]
+        [MaxLength(500)]
+        public string? Reason { get; set; }
+
+        [Column("TransactionId", TypeName = "nvarchar")]
+        [MaxLength(100)]
+        public string? TransactionId { get; set; }
+        [Column("OrderImage", TypeName = "nvarchar")]
+        [MaxLength(500)]
+        public string? OrderImage { get; set; }
         #endregion
 
         #region PaymentInformation
@@ -151,6 +161,9 @@ namespace _2Sport_BE.Repository.Models
         [Column("IsInspected")]
         public bool? IsInspected { get; set; } = false;
 
+        [Column("ExtensionStatus")]
+        public int? ExtensionStatus { get; set; } 
+
         [Column("IsExtended")]
         public bool? IsExtended { get; set; } = false;
 
@@ -159,15 +172,20 @@ namespace _2Sport_BE.Repository.Models
 
         [Column("ExtensionCost")]
         public decimal? ExtensionCost { get; set; } = decimal.Zero;
+
+        [DisplayFormat(DataFormatString = "{dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.DateTime)]
+        [Column("ExtendedDueDate")]
+        public DateTime? ExtendedDueDate { get; set; }
         #endregion
 
         #region AuditInformation
-        [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{dd-MM-yyyy}", ApplyFormatInEditMode = true)]
         [DataType(DataType.DateTime)]
         [Column("CreatedAt")]
         public DateTime? CreatedAt { get; set; }
 
-        [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{dd-MM-yyyy}", ApplyFormatInEditMode = true)]
         [DataType(DataType.DateTime)]
         [Column("UpdatedAt")]
         public DateTime? UpdatedAt { get; set; }
@@ -177,6 +195,7 @@ namespace _2Sport_BE.Repository.Models
         public virtual PaymentMethod PaymentMethod { get; set; }
         public virtual User User { get; set; }
         public virtual Branch Branch { get; set; }
+        public virtual ICollection<RefundRequest> RefundRequests { get; set; }
         #endregion
     }
 

@@ -4,14 +4,10 @@ using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Infrastructure.Enums;
 using AutoMapper;
-using System.Net;
-using Microsoft.CodeAnalysis.Semantics;
 using _2Sport_BE.Services;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using Microsoft.EntityFrameworkCore;
-using MailKit.Search;
 using _2Sport_BE.Service.Enums;
 using _2Sport_BE.Service.Helpers;
+using _2Sport_BE.Service.Services;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -19,7 +15,7 @@ namespace _2Sport_BE.Infrastructure.Services
     {
         #region IRead
         Task<ResponseDTO<List<SaleOrderVM>>> GetAllSaleOrdersAsync();
-        Task<ResponseDTO<SaleOrderVM>> GetSaleOrderDetailByIdAsync(int saleOrderId);
+        Task<ResponseDTO<SaleOrderVM>> GetSaleOrderDetailsByIdAsync(int saleOrderId);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByStatus(int? orderStatus, int? paymentStatus);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersOfUserAsync(int userId);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByBranchAsync(int branchId);
@@ -33,8 +29,9 @@ namespace _2Sport_BE.Infrastructure.Services
         #region ICreate_IUpdate_IDelete
         Task<ResponseDTO<SaleOrderVM>> CreateSaleOrderAsync(SaleOrderCM SaleOrderCM);
         Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderAsync(int SaleOrderId, SaleOrderUM SaleOrderUM);
-        Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderStatusAsync(int id, int status);
+        Task<ResponseDTO<int>> UpdateSaleOrderStatusAsync(int id, int status);
         Task<ResponseDTO<int>> UpdateBranchForSaleOrder(int orderId, int branchId);
+        Task<ResponseDTO<int>> UpdateSalePaymentStatus(int orderId, int paymentStatus);
         Task<ResponseDTO<int>> DeleteSaleOrderAsync(int id);
         Task<ResponseDTO<SaleOrderVM>> ApproveSaleOrderAsync(int orderId);
         Task<ResponseDTO<SaleOrderVM>> RejectSaleOrderAsync(int orderId);
@@ -50,6 +47,8 @@ namespace _2Sport_BE.Infrastructure.Services
 
         #endregion
 
+        Task<ResponseDTO<int>> CancelSaleOrderAsync(int orderId, string reason);
+        Task CheckPendingOrderForget();
     }
     public class SaleOrderService : ISaleOrderService
     {
@@ -61,6 +60,8 @@ namespace _2Sport_BE.Infrastructure.Services
         private readonly IMapper _mapper;
         private readonly INotificationService _notificationService;
         private readonly IMailService _mailService;
+        private readonly IOrderDetailService _orderDetailService;
+
         public SaleOrderService(IUnitOfWork unitOfWork,
             ICustomerService customerDetailService,
             IWarehouseService warehouseService,
@@ -68,7 +69,8 @@ namespace _2Sport_BE.Infrastructure.Services
             IDeliveryMethodService deliveryMethodService,
             IMapper mapper,
             INotificationService notificationService,
-            IMailService mailService)
+            IMailService mailService,
+            IOrderDetailService orderDetailService)
         {
             _unitOfWork = unitOfWork;
             _customerDetailService = customerDetailService;
@@ -78,7 +80,17 @@ namespace _2Sport_BE.Infrastructure.Services
             _mapper = mapper;
             _notificationService = notificationService;
             _mailService = mailService;
+            _orderDetailService = orderDetailService;
         }
+        public async Task CheckPendingOrderForget()
+        {
+            var pendingOrders = await _unitOfWork.SaleOrderRepository.GetAsync(o => o.CreatedAt.Value.AddHours(1) == DateTime.Now.Date);
+            foreach (var order in pendingOrders)
+            {
+                await _notificationService.NotifyForPendingOrderAsync(order.SaleOrderCode, false, order.CreatedAt.Value, order.BranchId);
+            }
+        }
+
         private void AssignSaleProduct(ProductInfor productInformation, OrderDetail orderDetail)
         {
             orderDetail.ProductId = productInformation.ProductId;
@@ -171,7 +183,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 return response;
             }
         }
-        public async Task<ResponseDTO<SaleOrderVM>> GetSaleOrderDetailByIdAsync(int id)
+        public async Task<ResponseDTO<SaleOrderVM>> GetSaleOrderDetailsByIdAsync(int id)
         {
             var response = new ResponseDTO<SaleOrderVM>();
             try
@@ -425,8 +437,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     AssignSaleOrderInfomation(saleOrder, saleOrderCM);
 
                     saleOrder.OrderStatus = (int?)OrderStatus.PENDING;
-                    saleOrder.PaymentStatus = (int)PaymentStatus.IsWating;
-                   
+
                     await _unitOfWork.SaleOrderRepository.InsertAsync(saleOrder);
 
                     string saleOrderCode = saleOrder.SaleOrderCode;
@@ -581,7 +592,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(saleOrder.PaymentStatus.Value)
                 : "N/A";
             saleOrderVM.OrderStatus = saleOrder.OrderStatus != null
-              ? EnumDisplayHelper.GetEnumDescription<RentalOrderStatus>(saleOrder.OrderStatus.Value)
+              ? EnumDisplayHelper.GetEnumDescription<OrderStatus>(saleOrder.OrderStatus.Value)
               : "N/A";
             saleOrderVM.PaymentMethod = saleOrder.PaymentMethodId.HasValue
                                 ? Enum.GetName(typeof(OrderMethods), saleOrder.PaymentMethodId.Value)
@@ -592,32 +603,53 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task<ResponseDTO<int>> DeleteSaleOrderAsync(int id)
         {
             var response = new ResponseDTO<int>();
-            try
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
             {
-                var SaleOrder = _unitOfWork.SaleOrderRepository.FindObject(o => o.Id == id);
-                if (SaleOrder == null)
+                try
                 {
-                    response.IsSuccess = false;
-                    response.Message = $"SaleOrder with id = {id} is not found!";
-                    response.Data = 0;
-                    return response;
-                }
-                else
-                {
-                    await _unitOfWork.SaleOrderRepository.DeleteAsync(id);
+                    var SaleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == id, new string[] { "OrderDetails", "RefundRequests" });
+                    if (SaleOrder == null)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = $"SaleOrder with id = {id} is not found!";
+                        response.Data = 0;
+                        return response;
+                    }
+                    else if (SaleOrder.RefundRequests.Count > 0)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = $"SaleOrder with id = {id} has refund requests. Delete failed!";
+                        response.Data = 0;
+                        return response;
+                    }
+
+                    if (SaleOrder.OrderDetails.Any())
+                    {
+                        foreach (var orderDetail in SaleOrder.OrderDetails.ToList())
+                        {
+                            await _unitOfWork.OrderDetailRepository.DeleteAsync(orderDetail);
+                        }
+                    }
+
+                    await _unitOfWork.SaleOrderRepository.DeleteAsync(SaleOrder);
+
+                    await _unitOfWork.SaveChanges();
+                    await transaction.CommitAsync();
 
                     response.IsSuccess = true;
                     response.Message = $"Remove SaleOrder with id = {id} successfully";
                     response.Data = 1;
                 }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    response.IsSuccess = false;
+                    response.Message = ex.Message;
+                }
             }
             return response;
         }
+
         #region CRUD_SALE_ORDER_BASIC
         public async Task<SaleOrder> FindSaleOrderById(int orderId)
         {
@@ -642,32 +674,91 @@ namespace _2Sport_BE.Infrastructure.Services
             await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
             return 1;
         }
-        public async Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderStatusAsync(int id, int orderStatus)
+        public async Task<ResponseDTO<int>> UpdateSaleOrderStatusAsync(int id, int orderStatus)
         {
             try
             {
-                var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == id, new string[] {"OrderDetails" } );
-                if (saleOrder == null) return GenerateErrorResponse($"SaleOrder with id = {id} is not found!");
+                var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == id, new string[] { "OrderDetails" });
+                if (saleOrder == null)
+                {
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = true,
+                        Message = "Đơn hàng không tồn tại.",
+                        Data = 1
+                    };
+                }
+                  
+
+                var validationResult = ValidateSaleOrderStatusTransition(saleOrder, orderStatus);
+                if (!validationResult.IsValid)
+                {
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = validationResult.ErrorMessage,
+                        Data = 0
+                    };
+                }
 
                 saleOrder.OrderStatus = orderStatus;
                 await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
-                string message = "";
-
                 if (saleOrder.OrderStatus == (int)OrderStatus.COMPLETED)
                 {
                     var loyaltyUpdateResponse = await _customerDetailService.UpdateLoyaltyPoints(saleOrder.Id);
-                    if (loyaltyUpdateResponse.IsSuccess) message = "Order status updated and loyalty points awarded successfully.";
-                    else message = "Order status updated, but there was an error updating loyalty points.";
-
                 }
-                else message = "Order status updated successfully.";
 
-                return GenerateSuccessResponse(saleOrder, message);
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = true,
+                    Message = "Cập nhật trạng thái đơn hàng thành công.",
+                    Data = 1
+                };
             }
             catch (Exception ex)
             {
-                return GenerateErrorResponse(ex.Message);
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = false,
+                    Message = $"Lỗi hệ thống: {ex.Message}",
+                    Data = 0
+                };
+            }
+        }
+        public async Task<ResponseDTO<int>> UpdateSalePaymentStatus(int orderId, int paymentStatus)
+        {
+            try
+            {
+                var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId);
+                if (saleOrder is null)
+                {
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "Đơn hàng không tồn tại.",
+                        Data = 0
+                    };
+                }
+
+                saleOrder.PaymentStatus = paymentStatus;
+                await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
+
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = true,
+                    Message = "Cập nhật trạng thái thanh toán thành công.",
+                    Data = 1
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = false,
+                    Message = $"Lỗi hệ thống: {ex.Message}",
+                    Data = 0
+                };
             }
         }
         public async Task<bool> UpdatePaymentStatusOfSaleOrder(string orderCode, int paymentStatus)
@@ -700,7 +791,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var result = _mapper.Map<SaleOrderVM>(order);
 
             result.OrderStatus = order.OrderStatus != null
-                ? EnumDisplayHelper.GetEnumDescription<RentalOrderStatus>(order.OrderStatus.Value)
+                ? EnumDisplayHelper.GetEnumDescription<OrderStatus>(order.OrderStatus.Value)
                 : "N/A";
 
             result.PaymentStatus = order.PaymentStatus != null
@@ -828,20 +919,8 @@ namespace _2Sport_BE.Infrastructure.Services
                         if (SaleOrder.OrderStatus == (int)OrderStatus.CONFIRMED)
                             return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
 
-                        SaleOrder.OrderStatus = (int)OrderStatus.CONFIRMED;
-
-                        foreach (var item in SaleOrder.OrderDetails)
-                        {
-                            var productInWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(item.ProductId.Value, SaleOrder.BranchId)).FirstOrDefault();
-                            if (productInWarehouse == null)
-                            {
-                                await transaction.RollbackAsync();
-                                return GenerateErrorResponse($"Failed to update stock for product {item.ProductName}");
-                            }
-                            productInWarehouse.AvailableQuantity -= item.Quantity;
-                            await _warehouseService.UpdateWarehouseAsync(productInWarehouse);
-                        }
-
+                        SaleOrder.OrderStatus = (int)OrderStatus.PENDING;
+                        SaleOrder.UpdatedAt = DateTime.UtcNow;
                         await _unitOfWork.SaleOrderRepository.UpdateAsync(SaleOrder);
                         await transaction.CommitAsync(); 
 
@@ -887,5 +966,152 @@ namespace _2Sport_BE.Infrastructure.Services
             }
 
         }
+
+        public async Task<ResponseDTO<int>> CancelSaleOrderAsync(int orderId, string reason)
+        {
+            var response = new ResponseDTO<int>();
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var order = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId);
+
+                    if (order is null)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = "Không tìm thấy đơn hàng!";
+                        response.Data = 0;
+                        return response;
+                    }
+
+                    if (order.OrderStatus != (int)OrderStatus.PENDING)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = "Đơn hàng không thể hủy ở trạng thái hiện tại!";
+                        response.Data = 0;
+                        return response;
+                    }
+                    order.Reason = reason;
+                    order.OrderStatus = (int)OrderStatus.CANCELLED;
+                    await _unitOfWork.SaleOrderRepository.UpdateAsync(order);
+
+                    await _notificationService.NotifyToGroupAsync(
+                        $"Đơn hàng S-{order.SaleOrderCode} đã bị hủy bởi khách hàng",
+                        order.BranchId
+                    );
+
+                    await transaction.CommitAsync();
+
+                    response.IsSuccess = true;
+                    response.Message = "Đơn hàng đã được hủy thành công!";
+                    response.Data = 1;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+
+                    response.IsSuccess = false;
+                    response.Message = $"Đã xảy ra lỗi: {ex.Message}";
+                    response.Data = 0;
+                }
+            }
+            return response;
+        }
+
+        private ValidationResult ValidateSaleOrderStatusTransition(SaleOrder saleOrder, int newStatus)
+        {
+            var currentOrderStatus = saleOrder.OrderStatus;
+            var paymentStatus = saleOrder.PaymentStatus;
+            var paymentMethod = saleOrder.PaymentMethodId;
+
+            switch (newStatus)
+            {
+                case (int)OrderStatus.CANCELLED:
+                    /*if (currentOrderStatus == (int)OrderStatus.COMPLETED || currentOrderStatus == (int)OrderStatus.SHIPPED || currentOrderStatus == OrderStatus.DELIVERED)
+                    {
+                        return ValidationResult.Invalid("Không thể hủy đơn hàng đã giao hoặc đã hoàn thành.");
+                    }*/
+                    break;
+
+                case (int)OrderStatus.CONFIRMED:
+                    if (currentOrderStatus != (int)OrderStatus.PENDING)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể xác nhận khi đang ở trạng thái chờ xử lý.");
+                    }
+                    break;
+
+                case (int)OrderStatus.PROCESSING:
+                    if (currentOrderStatus != (int)OrderStatus.CONFIRMED)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể xử lý khi đã được xác nhận.");
+                    }
+
+                    if (paymentMethod != (int)OrderMethods.COD && paymentStatus != (int)PaymentStatus.PAID)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể xử lý khi thanh toán đã hoàn tất (trừ khi sử dụng COD).");
+                    }
+                    break;
+
+                case (int)OrderStatus.SHIPPED:
+                    if (currentOrderStatus != (int)OrderStatus.PROCESSING)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể giao khi đang được xử lý.");
+                    }
+
+                    if (paymentMethod != (int)OrderMethods.COD && paymentStatus != (int)PaymentStatus.PAID)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể giao khi thanh toán đã hoàn tất (trừ khi sử dụng COD).");
+                    }
+                    break;
+
+                case (int)OrderStatus.DELIVERED:
+                    if (currentOrderStatus != (int)OrderStatus.SHIPPED)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể đánh dấu là đã giao khi đang ở trạng thái đã vận chuyển.");
+                    }
+                    break;
+
+                case (int)OrderStatus.RETURN_PROCESSING:
+                    if (currentOrderStatus != (int)OrderStatus.DELIVERED)
+                    {
+                        return ValidationResult.Invalid("Chỉ có thể xử lý trả hàng khi đơn hàng đã được giao.");
+                    }
+                    break;
+
+                case (int)OrderStatus.RETURNED:
+                    if (currentOrderStatus != (int)OrderStatus.RETURN_PROCESSING)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể trả khi đang trong trạng thái xử lý trả hàng.");
+                    }
+                    break;
+
+                case (int)OrderStatus.REFUND_PROCESSING:
+                    if (currentOrderStatus != (int)OrderStatus.RETURNED)
+                    {
+                        return ValidationResult.Invalid("Hoàn tiền chỉ có thể xử lý sau khi đơn hàng đã được trả.");
+                    }
+                    break;
+
+                case (int)OrderStatus.REFUNDED:
+                    if (currentOrderStatus != (int)OrderStatus.REFUND_PROCESSING)
+                    {
+                        return ValidationResult.Invalid("Hoàn tiền chỉ có thể hoàn tất khi đang trong trạng thái xử lý hoàn tiền.");
+                    }
+                    break;
+
+                case (int)OrderStatus.COMPLETED:
+                    if (currentOrderStatus != (int)OrderStatus.DELIVERED && currentOrderStatus != (int)OrderStatus.REFUNDED)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể hoàn thành khi đã giao hàng hoặc hoàn tiền.");
+                    }
+                    break;
+
+                default:
+                    return ValidationResult.Valid();
+            }
+
+            return ValidationResult.Valid();
+        }
+
     }
 }

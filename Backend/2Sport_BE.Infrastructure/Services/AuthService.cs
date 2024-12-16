@@ -13,6 +13,7 @@ using System.Text;
 using System.Security.Claims;
 using _2Sport_BE.Services;
 using _2Sport_BE.Infrastructure.Helpers;
+using Twilio.Jwt.AccessToken;
 
 
 namespace _2Sport_BE.Infrastructure.Services
@@ -24,7 +25,7 @@ namespace _2Sport_BE.Infrastructure.Services
         [JsonProperty("refreshToken")]
         public string RefreshToken { get; set; }
         [JsonProperty("userId")]
-        public int? UserId { get; set; }
+        public int UserId { get; set; }
     }
     public class AuthenticationResult : TokenModel
     {
@@ -36,37 +37,41 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<TokenModel>> LoginAsync(UserLogin login);
         Task<ResponseDTO<TokenModel>> HandleLoginGoogle(ClaimsPrincipal principal);
         Task<TokenModel> LoginGoogleAsync(User login);
-        Task<ResponseDTO<TokenModel>> RefreshTokenAsync(TokenModel request);
+        Task<ResponseDTO<TokenModel>> RefreshAccessTokenAsync(TokenModel request);
         Task<ResponseDTO<string>> SignUpAsync(RegisterModel registerModel);
         Task<ResponseDTO<string>> HandleResetPassword(ResetPasswordRequest resetPasswordRequest);
         Task<ResponseDTO<string>> SignUpMobileAsync(RegisterModel registerModel);
+        Task<ResponseDTO<int>> HandleLogoutAsync(TokenModel request);
 
+        ClaimsPrincipal GetPrincipalFromToken(string token);
     }
     public class AuthService : IAuthService
     {
-        private readonly TwoSportCapstoneDbContext _context;
+
         private readonly IUserService _userService;
         private readonly IConfiguration _configuration;
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMailService _mailService;
         private readonly IMethodHelper _methodHelper;
-        public AuthService(TwoSportCapstoneDbContext context,
+        private readonly ICustomerService _customerService;
+        public AuthService(
             IUserService userService,
             IConfiguration configuration,
             TokenValidationParameters tokenValidationParameters,
             IUnitOfWork unitOfWork,
             IMethodHelper methodHelper,
-            IMailService mailService
+            IMailService mailService,
+            ICustomerService customerService
             )
         {
-            _context = context;
             _userService = userService;
             _configuration = configuration;
             _tokenValidationParameters = tokenValidationParameters;
             _unitOfWork = unitOfWork;
             _methodHelper = methodHelper;
             _mailService = mailService;
+            _customerService = customerService;
         }
         private string HashPassword(string password)
         {
@@ -147,16 +152,16 @@ namespace _2Sport_BE.Infrastructure.Services
                 var Subject = new List<Claim>
                     {
                     new Claim("UserId", user.Id.ToString()),
-                    new Claim("UserName",user.UserName==null?"":user.UserName),
-                    new Claim("FullName", user.FullName),
-                    new Claim("Email",user.Email==null?"":user.Email),
-                    new Claim("Phone",user.PhoneNumber==null?"":user.PhoneNumber),
-                    new Claim("Gender",user.Gender==null?"":user.Gender),
-                    new Claim("Address",user.Address==null?"":user.Address),
-                    new Claim("DOB",user.DOB.ToString()==null?"":user.DOB.ToString()),
-                    new Claim("EmailConfirmed",user.EmailConfirmed==null?"":user.EmailConfirmed.ToString()),
-                    new Claim("StaffId", staff != null ? staff.StaffId.ToString() : ""),
-                    new Claim("ManagerId", manager != null ? manager.Id.ToString() : ""),
+                    new Claim("UserName",user.UserName==null?"Unknow":user.UserName),
+                    new Claim("FullName", user.FullName==null?"Unknow":user.FullName),
+                    new Claim("Email",user.Email==null?"Unknow":user.Email),
+                    new Claim("Phone",user.PhoneNumber==null?"Unknow":user.PhoneNumber),
+                    new Claim("Gender",user.Gender==null?"Unknow":user.Gender),
+                    new Claim("Address",user.Address==null?"Unknow":user.Address),
+                    new Claim("DOB",user.DOB.ToString()==null?"Unknow":user.DOB.ToString()),
+                    new Claim("EmailConfirmed",user.EmailConfirmed==null?"Unknow":user.EmailConfirmed.ToString()),
+                    new Claim("StaffId", staff != null ? staff.StaffId.ToString() : "Unknow"),
+                    new Claim("ManagerId", manager != null ? manager.Id.ToString() : "Unknow"),
                     new Claim(ClaimTypes.Role, role.RoleName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -189,23 +194,12 @@ namespace _2Sport_BE.Infrastructure.Services
                     JwtId = token.Id,
                     UserId = user.Id,
                     CreateDate = DateTime.UtcNow,
-                    ExpireDate = DateTime.UtcNow.AddMonths(6),
+                    ExpireDate = DateTime.UtcNow.AddDays(7),
                     Used = false
                 };
-                var exist = await _unitOfWork.RefreshTokenRepository.
-                    GetObjectAsync(_ => _.UserId == refreshToken.UserId && _.Used == false);
-                if (exist != null)
-                {
-                    exist.Token = refreshToken.Token;
-                    exist.JwtId = refreshToken.JwtId;
-                    exist.CreateDate = refreshToken.CreateDate;
-                    exist.ExpireDate = refreshToken.ExpireDate;
-                    await _unitOfWork.RefreshTokenRepository.UpdateAsync(exist);
-                }
-                else
-                {
-                    await _unitOfWork.RefreshTokenRepository.InsertAsync(refreshToken);
-                }
+
+                // Lưu refresh token mới cho thiết bị này
+                await _unitOfWork.RefreshTokenRepository.InsertAsync(refreshToken);
                 await _unitOfWork.SaveChanges();
                 //return
                 authenticationResult.RefreshToken = refreshToken.Token;
@@ -219,12 +213,18 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             return authenticationResult;
         }
-        public async Task<ResponseDTO<TokenModel>> RefreshTokenAsync(TokenModel request)
+        public async Task<ResponseDTO<TokenModel>> RefreshAccessTokenAsync(TokenModel request)
         {
             ResponseDTO<TokenModel> response = new ResponseDTO<TokenModel>();
+            if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.RefreshToken))
+            {
+                response.IsSuccess = false;
+                response.Message = "Token hoặc Refresh Token không hợp lệ.";
+                return response;
+            }
             try
             {
-                var authResponse = await GetRefreshTokenAsync(request.Token, request.RefreshToken);
+                var authResponse = await GetRefreshTokenAsync(request.Token, request.RefreshToken, request.UserId);
                 if (!authResponse.Success)
                 {
 
@@ -245,13 +245,13 @@ namespace _2Sport_BE.Infrastructure.Services
                 return response;
             }
         }
-        private async Task<AuthenticationResult> GetRefreshTokenAsync(string token, string refreshToken)
+        private async Task<AuthenticationResult> GetRefreshTokenAsync(string token, string refreshToken, int userID)
         {
             var validatedToken = GetPrincipalFromToken(token);
 
             if (validatedToken == null)
             {
-                return new AuthenticationResult { Errors = new[] { "Invalid Token" } };
+                return new AuthenticationResult { Errors = new[] { "Access token không hợp lệ" } };
             }
 
             var expiryDateUnix =
@@ -260,51 +260,59 @@ namespace _2Sport_BE.Infrastructure.Services
             var expiryDateTimeUtc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 .AddSeconds(expiryDateUnix);
 
-            if (expiryDateTimeUtc > DateTime.Now)
+            if (expiryDateTimeUtc > DateTime.UtcNow)
             {
-                return new AuthenticationResult { Errors = new[] { "This token hasn't expired yet" } };
+                return new AuthenticationResult { Errors = new[] { "Access token này chưa hết hạn" } };
             }
 
             var jti = validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
 
-            var storedRefreshToken = _context.RefreshTokens.FirstOrDefault(x => x.Token == refreshToken);
+            var storedRefreshToken = await _unitOfWork.RefreshTokenRepository
+                .GetObjectAsync(x => x.Token == refreshToken, new string[] { "User" });
 
             if (storedRefreshToken == null)
             {
-                return new AuthenticationResult { Errors = new[] { "This refresh token does not exist" } };
+                return new AuthenticationResult { Errors = new[] { "Refresh Token không tồn tại." } };
             }
-
+            if (storedRefreshToken.UserId.Value != userID)
+            {
+                return new AuthenticationResult { Errors = new[] { "UserId không tồn tại hoặc không đúng." } };
+            }
             if (DateTime.UtcNow > storedRefreshToken.ExpireDate)
             {
-                return new AuthenticationResult { Errors = new[] { "This refresh token has expired" } };
+                return new AuthenticationResult { Errors = new[] { "Refresh Token đã hết hạn." } };
             }
 
             if (storedRefreshToken.Used.HasValue && storedRefreshToken.Used == true)
             {
-                return new AuthenticationResult { Errors = new[] { "This refresh token has been used" } };
+                return new AuthenticationResult { Errors = new[] { "Refresh Token đã được sử dụng." } };
             }
 
             if (storedRefreshToken.JwtId != jti)
             {
-                return new AuthenticationResult { Errors = new[] { "This refresh token does not match this JWT" } };
+                return new AuthenticationResult { Errors = new[] { "Refresh Token không khớp với JWT." } };
             }
 
             storedRefreshToken.Used = true;
-            _context.RefreshTokens.Update(storedRefreshToken);
+            await _unitOfWork.RefreshTokenRepository.UpdateAsync(storedRefreshToken);
+            await _unitOfWork.SaveChanges();
 
-            await _context.SaveChangesAsync();
-            string strUserId = validatedToken.Claims.Single(x => x.Type == "UserId").Value;
-            long userId = 0;
-            long.TryParse(strUserId, out userId);
-            var user = _context.Users.FirstOrDefault(c => c.Id == userId);
+            var userIdClaim = validatedToken.Claims.SingleOrDefault(x => x.Type == "UserId");
+
+            if (userIdClaim == null || !long.TryParse(userIdClaim.Value, out var userId))
+            {
+                return new AuthenticationResult { Errors = new[] { "User không hợp lệ trong JWT." } };
+            }
+
+            var user = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == userId);
             if (user == null)
             {
-                return new AuthenticationResult { Errors = new[] { "User Not Found" } };
+                return new AuthenticationResult { Errors = new[] { "Không tìm thấy User." } };
             }
 
             return await AuthenticateAsync(user);
         }
-        private ClaimsPrincipal GetPrincipalFromToken(string token)
+        public ClaimsPrincipal GetPrincipalFromToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -331,12 +339,13 @@ namespace _2Sport_BE.Infrastructure.Services
                    jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
                        StringComparison.InvariantCultureIgnoreCase);
         }
+
         public async Task<ResponseDTO<TokenModel>> HandleLoginGoogle(ClaimsPrincipal principal)
         {
             var result = new ResponseDTO<TokenModel>();
 
+            // Lấy thông tin từ ClaimsPrincipal
             var googleId = principal.FindFirst(ClaimTypes.NameIdentifier);
-            //Get principals from Google response
             var email = principal.FindFirst(ClaimTypes.Email);
             var phone = principal.FindFirst(ClaimTypes.MobilePhone);
 
@@ -344,9 +353,13 @@ namespace _2Sport_BE.Infrastructure.Services
             {
                 return new ResponseDTO<TokenModel> { IsSuccess = false, Message = "Error retrieving Google user information" };
             }
+
+            using var transaction = await _unitOfWork.BeginTransactionAsync(); // Bắt đầu transaction
             try
             {
-                var isExisted = await _unitOfWork.UserRepository.GetObjectAsync(_ => _.Email == email.Value, new string[] { "Staffs", "Managers" });
+                var isExisted = await _unitOfWork.UserRepository.GetObjectAsync(
+                    _ => _.Email == email.Value, new string[] { "Staffs", "Managers" });
+
                 if (isExisted != null)
                 {
                     if (isExisted.GoogleId == null)
@@ -354,16 +367,20 @@ namespace _2Sport_BE.Infrastructure.Services
                         isExisted.GoogleId = googleId.Value;
                         await _unitOfWork.UserRepository.UpdateAsync(isExisted);
                     }
+
                     if (isExisted.EmailConfirmed)
                     {
                         result.IsSuccess = true;
                         result.Message = "Login successfully!";
                         result.Data = await LoginGoogleAsync(isExisted);
+
+                        await transaction.CommitAsync(); // Cam kết transaction
                         return result;
                     }
                 }
                 else
                 {
+                    // Tạo mới User
                     User user = new User()
                     {
                         FullName = email.Value,
@@ -375,22 +392,37 @@ namespace _2Sport_BE.Infrastructure.Services
                         CreatedAt = DateTime.Now,
                         UpdatedAt = DateTime.Now,
                         IsActived = true,
-
                     };
+
                     await _unitOfWork.UserRepository.InsertAsync(user);
-                    await _unitOfWork.SaveChanges();
+                    await _unitOfWork.SaveChanges(); // Lưu User trước khi tạo Customer
+
+                    // Tạo Customer
+                    var createCusDetail = await _customerService.CreateCusomerAsync(new CustomerCM()
+                    {
+                        UserId = user.Id,
+                    });
+
+                    if (!createCusDetail.IsSuccess)
+                    {
+                        throw new Exception("Failed to create customer details.");
+                    }
 
                     result.IsSuccess = true;
                     result.Message = "Login successfully!";
                     result.Data = await LoginGoogleAsync(user);
+
+                    await transaction.CommitAsync(); // Cam kết transaction
                     return result;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                result.IsSuccess = true;
-                result.Message = "Login successfully!";
+                await transaction.RollbackAsync(); // Hoàn tác transaction nếu có lỗi
+                result.IsSuccess = false;
+                result.Message = $"An error occurred: {ex.Message}";
             }
+
             return result;
         }
         public async Task<TokenModel> LoginGoogleAsync(User login)
@@ -440,6 +472,16 @@ namespace _2Sport_BE.Infrastructure.Services
                     await _unitOfWork.UserRepository.InsertAsync(checkExist);
                     _unitOfWork.Save();
 
+                    // Tạo Customer
+                    var createCusDetail = await _customerService.CreateCusomerAsync(new CustomerCM()
+                    {
+                        UserId = checkExist.Id,
+                    });
+
+                    if (!createCusDetail.IsSuccess)
+                    {
+                        throw new Exception("Failed to create customer details.");
+                    }
                     response.IsSuccess = true;
                     response.Message = "Sign Up Successfully, Please check email to verify account";
                     response.Data = checkExist.Id.ToString();
@@ -546,6 +588,54 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
             }
             return response;
+        }
+
+        public async Task<ResponseDTO<int>> HandleLogoutAsync(TokenModel request)
+        {
+            ResponseDTO<int> response = new ResponseDTO<int>();
+            try
+            {
+                var refreshToken = await _unitOfWork.RefreshTokenRepository
+                                    .GetObjectAsync(rt => rt.Token == request.RefreshToken && rt.Used != true);
+                if (refreshToken == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Refresh Token không tồn tại.";
+                    response.Data = 0;
+                    return response;
+                }
+                if (refreshToken.UserId != request.UserId)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "UserId không tồn tại hoặc không đúng.";
+                    response.Data = 0;
+                    return response;
+                }
+                if (refreshToken.Used.HasValue && refreshToken.Used == true)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Refresh Token đã được sử dụng.";
+                    response.Data = 0;
+                    return response;
+                }
+
+                refreshToken.Used = true;
+                await _unitOfWork.RefreshTokenRepository.UpdateAsync(refreshToken);
+                await _unitOfWork.SaveChanges();
+
+                response.IsSuccess = false;
+                response.Message = "Lougout thành công";
+                response.Data = 1;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = $"Something went wrong! Error: {ex.Message}";
+                response.Data = 0;
+
+                return response;
+            }
         }
     }
 }

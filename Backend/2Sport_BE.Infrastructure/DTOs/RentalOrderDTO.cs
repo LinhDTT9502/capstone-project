@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
 
@@ -57,11 +58,8 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public int ParentOrderId { get; set; }            // ID của parent order
         public List<ChildOrderReturnModel> ChildOrders { get; set; }  // Danh sách child orders
 
-        // Thông tin tổng hợp
         public decimal TotalLateFee { get; set; }         // Tổng phí trễ hạn
         public decimal TotalDamageFee { get; set; }       // Tổng phí hư hỏng
-        public bool IsRestocked { get; set; }             // Tổng trạng thái nhập kho
-        public bool IsInspected { get; set; }             // Tổng trạng thái kiểm tra
     }
     public class RentalOrderCM
     {
@@ -91,9 +89,6 @@ namespace _2Sport_BE.Infrastructure.DTOs
     }
     public class RentalOrderVM
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [Column("Id")]
         public int Id { get; set; }
 
         #region BranchInformation
@@ -150,7 +145,6 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         public int RentalDays { get; set; }
 
-
         public decimal? SubTotal { get; set; }
 
         public decimal? TranSportFee { get; set; }
@@ -171,26 +165,31 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         public string? DepositStatus { get; set; }
 
-        public decimal? DepositAmount { get; set; } = decimal.Zero;
+        public decimal? DepositAmount { get; set; }
         #endregion
 
         #region ReturnInformation
-        public DateTime? ReturnDate { get; set; } = null;
+        public DateTime? ReturnDate { get; set; }
 
-        public decimal? LateFee { get; set; } = decimal.Zero;
+        public decimal? LateFee { get; set; }
 
-        public decimal? DamageFee { get; set; } = decimal.Zero;
+        public decimal? DamageFee { get; set; }
 
-        public bool? IsRestocked { get; set; } = false;
+        public bool? IsRestocked { get; set; }
 
-        public bool? IsInspected { get; set; } = false;
+        public bool? IsInspected { get; set; }
 
-        public bool? IsExtended { get; set; } = false;
+        public bool? IsExtended { get; set; }
 
-        public int? ExtensionDays { get; set; } = 0;
+        public int? ExtensionDays { get; set; }
 
-        public decimal? ExtensionCost { get; set; } = decimal.Zero;
+        public decimal? ExtensionCost { get; set; }
+        public string? ExtensionStatus { get; set; }
         #endregion
+
+        public string? Reason { get; set; }
+        public string? TransactionId { get; set; }
+        public string? OrderImage { get; set; }
 
         #region AuditInformation
         public DateTime? CreatedAt { get; set; }
@@ -200,9 +199,16 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public string? PaymentLink { get; set; }
         public List<RentalOrderVM>? childOrders { get; set; }
     }
-    public class ExtendRentalModel
+    public class ExtensionRequestModel
     {
-        public int ChildOrderId { get; set; }
+        public int ParentOrderId { get; set; }
+        public int? ChildOrderId { get; set; }
         public int ExtensionDays { get; set; }
+
+    }
+    public class RentalOrderImageModel
+    {
+        public int parentOrderId { get; set; }
+        public IFormFile OrderImage { get; set; }
     }
 }

@@ -37,13 +37,29 @@ namespace _2Sport_BE.Controllers
 		{
 			try
 			{
-				return Ok(await _likeService.GetLikesOfProduct());
+				var likes = (await _likeService.GetLikesOfProduct()).ToList();
+                return Ok(likes);
 			}
 			catch (Exception ex)
 			{
 				return BadRequest(ex);
 			}
 		}
+
+        [HttpGet]
+        [Route("get-likes-of-product/{productCode}")]
+        public async Task<IActionResult> GetLikesOfProduct(string productCode)
+        {
+            try
+            {
+                var likes = (await _likeService.GetLikesOfProduct(productCode)).ToList();
+                return Ok(likes);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
 
         [HttpPost]
 		[Route("like-product/{productCode}")]
@@ -64,7 +80,7 @@ namespace _2Sport_BE.Controllers
                     var addedLike = new Like
                     {
                         UserId = userId,
-                        ProductId = product.Id,
+                        ProductCode = product.ProductCode,
                         //User = user,
                         //Product = product,
                     };

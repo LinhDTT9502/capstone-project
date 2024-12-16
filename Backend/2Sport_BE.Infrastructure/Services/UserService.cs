@@ -9,40 +9,46 @@ using System.Text;
 using Nexmo.Api;
 using static System.Net.Mime.MediaTypeNames;
 using Microsoft.AspNetCore.Http;
+using System.ComponentModel.Design;
+using _2Sport_BE.Infrastructure.Helpers;
+using Newtonsoft.Json.Linq;
+using System.Security.Claims;
 namespace _2Sport_BE.Infrastructure.Services
 {
     public interface IUserService
     {
         Task<ResponseDTO<List<UserVM>>> GetAllUsers();
         Task<ResponseDTO<List<UserVM>>> SearchUsers(string? fullName, string? username);
-        Task<ResponseDTO<int>> AddUserAsync(UserCM userCM);
+        Task<ResponseDTO<int>> CreateUserAsync(UserCM userCM);
         Task<ResponseDTO<UserVM>> GetUserDetailsById(int id);
         Task<User> GetUserById(int id);
         Task<IEnumerable<User>> GetUserWithConditionAsync(Expression<Func<User, bool>> where, string? includes = "");
         Task<ResponseDTO<bool>> UpdateUserAsync(int id, UserUM user);
         Task<ResponseDTO<bool>> UpdateUserAsync(int id, User user);
         Task<ResponseDTO<bool>> UpdateProfile(int id, ProfileUM profile);
-        Task<ResponseDTO<bool>> RemoveUserAsync(int id);
+        Task<ResponseDTO<UserVM>> UpdateStatus(int userId, bool isActive);
+        Task<ResponseDTO<bool>> DeleteUserAsync(int id);
         Task<ResponseDTO<bool>> DisableUserAsync(int id);
         Task<ResponseDTO<bool>> UpdatePasswordAsync(int id, ChangePasswordVM changePasswordVM);
-        Task<string> VerifyPhoneNumber(string from, string to);
-
+        Task<ResponseDTO<int>> UpdateEmailAsync(int userId, ResetEmailRequesrt resetEmailModel);
         Task<User> FindUserByPhoneNumber(string phoneNumber);
-        //Functions to manage managers and staffs (belong to administrator)
         Task<ResponseDTO<List<UserVM>>> GetUserByRoleIdAndBranchId(int roleId, int branchId);
     }
     public class UserService : IUserService
     {
         private IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-       /* private readonly IImageService*/
+        private readonly IMethodHelper _methodeHelper;
+
         public UserService(
             IUnitOfWork unitOfWork,
-            IMapper mapper
+            IMapper mapper,
+            IMethodHelper methodHelper
             )
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _methodeHelper = methodHelper;
         }
         public string HashPassword(string password)
         {
@@ -95,7 +101,7 @@ namespace _2Sport_BE.Infrastructure.Services
             };
             return response;
         }
-        public async Task<ResponseDTO<int>> AddUserAsync(UserCM userCM)
+        public async Task<ResponseDTO<int>> CreateUserAsync(UserCM userCM)
         {
             var response = new ResponseDTO<int>();
             var newUser = await _unitOfWork.UserRepository
@@ -172,17 +178,33 @@ namespace _2Sport_BE.Infrastructure.Services
             IEnumerable<User> users = await _unitOfWork.UserRepository.GetAsync(where, null, includes);
             return users;
         }
-        public async Task<ResponseDTO<bool>> RemoveUserAsync(int id)
+        public async Task<ResponseDTO<bool>> DeleteUserAsync(int id)
         {
             var response = new ResponseDTO<bool>();
             try
             {
-                var user = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == id);
+                var user = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == id, new string[] {"Customers", "Managers", "Staffs"});
                 if (user == null)
                 {
                     response.IsSuccess = false;
                     response.Message = "User not found!";
                     return response;
+                }
+
+                var customer = user.Customers.FirstOrDefault();
+                var staff = user.Staffs.FirstOrDefault();
+                var manager = user.Managers.FirstOrDefault();
+                if(customer != null)
+                {
+                    await _unitOfWork.CustomerDetailRepository.DeleteAsync(customer);
+                }
+                if (staff != null)
+                {
+                    await _unitOfWork.StaffRepository.DeleteAsync(staff);
+                }
+                if (manager != null)
+                {
+                    await _unitOfWork.ManagerRepository.DeleteAsync(manager);
                 }
                 await _unitOfWork.UserRepository.DeleteAsync(id);
                 await _unitOfWork.SaveChanges();  
@@ -350,7 +372,12 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.Message = "User not found!";
                     return response;
                 }
-
+                if (existingUser.HashPassword != HashPassword(changePasswordVM.OldPassword))
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Old password is wrong!";
+                    return response;
+                }
                 existingUser.HashPassword = HashPassword(changePasswordVM.NewPassword);
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
 
@@ -367,44 +394,6 @@ namespace _2Sport_BE.Infrastructure.Services
 
             return response;
         }
-        public async Task<string> VerifyPhoneNumber(string from, string to)
-        {
-            /*var credentials = Credentials.FromApiKeyAndSecret("a985b2e1", "45WqlXONkSho55Yf");
-
-            var vonageClient = new VonageClient(credentials);
-
-            var response = await vonageClient.SmsClient.SendAnSmsAsync(new Vonage.Messaging.SendSmsRequest()
-            {
-                To = "+84384394372",
-                From = "+84366819078",
-                Text = "A text message sent using the Vonage SMS API"
-            });*/
-            var credentials = new Nexmo.Api.Request.Credentials()
-            {
-                ApiKey = "a985b2e1",
-                ApiSecret = "45WqlXONkSho55Yf"
-
-            };
-            //var credentials = Credentials.FromApiKeyAndSecret(VONAGE_API_KEY, VONAGE_API_SECRET);           
-            var results = SMS.Send(new SMS.SMSRequest
-            {
-                from = from,
-                to = to,
-                text = "2sport v3"
-            }, credentials);
-
-
-            /*var VONAGE_API_KEY = "a985b2e1";
-            var VONAGE_API_SECRET = "45WqlXONkSho55Yf";*/
-            /* var client = new SmsClient(credentials);
-             var request = new SendSmsRequest { To = to, From = from, Text = "2sport ver2" };
-             var response = await client.SendAnSmsAsync(request);
-             response.Messages[0].MessageId.ToString();*/
-
-
-            return "response.Messages.ToString()";
-        }
-
         public async Task<User> FindUserByPhoneNumber(string phoneNumber)
         {
             var user = await _unitOfWork.UserRepository.GetObjectAsync(U => U.PhoneNumber == phoneNumber);
@@ -442,6 +431,117 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
 
-       
+        public async Task<ResponseDTO<UserVM>> UpdateStatus(int userId, bool isActive)
+        {
+            var response = new ResponseDTO<UserVM>();
+
+            try
+            {
+                var query = await _unitOfWork.UserRepository.GetObjectAsync(u => u.Id == userId, new string[] { "Staffs", "Managers" });
+
+                if (query == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "User not found!";
+                    return response;
+                }
+
+                query.IsActived = isActive;
+
+                var manager = query.Managers.FirstOrDefault();
+                if (manager != null)
+                {
+                    manager.IsActive = isActive;
+                    await _unitOfWork.ManagerRepository.UpdateAsync(manager);
+                }
+
+                var staff = query.Staffs.FirstOrDefault();
+                if (staff != null)
+                {
+                    staff.IsActive = isActive;
+                    await _unitOfWork.StaffRepository.UpdateAsync(staff);
+
+                }
+                await _unitOfWork.UserRepository.UpdateAsync(query);
+
+                await _unitOfWork.SaveChanges();
+
+                var result = _mapper.Map<User, UserVM>(query);
+
+                response.IsSuccess = true;
+                response.Message = "Updated Successfully";
+                response.Data = result;
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = $"An error occurred: {ex.Message}";
+            }
+
+            return response;
+        }
+
+        public async Task<ResponseDTO<int>> UpdateEmailAsync(int uId, ResetEmailRequesrt resetEmailModel)
+        {
+            var response = new ResponseDTO<int>();
+            try
+            {
+                var principal = _methodeHelper.GetPrincipalFromToken(resetEmailModel.Token);
+
+                if (principal != null)
+                {
+                    var userId = principal.FindFirst("UserId")?.Value;
+                    var email = principal.FindFirst("Email")?.Value;
+                    var otp = principal.FindFirst("OTP")?.Value;
+
+                    var existingUser = await _unitOfWork.UserRepository.GetObjectAsync(u => uId.ToString().Equals(userId) && u.Id == uId);
+                    if (existingUser == null)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = "User not found!";
+                        response.Data = 0;
+
+                        return response;
+                    }
+                    if(email != resetEmailModel.Email)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = "Email is not matched!";
+                        response.Data = 0;
+
+                        return response;
+                    }
+                    if(otp != resetEmailModel.OtpCode)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = "OTP is not matched!";
+                        response.Data = 0;
+
+                        return response;
+                    }
+                    existingUser.UpdatedAt = DateTime.UtcNow;
+                    existingUser.Email = resetEmailModel.Email;
+                    await _unitOfWork.UserRepository.UpdateAsync(existingUser);
+
+                    response.IsSuccess = true;
+                    response.Message = "Email updated successfully.";
+                    response.Data = 1;
+                }
+                else
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Token is invalid.";
+                    response.Data = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = $"An error occurred: {ex.Message}";
+                response.Data = 0;
+            }
+
+            return response;
+        }
     }
 }

@@ -15,7 +15,7 @@ namespace _2Sport_BE.Service.Services
 {
     public interface IPhoneNumberService
     {
-        Task<int> SendSmsToPhoneNumber(int userId, string phoneNumber);
+        Task<int> SendSmsToPhoneNumber(int otp, string phoneNumber);
         Task<int> VerifyPhoneNumber(int userId, int otp);
     }
     public class PhoneNumberService : IPhoneNumberService
@@ -27,29 +27,11 @@ namespace _2Sport_BE.Service.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<int> SendSmsToPhoneNumber(int userId, string phoneNumber)
+        public async Task<int> SendSmsToPhoneNumber(int otp, string phoneNumber)
         {
             try
             {
 
-                var otp = GenerateOTP();
-                var user = await _unitOfWork.UserRepository.FindAsync(userId);
-                if (user == null)
-                {
-                    return (int)Errors.NotFoundUser;
-                }
-                if (user.PhoneNumber.Equals(phoneNumber) && user.PhoneNumberConfirmed == true)
-                {
-                    return (int)Errors.Verified;
-                }
-                if (!user.PhoneNumber.Equals(phoneNumber))
-                {
-                    user.PhoneNumber = phoneNumber;
-                    user.PhoneNumberConfirmed = false;
-                }
-
-                user.OTP = otp;
-                
 
                 phoneNumber = ConvertToInternationalFormat(phoneNumber);
 
@@ -67,7 +49,6 @@ namespace _2Sport_BE.Service.Services
                     from: from,
                     body: $"Mã xác thực của bạn là: {otp}");
 
-                await _unitOfWork.UserRepository.UpdateAsync(user);
                 return 1;
             } catch (Exception ex)
             {
