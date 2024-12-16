@@ -21,8 +21,7 @@ function Footer() {
           <Link
             to="https://fb.com/profile.php?id=61560697567321"
             className="underline underline-offset-2 pl-8"
-          >
-            Facebook
+          >Facebook
           </Link>
         </h1>
       </div>
