@@ -263,7 +263,7 @@ namespace _2Sport_BE.Controllers
                 }
                 else
                 {
-                    return BadRequest("Image is null");
+                    return Ok("No updated");
                 }
             }
         }
