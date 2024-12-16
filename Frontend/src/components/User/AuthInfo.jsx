@@ -1,12 +1,10 @@
 import { useState } from "react";
 import {
   sendOtpForEmailChangeService,
+  editPhoneNumberService,
   changeEmailService,
+  sendSmsOtp,
 } from "../../services/ManageUserService";
-
-import { updateProfile,
-} from "../../api/apiUser";
-
 
 export default function AuthInfo({
   userId,
@@ -24,21 +22,51 @@ export default function AuthInfo({
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [token, setToken] = useState("");
-
+  const [showOtpDialog, setShowOtpDialog] = useState(false);
   const [showPhoneDialog, setShowPhoneDialog] = useState(false);
   const [newPhone, setNewPhone] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handlePhoneChange = async () => {
-    if (newPhone) {
-      try {
-        await updateProfile(userId, { phone: newPhone });
-        alert("Số điện thoại đã được cập nhật!");
-        setShowPhoneDialog(false);
-      } catch (error) {
-        alert("Cập nhật số điện thoại thất bại");
+  const handleSendOtp = async () => {
+    // if (!newPhone) {
+    //   alert("Error: Please enter a new email.");
+    //   return;
+    // }
+
+    try {
+      const response = await sendSmsOtp(newPhone);
+      if (response) {
+        alert("Mã xác thực đã được gửi, vui lòng kiểm ta hộp thư");
+        setToken(response.token);
+        setShowOtpDialog(true);
+
+      } else {
+        alert("Gửi mã xác thực thất bại");
       }
-    } else {
-      alert("Vui lòng nhập số điện thoại mới");
+    } catch (error) {
+      alert("Error sending OTP");
+    }
+  };
+
+
+  const handleChangePhoneNumber = async () => {
+    if (!otpCode) {
+      alert("Vui lòng nhập mã OTP.");
+      return;
+    }
+    try {
+      setLoading(true);
+      await editPhoneNumberService(newPhone, otpCode);
+      alert("Số điện thoại đã được cập nhật thành công!");
+      setShowOtpDialog(false);
+      setShowPhoneDialog(false);
+      setNewPhone("");
+      setOtpCode("");
+    } catch (error) {
+      alert("Lỗi cập nhật số điện thoại: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -113,7 +141,7 @@ export default function AuthInfo({
               emailConfirmedBool ? "text-green-500" : "text-red-500"
             }`}
           >
-            {emailConfirmedBool ? "Verified" : "Not Verified"}
+            {emailConfirmedBool ? "Đã xác thực" : "Chưa xác thực"}
           </span>
         </div>
         {email ? (
@@ -129,7 +157,7 @@ export default function AuthInfo({
                 : onVerifyEmail
             }
           >
-            {emailConfirmedBool ? "Change" : "Verify"}
+            {emailConfirmedBool ? "Thay đổi" : "Xác thực"}
           </button>
         ) : (
           <div className="w-full p-3 pl-12 bg-gray-100 text-gray-500 cursor-not-allowed rounded-md mt-2">
@@ -138,8 +166,8 @@ export default function AuthInfo({
         )}
       </div>
 
-      <div className="relative">
-        <label className="block text-gray-700 mb-2">Phone Number:</label>
+      <div>
+        <label className="block text-gray-700 mb-2">Số điện thoại:</label>
         <div className="relative">
           <input
             type="text"
@@ -152,61 +180,75 @@ export default function AuthInfo({
               phoneNumberConfirmed ? "text-green-500" : "text-red-500"
             }`}
           >
-            {phoneNumberConfirmed ? "Verified" : "Not Verified"}
+            {phoneNumberConfirmed ? "Đã xác thực" : "Chưa xác thực"}
           </span>
         </div>
-        <div className="flex space-x-2">
-          <button
-            className={`mt-2 px-4 py-2 rounded-md text-white ${
-              phoneNumberConfirmed
-                ? "bg-orange-500 hover:bg-orange-600"
-                : "bg-blue-500 hover:bg-blue-600"
-            }`}
-            onClick={onVerifyPhone}
-          >
-            Verify
-          </button>
-          
-            <button
-              className="mt-2 px-4 py-2 rounded-md text-white bg-green-500 hover:bg-green-600"
-              onClick={() => setShowPhoneDialog(true)}
-            >
-              Change
-            </button>
-          
-        </div>
+        <button
+          className="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+          onClick={() => setShowPhoneDialog(true)}
+        >
+          Thay đổi
+        </button>
       </div>
        {/* Popup thay đổi số điện thoại */}
-       {showPhoneDialog && (
+{showPhoneDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg w-96">
             <h2 className="text-xl font-bold mb-4">Thay đổi số điện thoại</h2>
             <div className="space-y-4">
-              <div>
-                <label className="block text-gray-700 mb-2">Nhập số điện thoại mới</label>
-                <input
-                  type="text"
-                  value={newPhone}
-                  onChange={(e) => setNewPhone(e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                  placeholder="Nhập số điện thoại mới"
-                />
-              </div>
+              <input
+                type="text"
+                value={newPhone}
+                onChange={(e) => setNewPhone(e.target.value)}
+                className="w-full p-2 border rounded-md"
+                placeholder="Nhập số điện thoại mới"
+              />
               <div className="flex justify-end space-x-2">
                 <button
-                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                  onClick={() => {
-                    setShowPhoneDialog(false);
-                    setNewPhone("");
-                  }}
+                  className="px-4 py-2 bg-gray-400 text-white rounded-md"
+                  onClick={() => setShowPhoneDialog(false)}
+                >
+                  Hủy
+                </button>
+                <button
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                  onClick={handleSendOtp}
+                  disabled={loading}
+                >
+                  {loading ? "Loading..." : "Thay đổi"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup nhập OTP */}
+      {showOtpDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Nhập mã OTP</h2>
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value)}
+                className="w-full p-2 border rounded-md"
+                placeholder="Nhập mã OTP"
+              />
+              <div className="flex justify-end space-x-2">
+                <button
+                  className="px-4 py-2 bg-gray-400 text-white rounded-md"
+                  onClick={() => setShowOtpDialog(false)}
                 >
                   Hủy
                 </button>
                 <button
                   className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-                  onClick={handlePhoneChange}
+                  onClick={handleChangePhoneNumber}
+                  disabled={loading}
                 >
-                  Xác nhận
+                  {loading ? "Đang xác thực..." : "Xác nhận"}
                 </button>
               </div>
             </div>
