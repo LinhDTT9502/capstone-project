@@ -1107,7 +1107,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     break;
 
                 default:
-                    return ValidationResult.Invalid("Trạng thái mới không hợp lệ.");
+                    return ValidationResult.Valid();
             }
 
             return ValidationResult.Valid();
