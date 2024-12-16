@@ -275,6 +275,12 @@ function Header() {
                 {t("header.contact")}
               </Link>
               <Link
+                to="/blog"
+                className=" hover:text-orange-500 focus:text-orange-500"
+              >
+                Blog
+              </Link>
+              <Link
                 to="/manage-account/refund-request"
                 className=" hover:text-orange-500 focus:text-orange-500"
               >
