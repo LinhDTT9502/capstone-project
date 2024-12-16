@@ -23,6 +23,8 @@ public class Brand
     public int? Quantity { get; set; }
 
     public bool? Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+
 
     public virtual ICollection<Product> Products { get; set; }
 

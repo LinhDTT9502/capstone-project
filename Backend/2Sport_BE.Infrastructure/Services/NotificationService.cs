@@ -3,8 +3,11 @@ using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Infrastructure.Hubs;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
+using _2Sport_BE.Services.Caching;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 using Twilio.Rest.Api.V2010.Account;
 
 namespace _2Sport_BE.Infrastructure.Services
@@ -33,10 +36,17 @@ namespace _2Sport_BE.Infrastructure.Services
     {
         private readonly INotificationHub _notificationHub;
         private readonly IUnitOfWork _unitOfWork;
-        public NotificationService(INotificationHub notificationHub, IUnitOfWork unitOfWork)
+        private readonly IRedisCacheService _redisCacheService;
+        private readonly string _notificationKey;
+        public NotificationService(INotificationHub notificationHub, 
+                                   IConfiguration configuration,
+                                   IRedisCacheService redisCacheService,
+                                   IUnitOfWork unitOfWork)
         {
             _notificationHub = notificationHub;
             _unitOfWork = unitOfWork;
+            _redisCacheService = redisCacheService;
+            _notificationKey = configuration.GetValue<string>("RedisKeys:Notifications");
         }
         public async Task NotifyForCreatingNewOrderAsync(string orderCode, bool isRentalOrder, int? branchId = null)
         {
@@ -79,16 +89,21 @@ namespace _2Sport_BE.Infrastructure.Services
                 // Lưu thông báo vào cơ sở dữ liệu
                 if (userIdList.Any())
                 {
+                    var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                                                        ?? new List<Notification>();
+                    var notificationId = listNotificationsInCache.Count;
                     var notifications = userIdList.Select(userId => new Notification
                     {
+                        Id = notificationId + 1,
                         UserId = userId,
                         Message = message,
                         Type = "Created Order Noti",
                         CreatedAt = DateTime.UtcNow,
                         IsRead = false
                     }).ToList();
-
-                    await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
+                    listNotificationsInCache.AddRange(notifications);
+                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+                    //await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
                 }
             }
             catch (Exception ex)
@@ -115,8 +130,12 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 if (userIdList.Any())
                 {
+                    var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                                    ?? new List<Notification>();
+                    var notificationId = listNotificationsInCache.Count;
                     var notifications = userIdList.Select(userId => new Notification
                     {
+                        Id = notificationId + 1,
                         UserId = userId,
                         Message = message,
                         Type = "Rejected Order Noti",
@@ -124,7 +143,10 @@ namespace _2Sport_BE.Infrastructure.Services
                         IsRead = false
                     }).ToList();
 
-                    await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
+                    //save notifications to redis
+                    listNotificationsInCache.AddRange(notifications);
+                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+                    //await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
                 }
             }
             catch (Exception ex)
@@ -173,8 +195,13 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 if (userIdList.Any())
                 {
+                    var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                ?? new List<Notification>();
+
+                    var notificationId = listNotificationsInCache.Count;
                     var notifications = userIdList.Select(userId => new Notification
                     {
+                        Id = notificationId + 1,
                         UserId = userId,
                         Message = message,
                         Type = "Payment Cancellation Noti",
@@ -182,7 +209,11 @@ namespace _2Sport_BE.Infrastructure.Services
                         IsRead = false
                     }).ToList();
 
-                    await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
+                    //save notifications to redis
+                    listNotificationsInCache.AddRange(notifications);
+                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+
+                    //await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
                 }
             }
             catch (Exception ex)
@@ -233,16 +264,25 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 if (userIdList.Any())
                 {
+                    var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                ?? new List<Notification>();
+
+                    var notificationId = listNotificationsInCache.Count;
                     var notifications = userIdList.Select(userId => new Notification
                     {
+                        Id = notificationId + 1,
                         UserId = userId,
                         Message = message,
                         Type = "Payment Paid Noti",
                         CreatedAt = DateTime.UtcNow,
-                        IsRead = false 
+                        IsRead = false
                     }).ToList();
 
-                    await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
+                    //save notifications to redis
+                    listNotificationsInCache.AddRange(notifications);
+                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+
+                    //await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
                 }
             }
             catch (Exception ex)
@@ -253,15 +293,27 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task SendRentalOrderExpirationNotificationAsync(string customerId, string orderCode, DateTime rentalEndDate)
         {
             var message = $"Đơn thuê T-{orderCode} sẽ hết hạn vào ngày {rentalEndDate:dd/MM/yyyy}.";
+
+            var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                ?? new List<Notification>();
+
+            var notificationId = listNotificationsInCache.Count;
+
             var notifications = new Notification()
             {
+                Id = notificationId + 1,
                 UserId = int.Parse(customerId),
                 Message = message,
                 Type = "Payment Paid Noti",
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false
             };
-            await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+
+            //save notifications to redis
+            listNotificationsInCache.Add(notifications);
+            _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+
+            //await _unitOfWork.NotificationRepository.InsertAsync(notifications);
 
             await _notificationHub.SendNotificationToCustomer(customerId, message);
         }
@@ -272,7 +324,10 @@ namespace _2Sport_BE.Infrastructure.Services
 
             try
             {
-                var notification = _unitOfWork.NotificationRepository.FindObject(_ => _.Id == notificationId);
+                var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                ?? new List<Notification>();
+                var notification = listNotificationsInCache.Find(_ => _.Id == notificationId);
+                //var notification = _unitOfWork.NotificationRepository.FindObject(_ => _.Id == notificationId);
 
                 if (notification == null)
                 {
@@ -283,7 +338,10 @@ namespace _2Sport_BE.Infrastructure.Services
                 notification.IsRead = isRead;
                 notification.ReadAt = DateTime.UtcNow;
 
-                await _unitOfWork.NotificationRepository.UpdateAsync(notification);
+                //save notifications to redis
+                _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+
+                //await _unitOfWork.NotificationRepository.UpdateAsync(notification);
                 response.IsSuccess = true;
                 response.Message = "Notification status updated successfully.";
                 response.Data = notification;
@@ -303,7 +361,14 @@ namespace _2Sport_BE.Infrastructure.Services
 
             try
             {
-                var notifications = await _unitOfWork.NotificationRepository.GetAsync(n => n.UserId == userId);
+                var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                                    ?? new List<Notification>();
+                // Filter notifications by userId
+                var notifications = listNotificationsInCache
+                                            .Where(notification => notification.UserId == userId)
+                                            .ToList();
+
+                //var notifications = await _unitOfWork.NotificationRepository.GetAsync(n => n.UserId == userId);
 
                 if (notifications == null || !notifications.Any())
                 {
@@ -334,8 +399,14 @@ namespace _2Sport_BE.Infrastructure.Services
                 foreach (var coordinator in coordinators)
                 {
                     var message = $"{commentedUser.UserName} đã đặt câu hỏi trong sản phẩm {product.ProductName}";
+                    var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                    ?? new List<Notification>();
+
+                    var notificationId = listNotificationsInCache.Count;
+
                     var notifications = new Notification()
                     {
+                        Id = notificationId + 1,
                         UserId = coordinator.Id,
                         Message = message,
                         Type = "Comment Noti",
@@ -343,7 +414,10 @@ namespace _2Sport_BE.Infrastructure.Services
                         IsRead = false,
                         ReferenceLink = $"localhost:5173/product/{product.ProductCode}"
                     };
-                    await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+                    //save notifications to redis
+                    listNotificationsInCache.Add(notifications);
+                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+                    //await _unitOfWork.NotificationRepository.InsertAsync(notifications);
 
                     await _notificationHub.SendMessageToGroup("Coordinator", message);
                 }
@@ -362,16 +436,27 @@ namespace _2Sport_BE.Infrastructure.Services
             try
             {
                 var message = $"Quản trị viên đã trả lời câu hỏi của bạn trong sản phẩm {product.ProductName}";
+                var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                    ?? new List<Notification>();
+
+                var notificationId = listNotificationsInCache.Count;
+
                 var notifications = new Notification()
                 {
+                    Id = notificationId + 1,
                     UserId = int.Parse(currUserId),
                     Message = message,
-                    Type = "Comment Noti",
+                    Type = "Reply comment Noti",
                     CreatedAt = DateTime.UtcNow,
                     IsRead = false,
                     ReferenceLink = $"localhost:5173/product/{product.ProductCode}"
                 };
-                await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+
+                //save notifications to redis
+                listNotificationsInCache.Add(notifications);
+                _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+
+                //await _unitOfWork.NotificationRepository.InsertAsync(notifications);
 
                 await _notificationHub.SendNotificationToCustomer(currUserId, message);
                 return true;
@@ -414,8 +499,14 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 if (userIdList.Any())
                 {
+                    var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                    ?? new List<Notification>();
+
+                    var notificationId = listNotificationsInCache.Count;
+
                     var notifications = userIdList.Select(userId => new Notification
                     {
+                        Id = notificationId + 1,
                         UserId = userId,
                         Message = message,
                         Type = "Extension request Noti",
@@ -423,7 +514,11 @@ namespace _2Sport_BE.Infrastructure.Services
                         IsRead = false
                     }).ToList();
 
-                    await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
+                    //save notifications to redis
+                    listNotificationsInCache.AddRange(notifications);
+                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+
+                    //await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
                 }
             }
             catch (Exception ex)
@@ -443,16 +538,26 @@ namespace _2Sport_BE.Infrastructure.Services
                     var user = await _unitOfWork.UserRepository.GetObjectAsync(s => s.Id == userId);
                     if (user != null) 
                     await _notificationHub.SendNotificationToCustomer(user.Id.ToString(), message);
+                    var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                    ?? new List<Notification>();
+
+                    var notificationId = listNotificationsInCache.Count;
 
                     var notifications = new Notification
                     {
+                        Id = notificationId + 1,
                         UserId = userId,
                         Message = message + "Lý do: " + reason,
                         Type = "Extension request rej Noti",
                         CreatedAt = DateTime.UtcNow,
                         IsRead = false
                     };
-                    await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+
+                    //save notifications to redis
+                    listNotificationsInCache.Add(notifications);
+                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+
+                    //await _unitOfWork.NotificationRepository.InsertAsync(notifications);
                 }
             }
             catch (Exception ex)
@@ -490,14 +595,25 @@ namespace _2Sport_BE.Infrastructure.Services
                     if (user != null)
                         await _notificationHub.SendNotificationToCustomer(user.Id.ToString(), message);
 
+                    var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                    ?? new List<Notification>();
+
+                    var notificationId = listNotificationsInCache.Count;
+
                     var notifications = new Notification
                     {
+                        Id = notificationId + 1,
                         UserId = userId,
                         Message = message,
                         Type = "Normal",
                         CreatedAt = DateTime.UtcNow,
                         IsRead = false
                     };
+
+                    //save notifications to redis
+                    listNotificationsInCache.Add(notifications);
+                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+
                     await _unitOfWork.NotificationRepository.InsertAsync(notifications);
                 }
             }
@@ -541,8 +657,14 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 if (userIdList.Any())
                 {
+                    var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                    ?? new List<Notification>();
+
+                    var notificationId = listNotificationsInCache.Count;
+
                     var notifications = userIdList.Select(userId => new Notification
                     {
+                        Id = notificationId + 1,
                         UserId = userId,
                         Message = message,
                         Type = "Created Order Noti",
@@ -550,7 +672,11 @@ namespace _2Sport_BE.Infrastructure.Services
                         IsRead = false
                     }).ToList();
 
-                    await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
+                    //save notifications to redis
+                    listNotificationsInCache.AddRange(notifications);
+                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+
+                    //await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
                 }
             }
             catch (Exception ex)
@@ -600,14 +726,24 @@ namespace _2Sport_BE.Infrastructure.Services
                 // Lưu thông báo vào cơ sở dữ liệu
                 if (userIdList.Any())
                 {
+                    var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                    ?? new List<Notification>();
+
+                    var notificationId = listNotificationsInCache.Count;
+
                     var notifications = userIdList.Select(userId => new Notification
                     {
+                        Id = notificationId + 1,
                         UserId = userId,
                         Message = message,
                         Type = "Pending Order Reminder",
                         CreatedAt = DateTime.UtcNow,
                         IsRead = false
                     }).ToList();
+
+                    //save notifications to redis
+                    listNotificationsInCache.AddRange(notifications);
+                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
 
                     await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
                 }

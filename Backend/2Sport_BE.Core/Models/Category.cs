@@ -22,6 +22,8 @@ public class Category
 
     public int? Quantity { get; set; }
     public bool? Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+
     public int? SportId { get; set; }
     public Sport Sport { get; set; }
 

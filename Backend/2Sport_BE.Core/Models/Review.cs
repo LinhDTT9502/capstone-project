@@ -20,6 +20,8 @@ public class Review
     public string ReviewContent { get; set; }
 
     public bool? Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+
 
     [Column("UserId")]
     public int? UserId { get; set; }
