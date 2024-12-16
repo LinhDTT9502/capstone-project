@@ -66,5 +66,28 @@ namespace _2Sport_BE.Controllers
             }
 
         }
+
+        [HttpDelete]
+        [Route("delete-promotion")]
+        public async Task<IActionResult> DeletePromotion(string productName)
+        {
+            try
+            {
+                var query = await _productService.GetProductsByProductName(productName);
+
+                foreach (var product in query)
+                {
+                    product.Discount = 0;
+
+                }
+                await _productService.UpdateProducts(query);
+                return Ok("delete promotion successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
     }
 }
