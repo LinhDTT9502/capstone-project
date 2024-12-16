@@ -86,3 +86,32 @@ export const verifyAccountMobileAPI = async ({ username, email, otpCode }) => {
     }
   );
 };
+
+// for forgot password only
+export const forgotPasswordRequestMobile = (email) => {
+  return axios.post(
+    `${API_BASE_URL}/forgot-password-request-mobile`,
+    { email },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
+
+export const resetPasswordMobile = ({ otpCode, email, newPassword }) => {
+  return axios.post(
+    `${API_BASE_URL}/reset-password-mobile`,
+    {
+      otpCode,
+      email,
+      newPassword,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};

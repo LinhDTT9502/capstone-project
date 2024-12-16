@@ -1,5 +1,5 @@
 import { fetchAllUsers as apiFetchAllUsers,  } from '../api/apiManageUser';
-import { updatePassword as apiUpdatePassword, changeEmail, sendSmsOtpApi, editPhoneNumberApi } from '../api/apiUser'
+import { updatePassword as apiUpdatePassword, changeEmail, sendSmsOtpApi, editPhoneNumberApi, sendOtpForEmailChange } from '../api/apiUser'
 import { toast } from "react-toastify";
 
 export const fetchAllUsers = async (token) => {

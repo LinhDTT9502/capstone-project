@@ -156,7 +156,7 @@
   "signin.signup":"Đăng kí",
   "signin.signin":"Đăng nhập",
   "signin.username":"Tên người dùng",
-  "signin.enter_username":"Nhập tên người dng của bạn",
+  "signin.enter_username":"Nhập tên người đăng của bạn",
   "signin.required":"Trường này là bắt buộc!",
   "signin.username_length":"Tên người dùng không được vượt quá 20 kí tự",
   "signin.username_pattern":"Tên người dùng chỉ được chứa các kí tự, số và dấu gạch dưới",
