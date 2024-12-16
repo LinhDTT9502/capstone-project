@@ -81,6 +81,7 @@ export default function UserRentalDetail() {
     totalAmount,
     orderStatus,
     paymentStatus,
+    extensionStatus
   } = orderDetail;
   console.log(orderDetail);
 
@@ -91,27 +92,27 @@ export default function UserRentalDetail() {
     console.log(order);
     console.log(id);
     const payload = id === order.id
-    ? { parentOrderId: id, childOrderId: null }
-    : { parentOrderId: id, childOrderId: order.id };
-console.log(payload);
-  
+      ? { parentOrderId: id, childOrderId: null }
+      : { parentOrderId: id, childOrderId: order.id };
+    console.log(payload);
+
     if (!selectedDate) {
       alert("Please select a valid date before extending the order.");
       return;
     }
-  
+
     const selectedDateObj = new Date(selectedDate); // Convert selectedDate to a Date object
     const rentalEndDateObj = new Date(order.rentalEndDate); // Convert rentalEndDate to a Date object
-  
+
     const extensionDays = Math.ceil(
       (selectedDateObj - rentalEndDateObj) / (1000 * 60 * 60 * 24)
     );
-  
+
     console.log(extensionDays);
-  
+
     // Determine parentOrderId and childOrderId based on the condition
 
-  
+
     try {
       const response = await axios.post(
         `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/request-extension`,
@@ -131,7 +132,7 @@ console.log(payload);
       alert("Failed to extend the order. Please try again.");
     }
   };
-  
+
 
   const handleCancelOrder = async () => {
     if (!reason.trim()) {
@@ -303,13 +304,13 @@ console.log(payload);
                 key={child.id}
                 className="bg-gray-50 p-4 mb-4 rounded-lg shadow-sm"
               >
-                {!child.isExtended && orderStatus ==="Đã giao hàng" &&
+                {!child.isExtended && child.extensionStatus !== "1" && orderStatus === "Đã giao hàng" &&
                   <button
                     className="bg-orange-500 rounded text-white p-2"
                     onClick={() => setExpandedId(expandedId === child.id ? null : child.id)}>
                     Gia hạn đơn thuê
                   </button>}
-                  {expandedId === child.id && (
+                {expandedId === child.id && (
                   <div>
                     <input
                       type="date"
@@ -368,13 +369,13 @@ console.log(payload);
             ))
           ) : (
             <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
-              {!isExtended &&
+              {!isExtended  && extensionStatus !== "1" && orderStatus === "Đã giao hàng" &&
                 <button
                   className="bg-orange-500 rounded text-white p-2"
                   onClick={() => setExpandedId(expandedId === id ? null : id)}>
                   Gia hạn đơn thuê
                 </button>}
-                {expandedId === id && (
+              {expandedId === id && (
                 <div>
                   <input
                     type="date"

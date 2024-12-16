@@ -44,6 +44,8 @@ import SaleOrder from './components/Order/SaleOrder';
 import ScrollToTop from './resources/ScrollToTop';
 import PaymentSuccess from './pages/AfterPayment/PaymentSuccess';
 import PaymentSuccessV2 from './pages/AfterPayment/PaymentSuccessV2';
+import ZaloButton from './components/Social/ZaloButton';
+import FacebookButton from './components/Social/FacebookButton';
 
 
 
@@ -60,6 +62,16 @@ function App() {
             <div className="fixed bottom-0 left-0 mb-4 ml-4">
               <div className="bg-blue-500 text-white py-2 px-4 rounded">
                 <BranchSystem />
+              </div>
+            </div>
+            <div className="fixed bottom-0 right-0 mb-4 ml-4">
+              <div className=" text-white py-2 px-4 rounded">
+                <ZaloButton />
+              </div>
+            </div>
+            <div className="fixed bottom-20 right-0 mb-4 ml-4">
+              <div className=" text-white py-2 px-4 rounded">
+                <FacebookButton />
               </div>
             </div>
           </div>
