@@ -1547,12 +1547,22 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
                     break;
 
-                case (int)OrderStatus.DELIVERED:
+                case (int)RentalOrderStatus.DELIVERED:
+                    if (currentOrderStatus != (int)RentalOrderStatus.SHIPPED)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể đánh dấu là đã giao khi đang ở trạng thái đã vận chuyển.");
+                    }
+                    break;
+
+                case (int)RentalOrderStatus.DECLINED:
                     if (currentOrderStatus != (int)OrderStatus.SHIPPED)
                     {
                         return ValidationResult.Invalid("Đơn hàng chỉ có thể đánh dấu là đã giao khi đang ở trạng thái đã vận chuyển.");
                     }
                     break;
+
+                case (int)RentalOrderStatus.FAILED:
+                    return ValidationResult.Valid();
 
                 case (int)RentalOrderStatus.AWAITING_PICKUP:
                     if (currentOrderStatus != (int)RentalOrderStatus.PROCESSING)
@@ -1590,7 +1600,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     break;
 
                 default:
-                    return ValidationResult.Invalid("Trạng thái mới không hợp lệ.");
+                    return ValidationResult.Valid();
             }
 
             return ValidationResult.Valid();
