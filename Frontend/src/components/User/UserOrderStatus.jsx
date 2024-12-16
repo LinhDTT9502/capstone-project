@@ -33,7 +33,7 @@ export default function UserOrderStatus() {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandedOrderId, setExpandedOrderId] = useState(null); 
+  const [expandedOrderId, setExpandedOrderId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,6 +41,8 @@ export default function UserOrderStatus() {
       try {
         const token = localStorage.getItem("token");
         const response = await fetchUserOrders(user.UserId, token);
+        console.log(response);
+
         const sortedOrders = response.sort((a, b) => {
           return new Date(b.createdAt) - new Date(a.createdAt);
         });
@@ -54,9 +56,9 @@ export default function UserOrderStatus() {
     fetchOrders();
   }, [user.UserId]);
 
-const toggleExpand = (orderId) => {
-  setExpandedOrderId((prevOrderId) => (prevOrderId === orderId ? null : orderId)); 
-};
+  const toggleExpand = (orderId) => {
+    setExpandedOrderId((prevOrderId) => (prevOrderId === orderId ? null : orderId));
+  };
 
 
   const filteredOrders =
@@ -73,7 +75,7 @@ const toggleExpand = (orderId) => {
     return formattedAmount;
   };
 
-  
+
 
   if (isLoading)
     return (
@@ -83,9 +85,9 @@ const toggleExpand = (orderId) => {
     );
   if (error)
     return <div className="text-center text-gray-500  mt-32 flex flex-col items-center justify-center">
-  <FontAwesomeIcon icon={faShoppingBag} className="text-6xl mb-2" />
-  <p>Bạn chưa có sản phẩm nào</p>
-</div>
+      <FontAwesomeIcon icon={faShoppingBag} className="text-6xl mb-2" />
+      <p>Bạn chưa có sản phẩm nào</p>
+    </div>
 
   return (
     <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[70vh] overflow-y-auto">
@@ -105,11 +107,10 @@ const toggleExpand = (orderId) => {
           ].map((status) => (
             <button
               key={status}
-              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
-                selectedStatus === status
-                  ? "bg-orange-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${selectedStatus === status
+                ? "bg-orange-500 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
               onClick={() => setSelectedStatus(status)}
             >
               {status}
@@ -132,15 +133,21 @@ const toggleExpand = (orderId) => {
               <h4 className="font-semibold text-lg text-gray-800">
                 Mã đơn hàng:{" "}
                 <span className="text-orange-500">{order.saleOrderCode}</span>
+                <span
+                  className={`px-3 ml-2.5 py-1 mr-5 rounded-full text-xs font-medium ${statusColors[order.orderStatus] ||
+                    "bg-gray-100 text-gray-800"
+                    }`}
+                >
+                  {order.orderStatus}
+                </span>
               </h4>
-              
+
               <p className=" text-gray-600">
                 Trạng thái thanh toán:
                 <span
-                  className={`ml-2 font-medium ${
-                    paymentStatusColors[order.paymentStatus] ||
+                  className={`ml-2 font-medium ${paymentStatusColors[order.paymentStatus] ||
                     "text-gray-800"
-                  }`}
+                    }`}
                 >
                   {order.paymentStatus}
                 </span>
@@ -149,47 +156,36 @@ const toggleExpand = (orderId) => {
                 Hình thức giao hàng: {order.deliveryMethod}
               </p>
               <p className="text-gray-600">
-                  Ngày đặt: {new Date(order.createdAt).toLocaleDateString()}
-                </p>
+                Ngày đặt: {new Date(order.createdAt).toLocaleDateString()}
+              </p>
               <p className="mt-2 font-bold text-lg">
                 Tổng giá: <span className="text-orange-500">{formatCurrency(order.totalAmount)}₫</span>
               </p>
 
             </div>
-            <div className="flex flex-col items-end">
-              <div className="flex flex-row">
-                <span
-                  className={`px-3 py-1 mr-5 rounded-full text-xs font-medium ${
-                    statusColors[order.orderStatus] ||
-                    "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {order.orderStatus}
-                </span>
-                {/* <FontAwesomeIcon
-                key={order.saleOrderCode}
-                  icon={
-                    expandedOrderId === order.saleOrderCode
-                      ? faCaretUp
-                      : faCaretDown
-                  }
-                  className="w-6 h-6 text-gray-500"
-                /> */}
-              </div>
+
+            <div className="flex flex-col w-1/4 h-auto items-end">
+              <img
+                src={order.orderImage}
+                alt={order.orderImage}
+                className="w-full h-auto object-contain rounded"
+              />
               <Button
-                  color="orange"
-                  size="sm"
-                  className="mt-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/manage-account/sale-order/${order.saleOrderCode}`);
-                  }}
-                >
-                  Xem chi tiết
-                </Button>
-            
+                color="orange"
+                size="sm"
+                className="w-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/manage-account/sale-order/${order.saleOrderCode}`);
+                }}
+              >
+                Xem chi tiết
+              </Button>
             </div>
+
+
           </div>
+
 
           {/* Product Details */}
           {expandedOrderId === order.saleOrderCode && (

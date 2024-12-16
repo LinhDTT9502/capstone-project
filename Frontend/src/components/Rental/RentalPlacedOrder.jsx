@@ -25,8 +25,8 @@ const RentalPlacedOrder = () => {
   const [apiResponse, setApiResponse] = useState(null);
   // console.log(selectedProducts);
   console.log(branchId);
-  
-console.log(selectedOption);
+
+  console.log(selectedOption);
 
 
   const token = localStorage.getItem("token");
@@ -75,7 +75,7 @@ console.log(selectedOption);
   const subTotal = updatedProducts.reduce((acc, product) => acc + product.totalPrice, 0);
 
   // console.log(updatedProducts, subTotal);
-  
+
 
   const handleCreateRentalOrder = async () => {
 
@@ -120,7 +120,7 @@ console.log(selectedOption);
         },
       })),
     };
-console.log(payload);
+    console.log(payload);
 
     try {
       setLoading(true);
@@ -204,9 +204,10 @@ console.log(payload);
                         <li>Màu sắc: {product.color}</li>
                         <li>Kích cỡ: {product.size}</li>
                         <li>Tình trạng: {product.condition}%</li>
+                        <li>Giá thuê: {product.rentPrice.toLocaleString('vi-VN')}</li>
                       </div>
                     </div>
-                    <p className="text-lg text-black text-center flex items-center justify-center ">{(product.totalPrice).toLocaleString()} </p>
+                    <p className="text-lg text-black text-center flex items-center justify-center ">{(product.totalPrice).toLocaleString('vi-VN')} </p>
                   </div>
 
                 </div>
