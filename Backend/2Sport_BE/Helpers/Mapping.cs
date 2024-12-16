@@ -146,6 +146,11 @@ namespace _2Sport_BE.Helpers
             CreateMap<Warehouse, WarehouseVM>()
                 .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.BranchName))
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName))
+                .ForMember(dest => dest.ProductCode, opt => opt.MapFrom(src => src.Product.ProductCode))
+                .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Product.Color))
+                .ForMember(dest => dest.Size, opt => opt.MapFrom(src => src.Product.Size))
+                .ForMember(dest => dest.Condition, opt => opt.MapFrom(src => src.Product.Condition))
+                .ForMember(dest => dest.ImgAvatarPath, opt => opt.MapFrom(src => src.Product.ImgAvatarPath))
                 .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.Product.Id))
                 .ReverseMap();
             CreateMap<WarehouseCM, Warehouse>().ReverseMap();

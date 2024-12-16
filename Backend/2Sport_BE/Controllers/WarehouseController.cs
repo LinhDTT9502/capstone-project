@@ -8,6 +8,7 @@ using _2Sport_BE.Service.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Twilio.Rest.Api.V2010.Account;
 
 namespace _2Sport_BE.Controllers
 {
@@ -41,7 +42,8 @@ namespace _2Sport_BE.Controllers
                 {
                     if (item.ProductId > 0)
                     {
-                        item.Product = await _productService.GetProductById((int)item.ProductId);
+                        var product = await _productService.GetProductById((int)item.ProductId);
+                        item.Product = product;
                     }
 
                     if (item.BranchId > 0)
