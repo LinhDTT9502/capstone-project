@@ -59,23 +59,15 @@ function App() {
       {/* {!isStaffOrAdmin && ( */}
       <div>
         <Header />
-        <div className="z-50 relative">
-          <div className="fixed bottom-0 left-0 mb-4 ml-4">
-            <div className="bg-blue-500 text-white py-2 px-4 rounded">
-              <BranchSystem />
-            </div>
-            <div className="fixed bottom-0 right-0 mb-4 ml-4">
-              <div className=" text-white py-2 px-4 rounded">
-                <ZaloButton />
-              </div>
-            </div>
-            <div className="fixed bottom-20 right-0 mb-4 ml-4">
-              <div className=" text-white py-2 px-4 rounded">
-                <FacebookButton />
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 flex flex-col items-end space-y-4 sm:flex-row sm:justify-between sm:items-end sm:space-y-0 sm:space-x-4">
+      <div className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full shadow-lg transition-colors duration-200 ease-in-out">
+        <BranchSystem />
+      </div>
+      <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+        <ZaloButton />
+        <FacebookButton />
+      </div>
+    </div>
         {/* <BreadcrumbsDefault/> */}
         <Routes>
           {/* <ScrollToTop /> */}

@@ -92,6 +92,7 @@ const SaleOrder = () => {
       if (response) {
         if (!token) {
           dispatch(addGuestOrder(response.data));
+          console.log(response.data)
         }
         setOrderSuccess(true);
         navigate("/order_success", {
