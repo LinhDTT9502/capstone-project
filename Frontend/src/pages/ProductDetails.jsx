@@ -286,7 +286,7 @@ const ProductDetails = () => {
             </h3>
             <p className="text-gray-700">{product.description}</p>
           </div>
-          <CommentList productId={product?.id} />
+          <CommentList productCode={product?.productCode} />
         </>
       )}
     </div>
