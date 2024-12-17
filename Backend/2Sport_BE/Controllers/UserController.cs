@@ -448,6 +448,7 @@ namespace _2Sport_BE.Controllers
                 return BadRequest("Mã OTP không hợp lệ!");
             }
             user.PhoneNumber = newPhoneNumber;
+            user.PhoneNumberConfirmed = true;
             existedPhoneNumberOTP.OTP = 0;
             _redisCacheService.SetData(_phoneNumberOTPsKey, listPhoneNumberOTPsInCache, TimeSpan.FromMinutes(5));
             await _userService.UpdateUserAsync(userId, user);
