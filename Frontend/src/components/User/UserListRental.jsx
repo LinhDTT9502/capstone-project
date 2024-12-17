@@ -102,7 +102,7 @@ export default function UserListRental() {
     </div>;
 
   return (
-    <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[70vh] overflow-y-auto">
+    <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto">
       <h2 className="text-orange-500 font-bold text-2xl">
         Danh sách đơn thuê{" "}
       </h2>
@@ -153,7 +153,7 @@ export default function UserListRental() {
                   </span>
                 </h4>
                 <p className=" text-gray-600">
-                  Phương thức:
+                  Trạng thái thanh toán:
                   <span
                     className={`ml-2 font-medium ${paymentStatusColors[parent.paymentStatus] ||
                       "text-gray-800"
