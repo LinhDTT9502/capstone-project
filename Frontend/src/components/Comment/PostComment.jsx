@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const PostComment = ({ productId, onCommentPosted }) => {
+const PostComment = ({ productCode, onCommentPosted }) => {
   const [content, setContent] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,7 +21,7 @@ const PostComment = ({ productId, onCommentPosted }) => {
     setIsSubmitting(true);
     try {
       await axios.post(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/Comment/comment/${productId}`,
+        `https://capstone-project-703387227873.asia-southeast1.run.app/api/Comment/comment/${productCode}`,
         { content },
         {
           headers: {

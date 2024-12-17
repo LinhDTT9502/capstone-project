@@ -28,8 +28,10 @@ export function ProductColor({
         }, {});
 
         setColorImages(imagesMap);
+        
 
         if (!selectedColor && data.length > 0) {
+          console(data);
           const firstColor = data[0].color;
           setSelectedColor(firstColor);
 
