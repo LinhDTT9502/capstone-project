@@ -84,15 +84,29 @@ const ProductDetails = () => {
     }
   }, [selectedColor, productCode]);
 
-  const handleRentalClick = () => {
+  const handleRentalClick = async () => {
     if (!selectedColor || !selectedSize || !selectedCondition) {
       alert("Vui lòng chọn màu sắc, kích cỡ và tình trạng của sản phẩm!");
     } else {
-      const rentalData = { product, quantity };
-      localStorage.setItem("rentalData", JSON.stringify(rentalData));
-      navigate("/rental-order");
+      try {
+        const response = await checkQuantityProduct(product.id);
+  
+        if (quantity <= response.availableQuantity) {
+          const rentalData = { product, quantity };
+          localStorage.setItem("rentalData", JSON.stringify(rentalData));
+          navigate("/rental-order");
+        } else {
+          alert(
+            `Sản phẩm này chỉ còn lại ${response.availableQuantity} sản phẩm trong kho`
+          );
+        }
+      } catch (error) {
+        console.error("Error checking product quantity:", error);
+        alert("Có lỗi xảy ra khi kiểm tra số lượng sản phẩm.");
+      }
     }
   };
+  
 
   const handlePlaceOrder = async () => {
     if (!selectedColor || !selectedSize || !selectedCondition) {
