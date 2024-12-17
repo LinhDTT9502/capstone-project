@@ -70,7 +70,9 @@ namespace _2Sport_BE.Controllers
                 var result = _mapper.Map<List<CommentVM>>(allCommentInProduct);
                 foreach (var item in result)
                 {
+                    var product = await _productService.GetProductByProductCode(item.ProductCode);
                     var user = await _userService.GetUserById(item.UserId);
+                    item.ProductName = product.ProductName;
                     item.FullName = user.FullName ?? "";
                     item.Email = user.Email ?? "";
                 }
