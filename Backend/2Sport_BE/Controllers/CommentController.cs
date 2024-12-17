@@ -43,7 +43,8 @@ namespace _2Sport_BE.Controllers
                 foreach (var item in result)
                 {
                     var user = await _userService.GetUserById(item.UserId);
-                    item.Username = user.UserName;
+                    item.FullName = user.FullName ?? "";
+                    item.Email = user.Email ?? "";
                 }
                 return Ok(new { total = allCommentInProduct.Count, data = result });
             }
@@ -64,7 +65,8 @@ namespace _2Sport_BE.Controllers
                 foreach (var item in result)
                 {
                     var user = await _userService.GetUserById(item.UserId);
-                    item.Username = user.UserName;
+                    item.FullName = user.FullName ?? "";
+                    item.Email = user.Email ?? "";
                 }
                 return Ok(new { total = allCommentInProduct.Count, data = result });
             } catch (Exception ex)
