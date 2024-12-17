@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import OrderMethod from "../Order/OrderMethod";
+import { Button } from "@material-tailwind/react";
 
 const RentalPlacedOrder = () => {
   const user = useSelector(selectUser);
@@ -164,9 +165,9 @@ const RentalPlacedOrder = () => {
     );
   }
 
-  return (<>
-    <div className="flex flex-row bg-slate-200">
-      <div className="text-nowrap basis-2/3 bg-white">
+  return (
+    <div className="min-h-screen flex bg-slate-200">
+      <div className="flex-1 bg-white p-6">
         <OrderMethod
           userData={userData}
           setUserData={setUserData}
@@ -176,110 +177,95 @@ const RentalPlacedOrder = () => {
           setSelectedBranchId={setBranchId}
         />
       </div>
-      <div className="basis-3/5  pr-20 pl-5 h-1/4 mt-10">
-        <div className="font-alfa text-center p-5 border rounded text-black">
-          Tóm tắt đơn hàng
+      <div className="flex-1 bg-slate-200 p-6 overflow-y-auto mt-10">
+        <div className="font-alfa bg-white text-center p-5 border rounded text-black mb-5">
+          <h2 className="text-xl">Tóm tắt đơn hàng</h2>
         </div>
-        <div className="overflow-auto h-3/4">
-          <div className="grid grid-cols-1 gap-4">
-            {updatedProducts.map((product) => (
-              <div key={product.cartItemId} className=" border rounded p-4 space-x-2">
-                <div className="flex">
-                  <div className="relative bg-white mr-4">
-                    <img
-                      src={product.imgAvatarPath}
-                      alt={product.productName}
-                      className="w-32 h-32 object-contain rounded"
+        
+        <div className="space-y-4">
+          {updatedProducts.map((product) => (
+            <div key={product.cartItemId} className="flex bg-white items-center space-x-4 border p-4 rounded">
+              <div className="relative">
+                <img
+                  src={product.imgAvatarPath}
+                  alt={product.productName}
+                  className="w-32 h-32 object-contain rounded"
+                />
+                <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {product.quantity}
+                </span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold">{product.productName}</h3>
+                <ul className="text-sm">
+                  <li>Màu sắc: {product.color}</li>
+                  <li>Kích thước: {product.size}</li>
+                  <li>Tình trạng: {product.condition}%</li>
+                  <li>Giá thuê: {product.rentPrice.toLocaleString()} ₫/ngày</li>
+                </ul>
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <label className="text-sm">Ngày bắt đầu:</label>
+                    <input
+                      type="date"
+                      min={getTomorrowDate()}
+                      value={product.rentalStartDate || ""}
+                      onChange={(e) => handleDateChange(product.cartItemId, 'rentalStartDate', e.target.value)}
+                      className="border rounded px-2 py-1 text-sm"
                     />
-                    <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {product.quantity}
-                    </span>
                   </div>
-                  <div className="flex justify-between w-full">
-                    <div className="flex flex-col space-y-4 text-wrap mr-2">
-                      <h3 className="text-lg font-semibold">
-                        {product.productName}
-                      </h3>
-                      <div className="text-sm">
-                        <li>Màu sắc: {product.color}</li>
-                        <li>Kích cỡ: {product.size}</li>
-                        <li>Tình trạng: {product.condition}%</li>
-                        <li>Giá thuê: {product.rentPrice.toLocaleString('vi-VN')}</li>
-                      </div>
-                    </div>
-                    <p className="text-lg text-black text-center flex items-center justify-center ">{(product.totalPrice).toLocaleString('vi-VN')} </p>
+                  <div className="flex items-center space-x-2">
+                    <label className="text-sm">Ngày kết thúc:</label>
+                    <input
+                      type="date"
+                      min={product.rentalStartDate || getTomorrowDate()}
+                      value={product.rentalEndDate || ""}
+                      onChange={(e) => handleDateChange(product.cartItemId, 'rentalEndDate', e.target.value)}
+                      className="border rounded px-2 py-1 text-sm"
+                    />
                   </div>
-
-                </div>
-                {/* Date part */}
-                <div className="flex bg-blue-200 text-slate-600 p-2">
-                  <label>Ngày bắt đầu thuê:</label>
-                  <input
-                    type="date"
-                    min={getTomorrowDate()}
-                    value={product.rentalStartDate || ""}
-                    onChange={(e) => handleDateChange(product.cartItemId, 'rentalStartDate', e.target.value)}
-                    className="rounded-lg"
-                  />
-                  <label>Ngày kết thúc thuê:</label>
-                  <input
-                    type="date"
-                    min={product.rentalStartDate || getTomorrowDate()}
-                    value={product.rentalEndDate || ""}
-                    onChange={(e) => handleDateChange(product.cartItemId, 'rentalEndDate', e.target.value)}
-                  />
                 </div>
               </div>
-            ))}
+              <p className="text-lg font-semibold">{product.totalPrice.toLocaleString()} ₫</p>
+            </div>
+          ))}
+          
+          <div className="space-y-4 px-6 py-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Tạm tính</h3>
+              <p className="text-lg">{subTotal.toLocaleString()} ₫</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Ghi chú:</label>
+              <input
+                type="text"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Ghi chú của bạn"
+              />
+            </div>
+            <div className="h-px bg-gray-300 my-5"></div>
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Phí giao hàng</h3>
+              <p className="text-lg">Sẽ được báo lại từ 2Sport</p>
+            </div>
+            <div className="flex justify-between items-center pt-1 mt-4">
+              <h3 className="text-lg font-semibold">Tổng giá</h3>
+              <p className="text-lg font-bold">{subTotal.toLocaleString()} ₫</p>
+            </div>
           </div>
-
-          <div className="text-red-700 flex justify-end text-sm font-bold my-2">* Đơn vị tiền tệ: ₫</div>
-          <div className="h-px bg-gray-300 mx-auto font-bold"></div>
-          <div className="flex justify-between items-center pt-1 border rounded mt-4">
-            <h3 className="text-lg font-semibold">
-              Tạm tính
-            </h3>
-            <p className="text-lg text-black">
-              {subTotal.toLocaleString()}
-            </p>
+          <div className="flex justify-center mt-6">
+            <Button
+              onClick={handleCreateRentalOrder}
+              className={`bg-orange-500 text-white w-full py-3 rounded ${loading ? "opacity-50" : ""}`}
+            >
+              {loading ? "Đang tiến hành..." : "Tạo đơn hàng"}
+            </Button>
           </div>
-          <div className="flex justify-between items-center pt-1 border rounded mt-4">
-            <label className="block text-lg font-semibold">Ghi chú</label>
-            <input
-              type="text"
-              className="border rounded w-3/4 px-3 py-2 mt-2"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Ghi chú của bạn"
-            />
-          </div>
-          <div className="flex justify-between items-center pt-1 border rounded mt-4">
-            <h3 className="text-lg font-semibold">
-              Phí vận chuyển
-            </h3>
-            <p className="text-lg text-black">
-              2Sport sẽ liên hệ và thông báo sau
-            </p>
-          </div>
-          <div className="flex justify-between items-center pt-1 border rounded mt-4">
-            <h3 className="text-lg font-semibold">Tổng cộng</h3>
-            <p className="text-lg text-black">
-              {subTotal.toLocaleString()}
-            </p>
-          </div>
-        </div>
-        <div className="flex pb-10 justify-center items-center">
-          <button
-            onClick={handleCreateRentalOrder}
-            disabled={loading}
-            className="bg-orange-500 text-white px-4 py-2 rounded-md"
-          >
-            {loading ? "Processing..." : "Create Rental Order"}
-          </button>
         </div>
       </div>
     </div>
-  </>
   );
 };
 

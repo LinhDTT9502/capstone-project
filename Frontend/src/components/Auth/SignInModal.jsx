@@ -194,8 +194,9 @@ export default function SignInModal() {
                           {t("signin.password_required")}
                         </p>
                       )}
+
                       <label
-                        className="text-left pb-3 text-blue-500 underline"
+                        className="text-left py-2 text-blue-500 underline cursor-pointer"
                         onClick={() => {
                           closeSignInModal();
                           openForgotPasswordModal();
@@ -203,6 +204,7 @@ export default function SignInModal() {
                       >
                         {t("signin.forgot_password")}
                       </label>
+
                       <button
                         type="submit"
                         className="bg-orange-500 font-alfa text-white rounded-lg px-10 py-2 w-full"
