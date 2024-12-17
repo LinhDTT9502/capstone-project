@@ -100,6 +100,23 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(e);
             }
         }
+
+        [HttpGet]
+        [Route("get-users-without-branch/{roleId}")]
+        //Role User
+        public async Task<IActionResult> GetUsersWithoutBranch(int roleId)
+        {
+            try
+            {
+                var user = await _userService.GetByRoleUsersWithoutBranch(roleId);
+                return Ok(user);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail(string token, string email)
         {

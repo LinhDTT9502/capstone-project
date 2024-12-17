@@ -139,24 +139,23 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<List<ManagerVM>>();
             try
             {
-                var query = await _unitOfWork.ManagerRepository.GetAllAsync(new string[] {"User"});
+                var query = await _unitOfWork.ManagerRepository.GetAllAsync(new string[] {"User", "Branch"});
                 if(query.Count() > 0)
                 {
                     var result = query.Select(m =>
                     {
                         var managerVM = _mapper.Map<ManagerVM>(m);
                         managerVM.UserVM = _mapper.Map<UserVM>(m.User);
+                        managerVM.BranchName = m.Branch != null ? m.Branch.BranchName : "N/A";
                         return managerVM;
                     }).ToList();
 
                     response.IsSuccess = true;
                     response.Message = "Query Successfully";
                     response.Data = result;
-
                 }
                 else
                 {
-
                     response.IsSuccess = false;
                     response.Message = "Query failed";
                 }
@@ -181,6 +180,8 @@ namespace _2Sport_BE.Infrastructure.Services
                     {
                         var managerVM = _mapper.Map<ManagerVM>(m);
                         managerVM.UserVM = _mapper.Map<UserVM>(m.User);
+                        managerVM.BranchName = m.Branch != null ? m.Branch.BranchName : "N/A";
+
                         return managerVM;
                     }).ToList() ;
 
@@ -213,6 +214,8 @@ namespace _2Sport_BE.Infrastructure.Services
                     var managerVM = _mapper.Map<ManagerVM>(query);
                     var userVM = _mapper.Map<UserVM>(query.User);
                     managerVM.UserVM = userVM;
+                    managerVM.BranchName = query.Branch != null ? query.Branch.BranchName : "N/A";
+
 
                     response.IsSuccess = true;
                     response.Message = "Query Successfully";
@@ -243,6 +246,8 @@ namespace _2Sport_BE.Infrastructure.Services
                     var managerVM = _mapper.Map<ManagerVM>(query);
                     var userVM = _mapper.Map<UserVM>(query.User);
                     managerVM.UserVM = userVM;
+                    managerVM.BranchName = query.Branch != null ? query.Branch.BranchName : "N/A";
+
 
                     response.IsSuccess = true;
                     response.Message = "Query Successfully";

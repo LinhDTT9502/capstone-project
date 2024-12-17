@@ -182,13 +182,13 @@ const ProductDetails = () => {
                 <p>
                   <strong>Giá:</strong>{" "}
                   {product.price
-                    ? `${product.price.toLocaleString()} ₫`
+                    ? `${product.price.toLocaleString("VI-vn")} ₫`
                     : "N/A"}
                 </p>
                 <p>
                   <strong>Giá thuê:</strong>{" "}
                   {product.rentPrice
-                    ? `${product.rentPrice.toLocaleString()} ₫`
+                    ? `${product.rentPrice.toLocaleString("VI-vn")} ₫`
                     : "Sản phẩm chỉ bán"}
                 </p>
                 <div className="flex items-center space-x-4">

@@ -244,6 +244,12 @@ namespace _2Sport_BE.Repository.Implements
             return await query.AsNoTracking().Where(filter).FirstOrDefaultAsync();
         }
 
+        public IQueryable<T> GetQueryable()
+        {
+            IQueryable<T> query = _dbSet;
+            return query.AsNoTracking();
+        }
+
         public async Task InsertAsync(T entity)
         {
             try
