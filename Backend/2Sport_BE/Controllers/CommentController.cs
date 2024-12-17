@@ -48,7 +48,7 @@ namespace _2Sport_BE.Controllers
                 {
                     var product = await _productService.GetProductByProductCode(item.ProductCode);
                     var user = await _userService.GetUserById(item.UserId);
-                    item.ProductName = product.ProductName;
+                    item.ProductName = product.ProductName ?? "";
                     item.FullName = user.FullName ?? "";
                     item.Email = user.Email ?? "";
                 }
@@ -72,7 +72,7 @@ namespace _2Sport_BE.Controllers
                 {
                     var product = await _productService.GetProductByProductCode(item.ProductCode);
                     var user = await _userService.GetUserById(item.UserId);
-                    item.ProductName = product.ProductName;
+                    item.ProductName = product.ProductName ?? "";
                     item.FullName = user.FullName ?? "";
                     item.Email = user.Email ?? "";
                 }
@@ -94,7 +94,7 @@ namespace _2Sport_BE.Controllers
 
                 var product = await _productService.GetProductByProductCode(result.ProductCode);
                 var user = await _userService.GetUserById(result.UserId);
-                result.ProductName = product.ProductName;
+                result.ProductName = product.ProductName ?? "";
                 result.FullName = user.FullName ?? "";
                 result.Email = user.Email ?? "";
                 return Ok(new { data = result });
