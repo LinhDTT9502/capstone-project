@@ -5,9 +5,11 @@ import {
   sendSmsOtpApi,
   editPhoneNumberApi,
   sendOtpForEmailChange,
+  uploadAvatarApi,
 } from "../api/apiUser";
 import { toast } from "react-toastify";
 import { getUserProfile as getUserProfile } from "../api/apiUser";
+
 
 export const fetchAllUsers = async (token) => {
   try {
@@ -92,5 +94,16 @@ export const changeEmailService = async (userId, token, email, otp) => {
   } catch (error) {
     console.error("Error changing email:", error);
     throw new Error("Lỗi thay đổi email");
+  }
+};
+
+export const uploadAvatar = async (userId, avatarFile) => {
+  try {
+    const response = await uploadAvatarApi(userId, avatarFile);
+    // console.log("Upload Avatar Response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error uploading avatar:", error?.response || error?.message);
+    throw error;
   }
 };

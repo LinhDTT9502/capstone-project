@@ -125,3 +125,15 @@ export const editPhoneNumberApi = (newPhoneNumber, otp) => {
     }
   );
 };
+
+// POST upload avatar
+export const uploadAvatarApi = (userId, avatarFile) => {
+  const formData = new FormData();
+  formData.append("Avatar", avatarFile);
+
+  return axiosInstance.post(`${API_BASE_URL}/upload-avatar?userId=${userId}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
