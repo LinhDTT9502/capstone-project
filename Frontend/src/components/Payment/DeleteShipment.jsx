@@ -15,7 +15,7 @@ export default function DeleteShipment({ id, token, setReload }) {
     try {
       await deleteUserShipmentDetail(id, token);
       // console.log(response);
-      toast.success("Cập nhật thành công!");
+      toast.success("Xóa địa chỉ thành công!");
       setReload();
     } catch (error) {
       console.error("Error deleting shipment:", error);

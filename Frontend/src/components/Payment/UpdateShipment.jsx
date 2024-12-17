@@ -16,6 +16,14 @@ export default function UpdateShipment({ shipment, onClose, setReload }) {
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
 
+  const parts = shipment.address.split(",");
+
+  // Trim each part to remove unnecessary spaces
+  const numberAddress = parts[0].trim();
+  const wardName = parts[1].trim();
+  const districtName = parts[2].trim();
+  const provinceName = parts[3].trim();
+
   useEffect(() => {
     setFormData({ ...shipment });
   }, [shipment]);
@@ -25,26 +33,24 @@ export default function UpdateShipment({ shipment, onClose, setReload }) {
       const updatedShipment = await updateUserShipmentDetail(
         shipment.id,
         token,
-        { ...formData, address }
+        formData
       );
       toast.success("Cập nhật thành công!");
       setReload();
       dispatch(updateShipment(updatedShipment));
       setIsOpen(false);
       onClose();
-      
     } catch (error) {
       console.error("Error updating shipment details:", error);
     }
   };
 
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
+  const handleInputChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleAddressChange = (newAddress) => {
-    setAddress(newAddress);
+  const handleAddressChange = (fullAddress) => {
+    setFormData({ ...formData, address: fullAddress });
   };
 
   function closeModal() {
@@ -68,7 +74,7 @@ export default function UpdateShipment({ shipment, onClose, setReload }) {
             <Dialog.Overlay className="fixed inset-0 bg-black opacity-50" />
           </Transition.Child>
 
-          <div className="fixed inset-0 max-h-[100vh] overflow-y-auto pt-20">
+          <div className="fixed inset-0 max-h-[100vh] pt-20">
             <div className="flex items-center justify-center min-h-screen">
               <Transition.Child
                 as={Fragment}
@@ -123,7 +129,13 @@ export default function UpdateShipment({ shipment, onClose, setReload }) {
                     <label className="block text-sm font-medium text-gray-700 mb-2  ">
                       {t("payment.address")}
                     </label>
-                    <AddressForm onAddressChange={handleAddressChange} />
+                    <AddressForm 
+                      onAddressChange={handleAddressChange} 
+                      address={numberAddress} 
+                      ward={wardName} 
+                      district={districtName} 
+                      province={provinceName} 
+                    />
                   </div>
                   <div className="mt-6 flex justify-end">
                     <button
@@ -150,3 +162,4 @@ export default function UpdateShipment({ shipment, onClose, setReload }) {
     </>
   );
 }
+

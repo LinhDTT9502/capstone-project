@@ -12,6 +12,8 @@ const BlogDetail = () => {
     const loadBlog = async () => {
       try {
         const fetchedBlog = await fetchBlogById(blogId);
+        console.log(fetchedBlog);
+
         setBlog(fetchedBlog);
       } catch (error) {
         console.error("Error fetching blog by ID:", error);
@@ -53,7 +55,7 @@ const BlogDetail = () => {
         style={{ backgroundImage: `url(${blog.coverImgPath || '/assets/images/default-cover.jpg'})` }}
       >
         <div className="absolute inset-0 bg-black opacity-50"></div>
-       
+
         <h1 className="text-5xl font-bold text-white relative z-10 text-center px-4 animate-fade-in-down">
           {blog.title}
         </h1>
@@ -80,11 +82,12 @@ const BlogDetail = () => {
             </div>
           </div>
 
-          <div className="prose prose-lg max-w-none text-gray-800 leading-relaxed">
-            {blog.content.split('\n').map((paragraph, index) => (
-              <p key={index} className="mb-4">{paragraph}</p>
-            ))}
-          </div>
+      
+          <div
+            className="prose prose-lg max-w-none text-gray-800 leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: blog.content }}
+          ></div>
+
         </div>
 
         <div className="flex justify-between items-center animate-fade-in">

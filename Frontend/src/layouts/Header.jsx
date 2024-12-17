@@ -348,7 +348,7 @@ function Header() {
 
 
               <SignInModal />
-              <Link to="/cart" className="flex space-x-2 border-r-2 pr-4">
+              <Link to="/cart" className="flex space-x-2 ">
                 <div className="relative">
                   <FontAwesomeIcon icon={faCartShopping} className="pr-1" />
                   {cartCount > 0 && token && (
@@ -363,7 +363,7 @@ function Header() {
                 <Menu open={openNoti} handler={setOpenNoti}>
                 <MenuHandler>
                   <div
-                    className=" flex items-center justify-center"
+                    className=" flex items-center justify-center border-l-2 pl-4"
                     onClick={handleNotiToggle}
                   >
                     <FontAwesomeIcon icon={faBell} className="text-xl" />

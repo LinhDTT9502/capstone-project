@@ -1,12 +1,13 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchCategories } from "../services/categoryService";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getCategories = async () => {
@@ -21,17 +22,22 @@ export default function Categories() {
     getCategories();
   }, []);
 
+  const handleCategoryClick = (categoryId) => {
+
+    navigate(`/product?categoryID=${categoryId}`);
+  };
+
   return (
-    <div className="container mx-auto px-20 py-12" >
-      <h2 className="font-alfa text-orange-500 text-3xl mb-8">
-        DANH MỤC
-      </h2>
+    <div className="container mx-auto px-20 py-12">
+      <h2 className="font-alfa text-orange-500 text-3xl mb-8">DANH MỤC</h2>
 
       <div className="flex flex-wrap gap-8 pb-4">
-        {categories.map((category, index) => (
+        {categories.map((category) => (
           <div
-            key={index}
+            key={category.id}
             className="flex flex-col items-center w-32 group transition-transform duration-300 ease-in-out transform hover:scale-110"
+            onClick={() => handleCategoryClick(category.id)} 
+            style={{ cursor: "pointer" }} 
           >
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden shadow-md transition-shadow duration-300 ease-in-out group-hover:shadow-lg">
               <img

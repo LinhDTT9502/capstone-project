@@ -6,8 +6,19 @@ import { useSelector, useDispatch } from "react-redux"; // Added for Redux integ
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
-import { selectCartItems, removeFromCart, decreaseQuantity, addCart } from "../../redux/slices/cartSlice";
-import { addCusCart, decreaseCusQuantity, removeFromCusCart, selectCustomerCartItems } from "../../redux/slices/customerCartSlice";
+import {
+  selectCartItems,
+  removeFromCart,
+  decreaseQuantity,
+  addCart,
+} from "../../redux/slices/cartSlice";
+import {
+  addCusCart,
+  decreaseCusQuantity,
+  removeFromCusCart,
+  selectCustomerCartItems,
+} from "../../redux/slices/customerCartSlice";
+import { checkQuantityProduct } from "../../services/warehouseService";
 // import { ProductType } from "../Product/ProductType";
 
 const GuestCart = () => {
@@ -77,7 +88,7 @@ const GuestCart = () => {
     return acc + item.price;
   }, 0);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (selectedItems.length === 0) {
       toast.error("Please select at least one item to checkout.");
       return;
@@ -86,10 +97,27 @@ const GuestCart = () => {
     const selectedProducts = cartData.filter((item) =>
       selectedItems.includes(item.id)
     );
-    navigate("/placed-order", { state: { selectedProducts } });
+
+    try {
+      for (const product of selectedProducts) {
+        const response = await checkQuantityProduct(product.productId);
+
+        if (product.quantity > response.availableQuantity) {
+          toast.error(
+            `Sản phẩm "${product.productName}" chỉ còn lại ${response.availableQuantity} sản phẩm trong kho.`
+          );
+          return;
+        }
+      }
+
+      navigate("/placed-order", { state: { selectedProducts } });
+    } catch (error) {
+      console.error("Error checking product quantities:", error);
+      toast.error("Có lỗi xảy ra khi kiểm tra số lượng sản phẩm.");
+    }
   };
 
-  const handleRental = () => {
+  const handleRental = async () => {
     if (selectedItems.length === 0) {
       toast.error("Please select at least one item to checkout.");
       return;
@@ -98,10 +126,24 @@ const GuestCart = () => {
     const selectedProducts = cartData.filter((item) =>
       selectedItems.includes(item.id)
     );
-    console.log(selectedProducts);
 
-    navigate("/rental-order", { state: { selectedProducts } });
+    try {
+      for (const product of selectedProducts) {
+        const response = await checkQuantityProduct(product.productId);
 
+        if (product.quantity > response.availableQuantity) {
+          toast.error(
+            `Sản phẩm "${product.productName}" chỉ còn lại ${response.availableQuantity} sản phẩm trong kho.`
+          );
+          return;
+        }
+      }
+
+      navigate("/rental-order", { state: { selectedProducts } });
+    } catch (error) {
+      console.error("Error checking product quantities:", error);
+      toast.error("Có lỗi xảy ra khi kiểm tra số lượng sản phẩm.");
+    }
   };
 
   return (
@@ -115,11 +157,16 @@ const GuestCart = () => {
           {totalItems} {t("user_cart.items")}
         </span>
       </div>
-      <div className="items-center font-poppins mb-2 justify-end flex  text-rose-700">* Đơn vị tiền tệ: ₫</div>
+      <div className="items-center font-poppins mb-2 justify-end flex  text-rose-700">
+        * Đơn vị tiền tệ: ₫
+      </div>
       {cartData.length === 0 ? (
         <>
-          <div className="flex flex-col items-center my-10 py-14">
-            <img src="/assets/images/cart-icon.png" className="w-48 h-auto object-contain" />
+          <div className="flex flex-col items-center my-10 ">
+            <img
+              src="/assets/images/cart-icon.png"
+              className="w-48 h-auto object-contain"
+            />
             <p className="pt-4 text-lg font-poppins">{t("user_cart.empty")}</p>
             <Link
               to="/product"
@@ -157,9 +204,7 @@ const GuestCart = () => {
                 Giá thuê
                 <p className="text-xs">(cho 1 ngày)</p>
               </div>
-              <div className="w-1/12 text-center text-lg font-bold">
-
-              </div>
+              <div className="w-1/12 text-center text-lg font-bold"></div>
             </div>
             {cartData.map((item) => (
               <div
@@ -191,7 +236,9 @@ const GuestCart = () => {
                       color={item.color}
                       size={item.size}
                       condition={item.condition} /> */}
-                    <p>{item.color}, {item.size}, {item.condition}%</p>
+                    <p>
+                      {item.color}, {item.size}, {item.condition}%
+                    </p>
                   </div>
                 </div>
                 <div className="w-2/12 text-center flex items-center justify-center">
@@ -219,7 +266,6 @@ const GuestCart = () => {
                 </div>
                 <div className="w-2/12 text-center">
                   {item.price.toLocaleString()}{" "}
-
                 </div>
 
                 <div className="w-2/12 text-center">
@@ -244,11 +290,11 @@ const GuestCart = () => {
           <div className="flex justify-between items-center mt-5">
             <div className="text-left">
               <p className="text-lg font-semibold">
-                {t("user_cart.total")} ({selectedItems.length} {t("user_cart.items")}):
+                {t("user_cart.total")} ({selectedItems.length}{" "}
+                {t("user_cart.items")}):
               </p>
-
             </div>
-            <p className="font-bold"> {totalPrice.toLocaleString()}{" "}₫ </p>
+            <p className="font-bold"> {totalPrice.toLocaleString()} ₫ </p>
           </div>
           <div className="flex justify-between w-full mt-5">
             <Link
@@ -272,7 +318,6 @@ const GuestCart = () => {
                 Thuê ngay
               </button>
             </div>
-
           </div>
         </div>
       )}
