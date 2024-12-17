@@ -29,7 +29,7 @@ const ProductDetails = () => {
   const [warning, setWarning] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
   const [comments, setComments] = useState([]);
-  
+
 
   useEffect(() => {
     const getProduct = async () => {
@@ -40,7 +40,7 @@ const ProductDetails = () => {
           selectedSize,
           selectedCondition
         );
-        
+
         if (productData.length > 0) {
           setProduct(productData[0]);
           setDisplayImage(productData[0].imgAvatarPath);
@@ -121,12 +121,15 @@ const ProductDetails = () => {
       {product && (
         <>
           <div className="flex flex-col md:flex-row gap-8 justify-between">
-            <div className="md:w-2/5">
+            <div className="md:w-2/5 relative">
               <img
                 src={displayImage}
                 alt={product.imgAvatarName || "Product Image"}
                 className="w-full object-contain rounded-lg"
               />
+              <div className="absolute top-2 right-0 bg-orange-500 text-white text-sm font-bold py-1 px-2.5 rounded">
+                -{product.discount}%
+              </div>
               <div className="flex flex-wrap mt-4 gap-2">
                 {product.listImages?.$values.map((image, index) => (
                   <img
@@ -134,11 +137,10 @@ const ProductDetails = () => {
                     src={image}
                     alt={`Thumbnail ${index + 1}`}
                     onClick={() => setDisplayImage(image)}
-                    className={`w-20 h-20 object-contain border-2 rounded-md cursor-pointer ${
-                      displayImage === image
-                        ? "border-orange-500"
-                        : "border-gray-300"
-                    }`}
+                    className={`w-20 h-20 object-contain border-2 rounded-md cursor-pointer ${displayImage === image
+                      ? "border-orange-500"
+                      : "border-gray-300"
+                      }`}
                   />
                 ))}
               </div>

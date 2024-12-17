@@ -13,7 +13,7 @@ const GuestOrder = () => {
 
   if (!orders || orders.length === 0) {
     return (
-      <div className="flex flex-col items-center my-10 ">
+      <div className="flex flex-col items-center my-10 py-32">
         <img src="/assets/images/cart-icon.png" className="w-48 h-auto object-contain" />
         <p className="pt-4 text-lg font-poppins">{t("guest_order.empty")}</p>
         <Link
