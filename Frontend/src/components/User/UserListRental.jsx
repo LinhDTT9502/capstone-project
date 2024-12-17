@@ -4,20 +4,21 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import { selectUser } from "../../redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
-import { faCaretDown, faCaretUp, faShoppingBag } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCaretDown,
+  faCaretUp,
+  faShoppingBag,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
-  "Đã xác nhận": "bg-blue-100 text-blue-800",
-  "Đã thanh toán": "bg-green-100 text-green-800",
+  "Đã xác nhận đơn": "bg-blue-100 text-blue-800",
   "Đang xử lý": "bg-purple-100 text-purple-800",
-  "Đã giao hàng": "bg-indigo-100 text-indigo-800",
-  "Bị trì hoãn": "bg-red-100 text-red-800",
-  "Đã hủy": "bg-red-200 text-red-900",
-  "Hoàn thành": "bg-teal-100 text-teal-800",
+  "Đã giao cho đơn vị vận chuyển": "bg-indigo-100 text-indigo-800",
+  "Đã giao hàng": "bg-green-100 text-green-800",
+  "Đã hủy": "bg-red-100 text-red-800",
 };
-
 const paymentStatusColors = {
   "Đang chờ thanh toán": "text-yellow-800",
   "Đã đặt cọc": "text-blue-800",
@@ -85,9 +86,16 @@ export default function UserListRental() {
     { parents: [], children: {} }
   );
 
+  const filteredOrders =
+  selectedStatus === "Tất cả"
+    ? groupedOrders.parents
+    : groupedOrders.parents.filter((order) => order.orderStatus === selectedStatus);
+
   const toggleExpand = (orderId) => {
     setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
   };
+
+  
 
   if (isLoading)
     return (
@@ -96,33 +104,37 @@ export default function UserListRental() {
       </div>
     );
   if (error)
-    return <div className="text-center text-gray-500 mt-32 flex flex-col items-center justify-center">
-      <FontAwesomeIcon icon={faShoppingBag} className="text-6xl mb-2" />
-      <p>Bạn chưa có sản phẩm nào</p>
-    </div>;
+    return (
+      <div className="text-center text-gray-500 mt-32 flex flex-col items-center justify-center">
+        <FontAwesomeIcon icon={faShoppingBag} className="text-6xl mb-2" />
+        <p>Bạn chưa có sản phẩm nào</p>
+      </div>
+    );
 
   return (
     <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[70vh] overflow-y-auto">
       <h2 className="text-orange-500 font-bold text-2xl">
         Danh sách đơn thuê{" "}
       </h2>
-      <div className=" rounded-lg overflow-hidden">
-        <div className="flex flex-wrap justify-center p-4 bg-gray-50 border-b">
+      {/* Trạng thái filter */}
+      <div className="rounded-lg overflow-x-auto w-full">
+        <div className="flex justify-start p-4 bg-gray-50 border-b space-x-2 whitespace-nowrap">
           {[
             "Tất cả",
             "Chờ xử lý",
-            "Đã xác nhận",
-            "Đã thanh toán",
+            "Đã xác nhận đơn",
             "Đang xử lý",
+            "Đã giao cho đơn vị vận chuyển",
             "Đã giao hàng",
-            "Hoàn thành",
+            "Đã hủy",
           ].map((status) => (
             <button
               key={status}
-              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${selectedStatus === status
-                ? "bg-orange-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
+                selectedStatus === status
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
               onClick={() => setSelectedStatus(status)}
             >
               {status}
@@ -131,7 +143,7 @@ export default function UserListRental() {
         </div>
       </div>
       <div className="space-y-6">
-        {groupedOrders.parents.map((parent) => (
+        {filteredOrders.map((parent) => (
           <div
             key={parent.id}
             className="p-4 border border-gray-200 rounded-lg shadow-sm mt-4"
@@ -143,11 +155,14 @@ export default function UserListRental() {
               <div>
                 <h4 className="font-semibold text-lg text-gray-800">
                   Mã đơn hàng:{" "}
-                  <span className="text-orange-500">{parent.rentalOrderCode}</span>
+                  <span className="text-orange-500">
+                    {parent.rentalOrderCode}
+                  </span>
                   <span
-                    className={`px-3 py-1 ml-2.5 rounded-full text-xs font-medium ${statusColors[parent.orderStatus] ||
+                    className={`px-3 py-1 ml-2.5 rounded-full text-xs font-medium ${
+                      statusColors[parent.orderStatus] ||
                       "bg-gray-100 text-gray-800"
-                      }`}
+                    }`}
                   >
                     {parent.orderStatus}
                   </span>
@@ -155,9 +170,10 @@ export default function UserListRental() {
                 <p className=" text-gray-600">
                   Phương thức:
                   <span
-                    className={`ml-2 font-medium ${paymentStatusColors[parent.paymentStatus] ||
+                    className={`ml-2 font-medium ${
+                      paymentStatusColors[parent.paymentStatus] ||
                       "text-gray-800"
-                      }`}
+                    }`}
                   >
                     {parent.paymentStatus}
                   </span>
@@ -170,10 +186,12 @@ export default function UserListRental() {
                 </p>
                 <p className="mt-2 font-bold text-lg">
                   Tổng giá:{" "}
-                  <span className="text-orange-500">{new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(parent.totalAmount)}</span>
+                  <span className="text-orange-500">
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(parent.totalAmount)}
+                  </span>
                 </p>
               </div>
               <div className="flex flex-col w-1/4 h-auto items-end">
@@ -188,7 +206,9 @@ export default function UserListRental() {
                   className="w-full"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/manage-account/user-rental/${parent.rentalOrderCode}`);
+                    navigate(
+                      `/manage-account/user-rental/${parent.rentalOrderCode}`
+                    );
                   }}
                 >
                   Xem chi tiết

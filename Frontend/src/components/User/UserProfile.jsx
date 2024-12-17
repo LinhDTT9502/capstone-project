@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect  } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Button } from "@material-tailwind/react";
 import { selectUser, updateUser } from "../../redux/slices/authSlice";
@@ -9,12 +9,13 @@ import 'react-toastify/dist/ReactToastify.css';
 import { faUser, faCaretDown, faVenusMars, faMapMarkerAlt, faBirthdayCake } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AuthInfo from "./AuthInfo";
+import {fetchUserProfile} from "../../services/ManageUserService";
 
 const UserProfile = () => {
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
   const { t } = useTranslation();
-
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     UserName: user.UserName,
@@ -27,7 +28,30 @@ const UserProfile = () => {
     
   });
 
+  useEffect(() => {
+    if (user.PhoneNumberConfirmed === undefined || user.PhoneNumberConfirmed === null) {
+      setLoading(true);
+      fetchUserProfile(user.UserId)
+        .then((response) => {
+          console.log("Full Response:", response);
+          // Lấy trực tiếp từ response thay vì response.data
+          const phoneNumberConfirmed = response.phoneNumberConfirmed;
+          setFormData((prev) => ({
+            ...prev,
+            PhoneNumberConfirmed: phoneNumberConfirmed ?? false,
+          }));
+        })
+        .catch((error) => {
+          console.error("API Error:", error);
+          toast.error("Failed to fetch user profile!");
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [user.UserId, user.PhoneNumberConfirmed]);
+  
+  
   const handleEditClick = () => setIsEditing(true);
+
 
   const handleSaveClick = () => {
     if (JSON.stringify(formData) === JSON.stringify({
@@ -180,7 +204,7 @@ const UserProfile = () => {
               email={user.Email} 
               phone={user.Phone} 
               emailConfirmed={user.EmailConfirmed}
-              phoneNumberConfirmed={user.PhoneNumberConfirmed}
+              phoneNumberConfirmed={formData.PhoneNumberConfirmed}
               userId={user.UserId}
             />
           </div>

@@ -1,40 +1,35 @@
-
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-
 
 const OrderCancel = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   return (
-    <div className="px-20 py-5 flex flex-row bg-slate-200">
-      <div className="whitespace-nowrap w-full py-10 bg-white mx-2 pr-14 flex items-center justify-center">
-        <div className="text-center">
-        <FontAwesomeIcon icon={faXmark}
-            className="bg-red-500 text-white rounded-full px-3 text-8xl"
-          />
-          <div className="font-bold text-2xl pt-5">{t("order_cancel.canceled")}</div>
-          {/* <div>
-            Order Code <span className="font-bold text-xl">{}</span>
-          </div> */}
-          <div className="text-lg">{t("order_cancel.your_order_is_canceled")}</div>
-          <div
-            className="text-blue-500 font-bold pt-5 text-lg cursor-pointer"
-    
-          >
-          
-            <Link to="/product" className="text-blue-500 flex items-center font-poppins">
-              <FontAwesomeIcon className="pr-2" icon={faArrowLeft} /> {t("order_cancel.continue_shopping")}
-            </Link>
-          </div>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg text-center">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-100 mb-6">
+          <FontAwesomeIcon icon={faXmark} className="text-red-600 text-4xl" />
         </div>
+        <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
+          {t("order_cancel.canceled")}
+        </h1>
+        <p className="text-sm text-gray-600 mb-8">
+          {t("order_cancel.your_order_is_canceled")}
+        </p>
+        <Link
+          to="/product"
+          className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200 transition duration-150 ease-in-out"
+        >
+          <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
+          {t("order_cancel.continue_shopping")}
+        </Link>
       </div>
     </div>
   );
 };
 
 export default OrderCancel;
+

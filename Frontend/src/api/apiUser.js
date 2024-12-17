@@ -21,7 +21,7 @@ export const searchUsers = (fullName, username) => {
 
 // GET user profile
 export const getUserProfile = (userId) => {
-  return axios.get(`${API_BASE_URL}/get-profile/${userId}`);
+  return axiosInstance.get(`${API_BASE_URL}/get-profile?userId=${userId}`);
 };
 
 // PUT update user profile
