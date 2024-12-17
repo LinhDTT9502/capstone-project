@@ -176,7 +176,7 @@ export default function UserOrderStatus() {
 
             <div className="flex flex-col w-1/4 h-auto items-end">
               <img
-                src={order.orderImage}
+                src={order.orderImage || "/assets/images/default_package.png"}
                 alt={order.orderImage}
                 className="w-full h-auto object-contain rounded"
               />
