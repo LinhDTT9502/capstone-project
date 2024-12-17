@@ -4,6 +4,8 @@ import {
   signOut,
   mobileSignUp,
   verifyAccountMobileAPI,
+  forgotPasswordRequestMobile,
+  resetPasswordMobile,
 } from "../api/apiAuth";
 import { jwtDecode } from "jwt-decode";
 import { login, logout } from "../redux/slices/authSlice";
@@ -106,4 +108,27 @@ export const checkAndRefreshToken = async () => {
   }
 
   return token;
+};
+
+export const requestPasswordReset = async (email) => {
+  try {
+    const response = await forgotPasswordRequestMobile(email);
+    return response.data;
+  } catch (error) {
+    console.error("Error requesting password reset:", error);
+    throw error.response ? error.response.data : error;
+  }
+};
+
+export const performPasswordReset = async ({ otpCode, email, newPassword }) => {
+  try {
+    const response = await resetPasswordMobile({ otpCode, email, newPassword });
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error in performPasswordReset:",
+      error.response?.data || error.message
+    );
+    throw error.response ? error.response.data : error;
+  }
 };

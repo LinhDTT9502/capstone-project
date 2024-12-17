@@ -176,6 +176,7 @@ const RentalOrder = () => {
             </div>
             <p className="text-lg font-semibold">{(rentalData.product.rentPrice * rentalData.quantity).toLocaleString()} ₫</p>
           </div>
+          
           <div className="space-y-4 px-6 py-4">
             <div>
               <p className="text-xl font-semibold">Chọn thời gian thuê</p>
