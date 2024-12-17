@@ -147,9 +147,11 @@ const ProductDetails = () => {
                 alt={product.imgAvatarName || "Product Image"}
                 className="w-full object-contain rounded-lg"
               />
-              <div className="absolute top-2 right-0 bg-orange-500 text-white text-sm font-bold py-1 px-2.5 rounded">
-                -{product.discount}%
-              </div>
+              {product.discount > 0 && (
+                <div className="absolute top-2 right-0 bg-orange-500 text-white text-sm font-bold py-1 px-2.5 rounded">
+                  -{product.discount}%
+                </div>
+              )}
               <div className="flex flex-wrap mt-4 gap-2">
                 {product.listImages?.$values.map((image, index) => (
                   <img
@@ -277,7 +279,8 @@ const ProductDetails = () => {
                   <FontAwesomeIcon icon={faGift} className="mr-2" />
                   ƯU ĐÃI
                 </h3>
-                <ul className="list-disc ml-5 space-y-2 text-gray-800 mt-2">
+                <div dangerouslySetInnerHTML={{ __html: product.offers }} />
+                {/* <ul className="list-disc ml-5 space-y-2 text-gray-800 mt-2">
                   <li>
                     Tặng 1 đôi vớ cầu lông (vớ{" "}
                     <span className="text-orange-600 font-semibold">
@@ -298,7 +301,7 @@ const ProductDetails = () => {
                       (Trừ hàng nội địa, xách tay)
                     </span>
                   </li>
-                </ul>
+                </ul> */}
               </div>
             </div>
           </div>

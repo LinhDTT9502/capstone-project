@@ -95,7 +95,7 @@ const CommentList = ({ productCode }) => {
               />
             )}
           </div>
-          {replyingTo === comment.id && comment.parentCommentId === 0 && (
+          {/* {replyingTo === comment.id && comment.parentCommentId === 0 && (
             <div className="mt-4">
               <ReplyComment
                 productCode={productCode}
@@ -106,7 +106,7 @@ const CommentList = ({ productCode }) => {
                 }}
               />
             </div>
-          )}
+          )} */}
         </div>
         {comment.replies?.length > 0 && (
           <div className="ml-6 mt-4 border-l-2 border-gray-200 pl-4">
