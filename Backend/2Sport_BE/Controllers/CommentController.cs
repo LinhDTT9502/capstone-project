@@ -17,17 +17,21 @@ namespace _2Sport_BE.Controllers
         private readonly ICommentService _commentService;
         private readonly IUserService _userService;
         private readonly INotificationService _notificationService;
+        private readonly IProductService _productService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CommentController(ICommentService commentService,
-                                 IUserService userService,
-                                 INotificationService notificationService,
-                                 IUnitOfWork unitOfWork, IMapper mapper)
+        public CommentController(ICommentService commentService, 
+                                 IUserService userService, 
+                                 INotificationService notificationService, 
+                                 IProductService productService, 
+                                 IUnitOfWork unitOfWork, 
+                                 IMapper mapper)
         {
-            _userService = userService;
             _commentService = commentService;
+            _userService = userService;
             _notificationService = notificationService;
+            _productService = productService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -42,7 +46,9 @@ namespace _2Sport_BE.Controllers
                 var result = _mapper.Map<List<CommentVM>>(allCommentInProduct);
                 foreach (var item in result)
                 {
+                    var product = await _productService.GetProductByProductCode(item.ProductCode);
                     var user = await _userService.GetUserById(item.UserId);
+                    item.ProductName = product.ProductName;
                     item.FullName = user.FullName ?? "";
                     item.Email = user.Email ?? "";
                 }

@@ -12,6 +12,7 @@
         public string Email{ get; set; }
         public string FullName{ get; set; }
         public string ProductCode { get; set; }
+        public string ProductName { get; set; }
         public int ParentCommentId { get; set; }
         public DateTime CreatedAt { get; set; }
     }
