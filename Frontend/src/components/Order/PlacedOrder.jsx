@@ -84,6 +84,7 @@ const PlacedOrder = () => {
           totalAmount: totalPrice,
         },
       };
+console.log(data);
 
       // Call the placedOrder function to make the API request
       const response = await placedOrder(data);

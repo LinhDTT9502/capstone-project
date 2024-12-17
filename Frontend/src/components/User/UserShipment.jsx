@@ -22,6 +22,9 @@ const UserShipment = () => {
   const [shipments, setShipments] = useState([])
   const token = localStorage.getItem("token");
 
+  const [reload, setReload] = useState(false);
+
+
   useEffect(() => {
     const getShipment = async () => {
       try {
@@ -37,10 +40,10 @@ const UserShipment = () => {
     };
 
     getShipment();
-  }, [dispatch]);
+  }, [reload, dispatch]);
 
   useEffect(() => {
-  }, [shipments,dispatch]);
+  }, [reload, shipments,dispatch]);
 
   const refreshShipments = async () => {
     try {
@@ -64,11 +67,12 @@ const UserShipment = () => {
     setCurrentShipment(null);
   };
 
+
   return (
     <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-bold text-2xl text-orange-500">{t("user_shipment.address")}</h2>
-        <AddShipment refreshShipments={refreshShipments} />
+        <AddShipment refreshShipments={refreshShipments} setReload={setReload}/>
       </div>
 
       {/* No shipments available */}
@@ -95,14 +99,14 @@ const UserShipment = () => {
                 >
                   {t("user_shipment.update")}
                 </button>
-                <DeleteShipment id={shipment.id} token={token} />
+                <DeleteShipment id={shipment.id} token={token} setReload={setReload} />
               </div>
             </div>
           ))}
         </div>
       )}
       {isUpdateModalOpen && (
-        <UpdateShipment shipment={currentShipment} onClose={closeUpdateModal} />
+        <UpdateShipment shipment={currentShipment} onClose={closeUpdateModal} setReload={setReload}/>
       )}
     </div>
   );

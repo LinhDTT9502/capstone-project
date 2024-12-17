@@ -275,6 +275,12 @@ function Header() {
                 {t("header.contact")}
               </Link>
               <Link
+                to="/blog"
+                className=" hover:text-orange-500 focus:text-orange-500"
+              >
+                Blog
+              </Link>
+              <Link
                 to="/manage-account/refund-request"
                 className=" hover:text-orange-500 focus:text-orange-500"
               >
@@ -353,7 +359,8 @@ function Header() {
                 </div>
                 <p>Giỏ hàng</p>
               </Link>
-              <Menu open={openNoti} handler={setOpenNoti}>
+              {token && ( <>
+                <Menu open={openNoti} handler={setOpenNoti}>
                 <MenuHandler>
                   <div
                     className=" flex items-center justify-center"
@@ -389,6 +396,9 @@ function Header() {
 
                 </MenuList>
               </Menu>
+              </>)
+              }
+             
             </div>
           </div>
           <motion.div

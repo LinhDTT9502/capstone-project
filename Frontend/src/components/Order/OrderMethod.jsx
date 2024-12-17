@@ -24,6 +24,8 @@ const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange
                 // Check availability for each branch
                 const statusPromises = branchData.map(async (branch) => {
                     const products = await fetchProductsbyBranch(branch.id);
+                    console.log(products);
+                    
                     const isAvailable = products.some(product => product.availableQuantity > 0);
                     return { branchId: branch.id, status: isAvailable ? "Còn hàng" : "Hết hàng" };
                 });

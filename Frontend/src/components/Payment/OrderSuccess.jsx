@@ -12,8 +12,8 @@ const OrderSuccess = () => {
   return (
     <div className="text-center py-10">
       <FontAwesomeIcon icon={faCircleCheck} size="5x" className="text-green-500" />
-      <h1 className="text-2xl font-bold mt-4">Order Placed Successfully!</h1>
-      <p className="mt-2">Thank you for your order.</p>
+      <h1 className="text-2xl font-bold mt-4">Đặt hàng thành công</h1>
+      <a href="#" className="m-auto text-blue-500 flex items-center font-poppins">Tiến hành thanh toán.</a>
       
       {/* <div className="mt-6">
         {orderID && orderCode ? (
