@@ -17,7 +17,6 @@ export default function AuthInfo({
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [showPhoneDialog, setShowPhoneDialog] = useState(false);
   const [isOtpSent, setIsOtpSent] = useState(false);
-
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
 

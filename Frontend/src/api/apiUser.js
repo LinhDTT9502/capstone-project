@@ -21,7 +21,7 @@ export const searchUsers = (fullName, username) => {
 
 // GET user profile
 export const getUserProfile = (userId) => {
-  return axios.get(`${API_BASE_URL}/get-profile/${userId}`);
+  return axiosInstance.get(`${API_BASE_URL}/get-profile?userId=${userId}`);
 };
 
 // PUT update user profile
@@ -124,4 +124,16 @@ export const editPhoneNumberApi = (newPhoneNumber, otp) => {
       },
     }
   );
+};
+
+// POST upload avatar
+export const uploadAvatarApi = (userId, avatarFile) => {
+  const formData = new FormData();
+  formData.append("Avatar", avatarFile);
+
+  return axiosInstance.post(`${API_BASE_URL}/upload-avatar?userId=${userId}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 };

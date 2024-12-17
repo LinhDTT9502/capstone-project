@@ -85,7 +85,6 @@ const PlacedOrder = () => {
           totalAmount: totalPrice,
         },
       };
-console.log(data);
 
       // Call the placedOrder function to make the API request
       const response = await placedOrder(data);
@@ -99,7 +98,7 @@ console.log(data);
         if (!token) {
           // Save the response to Redux store for guest users
           dispatch(addGuestOrder(response.data));
-
+          console.log(response.data, "")
         }
 
         setOrderSuccess(true);
