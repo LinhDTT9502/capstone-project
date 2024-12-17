@@ -33,6 +33,27 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpGet]
+        [Route("get-all-comments")]
+        public async Task<IActionResult> GetAllComments()
+        {
+            try
+            {
+                var allCommentInProduct = (await _commentService.GetAllComments()).ToList();
+                var result = _mapper.Map<List<CommentVM>>(allCommentInProduct);
+                foreach (var item in result)
+                {
+                    var user = await _userService.GetUserById(item.UserId);
+                    item.Username = user.UserName;
+                }
+                return Ok(new { total = allCommentInProduct.Count, data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet]
         [Route("get-all-comments/{productCode}")]
         public async Task<IActionResult> GetAllComments(string productCode)
         {
