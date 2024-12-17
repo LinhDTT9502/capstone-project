@@ -62,12 +62,12 @@ const GuestOrder = () => {
   if (!orders || orders.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <div className="bg-white p-8 rounded-lg shadow-md text-center">
-          <FontAwesomeIcon
-            icon={faShoppingBag}
-            className="text-6xl text-gray-400 mb-4"
+        <div className="bg-white p-8 rounded-lg shadow-md flex flex-col items-center my-10 py-20">
+          <img
+            src="/assets/images/cart-icon.png"
+            className="w-48 h-auto object-contain"
           />
-          <p className="text-xl font-semibold text-gray-700 mb-4">
+          <p className="text-xl font-semibold text-gray-700  py-8">
             {t("guest_order.empty")}
           </p>
           <Link
@@ -162,26 +162,29 @@ const GuestOrder = () => {
                       Hình thức giao hàng: {order.deliveryMethod}
                     </p>
                   </div>
-                  <div className="flex flex-col w-1/7 h-auto items-end">                    <img
+                  <div className="flex flex-col w-1/7 h-auto items-end">
+                    {" "}
+                    <img
                       src={
                         order.orderImage ||
                         "/assets/images/sale-order-image.png"
                       }
                       alt={order.productName}
                       className="w-full h-32 object-contain rounded"
-                      />
-                  <Button
-                    color="orange"
-                    size="sm"
-                    className="w-full"
-                    onClick={() =>
-                      navigate(`/guest-order/${order.saleOrderId}`, {
-                        state: { order },
-                      })
-                    }
-                  >
-                    Xem chi tiết
-                  </Button>                  </div>
+                    />
+                    <Button
+                      color="orange"
+                      size="sm"
+                      className="w-full"
+                      onClick={() =>
+                        navigate(`/guest-order/${order.saleOrderId}`, {
+                          state: { order },
+                        })
+                      }
+                    >
+                      Xem chi tiết
+                    </Button>{" "}
+                  </div>
 
                   {/* <FontAwesomeIcon
                     icon={
@@ -208,20 +211,19 @@ const GuestOrder = () => {
                           className="w-16 h-16 object-contain rounded"
                         />
                         <div>
-                        <h5 className="font-medium text-base">
-                      {item.productName}
-                    </h5>
+                          <h5 className="font-medium text-base">
+                            {item.productName}
+                          </h5>
                           <p className="text-sm text-gray-500">
-                      Màu sắc: {item.color} - Kích thước: {item.size} - Tình trạng:{" "}
-                      {item.condition}%
-                    </p>
-                    <p className="font-medium text-base text-rose-700">
-                      Giá: {formatCurrency(item.unitPrice)}₫
-                    </p>
-                    <p className="font-medium text-sm">
-                      Số lượng: {item.quantity}
-                    </p>
-
+                            Màu sắc: {item.color} - Kích thước: {item.size} -
+                            Tình trạng: {item.condition}%
+                          </p>
+                          <p className="font-medium text-base text-rose-700">
+                            Giá: {formatCurrency(item.unitPrice)}₫
+                          </p>
+                          <p className="font-medium text-sm">
+                            Số lượng: {item.quantity}
+                          </p>
                         </div>
                       </div>
                     ))}
