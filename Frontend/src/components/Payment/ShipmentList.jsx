@@ -19,6 +19,13 @@ export default function ShipmentList() {
   const [isShipmentListOpen, setIsShipmentListOpen] = useState(true);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [currentShipment, setCurrentShipment] = useState(null);
+  const [reload, setReload] = useState(false);
+
+  const reloadFunction = () => {
+    setReload(!reload);
+  };
+
+  // console.log(currentShipment, "check")
   // const [shipments, setShipments] = useState([])
   const shipments = useSelector(selectShipment);
 
@@ -105,7 +112,7 @@ export default function ShipmentList() {
                 <Dialog.Overlay className="fixed inset-0 bg-black opacity-50" />
               </Transition.Child>
 
-              <div className="fixed inset-0 max-h-[100vh] overflow-y-auto pt-20">
+              <div className="fixed inset-0 max-h-[100vh]  z-[999999999999]">
                 <div className="flex items-center justify-center min-h-screen">
                   <Transition.Child
                     as={Fragment}
@@ -162,6 +169,8 @@ export default function ShipmentList() {
                           ))}
                           <AddShipment
                             refreshShipments={refreshShipments}
+                            setReload={reloadFunction}
+                            
                           />
                         </div>
                       )}
@@ -174,7 +183,7 @@ export default function ShipmentList() {
         </div>
       )}
       {isUpdateModalOpen && (
-        <UpdateShipment shipment={currentShipment} onClose={closeUpdateModal} />
+        <UpdateShipment shipment={currentShipment} onClose={closeUpdateModal} setReload={reloadFunction}/>
       )}
     </>
   );

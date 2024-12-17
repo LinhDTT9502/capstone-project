@@ -6,6 +6,8 @@ namespace _2Sport_BE.Repository.Interfaces
     public interface IGenericRepository<T> where T : class
     {
         Task<T> FindAsync(int? id);
+        IQueryable<T> GetQueryable();
+
         Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> filter = null);
         Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> filter = null,
                                   string includeProperties = "",

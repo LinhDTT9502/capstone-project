@@ -12,7 +12,15 @@ import { getComment } from "../services/Comment/CommentService";
 import CommentList from "../components/Comment/CommentList";
 import LikeButton from "../components/Product/LikeButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSpinner, faGift, faMinus, faPlus, faShoppingCart, faMoneyBillWave } from "@fortawesome/free-solid-svg-icons";
+import {
+  faSpinner,
+  faGift,
+  faMinus,
+  faPlus,
+  faShoppingCart,
+  faMoneyBillWave,
+} from "@fortawesome/free-solid-svg-icons";
+import ProductReviews from "../components/Product/ProductReview";
 
 const ProductDetails = () => {
   const { productCode } = useParams();
@@ -29,7 +37,6 @@ const ProductDetails = () => {
   const [warning, setWarning] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
   const [comments, setComments] = useState([]);
-  
 
   useEffect(() => {
     const getProduct = async () => {
@@ -40,7 +47,7 @@ const ProductDetails = () => {
           selectedSize,
           selectedCondition
         );
-        
+
         if (productData.length > 0) {
           setProduct(productData[0]);
           setDisplayImage(productData[0].imgAvatarPath);
@@ -77,16 +84,29 @@ const ProductDetails = () => {
     }
   }, [selectedColor, productCode]);
 
-
-  const handleRentalClick = () => {
+  const handleRentalClick = async () => {
     if (!selectedColor || !selectedSize || !selectedCondition) {
       alert("Vui lòng chọn màu sắc, kích cỡ và tình trạng của sản phẩm!");
     } else {
-      const rentalData = { product, quantity };
-      localStorage.setItem("rentalData", JSON.stringify(rentalData));
-      navigate("/rental-order");
+      try {
+        const response = await checkQuantityProduct(product.id);
+  
+        if (quantity <= response.availableQuantity) {
+          const rentalData = { product, quantity };
+          localStorage.setItem("rentalData", JSON.stringify(rentalData));
+          navigate("/rental-order");
+        } else {
+          alert(
+            `Sản phẩm này chỉ còn lại ${response.availableQuantity} sản phẩm trong kho`
+          );
+        }
+      } catch (error) {
+        console.error("Error checking product quantity:", error);
+        alert("Có lỗi xảy ra khi kiểm tra số lượng sản phẩm.");
+      }
     }
   };
+  
 
   const handlePlaceOrder = async () => {
     if (!selectedColor || !selectedSize || !selectedCondition) {
@@ -121,12 +141,15 @@ const ProductDetails = () => {
       {product && (
         <>
           <div className="flex flex-col md:flex-row gap-8 justify-between">
-            <div className="md:w-2/5">
+            <div className="md:w-2/5 relative">
               <img
                 src={displayImage}
                 alt={product.imgAvatarName || "Product Image"}
                 className="w-full object-contain rounded-lg"
               />
+              <div className="absolute top-2 right-0 bg-orange-500 text-white text-sm font-bold py-1 px-2.5 rounded">
+                -{product.discount}%
+              </div>
               <div className="flex flex-wrap mt-4 gap-2">
                 {product.listImages?.$values.map((image, index) => (
                   <img
@@ -134,11 +157,10 @@ const ProductDetails = () => {
                     src={image}
                     alt={`Thumbnail ${index + 1}`}
                     onClick={() => setDisplayImage(image)}
-                    className={`w-20 h-20 object-contain border-2 rounded-md cursor-pointer ${
-                      displayImage === image
-                        ? "border-orange-500"
-                        : "border-gray-300"
-                    }`}
+                    className={`w-20 h-20 object-contain border-2 rounded-md cursor-pointer ${displayImage === image
+                      ? "border-orange-500"
+                      : "border-gray-300"
+                      }`}
                   />
                 ))}
               </div>
@@ -182,19 +204,21 @@ const ProductDetails = () => {
                 <p>
                   <strong>Giá:</strong>{" "}
                   {product.price
-                    ? `${product.price.toLocaleString()} ₫`
+                    ? `${product.price.toLocaleString("VI-vn")} ₫`
                     : "N/A"}
                 </p>
                 <p>
                   <strong>Giá thuê:</strong>{" "}
                   {product.rentPrice
-                    ? `${product.rentPrice.toLocaleString()} ₫`
+                    ? `${product.rentPrice.toLocaleString("VI-vn")} ₫`
                     : "Sản phẩm chỉ bán"}
                 </p>
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                      onClick={() =>
+                        setQuantity((prev) => Math.max(1, prev - 1))
+                      }
                       className="px-3 py-1 bg-orange-500 text-white rounded-md"
                     >
                       <FontAwesomeIcon icon={faMinus} />
@@ -278,13 +302,21 @@ const ProductDetails = () => {
               </div>
             </div>
           </div>
-          <div className="mt-8">
-            <h3 className="font-poppins text-lg text-orange-500 font-bold mb-2">
-              Mô tả sản phẩm:
+          <div className="mt-12 bg-white rounded-lg shadow-md overflow-hidden">
+            <h3 className="text-2xl font-bold text-gray-800 bg-gray-100 p-4 border-b border-gray-200">
+              Mô tả sản phẩm
             </h3>
-            <p className="text-gray-700">{product.description}</p>
+            <div className="p-6">
+              <div
+                className="prose prose-lg max-w-none text-gray-700 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: product.description }}
+              >
+              </div>
+            </div>
           </div>
+          <ProductReviews productCode={productCode} />
           <CommentList productId={product?.id} />
+
         </>
       )}
     </div>
@@ -292,4 +324,3 @@ const ProductDetails = () => {
 };
 
 export default ProductDetails;
-

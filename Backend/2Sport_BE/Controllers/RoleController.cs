@@ -42,7 +42,7 @@ namespace _2Sport_BE.Controllers
             if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
-        [HttpPost]
+        [HttpPut]
         [Route("edit-role/{roleId}")]
         public async Task<IActionResult> EditRole(int roleId, [FromBody] RoleUM roleUM)
         {
@@ -50,7 +50,7 @@ namespace _2Sport_BE.Controllers
             if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
-        [HttpPost]
+        [HttpDelete]
         [Route("remove-role")]
         public async Task<IActionResult> RemoveRole([FromQuery] int roleId)
         {

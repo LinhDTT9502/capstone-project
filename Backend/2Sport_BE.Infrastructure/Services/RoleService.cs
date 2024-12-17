@@ -142,7 +142,7 @@ namespace _2Sport_BE.Infrastructure.Services
             try
             {
                 var isExited = await _unitOfWork.RoleRepository.GetObjectAsync(r => r.Id == id);
-                if (isExited != null)
+                if (isExited == null)
                 {
                     response.IsSuccess = false;
                     response.Message = $"Role - {id} is not found";
@@ -169,14 +169,16 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<RoleVM>();
             try
             {
-                var isExited = await _unitOfWork.RoleRepository.GetObjectAsync(r => r.Id == roleId);
+                var isExited = _unitOfWork.RoleRepository.FindObject(r => r.Id == roleId);
                 if (isExited == null)
                 {
                     response.IsSuccess = false;
                     response.Message = $"Role - {roleId} is not existed";
                     return response;
                 }
-                isExited = _mapper.Map<Role>(roleUM);
+                isExited.RoleName = roleUM.RoleName;
+                isExited.Description = roleUM.Description;
+
                 await _unitOfWork.RoleRepository.UpdateAsync(isExited);
 
                 RoleVM result = _mapper.Map<RoleVM>(isExited);

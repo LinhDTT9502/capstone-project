@@ -8,6 +8,7 @@ using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Twilio.Rest.Api.V2010.Account;
 
 namespace _2Sport_BE.Service.Services
 {
@@ -15,9 +16,11 @@ namespace _2Sport_BE.Service.Services
     {
         Task<int> AddComment (int userId, string productCode, Comment comment);
         Task<int> ReplyComment (int userId, string productCode, int parentCommentId, Comment comment);
+        Task<IQueryable<Comment>> GetAllComments();
         Task<IQueryable<Comment>> GetAllComment (string productCode);
         Task<ResponseDTO<int>> UpdateComment (int currUserId, int commentId, Comment newComment);
-        Task<ResponseDTO<int>> DeleteComment (int userId, int commentId); 
+        Task<ResponseDTO<int>> DeleteComment (int userId, int commentId);
+        Task<Comment> GetCommentById(int commentId);
     }
     public class CommentService : ICommentService
     {
@@ -91,6 +94,19 @@ namespace _2Sport_BE.Service.Services
                                                                         .Equals(productCode.ToLower())))
                                                        .AsQueryable()
                                                        .Include(_ => _.User);
+        }
+
+        public async Task<IQueryable<Comment>> GetAllComments()
+        {
+            return (await _unitOfWork.CommentRepository.GetAsync(_ => !string.IsNullOrEmpty(_.ProductCode)))
+                                                       .AsQueryable()
+                                                       .Include(_ => _.User);
+        }
+
+        public async Task<Comment> GetCommentById(int commentId)
+        {
+            var comment = await _unitOfWork.CommentRepository.FindAsync(commentId);
+            return comment;
         }
 
         public async Task<int> ReplyComment(int userId, string productCode, int parentCommentId, Comment comment)

@@ -5,19 +5,24 @@ import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import { fetchUserOrders } from "../../services/userOrderService";
 import { useNavigate } from "react-router-dom";
-import { faCaretDown, faCaretUp, faExclamationCircle, faShoppingBag } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCaretDown,
+  faCaretUp,
+  faExclamationCircle,
+  faShoppingBag,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
   "Đã xác nhận": "bg-blue-100 text-blue-800",
-  "Đã thanh toán": "bg-green-100 text-green-800",
   "Đang xử lý": "bg-purple-100 text-purple-800",
-  "Đã giao hàng": "bg-indigo-100 text-indigo-800",
-  "Bị trì hoãn": "bg-red-100 text-red-800",
+  "Đã giao cho đơn vị vận chuyển": "bg-cyan-100 text-cyan-800",
+  "Đã giao hàng": "bg-green-100 text-green-800",
   "Đã hủy": "bg-red-200 text-red-900",
-  "Hoàn thành": "bg-teal-100 text-teal-800",
+  
 };
+
 
 const paymentStatusColors = {
   "Đang chờ thanh toán": "text-yellow-800",
@@ -57,9 +62,10 @@ export default function UserOrderStatus() {
   }, [user.UserId]);
 
   const toggleExpand = (orderId) => {
-    setExpandedOrderId((prevOrderId) => (prevOrderId === orderId ? null : orderId));
+    setExpandedOrderId((prevOrderId) =>
+      prevOrderId === orderId ? null : orderId
+    );
   };
-
 
   const filteredOrders =
     selectedStatus === "Tất cả"
@@ -75,8 +81,6 @@ export default function UserOrderStatus() {
     return formattedAmount;
   };
 
-
-
   if (isLoading)
     return (
       <div className="flex justify-center items-center h-64">
@@ -84,33 +88,36 @@ export default function UserOrderStatus() {
       </div>
     );
   if (error)
-    return <div className="text-center text-gray-500  mt-32 flex flex-col items-center justify-center">
-      <FontAwesomeIcon icon={faShoppingBag} className="text-6xl mb-2" />
-      <p>Bạn chưa có sản phẩm nào</p>
-    </div>
+    return (
+      <div className="text-center text-gray-500  mt-32 flex flex-col items-center justify-center">
+        <FontAwesomeIcon icon={faShoppingBag} className="text-6xl mb-2" />
+        <p>Bạn chưa có sản phẩm nào</p>
+      </div>
+    );
 
   return (
-    <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[70vh] overflow-y-auto">
+    <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto">
       <h2 className="text-orange-500 font-bold text-2xl">Danh sách đơn mua </h2>
 
       {/* Status Filter Tabs */}
-      <div className="rounded-lg overflow-hidden">
-        <div className="flex flex-wrap justify-center p-4 bg-gray-50 border-b">
+      <div className="rounded-lg overflow-x-auto w-full">
+        <div className="flex justify-start p-4 bg-gray-50 border-b space-x-2 whitespace-nowrap">
           {[
             "Tất cả",
             "Chờ xử lý",
             "Đã xác nhận",
-            "Đã thanh toán",
             "Đang xử lý",
+            "Đã giao cho đơn vị vận chuyển",
             "Đã giao hàng",
-            "Hoàn thành",
+            "Đã hủy",
           ].map((status) => (
             <button
               key={status}
-              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${selectedStatus === status
-                ? "bg-orange-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
+              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
+                selectedStatus === status
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
               onClick={() => setSelectedStatus(status)}
             >
               {status}
@@ -134,9 +141,10 @@ export default function UserOrderStatus() {
                 Mã đơn hàng:{" "}
                 <span className="text-orange-500">{order.saleOrderCode}</span>
                 <span
-                  className={`px-3 ml-2.5 py-1 mr-5 rounded-full text-xs font-medium ${statusColors[order.orderStatus] ||
+                  className={`px-3 ml-2.5 py-1 mr-5 rounded-full text-xs font-medium ${
+                    statusColors[order.orderStatus] ||
                     "bg-gray-100 text-gray-800"
-                    }`}
+                  }`}
                 >
                   {order.orderStatus}
                 </span>
@@ -145,23 +153,25 @@ export default function UserOrderStatus() {
               <p className=" text-gray-600">
                 Trạng thái thanh toán:
                 <span
-                  className={`ml-2 font-medium ${paymentStatusColors[order.paymentStatus] ||
-                    "text-gray-800"
-                    }`}
+                  className={`ml-2 font-medium ${
+                    paymentStatusColors[order.paymentStatus] || "text-gray-800"
+                  }`}
                 >
                   {order.paymentStatus}
                 </span>
               </p>
               <p className="text-gray-600">
-                Hình thức giao hàng: {order.deliveryMethod}
+                Hình thức nhận hàng: {order.deliveryMethod}
               </p>
               <p className="text-gray-600">
                 Ngày đặt: {new Date(order.createdAt).toLocaleDateString()}
               </p>
               <p className="mt-2 font-bold text-lg">
-                Tổng giá: <span className="text-orange-500">{formatCurrency(order.totalAmount)}₫</span>
+                Tổng giá:{" "}
+                <span className="text-orange-500">
+                  {formatCurrency(order.totalAmount)}₫
+                </span>
               </p>
-
             </div>
 
             <div className="flex flex-col w-1/4 h-auto items-end">
@@ -182,10 +192,7 @@ export default function UserOrderStatus() {
                 Xem chi tiết
               </Button>
             </div>
-
-
           </div>
-
 
           {/* Product Details */}
           {expandedOrderId === order.saleOrderCode && (
@@ -205,8 +212,8 @@ export default function UserOrderStatus() {
                       {item.productName}
                     </h5>
                     <p className="text-sm text-gray-500">
-                      Màu sắc: {item.color} - Kích thước: {item.size} - Tình trạng:{" "}
-                      {item.condition}%
+                      Màu sắc: {item.color} - Kích thước: {item.size} - Tình
+                      trạng: {item.condition}%
                     </p>
                     <p className="font-medium text-base text-rose-700">
                       Giá: {formatCurrency(item.unitPrice)}₫
