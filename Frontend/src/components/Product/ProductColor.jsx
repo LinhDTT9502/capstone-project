@@ -1,12 +1,7 @@
 import { useState, useEffect } from "react";
 import { fetchProductByProductCode, fetchProductColor } from "../../services/productService";
 
-export function ProductColor({
-  productCode,
-  selectedColor,
-  setSelectedColor,
-  setSelectedSize, setSelectedCondition }) {
-
+export function ProductColor({ productCode, selectedColor, setSelectedColor }) {
   const [colors, setColors] = useState([]);
   const [colorImages, setColorImages] = useState({});
 
@@ -28,14 +23,10 @@ export function ProductColor({
         }, {});
 
         setColorImages(imagesMap);
-        
 
         if (!selectedColor && data.length > 0) {
-          console(data);
-          const firstColor = data[0].color;
-          setSelectedColor(firstColor);
-
-        } 
+          setSelectedColor(data[0].color);
+        }
       } catch (error) {
         console.error("Failed to load product colors or images:", error);
       }
@@ -44,13 +35,7 @@ export function ProductColor({
     if (productCode) {
       loadColors();
     }
-  }, [productCode, selectedColor, setSelectedColor, setSelectedSize]);
-  
-  const handleColorChange = (color) => {
-    setSelectedColor(color);
-    setSelectedSize("");  
-    setSelectedCondition(""); 
-  };
+  }, [productCode, selectedColor, setSelectedColor]);
 
   return (
     <div className="space-y-2">
@@ -59,22 +44,24 @@ export function ProductColor({
         {colors.map((color, index) => (
           <label
             key={index}
-            className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${selectedColor === color.color
+            className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${
+              selectedColor === color.color
                 ? "border-orange-500 bg-orange-50"
                 : "border-gray-200 hover:border-orange-200"
-              }`}
+            }`}
           >
             <input
               type="radio"
               name="product-color"
               value={color.color}
               checked={selectedColor === color.color}
-              onChange={() => handleColorChange(color.color)}
+              onChange={() => setSelectedColor(color.color)}
               className="hidden"
             />
             <div className="relative w-5 h-5">
-              <div className={`absolute inset-0 rounded-full border-2 ${selectedColor === color.color ? "border-orange-500" : "border-gray-300"
-                }`} />
+              <div className={`absolute inset-0 rounded-full border-2 ${
+                selectedColor === color.color ? "border-orange-500" : "border-gray-300"
+              }`} />
               {selectedColor === color.color && (
                 <div className="absolute inset-1 rounded-full bg-orange-500" />
               )}
