@@ -78,7 +78,7 @@ export default function Brands() {
       <p className="font-alfa text-orange-500 text-3xl pt-10">
         {t("brand.name")}
       </p>
-      <ParallaxText brands={brands} baseVelocity={1} />
+      <ParallaxText brands={brands} baseVelocity={0.4} />
     </div>
   );
 }

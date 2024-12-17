@@ -90,7 +90,7 @@ export default function UserOrderStatus() {
     </div>
 
   return (
-    <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[70vh] overflow-y-auto">
+    <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto">
       <h2 className="text-orange-500 font-bold text-2xl">Danh sách đơn mua </h2>
 
       {/* Status Filter Tabs */}
@@ -153,7 +153,7 @@ export default function UserOrderStatus() {
                 </span>
               </p>
               <p className="text-gray-600">
-                Hình thức giao hàng: {order.deliveryMethod}
+                Hình thức nhận hàng: {order.deliveryMethod}
               </p>
               <p className="text-gray-600">
                 Ngày đặt: {new Date(order.createdAt).toLocaleDateString()}
