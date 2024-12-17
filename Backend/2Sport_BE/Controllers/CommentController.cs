@@ -83,6 +83,28 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("get-comment-by-id/{commentId}")]
+        public async Task<IActionResult> GetCommentById(int commentId)
+        {
+            try
+            {
+                var allCommentInProduct = (await _commentService.GetCommentById(commentId));
+                var result = _mapper.Map<CommentVM>(allCommentInProduct);
+
+                var product = await _productService.GetProductByProductCode(result.ProductCode);
+                var user = await _userService.GetUserById(result.UserId);
+                result.ProductName = product.ProductName;
+                result.FullName = user.FullName ?? "";
+                result.Email = user.Email ?? "";
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost]
         [Route("comment/{productCode}")]
         public async Task<IActionResult> Comment(string productCode, CommentCM commentCM)
