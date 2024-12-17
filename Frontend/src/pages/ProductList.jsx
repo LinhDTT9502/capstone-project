@@ -124,12 +124,12 @@ const ProductList = ({
 
             {/* Product Price */}
             <p className="text-red-700 text-lg font-bold mt-auto">
-              {product.price.toLocaleString("vi-VN")} ₫
+              {product.price.toLocaleString("vi-VN")}₫
             </p>
           </div>
-          
+
         ))}
-        
+
       </div>
       {/* Pagination */}
       <Paginationv3

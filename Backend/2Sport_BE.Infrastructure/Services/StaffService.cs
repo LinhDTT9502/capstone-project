@@ -84,13 +84,14 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<List<StaffVM>>();
             try
             {
-                var query = await _unitOfWork.StaffRepository.GetAllAsync(new string[] {"User"});
+                var query = await _unitOfWork.StaffRepository.GetAllAsync(new string[] {"User", "Branch"});
                 if (query.Count() > 0)
                 {
                     var result = query.Select(s =>
                     {
                         var staff = _mapper.Map<StaffVM>(s);
                         staff.UserVM = _mapper.Map<UserVM>(s.User);
+                        staff.BranchName = s.Branch != null ? s.Branch.BranchName : "N/A";
                         return staff;
                     }).ToList();
 
@@ -118,12 +119,13 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<StaffVM>();
             try
             {
-                var query = await _unitOfWork.StaffRepository.GetObjectAsync(m => m.StaffId == staffId, new string[] { "User" });
+                var query = await _unitOfWork.StaffRepository.GetObjectAsync(m => m.StaffId == staffId, new string[] { "User", "Branch" });
                 if (query != null)
                 {
                     var staffVM = _mapper.Map<StaffVM>(query);
                     var userVM = _mapper.Map<UserVM>(query.User);
                     staffVM.UserVM = userVM;
+                    staffVM.BranchName = query.Branch != null ? query.Branch.BranchName : "N/A";
 
                     response.IsSuccess = true;
                     response.Message = "Query Successfully";
@@ -156,6 +158,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     {
                         var staff = _mapper.Map<StaffVM>(s);
                         staff.UserVM = _mapper.Map<UserVM>(s.User);
+                        staff.BranchName = s.Branch != null ? s.Branch.BranchName : "N/A";
                         return staff;
                     }).ToList();
 

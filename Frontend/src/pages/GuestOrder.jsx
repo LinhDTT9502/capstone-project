@@ -78,6 +78,7 @@ const GuestOrder = () => {
             {t("guest_order.continue_shopping")}
           </Link>
         </div>
+
       </div>
     );
   }

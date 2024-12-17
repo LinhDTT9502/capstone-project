@@ -67,7 +67,8 @@ namespace _2Sport_BE.Helpers
             #endregion
             #region Comment
             CreateMap<Comment, CommentVM>()
-                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.UserName))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
                 .ReverseMap();
             CreateMap<Comment, CommentCM>().ReverseMap();
             CreateMap<Comment, CommentUM>().ReverseMap();

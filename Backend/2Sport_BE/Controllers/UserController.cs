@@ -100,6 +100,23 @@ namespace _2Sport_BE.Controllers
                 return BadRequest(e);
             }
         }
+
+        [HttpGet]
+        [Route("get-users-without-branch/{roleId}")]
+        //Role User
+        public async Task<IActionResult> GetUsersWithoutBranch(int roleId)
+        {
+            try
+            {
+                var user = await _userService.GetByRoleUsersWithoutBranch(roleId);
+                return Ok(user);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail(string token, string email)
         {
@@ -448,6 +465,7 @@ namespace _2Sport_BE.Controllers
                 return BadRequest("Mã OTP không hợp lệ!");
             }
             user.PhoneNumber = newPhoneNumber;
+            user.PhoneNumberConfirmed = true;
             existedPhoneNumberOTP.OTP = 0;
             _redisCacheService.SetData(_phoneNumberOTPsKey, listPhoneNumberOTPsInCache, TimeSpan.FromMinutes(5));
             await _userService.UpdateUserAsync(userId, user);

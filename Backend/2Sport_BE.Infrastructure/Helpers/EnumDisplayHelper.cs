@@ -69,10 +69,6 @@ namespace _2Sport_BE.Service.Helpers
         {ExtensionRequestStatus.REJECTED, "Từ chối yêu cầu gia hạn"},
     };
 
-        public static string GetDisplayName(Enum enumValue)
-        {
-            return displayNames.TryGetValue(enumValue, out var name) ? name : enumValue.ToString();
-        }
         public static string GetEnumDescription<TEnum>(int value) where TEnum : Enum
         {
             if (Enum.IsDefined(typeof(TEnum), value))

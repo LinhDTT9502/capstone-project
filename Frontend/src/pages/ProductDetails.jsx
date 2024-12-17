@@ -141,12 +141,15 @@ const ProductDetails = () => {
       {product && (
         <>
           <div className="flex flex-col md:flex-row gap-8 justify-between">
-            <div className="md:w-2/5">
+            <div className="md:w-2/5 relative">
               <img
                 src={displayImage}
                 alt={product.imgAvatarName || "Product Image"}
                 className="w-full object-contain rounded-lg"
               />
+              <div className="absolute top-2 right-0 bg-orange-500 text-white text-sm font-bold py-1 px-2.5 rounded">
+                -{product.discount}%
+              </div>
               <div className="flex flex-wrap mt-4 gap-2">
                 {product.listImages?.$values.map((image, index) => (
                   <img
@@ -154,11 +157,10 @@ const ProductDetails = () => {
                     src={image}
                     alt={`Thumbnail ${index + 1}`}
                     onClick={() => setDisplayImage(image)}
-                    className={`w-20 h-20 object-contain border-2 rounded-md cursor-pointer ${
-                      displayImage === image
-                        ? "border-orange-500"
-                        : "border-gray-300"
-                    }`}
+                    className={`w-20 h-20 object-contain border-2 rounded-md cursor-pointer ${displayImage === image
+                      ? "border-orange-500"
+                      : "border-gray-300"
+                      }`}
                   />
                 ))}
               </div>
@@ -202,13 +204,13 @@ const ProductDetails = () => {
                 <p>
                   <strong>Giá:</strong>{" "}
                   {product.price
-                    ? `${product.price.toLocaleString()} ₫`
+                    ? `${product.price.toLocaleString("VI-vn")} ₫`
                     : "N/A"}
                 </p>
                 <p>
                   <strong>Giá thuê:</strong>{" "}
                   {product.rentPrice
-                    ? `${product.rentPrice.toLocaleString()} ₫`
+                    ? `${product.rentPrice.toLocaleString("VI-vn")} ₫`
                     : "Sản phẩm chỉ bán"}
                 </p>
                 <div className="flex items-center space-x-4">
@@ -314,6 +316,7 @@ const ProductDetails = () => {
           </div>
           <ProductReviews productCode={productCode} />
           <CommentList productId={product?.id} />
+
         </>
       )}
     </div>
