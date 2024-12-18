@@ -49,6 +49,7 @@ import ZaloButton from './components/Social/ZaloButton';
 import FacebookButton from './components/Social/FacebookButton';
 import BlogRoutes from './routes/BlogRoutes';
 import RefundForm from './components/Refund/RefundForm';
+import PaymentFail from './pages/AfterPayment/PaymentFail';
 
 
 function App() {
@@ -86,6 +87,7 @@ function App() {
           <Route path="/shipping" element={<ShippingPolicyPage />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-success-2" element={<PaymentSuccessV2 />} />
+          <Route path="/payment-fail" element={<PaymentFail />} />
 
           {/* <Route path='/blog-list' element={<BlogList/>}/>
         <Route path='/blog-detail' element={<BlogDetail/>}/> */}
