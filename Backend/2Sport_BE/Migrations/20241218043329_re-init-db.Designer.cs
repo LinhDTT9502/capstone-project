@@ -12,7 +12,7 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    [Migration("20241215145817_re-init-db")]
+    [Migration("20241218043329_re-init-db")]
     partial class reinitdb
     {
         /// <inheritdoc />
@@ -117,6 +117,9 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar")
                         .HasColumnName("BranchName");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Hotline")
                         .IsRequired()
                         .HasMaxLength(12)
@@ -156,6 +159,9 @@ namespace _2Sport_BE.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar")
                         .HasColumnName("BrandName");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Logo")
                         .IsRequired()
@@ -219,6 +225,9 @@ namespace _2Sport_BE.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar")
                         .HasColumnName("CategoryName");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("Quantity")
                         .HasColumnType("int");
@@ -1158,6 +1167,9 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ProductCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(15)")
@@ -1168,7 +1180,7 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<string>("ReviewContent")
                         .IsRequired()
-                        .HasColumnType("nvarchar")
+                        .HasColumnType("nvarchar(200)")
                         .HasColumnName("ReviewContent");
 
                     b.Property<decimal?>("Star")
@@ -1398,6 +1410,9 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()

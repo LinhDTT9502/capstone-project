@@ -21,7 +21,8 @@ namespace _2Sport_BE.Migrations
                     Location = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Hotline = table.Column<string>(type: "varchar(12)", maxLength: 12, nullable: false),
                     ImgAvatarPath = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false),
-                    Status = table.Column<bool>(type: "bit", nullable: true)
+                    Status = table.Column<bool>(type: "bit", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -37,7 +38,8 @@ namespace _2Sport_BE.Migrations
                     BrandName = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
                     Logo = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: true),
-                    Status = table.Column<bool>(type: "bit", nullable: true)
+                    Status = table.Column<bool>(type: "bit", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -96,7 +98,8 @@ namespace _2Sport_BE.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Status = table.Column<bool>(type: "bit", nullable: false)
+                    Status = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -166,6 +169,7 @@ namespace _2Sport_BE.Migrations
                     CategoryImgPath = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     Quantity = table.Column<int>(type: "int", nullable: true),
                     Status = table.Column<bool>(type: "bit", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SportId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -647,8 +651,9 @@ namespace _2Sport_BE.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Star = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
-                    ReviewContent = table.Column<string>(type: "nvarchar", nullable: false),
+                    ReviewContent = table.Column<string>(type: "nvarchar(200)", nullable: false),
                     Status = table.Column<bool>(type: "bit", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: true),
                     ProductCode = table.Column<string>(type: "nvarchar(15)", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: true)
