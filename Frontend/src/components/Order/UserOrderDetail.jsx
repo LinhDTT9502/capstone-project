@@ -87,13 +87,6 @@ export default function UserOrderDetail() {
       return;
     }
 
-    const confirmCancel = window.confirm(
-      "Bạn có chắc chắn muốn hủy đơn hàng này không?"
-    );
-
-    if (!confirmCancel) {
-      return;
-    }
 
     try {
       const { id: saleOrderId } = orderDetail;
@@ -144,12 +137,12 @@ export default function UserOrderDetail() {
   // Hàm render nút "Thanh toán"
   const renderPaymentButton = () => {
     if (
-      orderDetail.paymentStatus === "Đang chờ thanh toán" &&
+      orderDetail.paymentStatus === "N/A" &&
       orderDetail.deliveryMethod !== "HOME_DELIVERY"
     ) {
       return (
         <Button
-          className="bg-green-700 text-white text-sm rounded-full py-2 px-4 w-40 mt-4"
+          className="bg-purple-500 font-bold text-white text-sm rounded-full py-2 px-4 hover:bg-purple-600"
           onClick={() =>
             navigate("/checkout", { state: { selectedOrder: orderDetail } })
           }
@@ -187,7 +180,7 @@ export default function UserOrderDetail() {
   
       if (response && response.data.isSuccess) {
         alert("Đơn hàng của bạn đã được hoàn tất thành công.");
-        setShowReviewModal(true);
+        // setShowReviewModal(true);
         fetchOrderDetail();
       } else {
         alert("Không thể hoàn tất đơn hàng. Vui lòng thử lại sau.");
@@ -227,11 +220,7 @@ export default function UserOrderDetail() {
             <FontAwesomeIcon icon={faArrowLeft} />
             Quay lại
           </button>
-          <div className="flex flex-col">
-            {" "}
-            {/* Nút thanh toán */}
-            {renderPaymentButton()}
-          </div>
+
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
@@ -315,7 +304,29 @@ export default function UserOrderDetail() {
                 </span>
               </p>
             </div>
+            
           </div>
+          <div className="flex justify-end items-center gap-3 mt-5">
+          {renderPaymentButton()}
+          {orderDetail.orderStatus === "Chờ xử lý" && (
+                      <button
+                        className="bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600"
+                        onClick={() => setShowModal(true)}
+                      >
+                        Hủy đơn hàng
+                      </button>
+                    )}
+                    {orderDetail.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
+                      <button
+                      className={`bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600 ${
+                        loading ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      onClick={handleDoneOrder}
+                    >
+                        Đã nhận được đơn hàng
+                      </button>
+                    )}
+            </div>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
           {products.map((product) => (
@@ -361,40 +372,7 @@ export default function UserOrderDetail() {
                       <i>{product.totalAmount.toLocaleString("Vi-VN")}₫</i>
                     </p>
                   </div>
-                  <div className="flex space-x-4 pt-4 justify-end">
-                    {(paymentStatus === "Đang chờ thanh toán" ||
-                      paymentStatus === "N/A") &&
-                      orderDetail.deliveryMethod !== "HOME_DELIVERY" && (
-                        <button
-                          className="bg-purple-500 font-bold text-white text-sm rounded-full py-2 px-4 hover:bg-purple-600"
-                          onClick={() =>
-                            navigate("/rental-checkout", {
-                              state: { selectedOrder: orderDetail },
-                            })
-                          }
-                        >
-                          Thanh toán
-                        </button>
-                      )}
-                    {orderDetail.orderStatus === "Chờ xử lý" && (
-                      <button
-                        className="bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600"
-                        onClick={() => setShowModal(true)}
-                      >
-                        Hủy đơn hàng
-                      </button>
-                    )}
-                    {orderDetail.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
-                      <button
-                      className={`bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600 ${
-                        loading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      onClick={handleDoneOrder}
-                    >
-                        Đã nhận được đơn hàng
-                      </button>
-                    )}
-                  </div>
+
                 </div>
               </div>
             </div>
@@ -433,7 +411,7 @@ export default function UserOrderDetail() {
         </div>
       )}
       {/* Review Modal */}
-      {showReviewModal && (
+      {/* {showReviewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl w-96 max-w-full">
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">Đánh giá sản phẩm</h3>
@@ -467,19 +445,14 @@ export default function UserOrderDetail() {
               </Button>
               <button
                 onClick={handleSubmitReview}
-                disabled={loading}
-                className={`bg-blue-500 text-white px-4 py-2 rounded-lg ${
-                  loading
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-blue-600"
-                }`}
+                
               >
                 {loading ? "Đang tiến hành..." : "Gửi đánh giá"}
               </button>
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

@@ -212,7 +212,7 @@ const GuestOrder = () => {
                             Tình trạng: {item.condition}%
                           </p>
                           <p className="font-medium text-base text-rose-700">
-                            Giá: {formatCurrency(item.unitPrice)}₫
+                            Giá bán: {formatCurrency(item.unitPrice)}₫
                           </p>
                           <p className="font-medium text-sm">
                             Số lượng: {item.quantity}
