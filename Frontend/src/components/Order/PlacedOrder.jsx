@@ -94,7 +94,7 @@ const PlacedOrder = () => {
 
         productInformations: selectedProducts.map((item) => ({
           cartItemId: item.cartItemId || null,
-          productId: item.productId,
+          productId: item.id,
           productName: item.productName,
           productCode: item.productCode,
           quantity: item.quantity,

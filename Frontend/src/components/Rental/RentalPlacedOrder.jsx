@@ -147,7 +147,7 @@ const RentalPlacedOrder = () => {
           rentalDays: product.rentDays,
         },
         rentalCosts: {
-          subTotal: product.rentPrice * rentalData.quantity,
+          subTotal: product.rentPrice * product.quantity,
           tranSportFee: 0,
           totalAmount: product.totalPrice,
         },
@@ -208,6 +208,7 @@ const RentalPlacedOrder = () => {
             handleOptionChange={handleOptionChange}
             selectedBranchId={branchId}
             setSelectedBranchId={setBranchId}
+            selectedProducts={selectedProducts}
           />
         </div>
         <div className="flex-1 bg-slate-200 p-6 overflow-y-auto mt-10">
