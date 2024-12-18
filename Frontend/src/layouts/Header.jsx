@@ -281,7 +281,7 @@ function Header() {
                 Blog
               </Link>
               <Link
-                to="/manage-account/refund-request"
+                to="/refund-request"
                 className=" hover:text-orange-500 focus:text-orange-500"
               >
                 Hoàn tiền

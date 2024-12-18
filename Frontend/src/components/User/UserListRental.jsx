@@ -187,10 +187,7 @@ export default function UserListRental() {
                 <p className="mt-2 font-bold text-lg">
                   Tổng giá:{" "}
                   <span className="text-orange-500">
-                    {new Intl.NumberFormat("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
-                    }).format(parent.totalAmount)}
+                    {parent.totalAmount.toLocaleString()} ₫
                   </span>
                 </p>
               </div>

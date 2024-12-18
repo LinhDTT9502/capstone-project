@@ -62,7 +62,7 @@ export default function FeatureProductSlide() {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 px-20">
       <div className="flex justify-between">
         <h2 className="font-alfa text-2xl mb-10">Khuyến Mãi</h2>
         <Link

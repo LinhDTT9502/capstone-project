@@ -113,6 +113,8 @@ const UserProfile = () => {
     setAvatar(newAvatarPath);
   };
 
+  
+
   return (
     <>
       <ToastContainer />
@@ -128,7 +130,7 @@ const UserProfile = () => {
                 src={avatar}
                 alt="Avatar"
                 className="w-20 h-20 rounded-full object-cover border-2 border-orange-500"
-                onError={(e) => (e.target.src = "/default-avatar.jpg")}
+                onError={(e) => (e.target.src = "/assets/images/default-avatar.jpg")}
               />
               <div className="absolute bottom-0 right-0">
                 <AvatarUpload
@@ -306,6 +308,8 @@ const UserProfile = () => {
               emailConfirmed={user.EmailConfirmed}
               phoneNumberConfirmed={formData.PhoneNumberConfirmed}
               userId={user.UserId}
+              imgAvatarPath={formData.imgAvatarPath}
+              setAvatar={setAvatar}
             />
           </div>
         </div>

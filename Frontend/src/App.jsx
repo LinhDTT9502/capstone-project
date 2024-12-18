@@ -48,6 +48,7 @@ import PaymentSuccessV2 from './pages/AfterPayment/PaymentSuccessV2';
 import ZaloButton from './components/Social/ZaloButton';
 import FacebookButton from './components/Social/FacebookButton';
 import BlogRoutes from './routes/BlogRoutes';
+import RefundForm from './components/Refund/RefundForm';
 
 
 function App() {
@@ -73,6 +74,8 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/manage-account/*" element={<UserRoutes />} />
+          <Route path="/refund-request" element={<RefundForm />} />
+
 
           <Route path="/complaints-handling" element={<ComplaintsHandlingPage />} />
           <Route path="/returns-refunds" element={<ReturnsRefundsPage />} />
@@ -137,4 +140,3 @@ function App() {
 }
 
 export default App;
-
