@@ -169,7 +169,7 @@ export default function UserOrderStatus() {
               <p className="mt-2 font-bold text-lg">
                 Tổng giá:{" "}
                 <span className="text-orange-500">
-                  {formatCurrency(order.totalAmount)}₫
+                  {order.totalAmount.toLocaleString()} ₫
                 </span>
               </p>
             </div>
@@ -216,7 +216,8 @@ export default function UserOrderStatus() {
                       trạng: {item.condition}%
                     </p>
                     <p className="font-medium text-base text-rose-700">
-                      Giá: {formatCurrency(item.unitPrice)}₫
+                      Giá bán: {item.unitPrice.toLocaleString()} ₫
+                      
                     </p>
                     <p className="font-medium text-sm">
                       Số lượng: {item.quantity}

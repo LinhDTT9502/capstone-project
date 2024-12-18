@@ -39,7 +39,11 @@ const UserCart = () => {
 
   const handleRemoveFromCart = async (itemId) => {
     const response = await removeCartItem(itemId, token);
-    // console.log(response);
+    const confirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?"
+    );
+    if (!confirmed) return;
+    toast.success("Xóa sản phẩm khỏi giỏ hàng thành công!");
     getCart();
   };
 

@@ -252,7 +252,7 @@ export default function UserOrderDetail() {
                       {product.quantity}
                     </p>
                     <p>
-                      <span className="font-semibold">Giá thuê:</span>{" "}
+                      <span className="font-semibold">Giá bán:</span>{" "}
                       <i>{product.unitPrice.toLocaleString("Vi-VN")}₫</i>
                     </p>
                     <p>

@@ -17,18 +17,12 @@ const OrderSuccess = () => {
           
           {orderID && orderCode ? (
             <div className="text-left bg-gray-50 p-4 rounded-md mb-6">
-              <p className="text-sm text-gray-600">Mã đơn hàng: <span className="font-medium text-gray-900">###</span></p>
-              <p className="text-sm text-gray-600">ID đơn hàng: <span className="font-medium text-gray-900">###y</span></p>
+              <p className="text-sm text-gray-600">Mã đơn hàng: <span className="font-medium text-gray-900">{orderID}</span></p>
+              <p className="text-sm text-gray-600">ID đơn hàng: <span className="font-medium text-gray-900">{orderCode}</span></p>
             </div>
           ) : null}
           
-          <Link 
-            to="#" 
-            className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition duration-150 ease-in-out"
-          >
-            Tiến hành thanh toán
-            <FontAwesomeIcon icon={faArrowRight} className="ml-2" />
-          </Link>
+  
         </div>
       </div>
     </div>
@@ -36,4 +30,3 @@ const OrderSuccess = () => {
 };
 
 export default OrderSuccess;
-

@@ -39,6 +39,7 @@ const ProductDetails = () => {
   const [comments, setComments] = useState([]);
 
   useEffect(() => {
+    console.log("Số lượng hiện tại:", quantity);
     const getProduct = async () => {
       try {
         const productData = await fetchProductByProductCode(
@@ -60,7 +61,7 @@ const ProductDetails = () => {
     };
 
     getProduct();
-  }, [productCode, selectedColor, selectedSize, selectedCondition]);
+  }, [quantity, productCode, selectedColor, selectedSize, selectedCondition]);
 
   useEffect(() => {
     const fetchImage = async () => {
@@ -90,7 +91,7 @@ const ProductDetails = () => {
     } else {
       try {
         const response = await checkQuantityProduct(product.id);
-  
+
         if (quantity <= response.availableQuantity) {
           const rentalData = { product, quantity };
           localStorage.setItem("rentalData", JSON.stringify(rentalData));
@@ -106,20 +107,37 @@ const ProductDetails = () => {
       }
     }
   };
-  
 
   const handlePlaceOrder = async () => {
     if (!selectedColor || !selectedSize || !selectedCondition) {
       alert("Vui lòng chọn màu sắc, kích cỡ và tình trạng của sản phẩm!");
-    } else {
+      return;
+    }
+
+    try {
       const response = await checkQuantityProduct(product.id);
-      if (quantity <= response.availableQuantity) {
-        navigate("/sale-order", { state: { selectedProducts: product } });
-      } else {
+
+      if (quantity > response.availableQuantity) {
         alert(
           `Sản phẩm này chỉ còn lại ${response.availableQuantity} sản phẩm trong kho`
         );
+        return;
       }
+
+      const selectedProduct = {
+        ...product,
+        quantity,
+        selectedColor,
+        selectedSize,
+        selectedCondition,
+      };
+
+      navigate("/sale-order", {
+        state: { selectedProducts: [selectedProduct] },
+      });
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("Có lỗi xảy ra khi đặt hàng.");
     }
   };
 
@@ -159,10 +177,11 @@ const ProductDetails = () => {
                     src={image}
                     alt={`Thumbnail ${index + 1}`}
                     onClick={() => setDisplayImage(image)}
-                    className={`w-20 h-20 object-contain border-2 rounded-md cursor-pointer ${displayImage === image
-                      ? "border-orange-500"
-                      : "border-gray-300"
-                      }`}
+                    className={`w-20 h-20 object-contain border-2 rounded-md cursor-pointer ${
+                      displayImage === image
+                        ? "border-orange-500"
+                        : "border-gray-300"
+                    }`}
                   />
                 ))}
               </div>
@@ -313,13 +332,11 @@ const ProductDetails = () => {
               <div
                 className="prose prose-lg max-w-none text-gray-700 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: product.description }}
-              >
-              </div>
+              ></div>
             </div>
           </div>
           <ProductReviews productCode={productCode} />
-          <CommentList productId={product?.id} />
-
+          <CommentList productCode={productCode} />
         </>
       )}
     </div>
