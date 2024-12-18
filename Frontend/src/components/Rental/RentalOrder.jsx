@@ -6,6 +6,8 @@ import { selectUser } from "../../redux/slices/authSlice";
 import OrderMethod from "../Order/OrderMethod";
 import { toast, ToastContainer } from "react-toastify";
 import { addGuestRentalOrder } from "../../redux/slices/guestOrderSlice";
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const RentalOrder = () => {
   const user = useSelector(selectUser);
@@ -28,6 +30,7 @@ const RentalOrder = () => {
   const token = localStorage.getItem("token");
   const rentalData = JSON.parse(localStorage.getItem("rentalData"));
   const dispatch = useDispatch();
+  const [showTooltip, setShowTooltip] = useState(false);
 
   const handleStartDateChange = (e) => {
     const newStartDate = e.target.value;
@@ -144,7 +147,7 @@ const RentalOrder = () => {
         }
       );
       if (!token) {
-        dispatch(addGuestRentalOrder(response.data))
+        dispatch(addGuestRentalOrder(response.data.data))
       }
       setApiResponse(response.data.data);
       navigate("/order_success", {
@@ -173,6 +176,17 @@ const RentalOrder = () => {
       </div>
     );
   }
+
+  const calculateRentalDays = () => {
+    if (!startDate || !endDate) return 0; 
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    return Math.ceil((end - start) / (1000 * 60 * 60 * 24)); 
+  };
+
+  const rentalDays = calculateRentalDays();
+  
+ 
 
   return (
     <>
@@ -219,7 +233,7 @@ const RentalOrder = () => {
               </div>
               <p className="text-lg font-semibold">
                 {(
-                  rentalData.product.rentPrice * rentalData.quantity
+                  rentalData.product.rentPrice * rentalData.quantity * rentalDays
                 ).toLocaleString()}{" "}
                 ₫
               </p>
@@ -258,6 +272,32 @@ const RentalOrder = () => {
                   className="border rounded px-4 py-2 w-full"
                 />
               </div>
+
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Tạm tính</h3>
+                <div className="flex gap-3">
+                  <p>{(rentalData.product.rentPrice * rentalData.quantity * rentalDays).toLocaleString()} ₫</p>
+                  <div
+                    className="relative cursor-pointer"
+                    onMouseEnter={() => setShowTooltip(true)}
+                    onMouseLeave={() => setShowTooltip(false)}
+                  >
+                    <FontAwesomeIcon
+                      icon={faInfoCircle}
+                      className="text-xl text-orange-500"
+                    />
+                    {showTooltip && (
+                      <div className="absolute right-0 top-6 w-40 p-2 bg-white text-black text-xs rounded shadow-md">
+                        <p>Giá thuê: {rentalData.product.rentPrice.toLocaleString()} ₫</p>
+                        <p>× {rentalData.quantity} (số lượng)</p>
+                        <p>× {rentalDays} (ngày thuê)</p>
+                        <p className="font-semibold">{(rentalData.product.rentPrice * rentalData.quantity * rentalDays).toLocaleString()} ₫</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm">Ghi chú:</label>
                 <input
@@ -277,7 +317,7 @@ const RentalOrder = () => {
                 <h3 className="text-lg font-semibold">Tổng giá</h3>
                 <p className="text-lg">
                   {(
-                    rentalData.product.rentPrice * rentalData.quantity
+                    rentalData.product.rentPrice * rentalData.quantity * rentalDays
                   ).toLocaleString()}{" "}
                   ₫
                 </p>
