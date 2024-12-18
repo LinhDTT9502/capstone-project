@@ -100,7 +100,7 @@ const UserCart = () => {
 
   const handleCheckout = async () => {
     if (selectedItems.length === 0) {
-      toast.error("Please select at least one item to checkout.");
+      toast.error("Vui lòng chọn ít nhất một sản phẩm để tiếp tục");
       return;
     }
 
@@ -129,7 +129,7 @@ const UserCart = () => {
 
   const handleRental = async () => {
     if (selectedItems.length === 0) {
-      toast.error("Please select at least one item to checkout.");
+      toast.error("Vui lòng chọn ít nhất một sản phẩm để tiếp tục");
       return;
     }
 

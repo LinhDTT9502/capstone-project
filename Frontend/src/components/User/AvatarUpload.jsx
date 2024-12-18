@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { uploadAvatar } from "../../services/ManageUserService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCamera, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { toast } from "react-toastify";
 
-const AvatarUpload = ({ userId, onAvatarChange, imgAvatarPath,setAvatar }) => {
+const AvatarUpload = ({ userId, onAvatarChange, imgAvatarPath, setAvatar, fetchUserData }) => {
   const [isUploading, setIsUploading] = useState(false);
 
   const handleFileChange = async (e) => {
@@ -16,6 +16,7 @@ const AvatarUpload = ({ userId, onAvatarChange, imgAvatarPath,setAvatar }) => {
       const response = await uploadAvatar(userId, file);
       const newAvatarPath = response.imgAvatarPath;
       onAvatarChange(newAvatarPath);
+      await fetchUserData(); // Refresh user data to get the latest avatar
       toast.success("Thay ảnh đại diện thành công!");
     } catch (error) {
       console.error("Error uploading avatar:", error);
@@ -25,8 +26,7 @@ const AvatarUpload = ({ userId, onAvatarChange, imgAvatarPath,setAvatar }) => {
     }
   };
 
-  
-    return (
+  return (
     <div className="relative">
       <label
         htmlFor="avatar-upload"
@@ -50,3 +50,4 @@ const AvatarUpload = ({ userId, onAvatarChange, imgAvatarPath,setAvatar }) => {
 };
 
 export default AvatarUpload;
+

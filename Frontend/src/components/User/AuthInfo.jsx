@@ -13,6 +13,7 @@ export default function AuthInfo({
   emailConfirmed,
   phoneNumberConfirmed,
   onVerifyEmail,
+  onVerifyPhone,
 }) {
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [showPhoneDialog, setShowPhoneDialog] = useState(false);
@@ -34,7 +35,6 @@ export default function AuthInfo({
     setToken("");
   };
 
-  // Send OTP
   const handleSendOtp = async (type) => {
     try {
       let response;
@@ -53,7 +53,6 @@ export default function AuthInfo({
     }
   };
 
-  // Handle OTP Input
   const handleOtpChange = (index, value) => {
     if (!/^\d?$/.test(value)) return;
 
@@ -70,7 +69,6 @@ export default function AuthInfo({
     }
   };
 
-  // Confirm Changes
   const handleConfirmChange = async (type) => {
     try {
       const otpCode = otp.join("");
@@ -78,10 +76,12 @@ export default function AuthInfo({
         await changeEmailService(userId, token, newEmail, otpCode);
         alert("Email cập nhật thành công!");
         setShowEmailDialog(false);
+        onVerifyEmail(newEmail);
       } else {
         await editPhoneNumberService(newPhone, otpCode);
         alert("Số điện thoại cập nhật thành công!");
         setShowPhoneDialog(false);
+        onVerifyPhone(newPhone);
       }
       resetAllState();
     } catch {
@@ -91,7 +91,6 @@ export default function AuthInfo({
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-      {/* Email Section */}
       <div>
         <label className="block text-gray-700 mb-2">Email:</label>
         <div className="relative">
@@ -110,12 +109,12 @@ export default function AuthInfo({
           onClick={() => {
             resetAllState();
             setShowEmailDialog(true);
-          }}        >
+          }}
+        >
           Chỉnh sửa email
         </button>
       </div>
 
-      {/* Phone Section */}
       <div>
         <label className="block text-gray-700 mb-2">Số điện thoại:</label>
         <div className="relative">
@@ -134,12 +133,12 @@ export default function AuthInfo({
           onClick={() => {
             resetAllState();
             setShowPhoneDialog(true);
-          }}        >
+          }}
+        >
           Chỉnh sửa SĐT
         </button>
       </div>
 
-      {/* Email Dialog */}
       {showEmailDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg w-96">
@@ -172,10 +171,13 @@ export default function AuthInfo({
               </div>
             )}
             <div className="flex justify-end space-x-2">
-              <button className="px-4 py-2 bg-gray-400 text-white rounded-md" onClick={() => {
+              <button
+                className="px-4 py-2 bg-gray-400 text-white rounded-md"
+                onClick={() => {
                   setShowEmailDialog(false);
                   resetAllState();
-                }}>
+                }}
+              >
                 Hủy
               </button>
               <button
@@ -189,7 +191,6 @@ export default function AuthInfo({
         </div>
       )}
 
-      {/* Phone Dialog */}
       {showPhoneDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999]">
           <div className="bg-white p-6 rounded-lg w-96">
@@ -222,10 +223,13 @@ export default function AuthInfo({
               </div>
             )}
             <div className="flex justify-end space-x-2">
-              <button className="px-4 py-2 bg-gray-400 text-white rounded-md" onClick={() => {
+              <button
+                className="px-4 py-2 bg-gray-400 text-white rounded-md"
+                onClick={() => {
                   setShowPhoneDialog(false);
                   resetAllState();
-                }}>
+                }}
+              >
                 Hủy
               </button>
               <button
@@ -241,3 +245,4 @@ export default function AuthInfo({
     </div>
   );
 }
+

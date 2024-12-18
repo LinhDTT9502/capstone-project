@@ -142,11 +142,11 @@ const ListBranchs = () => {
     <div className="flex h-screen">
       {/* Left Column: Branch List */}
       <div className="w-1/3 p-4 overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-4">Branch List</h1>
+        <h1 className="text-2xl font-bold mb-4">Danh sách hệ thống cửa hàng</h1>
 
         {/* Search Bar */}
         <Input
-          label="Search by branch name or location"
+          label="Tìm kiếm tên hệ thống hoặc vị trí..."
           value={searchQuery}
           onChange={handleSearch}
           className="mb-4"
@@ -168,7 +168,7 @@ const ListBranchs = () => {
               </div>
             ))
           ) : (
-            <p>No branches found.</p>
+            <p>Không có hệ thống nào.</p>
           )}
         </div>
       </div>
