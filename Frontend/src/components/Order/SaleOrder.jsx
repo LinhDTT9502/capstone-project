@@ -39,12 +39,23 @@ const SaleOrder = () => {
 
   const [discountCode, setDiscountCode] = useState("");
   const [note, setNote] = useState("");
+  console.log(selectedProducts);
 
-  // Calculate total price
-  const totalPrice = selectedProducts.reduce(
+  // Calculate subTotal (sum of price * quantity)
+  const subTotal = selectedProducts.reduce(
     (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
     0
   );
+
+  // Calculate totalDiscount (sum of price * discount% * quantity)
+  const totalDiscount = selectedProducts.reduce(
+    (acc, item) =>
+      acc + (item.price || 0) * ((item.discount || 0) / 100) * (item.quantity || 1),
+    0
+  );
+
+  // Calculate totalPrice (subTotal - totalDiscount)
+  const totalPrice = subTotal - totalDiscount;
 
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
@@ -81,9 +92,9 @@ const SaleOrder = () => {
           imgAvatarPath: item.imgAvatarPath,
         })),
         saleCosts: {
-          subTotal: totalPrice,
+          subTotal: subTotal,
           tranSportFee: 0,
-          totalAmount: totalPrice,
+          totalAmount: subTotal,
         },
       };
 
@@ -108,9 +119,9 @@ const SaleOrder = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-200">
+    <div className="min-h-screen flex bg-slate-200 pr-12">
       <div className="flex-1 bg-white p-6">
-      <OrderMethod
+        <OrderMethod
           userData={userData}
           setUserData={setUserData}
           selectedOption={selectedOption}
@@ -162,35 +173,38 @@ const SaleOrder = () => {
               </div>
             ))}
             <div className="space-y-4 py-4">
-            <div className="flex justify-between items-center pt-1 border rounded mt-4">
-              <h3 className="text-lg font-semibold">
-                {t("checkout.subtotal")}
-              </h3>
-              <p className="text-lg text-black">
-                {totalPrice.toLocaleString()} ₫
-              </p>
-            </div>
-             <div className="flex justify-between items-center pt-1 border rounded mt-4">
-              <label className="block text-lg font-semibold">Ghi chú</label>
-              <input
-                type="text"
-                className="border rounded w-3/4 px-3 py-2 mt-2"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Ghi chú của bạn"
-              />
-            </div>
+              <div className="flex justify-between items-center pt-1 border rounded mt-4">
+                <h3 className="text-lg font-semibold">
+                  {t("checkout.subtotal")}
+                </h3>
+                <p className="text-lg text-black">
+                  {subTotal.toLocaleString('vi-VN')}₫
+                </p>
+              </div>
+              <div className="flex justify-between items-center pt-1 border rounded mt-4">
+                <label className="block text-lg font-semibold">Ghi chú</label>
+                <input
+                  type="text"
+                  className="border rounded w-3/4 px-3 py-2 mt-2"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Ghi chú của bạn"
+                />
+              </div>
+              <div className="h-px bg-gray-300 my-5"></div>
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Khuyến mãi</h3>
+                <p className="text-lg">{totalDiscount.toLocaleString('vi-VN')}₫</p>
+              </div>
               <div className="h-px bg-gray-300 my-5"></div>
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold">Phí giao hàng</h3>
-                <p className="text-lg">Sẽ được báo lại từ 2Sport
-
-</p>
+                <p className="text-lg">2Sport sẽ liên hệ và thông báo sau</p>
               </div>
               <div className="flex justify-between items-center pt-1 mt-4">
                 <h3 className="text-lg font-semibold">Tổng giá</h3>
                 <p className="text-lg">
-                  {totalPrice.toLocaleString()} ₫
+                  {totalPrice.toLocaleString('vi-VN')}₫
                 </p>
               </div>
             </div>
