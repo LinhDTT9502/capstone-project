@@ -10,17 +10,11 @@ namespace _2Sport_BE.ViewModels
         [Required]
         public string ProductName { get; set; }
         [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Listed Price must be greater than 0.")]
-        public decimal? ListedPrice { get; set; }
-
-        [Required]
         public bool IsRent { get; set; }
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Price must be greater than 0.")]
         public decimal? Price { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Rent Price must be greater than 0.")]
         public decimal? RentPrice { get; set; }
         [Required]
         public string Size { get; set; }
@@ -86,10 +80,6 @@ namespace _2Sport_BE.ViewModels
         public IFormFile? MainImage { get; set; }
 
         public IFormFile[]? ProductImages { get; set; }
-
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
-        public int Quantity { get; set; }
     }
 
 

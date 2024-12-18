@@ -1346,6 +1346,15 @@ namespace _2Sport_BE.Controllers
                         }
                     }
 
+                    updatedProduct.Color = productUM.Color;
+                    updatedProduct.Size = productUM.Size;
+                    updatedProduct.Condition = productUM.Condition;
+                    updatedProduct.Height = productUM.Height;
+                    updatedProduct.Length = productUM.Length;
+                    updatedProduct.Width = productUM.Width;
+                    updatedProduct.Weight = productUM.Weight;
+                    updatedProduct.Price = productUM.Price;
+                    updatedProduct.RentPrice = productUM.RentPrice;
                     updatedProduct.ProductName = productUM.ProductName;
                     updatedProduct.ProductCode = productUM.ProductCode;
                     updatedProduct.BrandId = (int)productUM.BrandId;
@@ -1354,7 +1363,7 @@ namespace _2Sport_BE.Controllers
                     await _productService.UpdateProduct(updatedProduct);
 
                     //Add product's images into ImageVideo table
-                    if (productUM.ProductImages.Length > 0)
+                    if (productUM.ProductImages != null)
                     {
                         foreach (var image in productUM.ProductImages)
                         {
@@ -1388,7 +1397,7 @@ namespace _2Sport_BE.Controllers
                         ProductId = updatedProduct.Id,
                         Action = $@"{importedBranch.BranchName}: Updated {productUM.ProductName} ({productUM.ProductCode})",
                         ImportDate = DateTime.Now,
-                        Quantity = productUM.Quantity,
+                        Quantity = 0,
                     };
                     await _importHistoryService.CreateANewImportHistoryAsync(importHistory);
                     return Ok($"Update product with id: {productId}");
