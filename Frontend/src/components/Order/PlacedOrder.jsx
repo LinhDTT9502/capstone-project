@@ -151,6 +151,7 @@ const PlacedOrder = () => {
             handleOptionChange={handleOptionChange}
             selectedBranchId={branchId}
             setSelectedBranchId={setBranchId}
+            selectedProducts={selectedProducts}
           />
         </div>
         <div className="flex-1 bg-slate-200  p-6 overflow-y-auto mt-10">

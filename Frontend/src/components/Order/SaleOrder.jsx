@@ -149,6 +149,7 @@ const SaleOrder = () => {
             handleOptionChange={handleOptionChange}
             selectedBranchId={branchId}
             setSelectedBranchId={setBranchId}
+            selectedProducts={selectedProducts}
           />
         </div>
 
