@@ -220,6 +220,40 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpGet]
+        [Route("list-all-products")]
+        public async Task<IActionResult> GetAllProducts([FromQuery] DefaultSearch defaultSearch)
+        {
+            try
+            {
+                var query = await _productService.GetAllProducts();
+
+                var products = query.ToList();
+                foreach (var product in products)
+                {
+                    var brand = await _brandService.GetBrandById(product.BrandId);
+                    product.Brand = brand.FirstOrDefault();
+                    var category = await _categoryService.GetCategoryById(product.CategoryId);
+                    product.Category = category;
+                    var sport = await _sportService.GetSportById(product.SportId);
+                    product.Sport = sport;
+                }
+                var result = _mapper.Map<List<Product>, List<ProductVM>>(query.ToList());
+                foreach (var product in result)
+                {
+                    var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
+                    product.Likes = numOfLikes;
+                    product.ListImages.Add(product.ImgAvatarPath);
+                    product.ListImages.Reverse();
+                }
+                return Ok(new { total = result.Count, data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpGet]
         [Route("filter-sort-products")]
         public async Task<IActionResult> FilterSortProducts([FromQuery] DefaultSearch defaultSearch, [FromQuery] string? size,
                                                             [FromQuery] decimal minPrice, [FromQuery] decimal maxPrice,
@@ -1363,7 +1397,7 @@ namespace _2Sport_BE.Controllers
                     await _productService.UpdateProduct(updatedProduct);
 
                     //Add product's images into ImageVideo table
-                    if (productUM.ProductImages != null)
+                    if (productUM.ProductImages is not null)
                     {
                         foreach (var image in productUM.ProductImages)
                         {
