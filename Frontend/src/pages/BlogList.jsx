@@ -124,7 +124,7 @@ const BlogList = () => {
         <div className="relative z-10 w-full max-w-md px-4">
           <input
             type="text"
-            placeholder="Search blogs..."
+            placeholder="Tìm kiếm..."
             className="w-full px-4 py-2 rounded-full border-2 border-white bg-transparent text-white placeholder-gray-300 focus:outline-none focus:border-blue-500 transition-all duration-300"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}

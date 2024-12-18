@@ -15,11 +15,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
-  "Đã xác nhận": "bg-blue-100 text-blue-800",
+  "Đã xác nhận đơn": "bg-blue-100 text-blue-800",
+  "Đã thanh toán": "bg-green-100 text-green-800",
   "Đang xử lý": "bg-purple-100 text-purple-800",
-  "Đã giao cho đơn vị vận chuyển": "bg-cyan-100 text-cyan-800",
-  "Đã giao hàng": "bg-green-100 text-green-800",
+  "Đã giao hàng": "bg-indigo-100 text-indigo-800",
+  "Đã từ chối": "bg-red-100 text-red-800",
   "Đã hủy": "bg-red-200 text-red-900",
+  "Đã hoàn thành": "bg-orange-100 text-orange-800",
   
 };
 
