@@ -71,7 +71,7 @@ function Footer() {
               </a>
             </Typography>
           </div>
-          <div lassName="flex items-center">
+          <div className="flex items-center">
             <Typography>
               <FontAwesomeIcon
                 icon={faLocationDot}
@@ -82,13 +82,13 @@ function Footer() {
             </Typography>
           </div>
 
-          <div lassName="flex items-center">
+          <div className="flex items-center">
             <Typography>
               <FontAwesomeIcon icon={faPhone} className="mr-2" size={20} />
               +84 338-581-571
             </Typography>
           </div>
-          <div lassName="flex items-center">
+          <div className="flex items-center">
             <Typography>
               <FontAwesomeIcon icon={faEnvelope} className="mr-2" size={20} />
               2sportteam@gmail.com
