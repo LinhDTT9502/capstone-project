@@ -275,6 +275,12 @@ function Header() {
                 {t("header.contact")}
               </Link>
               <Link
+                to="/blog"
+                className=" hover:text-orange-500 focus:text-orange-500"
+              >
+                Blog
+              </Link>
+              <Link
                 to="/manage-account/refund-request"
                 className=" hover:text-orange-500 focus:text-orange-500"
               >
@@ -342,7 +348,7 @@ function Header() {
 
 
               <SignInModal />
-              <Link to="/cart" className="flex space-x-2 border-r-2 pr-4">
+              <Link to="/cart" className="flex space-x-2 ">
                 <div className="relative">
                   <FontAwesomeIcon icon={faCartShopping} className="pr-1" />
                   {cartCount > 0 && token && (
@@ -353,10 +359,11 @@ function Header() {
                 </div>
                 <p>Giỏ hàng</p>
               </Link>
-              <Menu open={openNoti} handler={setOpenNoti}>
+              {token && ( <>
+                <Menu open={openNoti} handler={setOpenNoti}>
                 <MenuHandler>
                   <div
-                    className=" flex items-center justify-center"
+                    className=" flex items-center justify-center border-l-2 pl-4"
                     onClick={handleNotiToggle}
                   >
                     <FontAwesomeIcon icon={faBell} className="text-xl" />
@@ -389,6 +396,9 @@ function Header() {
 
                 </MenuList>
               </Menu>
+              </>)
+              }
+             
             </div>
           </div>
           <motion.div

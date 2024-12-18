@@ -15,11 +15,13 @@ public class Review
     [Column("Star", TypeName = "decimal")]
     public decimal? Star { get; set; }
 
-    [Column("ReviewContent", TypeName = "nvarchar")]
+    [Column("ReviewContent", TypeName = "nvarchar(200)")]
     [MaxLength]
     public string ReviewContent { get; set; }
 
     public bool? Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+
 
     [Column("UserId")]
     public int? UserId { get; set; }

@@ -21,7 +21,7 @@ export const searchUsers = (fullName, username) => {
 
 // GET user profile
 export const getUserProfile = (userId) => {
-  return axios.get(`${API_BASE_URL}/get-profile/${userId}`);
+  return axiosInstance.get(`${API_BASE_URL}/get-profile?userId=${userId}`);
 };
 
 // PUT update user profile
@@ -75,16 +75,13 @@ export const updatePassword = (userId, oldPassword, newPassword) => {
 
 // POST gửi OTP để thay đổi email
 export const sendOtpForEmailChange = (id, email) => {
-   console.log(email)
-  return axios.post(
-    `${API_BASE_URL}/send-otp-to-email/${id}?email=${email}`,
-    {
-      params: { id },
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  console.log(email);
+  return axios.post(`${API_BASE_URL}/send-otp-to-email/${id}?email=${email}`, {
+    params: { id },
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 };
 
 // PUT thay đổi email
@@ -101,4 +98,42 @@ export const changeEmail = (userId, token, email, otpCode) => {
       },
     }
   );
+};
+
+// sms
+export const sendSmsOtpApi = (phoneNumber) => {
+  return axios.put(
+    `${API_BASE_URL}/send-sms-otp/${phoneNumber}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Accept: "*/*",
+      },
+    }
+  );
+};
+
+export const editPhoneNumberApi = (newPhoneNumber, otp) => {
+  return axios.put(
+    `${API_BASE_URL}/edit-phone-number?newPhoneNumber=${newPhoneNumber}&otp=${otp}`,
+    {},{
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Accept: "*/*",
+      },
+    }
+  );
+};
+
+// POST upload avatar
+export const uploadAvatarApi = (userId, avatarFile) => {
+  const formData = new FormData();
+  formData.append("Avatar", avatarFile);
+
+  return axiosInstance.post(`${API_BASE_URL}/upload-avatar?userId=${userId}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 };

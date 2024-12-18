@@ -1,17 +1,25 @@
-import { fetchAllUsers as apiFetchAllUsers,  } from '../api/apiManageUser';
-import { updatePassword as apiUpdatePassword, changeEmail, sendOtpForEmailChange} from '../api/apiUser'
+import { fetchAllUsers as apiFetchAllUsers } from "../api/apiManageUser";
+import {
+  updatePassword as apiUpdatePassword,
+  changeEmail,
+  sendSmsOtpApi,
+  editPhoneNumberApi,
+  sendOtpForEmailChange,
+  uploadAvatarApi,
+} from "../api/apiUser";
 import { toast } from "react-toastify";
+import { getUserProfile as getUserProfile } from "../api/apiUser";
+
 
 export const fetchAllUsers = async (token) => {
   try {
     const users = await apiFetchAllUsers(token);
-    console.log(users); 
-    console.log("hello");
+
     // toast.success("Users fetched successfully");
     toast.dismiss();
     return users;
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error("Error fetching users:", error);
     // toast.error("Error fetching users: " + error.message);
     toast.dismiss();
 
@@ -19,34 +27,48 @@ export const fetchAllUsers = async (token) => {
   }
 };
 
-export const updatePassword = (userId, oldPassword, newPassword) => async (dispatch) => {
+export const fetchUserProfile = async (userId) => {
   try {
-    const response = await apiUpdatePassword(userId, oldPassword, newPassword); 
+    const response = await getUserProfile(userId);
+    return response.data.data;
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    throw error;
+  }
+};
 
+export const updatePassword =
+  (userId, oldPassword, newPassword) => async (dispatch) => {
+    try {
+      const response = await apiUpdatePassword(
+        userId,
+        oldPassword,
+        newPassword
+      );
+
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+export const sendSmsOtp = async (phoneNumber, token) => {
+  try {
+    const response = await sendSmsOtpApi(phoneNumber, token);
+    toast.success("OTP đã được gửi thành công!");
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-
-export const sendSmsOtpService = async (phoneNumber) => {
+export const editPhoneNumberService = async (newPhoneNumber, otp) => {
   try {
-    const response = await sendSmsOtp(phoneNumber);
+    const response = await editPhoneNumberApi(newPhoneNumber, otp);
     return response.data;
   } catch (error) {
-    console.error("Error sending SMS OTP:", error);
-    throw new Error("Lỗi gửi OTP đến số điện thoại");
-  }
-};
-
-export const verifyPhoneNumberService = async (otp) => {
-  try {
-    const response = await verifyPhoneNumber(otp);
-    return response.data;
-  } catch (error) {
-    console.error("Error verifying phone number:", error);
-    throw new Error("Lỗi xác thực số điện thoại bằng OTP");
+    console.error("Error updating phone number:", error);
+    throw new Error("Không thể cập nhật số điện thoại.");
   }
 };
 
@@ -65,9 +87,8 @@ export const sendOtpForEmailChangeService = async (userId, email) => {
 
 // Change email
 export const changeEmailService = async (userId, token, email, otp) => {
-
   try {
-    console.log(userId, token, email, otp)
+    console.log(userId, token, email, otp);
     const response = await changeEmail(userId, token, email, otp);
     return response.data;
   } catch (error) {
@@ -76,3 +97,13 @@ export const changeEmailService = async (userId, token, email, otp) => {
   }
 };
 
+export const uploadAvatar = async (userId, avatarFile) => {
+  try {
+    const response = await uploadAvatarApi(userId, avatarFile);
+    // console.log("Upload Avatar Response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error uploading avatar:", error?.response || error?.message);
+    throw error;
+  }
+};

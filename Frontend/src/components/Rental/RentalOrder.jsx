@@ -152,14 +152,16 @@ const RentalOrder = () => {
         <div className="font-alfa bg-white text-center p-5 border rounded text-black mb-5">
           <h2 className="text-xl">Tóm tắt đơn hàng</h2>
         </div>
+        
         <div className="space-y-4 ">
           <div className="flex bg-white items-center space-x-4 border p-4 rounded">
             <div className="relative">
+            <div className="bg-white">
               <img
                 src={rentalData.product.imgAvatarPath}
                 alt={rentalData.product.productName}
                 className="w-32 h-32 object-contain rounded"
-              />
+              /></div>
               <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                 {rentalData.quantity}
               </span>
@@ -174,6 +176,7 @@ const RentalOrder = () => {
             </div>
             <p className="text-lg font-semibold">{(rentalData.product.rentPrice * rentalData.quantity).toLocaleString()} ₫</p>
           </div>
+          
           <div className="space-y-4 px-6 py-4">
             <div>
               <p className="text-xl font-semibold">Chọn thời gian thuê</p>

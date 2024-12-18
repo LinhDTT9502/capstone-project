@@ -63,8 +63,8 @@ export default function FeatureProductSlide() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-between  px-20">
-        <h2 className="font-alfa text-2xl mb-5">Ưu đãi</h2>
+      <div className="flex justify-between">
+        <h2 className="font-alfa text-2xl mb-10">Khuyến Mãi</h2>
         <Link
           to="/product"
           className="flex items-center text-orange-500 hover:text-orange-600 transition-colors duration-200"
@@ -78,7 +78,7 @@ export default function FeatureProductSlide() {
           />
         </Link>
       </div>
-      <div className="relative px-20">
+      <div className="relative">
         <div className="overflow-hidden ">
           <div
             className="flex transition-transform duration-500 ease-in-out"
@@ -90,7 +90,7 @@ export default function FeatureProductSlide() {
               return (
                 <div
                   key={index}
-                  className="min-w-64 px-2 flex flex-col relative  group"
+                  className="min-w-64 px-2 flex flex-col relative shadow-md bg-white rounded-lg group"
                 >
                   <Link
                     className="flex flex-col"
@@ -102,7 +102,7 @@ export default function FeatureProductSlide() {
                         alt={`image ${index + 1}`}
                         className="object-contain w-full h-48"
                       />
-                      <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold py-1 px-2 rounded">
+                      <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold py-1 px-2 rounded">
                         -{product.discount}%
                       </div>
                       <div></div>
@@ -114,8 +114,8 @@ export default function FeatureProductSlide() {
                         <h3 className="font-poppins font-bold text-lg mb-2 line-clamp-2">
                           {product.productName}
                         </h3>
-                        <p className="font-poppins text-zinc-500">
-                          {product.price.toLocaleString("vi-VN")} ₫
+                        <p className="font-poppins text-red-700">
+                          {product.price.toLocaleString("vi-VN")}₫
                         </p>
                       </div>
                     </div>{" "}
@@ -127,9 +127,8 @@ export default function FeatureProductSlide() {
         </div>
         <button
           onClick={handlePrev}
-          className={`absolute w-1/12 left-20 top-1/3 transform -translate-y-1/3 ${
-            currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className={`absolute w-1/12 left-0 top-1/3 transform -translate-y-1/3 ${currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           disabled={currentIndex === 0}
         >
           <FontAwesomeIcon
@@ -139,11 +138,10 @@ export default function FeatureProductSlide() {
         </button>
         <button
           onClick={handleNext}
-          className={`absolute w-1/12 right-20 top-1/3 transform -translate-y-1/3 ${
-            currentIndex === images.length - 5
-              ? "opacity-50 cursor-not-allowed"
-              : ""
-          }`}
+          className={`absolute w-1/12 right-0 top-1/3 transform -translate-y-1/3 ${currentIndex === images.length - 5
+            ? "opacity-50 cursor-not-allowed"
+            : ""
+            }`}
           disabled={currentIndex === images.length - 5}
         >
           <FontAwesomeIcon

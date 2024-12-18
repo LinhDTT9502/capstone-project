@@ -1,168 +1,106 @@
 import React, { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { Button } from "@material-tailwind/react";
-import { selectUser, updateUser } from "../../redux/slices/authSlice";
-import { useTranslation } from "react-i18next";
-import { updateProfile } from "../../api/apiUser";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { faUser, faCaretDown, faVenusMars, faMapMarkerAlt, faBirthdayCake } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import AuthInfo from "./AuthInfo";
+import { useSelector } from "react-redux";
+import { Button, Input } from "@material-tailwind/react";
+import { updatePassword } from "../../api/apiUser";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { selectUser } from "../../redux/slices/authSlice"; 
 
-const UserProfile = () => {
+const UserChangePassword = () => {
   const user = useSelector(selectUser);
-  const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const userId = user.UserId;
 
-  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    UserName: user.UserName,
-    FullName: user.FullName,
-    Email: user.Email,
-    Gender: user.Gender || null,
-    Phone: user.Phone || null,
-    Address: user.Address || null,
-    BirthDate: user.BirthDate || null
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
-
-  const handleEditClick = () => setIsEditing(true);
-
-  const handleSaveClick = () => {
-    if (JSON.stringify(formData) === JSON.stringify(user)) {
-      toast.warn(t("user_profile.no_changes"));
-      return;
-    }
-
-    updateProfile(user.UserId, formData)
-      .then(() => {
-        setIsEditing(false);
-        toast.success(t("user_profile.update_success"));
-        dispatch(updateUser(formData));
-      })
-      .catch(() => toast.error(t("user_profile.save_failed")));
-  };
-
-  const handleCancelClick = () => {
-    setFormData({ ...user });
-    setIsEditing(false);
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleSubmit = async () => {
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast.error("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+  
+    if (formData.newPassword === formData.oldPassword) {
+      toast.error("Mật khẩu mới không được giống mật khẩu cũ!");
+      return;
+    }
+  
+    if (formData.newPassword.length < 6 || formData.newPassword.length > 16) {
+      toast.error("Mật khẩu mới phải từ 6 đến 16 ký tự!");
+      return;
+    }
+  
+    if (!window.confirm("Bạn có chắc chắn muốn đổi mật khẩu?")) {
+      return;
+    }
+  
+    try {
+      await updatePassword(userId, formData.oldPassword, formData.newPassword);
+      toast.success("Đổi mật khẩu thành công!");
+      setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (error) {
+      toast.error("Đổi mật khẩu thất bại!");
+    }
+  };
+  
+
   return (
     <>
-    <ToastContainer />
-    <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
-      <h2 className="text-orange-500 font-bold text-2xl mb-6">{t("user_profile.user_profile")}</h2>
-
-      <div className="space-y-6">
-        {/* Column 1: 4 fields (UserName, FullName) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
-          <div className="relative">
-            <FontAwesomeIcon icon={faUser} className="absolute left-4 top-10 text-gray-500" />
-            <label className="block text-gray-700">{t("user_profile.username")}:</label>
-            <input
-              type="text"
-              name="UserName"
-              className="w-full p-3 pl-12 bg-gray-100 text-gray-500 cursor-not-allowed"
-              value={formData.UserName}
-              readOnly
-            />
-          </div>
-          <div className="relative">
-            <FontAwesomeIcon icon={faUser} className="absolute left-4 top-10 text-gray-500" />
-            <label className="block text-gray-700">{t("user_profile.fullname")}:</label>
-            <input
-              type="text"
-              name="FullName"
-              className={`w-full p-3 pl-12 ${isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 cursor-not-allowed'}`}
-              value={formData.FullName}
-              onChange={handleChange}
-              readOnly={!isEditing}
-            />
-          </div>
+      <ToastContainer />
+      <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-bold text-2xl text-orange-500">Đổi mật khẩu</h2>
         </div>
-
-        {/* Column 2: Gender, Address, Birth Date */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
-          <div className="relative">
-            <FontAwesomeIcon icon={faVenusMars} className="absolute left-4 top-10 text-gray-500" />
-            <label className="block text-gray-700">{t("user_profile.gender")}:</label>
-            {isEditing ? (
-              <>
-                <select
-                  name="Gender"
-                  className="w-full p-3 pl-12 pr-10 border border-gray-300 appearance-none"
-                  value={formData.Gender}
-                  onChange={handleChange}
-                >
-                  <option value="Nam">{t("user_profile.gender_male")}</option>
-                  <option value="Nữ">{t("user_profile.gender_female")}</option>
-                  <option value="Khác">{t("user_profile.gender_other")}</option>
-                </select>
-                <FontAwesomeIcon icon={faCaretDown} className="absolute right-3 top-12 transform -translate-y-1/2 text-gray-500" />
-              </>
-            ) : (
-              <input
-                type="text"
-                name="Gender"
-                className="w-full p-3 pl-12 bg-gray-100 text-gray-500 cursor-not-allowed"
-                value={formData.Gender}
-                readOnly
-              />
-            )}
+        <div className="space-y-4">
+          <Input
+            label="Mật khẩu cũ"
+            type="password"
+            name="oldPassword"
+            value={formData.oldPassword}
+            onChange={handleChange}
+            required
+          />
+          <Input
+            label="Mật khẩu mới"
+            type="password"
+            name="newPassword"
+            value={formData.newPassword}
+            onChange={handleChange}
+            required
+          />
+          <Input
+            label="Xác nhận mật khẩu mới"
+            type="password"
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+          />
+          <div className="flex justify-end mt-4 space-x-2">
+            <Button
+              color="gray"
+              variant="outlined"
+              onClick={() =>
+                setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" })
+              }
+            >
+              Hủy
+            </Button>
+            <Button color="orange" variant="filled" onClick={handleSubmit}>
+              Lưu thay đổi
+            </Button>
           </div>
-          <div className="relative">
-            <FontAwesomeIcon icon={faMapMarkerAlt} className="absolute left-4 top-10 text-gray-500" />
-            <label className="block text-gray-700">{t("user_profile.address")}:</label>
-            <input
-              type="text"
-              name="Address"
-              className={`w-full p-3 pl-12 ${isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 cursor-not-allowed'}`}
-              value={formData.Address}
-              onChange={handleChange}
-              readOnly={!isEditing}
-            />
-          </div>
-          <div className="relative">
-            <FontAwesomeIcon icon={faBirthdayCake} className="absolute left-4 top-10 text-gray-500" />
-            <label className="block text-gray-700">{t("user_profile.birthDate")}:</label>
-            <input
-              type="date"
-              name="BirthDate"
-              className={`w-full p-3 pl-12 ${isEditing ? 'border border-gray-300' : 'bg-gray-100 text-gray-500 cursor-not-allowed'}`}
-              value={formData.BirthDate ? formData.BirthDate.split("T")[0] : ""}
-              onChange={handleChange}
-              readOnly={!isEditing}
-            />
-          </div>
-        </div>
-
-        {/* Thông tin xác thực */}
-        <div className="mt-6 border-t pt-6">
-          <h3 className="text-xl font-semibold text-orange-500">{t("user_profile.auth_info")}</h3>
-          <AuthInfo formData={formData} handleChange={handleChange} isEditing={isEditing} />
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-4 mt-6">
-          {isEditing ? (
-            <>
-              <Button color="gray" variant="text" onClick={handleCancelClick}>{t("user_profile.cancel")}</Button>
-              <Button color="orange" variant="filled" onClick={handleSaveClick}>{t("user_profile.save_changes")}</Button>
-            </>
-          ) : (
-            <Button color="orange" variant="filled" onClick={handleEditClick}>{t("user_profile.edit_profile")}</Button>
-          )}
         </div>
       </div>
-    </div>
     </>
   );
 };
 
-export default UserProfile;
+export default UserChangePassword;

@@ -20,6 +20,7 @@
     }
     public class StaffVM : StaffDTO
     {
+        public string? BranchName { get; set; }
         public int StaffId { get; set; }
         public DateTime? EndDate { get; set; }
         public bool IsActive { get; set; } 

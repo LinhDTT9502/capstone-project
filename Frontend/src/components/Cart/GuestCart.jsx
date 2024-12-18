@@ -3,18 +3,22 @@ import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useSelector, useDispatch } from "react-redux"; // Added for Redux integration
-import {
-  getUserCart,
-  reduceCartItem,
-  removeCartItem,
-  addToCart,
-  updateCartItemQuantity,
-} from "../../services/cartService";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
-import { selectCartItems, removeFromCart, decreaseQuantity, addCart } from "../../redux/slices/cartSlice";
-import { addCusCart, decreaseCusQuantity, removeFromCusCart, selectCustomerCartItems } from "../../redux/slices/customerCartSlice";
+import {
+  selectCartItems,
+  removeFromCart,
+  decreaseQuantity,
+  addCart,
+} from "../../redux/slices/cartSlice";
+import {
+  addCusCart,
+  decreaseCusQuantity,
+  removeFromCusCart,
+  selectCustomerCartItems,
+} from "../../redux/slices/customerCartSlice";
+import { checkQuantityProduct } from "../../services/warehouseService";
 // import { ProductType } from "../Product/ProductType";
 
 const GuestCart = () => {
@@ -84,7 +88,7 @@ const GuestCart = () => {
     return acc + item.price;
   }, 0);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (selectedItems.length === 0) {
       toast.error("Please select at least one item to checkout.");
       return;
@@ -93,10 +97,27 @@ const GuestCart = () => {
     const selectedProducts = cartData.filter((item) =>
       selectedItems.includes(item.id)
     );
-    navigate("/placed-order", { state: { selectedProducts } });
+
+    try {
+      for (const product of selectedProducts) {
+        const response = await checkQuantityProduct(product.productId);
+
+        if (product.quantity > response.availableQuantity) {
+          toast.error(
+            `Sản phẩm "${product.productName}" chỉ còn lại ${response.availableQuantity} sản phẩm trong kho.`
+          );
+          return;
+        }
+      }
+
+      navigate("/placed-order", { state: { selectedProducts } });
+    } catch (error) {
+      console.error("Error checking product quantities:", error);
+      toast.error("Có lỗi xảy ra khi kiểm tra số lượng sản phẩm.");
+    }
   };
 
-  const handleRental = () => {
+  const handleRental = async () => {
     if (selectedItems.length === 0) {
       toast.error("Please select at least one item to checkout.");
       return;
@@ -105,10 +126,24 @@ const GuestCart = () => {
     const selectedProducts = cartData.filter((item) =>
       selectedItems.includes(item.id)
     );
-console.log(selectedProducts);
 
-    navigate("/rental-order", { state: { selectedProducts } });
+    try {
+      for (const product of selectedProducts) {
+        const response = await checkQuantityProduct(product.productId);
 
+        if (product.quantity > response.availableQuantity) {
+          toast.error(
+            `Sản phẩm "${product.productName}" chỉ còn lại ${response.availableQuantity} sản phẩm trong kho.`
+          );
+          return;
+        }
+      }
+
+      navigate("/rental-order", { state: { selectedProducts } });
+    } catch (error) {
+      console.error("Error checking product quantities:", error);
+      toast.error("Có lỗi xảy ra khi kiểm tra số lượng sản phẩm.");
+    }
   };
 
   return (
@@ -122,8 +157,26 @@ console.log(selectedProducts);
           {totalItems} {t("user_cart.items")}
         </span>
       </div>
+      <div className="items-center font-poppins mb-2 justify-end flex  text-rose-700">
+        * Đơn vị tiền tệ: ₫
+      </div>
       {cartData.length === 0 ? (
-        <p>{t("user_cart.empty")}</p>
+        <>
+          <div className="flex flex-col items-center my-10 ">
+            <img
+              src="/assets/images/cart-icon.png"
+              className="w-48 h-auto object-contain"
+            />
+            <p className="pt-4 text-lg font-poppins">{t("user_cart.empty")}</p>
+            <Link
+              to="/product"
+              className="text-blue-500 flex items-center font-poppins"
+            >
+              <FontAwesomeIcon className="pr-2" icon={faArrowLeft} />{" "}
+              {t("user_cart.continue_shopping")}
+            </Link>
+          </div>
+        </>
       ) : (
         <div className="w-full">
           <div className="bg-zinc-100 rounded-lg overflow-hidden shadow-lg">
@@ -144,15 +197,14 @@ console.log(selectedProducts);
               <div className="w-2/12 text-center font-poppins text-lg font-bold">
                 {t("user_cart.price")}
               </div>
-              <div className="w-1/12 text-center font-poppins text-lg font-bold">
-                Giá thuê
-              </div>
               <div className="w-2/12 text-center font-poppins text-lg font-bold">
                 {t("user_cart.total")}
               </div>
-              <div className="w-1/12 text-center font-poppins text-lg font-bold">
-                
+              <div className="w-2/12 text-center text-lg font-bold">
+                Giá thuê
+                <p className="text-xs">(cho 1 ngày)</p>
               </div>
+              <div className="w-1/12 text-center text-lg font-bold"></div>
             </div>
             {cartData.map((item) => (
               <div
@@ -173,7 +225,7 @@ console.log(selectedProducts);
                     className="w-16 h-16 object-cover mr-4"
                   />
                   <Link
-                    to={`/product/${item.productId}`}
+                    to={`/product/${item.productCode}`}
                     className="text-sm font-poppins font-bold text-wrap w-1/2"
                   >
                     {item.productName}
@@ -184,7 +236,9 @@ console.log(selectedProducts);
                       color={item.color}
                       size={item.size}
                       condition={item.condition} /> */}
-                    <p>{item.color}, {item.size}, {item.condition}%</p>
+                    <p>
+                      {item.color}, {item.size}, {item.condition}%
+                    </p>
                   </div>
                 </div>
                 <div className="w-2/12 text-center flex items-center justify-center">
@@ -212,13 +266,15 @@ console.log(selectedProducts);
                 </div>
                 <div className="w-2/12 text-center">
                   {item.price.toLocaleString()}{" "}
-                
                 </div>
-                 <div className="w-1/12 text-center">
-                 test
+
+                <div className="w-2/12 text-center">
+                  {(item.price * item.quantity).toLocaleString()}
                 </div>
                 <div className="w-2/12 text-center">
-                  {(item.price * item.quantity).toLocaleString()} 
+                  {item.rentPrice !== 0
+                    ? item.rentPrice.toLocaleString()
+                    : "Sản phẩm chỉ bán"}
                 </div>
                 <div className="w-1/12 text-center">
                   <button
@@ -234,36 +290,35 @@ console.log(selectedProducts);
           <div className="flex justify-between items-center mt-5">
             <div className="text-left">
               <p className="text-lg font-semibold">
-                {t("user_cart.total")} ({selectedItems.length} {t("user_cart.items")}):
+                {t("user_cart.total")} ({selectedItems.length}{" "}
+                {t("user_cart.items")}):
               </p>
-
             </div>
-            <p className="text-right">{totalPrice.toLocaleString()}</p>
+            <p className="font-bold"> {totalPrice.toLocaleString()} ₫ </p>
           </div>
           <div className="flex justify-between w-full mt-5">
-                <Link
-                  to="/product"
-                  className="text-blue-500 flex items-center font-poppins"
-                >
-                  <FontAwesomeIcon className="pr-2" icon={faArrowLeft} />{" "}
-                  {t("user_cart.continue_shopping")}
-                </Link>
-                <div className="space-x-5 items-center">
-                  <button
-                    className="bg-orange-500 rounded-md text-white px-4 py-2 "
-                    onClick={handleCheckout}
-                  >
-                    Mua ngay
-                  </button>
-                  <button
-                    className="bg-rose-800 rounded-md text-white px-4 py-2"
-                    onClick={handleRental}
-                  >
-                    Thuê ngay
-                  </button>
-                </div>
-
-              </div>
+            <Link
+              to="/product"
+              className="text-blue-500 flex items-center font-poppins"
+            >
+              <FontAwesomeIcon className="pr-2" icon={faArrowLeft} />{" "}
+              {t("user_cart.continue_shopping")}
+            </Link>
+            <div className="space-x-5 items-center">
+              <button
+                className="bg-orange-500 rounded-md text-white px-4 py-2 "
+                onClick={handleCheckout}
+              >
+                Mua ngay
+              </button>
+              <button
+                className="bg-rose-800 rounded-md text-white px-4 py-2"
+                onClick={handleRental}
+              >
+                Thuê ngay
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -1,8 +1,8 @@
-import { getCommentbyId } from "../../api/Comment/apiComment";
+import { getCommentbyProductCode } from "../../api/Comment/apiComment";
 
-export const getComment = async (productId) => {
+export const getComment = async (productCode) => {
     try {
-      const response = await getCommentbyId(productId);
+      const response = await getCommentbyProductCode(productCode);
       return response.data.data.$values;
     } catch (error) {
       console.error('Error fetching comment:', error);

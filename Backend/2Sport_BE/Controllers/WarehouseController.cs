@@ -8,6 +8,7 @@ using _2Sport_BE.Service.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Twilio.Rest.Api.V2010.Account;
 
 namespace _2Sport_BE.Controllers
 {
@@ -41,7 +42,8 @@ namespace _2Sport_BE.Controllers
                 {
                     if (item.ProductId > 0)
                     {
-                        item.Product = await _productService.GetProductById((int)item.ProductId);
+                        var product = await _productService.GetProductById((int)item.ProductId);
+                        item.Product = product;
                     }
 
                     if (item.BranchId > 0)
@@ -51,6 +53,37 @@ namespace _2Sport_BE.Controllers
                 }
                 var result = _mapper.Map<List<WarehouseVM>>(query);
                 return Ok(new { total = result.Count(), data = result });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
+        [HttpGet]
+        [Route("check-availabe-of-product/{productCode}")]
+        public async Task<IActionResult> CheckAvailableOfProduct(string productCode)
+        {
+            try
+            {
+                var products = await _productService.GetProductsByProductCode(productCode);
+                var availabeQuantity = 0;
+
+                foreach (var product in products)
+                {
+                    var warehouse = (await _warehouseService.GetWarehouseByProductId(product.Id)).FirstOrDefault();
+                    if (warehouse is not null)
+                    {
+                        availabeQuantity += (int)warehouse.AvailableQuantity;
+                    }
+                }
+                if (availabeQuantity > 0)
+                {
+                    return Ok("Available!");
+                } else
+                {
+                    return Ok("Sold out!");
+                }
             }
             catch (Exception e)
             {
@@ -155,6 +188,32 @@ namespace _2Sport_BE.Controllers
                 await _warehouseService.DeleteWarehouseAsync(deletedWarehouses);
                 return Ok("Delete warehouse successfully!");
             } catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+
+        }
+
+
+        [HttpPut]
+        [Route("update-quantity-of-warehouse/{warehouseId}")]
+        public async Task<IActionResult> UpdateQuantityOfWarehouse(int warehouseId, int quantity)
+        {
+            try
+            {
+                var updatedWarehouses = (await _warehouseService.GetWarehouseById(warehouseId)).FirstOrDefault();
+                if (updatedWarehouses is null)
+                {
+                    return BadRequest($"Cannot find warehouses with warehouse id: {warehouseId}");
+                }
+                var distanceQuantity = updatedWarehouses.TotalQuantity - updatedWarehouses.AvailableQuantity;
+
+                updatedWarehouses.TotalQuantity = quantity;
+                updatedWarehouses.AvailableQuantity = quantity - distanceQuantity;
+                await _warehouseService.UpdateWarehouseAsync(updatedWarehouses);
+                return Ok("Update warehouse successfully!");
+            }
+            catch (Exception e)
             {
                 return StatusCode(500, e.Message);
             }

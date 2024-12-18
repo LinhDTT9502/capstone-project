@@ -4,7 +4,7 @@ import PostComment from './PostComment';
 import ReplyComment from './ReplyComment';
 import DeleteComment from './DeleteComment';
 
-const CommentList = ({ productId }) => {
+const CommentList = ({ productCode }) => {
   const [comments, setComments] = useState([]);
   const [replyingTo, setReplyingTo] = useState(null);
   const [token, setToken] = useState(null);
@@ -12,7 +12,7 @@ const CommentList = ({ productId }) => {
 
   const fetchComments = async () => {
     try {
-      const commentData = await getComment(productId);
+      const commentData = await getComment(productCode);
       const structuredComments = buildCommentTree(commentData);
       setComments(structuredComments);
     } catch (error) {
@@ -35,7 +35,8 @@ const CommentList = ({ productId }) => {
 
     fetchToken();
     fetchComments();
-  }, [productId]);
+
+  }, [productCode]);
 
   const buildCommentTree = (comments) => {
     const commentMap = {};
@@ -63,12 +64,12 @@ const CommentList = ({ productId }) => {
           <div className="flex space-x-4 items-start">
             <div className="flex-shrink-0">
               <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold">
-                {comment.username.charAt(0).toUpperCase()}
+                {comment.fullName.charAt(0).toUpperCase()}
               </div>
             </div>
             <div className="flex-1">
               <div className="flex justify-between items-center">
-                <h3 className="font-medium text-gray-800">{comment.username}</h3>
+                <h3 className="font-medium text-gray-800">{comment.fullName}</h3>
                 <span className="text-xs text-gray-500">
                   {new Date(comment.createdAt).toLocaleString()}
                 </span>
@@ -77,14 +78,14 @@ const CommentList = ({ productId }) => {
             </div>
           </div>
           <div className="mt-3 flex items-center space-x-4">
-            {comment.parentCommentId === 0 && (
+            {/* {comment.parentCommentId === 0 && (
               <button
                 className="text-blue-500 hover:text-blue-600 text-sm font-medium transition duration-300 ease-in-out"
                 onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
               >
                 Trả lời
               </button>
-            )}
+            )} */}
 
             {/* Hiển thị nút xóa chỉ khi người dùng đã đăng nhập và là chủ của bình luận */}
             {token && userId === comment.userId && (
@@ -94,10 +95,10 @@ const CommentList = ({ productId }) => {
               />
             )}
           </div>
-          {replyingTo === comment.id && comment.parentCommentId === 0 && (
+          {/* {replyingTo === comment.id && comment.parentCommentId === 0 && (
             <div className="mt-4">
               <ReplyComment
-                productId={productId}
+                productCode={productCode}
                 parentCommentId={comment.id}
                 onReplySuccess={() => {
                   setReplyingTo(null);
@@ -105,7 +106,7 @@ const CommentList = ({ productId }) => {
                 }}
               />
             </div>
-          )}
+          )} */}
         </div>
         {comment.replies?.length > 0 && (
           <div className="ml-6 mt-4 border-l-2 border-gray-200 pl-4">
@@ -126,7 +127,7 @@ const CommentList = ({ productId }) => {
           <p className="text-gray-500 italic">Chưa có bình luận nào.</p>
         )}
         <div className="mt-8">
-          <PostComment productId={productId} onCommentPosted={fetchComments} />
+          <PostComment productCode={productCode} onCommentPosted={fetchComments} />
         </div>
       </div>
     </div>

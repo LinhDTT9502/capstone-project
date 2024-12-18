@@ -5,14 +5,24 @@ import { useDispatch } from "react-redux";
 import { updateShipment } from "../../redux/slices/shipmentSlice";
 import AddressForm from "../AddressForm";
 import { useTranslation } from "react-i18next";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-export default function UpdateShipment({ shipment, onClose }) {
+export default function UpdateShipment({ refreshShipments, shipment, onClose, setReload }) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(true);
   const [formData, setFormData] = useState({ ...shipment });
   const [address, setAddress] = useState("");
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
+
+  const parts = shipment.address.split(",");
+
+  // Trim each part to remove unnecessary spaces
+  const numberAddress = parts[0]?.trim();
+  const wardName = parts[1]?.trim();
+  const districtName = parts[2]?.trim();
+  const provinceName = parts[3]?.trim();
 
   useEffect(() => {
     setFormData({ ...shipment });
@@ -23,23 +33,27 @@ export default function UpdateShipment({ shipment, onClose }) {
       const updatedShipment = await updateUserShipmentDetail(
         shipment.id,
         token,
-        { ...formData, address }
+        formData
       );
+      toast.success("Cập nhật thành công!");
+      
+      setReload();
       dispatch(updateShipment(updatedShipment));
       setIsOpen(false);
       onClose();
+      refreshShipments();
     } catch (error) {
       console.error("Error updating shipment details:", error);
     }
   };
 
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
+  const handleInputChange = (e) => {
+    const { name, value } = e.target; 
     setFormData({ ...formData, [name]: value });
   };
-
-  const handleAddressChange = (newAddress) => {
-    setAddress(newAddress);
+  
+  const handleAddressChange = (fullAddress) => {
+    setFormData({ ...formData, address: fullAddress });
   };
 
   function closeModal() {
@@ -50,7 +64,7 @@ export default function UpdateShipment({ shipment, onClose }) {
   return (
     <>
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="bg-white" onClose={closeModal}>
+        <Dialog as="div" className="relative z-[99999999]" onClose={closeModal}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -63,7 +77,7 @@ export default function UpdateShipment({ shipment, onClose }) {
             <Dialog.Overlay className="fixed inset-0 bg-black opacity-50" />
           </Transition.Child>
 
-          <div className="fixed inset-0 max-h-[100vh] overflow-y-auto pt-20">
+          <div className="fixed inset-0 max-h-[100vh]">
             <div className="flex items-center justify-center min-h-screen">
               <Transition.Child
                 as={Fragment}
@@ -104,9 +118,27 @@ export default function UpdateShipment({ shipment, onClose }) {
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700">
+                      Địa chỉ email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full border rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2  ">
                       {t("payment.address")}
                     </label>
-                    <AddressForm onAddressChange={handleAddressChange} />
+                    <AddressForm 
+                      onAddressChange={handleAddressChange} 
+                      address={numberAddress} 
+                      ward={wardName} 
+                      district={districtName} 
+                      province={provinceName} 
+                    />
                   </div>
                   <div className="mt-6 flex justify-end">
                     <button
@@ -133,3 +165,4 @@ export default function UpdateShipment({ shipment, onClose }) {
     </>
   );
 }
+

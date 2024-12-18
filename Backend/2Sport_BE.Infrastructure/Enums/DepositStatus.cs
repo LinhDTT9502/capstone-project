@@ -8,12 +8,12 @@ namespace _2Sport_BE.Service.Enums
 {
     public enum DepositStatus : int
     {
-        Paid = 1,
-        Partially_Paid = 2,
-        Not_Paid = 3,
-        Refunded = 4,
-        Pending = 6,
-        Partially_Pending = 7,
-        Canceled = 8,
+        PENDING = 1,
+        PARTIALLY_PENDING = 2,
+        FULL_PAID = 3,
+        PARTIALLY_PAID = 4,
+        NOT_PAID = 5, 
+        REFUNDED = 6,
+        CANCELED = 0
     }
 }

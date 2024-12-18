@@ -131,6 +131,36 @@ namespace _2Sport_BE.Controllers
             return Ok(response);
         }
 
+        [HttpPut("update-rental-order-status/{orderId}")]
+        public async Task<IActionResult> EditRentalOrderStatus(int orderId, [FromQuery]int orderStatus)
+        {
+            var response = await _rentalOrderServices.UpdateRentalOrderStatusAsync(orderId, orderStatus);
+
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
+        [HttpPut("update-rental-payment-status/{orderId}")]
+        public async Task<IActionResult> EditRentalPaymentStatus(int orderId, [FromQuery]int paymentStatus)
+        {
+            var response = await _rentalOrderServices.UpdateRentalPaymentStatus(orderId, paymentStatus);
+             
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpPut("update-rental-deposit-status/{orderId}")]
+        public async Task<IActionResult> EditRentalDepositStatus(int orderId, [FromQuery] int depositStatus)
+        {
+            var response = await _rentalOrderServices.UpdateRentalDepositStatus(orderId, depositStatus);
+
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
         [HttpPut("return")]
         public async Task<IActionResult> ProcessReturn([FromBody] ParentOrderReturnModel returnData)
         {
@@ -140,26 +170,6 @@ namespace _2Sport_BE.Controllers
             return Ok(response);
         }
 
-        [HttpPost("request-cancel/{rentalOrderId}")]
-        public async Task<IActionResult> RequestCancelOrder(int rentalOrderId, [FromQuery] string reason)
-        {
-            var response = await _rentalOrderServices.CancelRentalOrderAsync(rentalOrderId, reason);
-            if (response.IsSuccess) return Ok(response);
-            return BadRequest(response);
-        }
-
-        [HttpPut("update-rental-order-status")]
-        public async Task<IActionResult> EditRentalOrderStatus(int orderId, int status)
-        {
-            var response = await _rentalOrderServices.UpdateRentalOrderStatusAsync(orderId, status);
-
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
-            return BadRequest(response);
-        }
-  
         [HttpPut("assign-branch")]
         public async Task<IActionResult> AssignBranch(int orderId, int branchId)
         {
@@ -167,6 +177,14 @@ namespace _2Sport_BE.Controllers
             if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
 
+        }
+
+        [HttpPost("request-cancel/{rentalOrderId}")]
+        public async Task<IActionResult> RequestCancelOrder(int rentalOrderId, [FromQuery] string reason)
+        {
+            var response = await _rentalOrderServices.CancelRentalOrderAsync(rentalOrderId, reason);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
         }
 
         [HttpPost("{orderId}/approve")]
@@ -245,7 +263,7 @@ namespace _2Sport_BE.Controllers
                 }
                 else
                 {
-                    return BadRequest("Image is null");
+                    return Ok("No updated");
                 }
             }
         }

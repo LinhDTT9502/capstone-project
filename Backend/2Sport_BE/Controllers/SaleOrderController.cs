@@ -115,12 +115,20 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
 
-        [HttpPut("update-order-status")]
-        public async Task<IActionResult> ChangeOrderStatus(int orderId, int status)
+        [HttpPut("update-order-status/{orderId}")]
+        public async Task<IActionResult> ChangeOrderStatus(int orderId, [FromQuery] int status)
         {
             var response = await _orderService.UpdateSaleOrderStatusAsync(orderId, status);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
 
-            return BadRequest("Invalid request data.");
+        [HttpPut("update-sale-payment-status/{orderId}")]
+        public async Task<IActionResult> ChangeSlePaymentStatus(int orderId, [FromQuery] int paymentStatus)
+        {
+            var response = await _orderService.UpdateSalePaymentStatus(orderId, paymentStatus);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
         }
 
         [HttpPut("assign-branch")]
@@ -221,7 +229,7 @@ namespace _2Sport_BE.Controllers
                 }
                 else
                 {
-                    return BadRequest("Image is null");
+                    return Ok("No updated");
                 }
             }
         }

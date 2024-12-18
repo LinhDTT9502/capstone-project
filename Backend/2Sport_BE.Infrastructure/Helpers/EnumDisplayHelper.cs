@@ -12,10 +12,10 @@ namespace _2Sport_BE.Service.Helpers
     {
         private static readonly Dictionary<Enum, string> displayNames = new Dictionary<Enum, string>
     {
-        { PaymentStatus.IsWating, "Đang chờ thanh toán" },
-        { PaymentStatus.IsPaid, "Đã thanh toán" },
-        { PaymentStatus.IsDeposited, "Đã đặt cọc" },
-        { PaymentStatus.IsCanceled, "Đã hủy" },
+        { PaymentStatus.PENDING, "Đang chờ thanh toán" },
+        { PaymentStatus.PAID, "Đã thanh toán" },
+        { PaymentStatus.REFUNDED, "Đã hoàn tiền" },
+        { PaymentStatus.CANCELED, "Đã hủy" },
 
         { OrderStatus.CANCELLED, "Đã hủy" },
         { OrderStatus.PENDING, "Chờ xử lý" },
@@ -30,27 +30,29 @@ namespace _2Sport_BE.Service.Helpers
         { OrderStatus.REFUNDED, "Đã hoàn tiền" },
         { OrderStatus.COMPLETED, "Đã hoàn thành" },
 
-        { RentalOrderStatus.CANCELLED, "Đã hủy" },
+        { RentalOrderStatus.CANCELED, "Đã hủy" },
         { RentalOrderStatus.PENDING, "Chờ xử lý" },
-        { RentalOrderStatus.CONFIRMED, "Đã xác nhận" },
-        { RentalOrderStatus.PAID, "Đã thanh toán" },
+        { RentalOrderStatus.CONFIRMED, "Đã xác nhận đơn" },
         { RentalOrderStatus.PROCESSING, "Đang xử lý" },
-        { RentalOrderStatus.SHIPPED, "Đã giao hàng" },
+        { RentalOrderStatus.SHIPPED, "Đã giao cho đơn vị vận chuyển" },
+        { RentalOrderStatus.DELIVERED, "Đã giao hàng" },
+        { RentalOrderStatus.AWAITING_PICKUP, "Chờ khách nhận hàng" },
+        { RentalOrderStatus.DECLINED, "Đã từ chối" },
+        { RentalOrderStatus.RENTED, "Đang thuê" },
+        { RentalOrderStatus.EXTENSION_REQUESTED, "Yêu cầu gia hạn" },
         { RentalOrderStatus.DELAYED, "Bị trì hoãn" },
-        { RentalOrderStatus.COMPLETED, "Đã hoàn tất thuê" },
-        { RentalOrderStatus.AWAITING_PICKUP, "Chờ nhận hàng" },
         { RentalOrderStatus.RETURN_REQUESTED, "Yêu cầu trả sản phẩm" },
         { RentalOrderStatus.RETURNED, "Đã trả sản phẩm" },
-        { RentalOrderStatus.INSPECTING, "Đang kiểm tra sản phẩm" },
-        { RentalOrderStatus.CLOSED, "Đơn thuê đã kết thúc" },
-        { RentalOrderStatus.FAILED, "Thất bại" },
+        { RentalOrderStatus.INSPECTING, "Đang kiểm tra sản phẩm trả" },
+        { RentalOrderStatus.COMPLETED, "Đơn thuê đã kết thúc" },
+        { RentalOrderStatus.FAILED, "Xử lý đơn thất bại" },
 
-        { DepositStatus.Paid, "Đã thanh toán" },
-        { DepositStatus.Partially_Paid, "Đã thanh toán cọc 50%" },
-        { DepositStatus.Not_Paid, "Chưa thanh toán" },
-        { DepositStatus.Refunded, "Đã hoàn trả" },
-        { DepositStatus.Pending, "Đang chờ thanh toán" },
-        { DepositStatus.Partially_Pending, "Đang chờ thanh toán cọc 50%" },
+        { DepositStatus.FULL_PAID, "Đã thanh toán cọc 100% tiền thuê" },
+        { DepositStatus.PARTIALLY_PAID, "Đã thanh toán cọc 50% tiền thuê" },
+        { DepositStatus.NOT_PAID, "Chưa thanh toán" },
+        { DepositStatus.REFUNDED, "Đã hoàn trả" },
+        { DepositStatus.PENDING, "Đang chờ thanh toán cọc 100% tiền thuê" },
+        { DepositStatus.PARTIALLY_PENDING, "Đang chờ thanh toán cọc 50% tiền thuê" },
 
         { OrderMethods.COD, "Giao hàng thu tiền hộ - COD" },
         { OrderMethods.PayOS, "Quét mã QR - PayOs" },
@@ -67,10 +69,6 @@ namespace _2Sport_BE.Service.Helpers
         {ExtensionRequestStatus.REJECTED, "Từ chối yêu cầu gia hạn"},
     };
 
-        public static string GetDisplayName(Enum enumValue)
-        {
-            return displayNames.TryGetValue(enumValue, out var name) ? name : enumValue.ToString();
-        }
         public static string GetEnumDescription<TEnum>(int value) where TEnum : Enum
         {
             if (Enum.IsDefined(typeof(TEnum), value))

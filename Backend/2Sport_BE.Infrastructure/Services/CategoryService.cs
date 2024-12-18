@@ -93,6 +93,7 @@ namespace _2Sport_BE.Service.Services
 
         public async Task AddCategory(Category category)
         {
+            category.CreatedAt = DateTime.Now;
             category.Status = true;
             category.Quantity = 0;
             await _unitOfWork.CategoryRepository.InsertAsync(category);
