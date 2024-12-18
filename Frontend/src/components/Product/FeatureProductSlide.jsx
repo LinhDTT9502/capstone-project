@@ -56,8 +56,8 @@ export default function FeatureProductSlide() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-between  px-20">
-        <h2 className="font-alfa text-2xl mb-5">Sản Phẩm Mới</h2>
+      <div className="flex justify-between">
+        <h2 className="font-alfa text-2xl mb-10">Sản Phẩm Mới</h2>
         <Link
           to="/product"
           className="flex items-center text-orange-500 hover:text-orange-600 transition-colors duration-200"
@@ -68,7 +68,7 @@ export default function FeatureProductSlide() {
           <FontAwesomeIcon icon={faArrowRight} />
         </Link>
       </div>
-      <div className="relative px-20">
+      <div className="relative">
         <div className="overflow-hidden">
           <div
             className="flex transition-transform duration-500 ease-in-out"
@@ -113,7 +113,7 @@ export default function FeatureProductSlide() {
         </div>
         <button
           onClick={handlePrev}
-          className={`absolute w-1/12 left-20 top-1/3 transform -translate-y-1/3 ${currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
+          className={`absolute w-1/12 left-0 top-1/3 transform -translate-y-1/3 ${currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
             }`}
           disabled={currentIndex === 0}
         >
@@ -124,7 +124,7 @@ export default function FeatureProductSlide() {
         </button>
         <button
           onClick={handleNext}
-          className={`absolute w-1/12 right-20 top-1/3 transform -translate-y-1/3 ${currentIndex >= images.length - itemsPerPage
+          className={`absolute w-1/12 right-0 top-1/3 transform -translate-y-1/3 ${currentIndex >= images.length - itemsPerPage
             ? "opacity-50 cursor-not-allowed"
             : ""
             }`}
