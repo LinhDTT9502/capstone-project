@@ -121,7 +121,7 @@ const GuestOrderDetail = () => {
                 <p className="flex items-start mb-2">
                   <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2 mt-1 text-orange-500" />
                   <span className="font-medium mr-2">Địa chỉ: </span> 
-                  <span className="ml-1">{address}</span>
+                  <span className="ml-1">{address || "N/A"}</span>
                 </p>
 
               </div>
@@ -150,7 +150,7 @@ const GuestOrderDetail = () => {
 
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Order Items</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Chi tiết sản phẩm</h3>
             <div className="space-y-6">
               {saleOrderDetailVMs.$values.map((item) => (
                 <div key={item.productId} className="flex items-center space-x-4 border-b pb-4 last:border-b-0 last:pb-0">
@@ -162,13 +162,13 @@ const GuestOrderDetail = () => {
                   <div className="flex-grow">
                     <h4 className="font-semibold text-lg text-gray-800">{item.productName}</h4>
                     <p className="text-sm text-gray-600">
-                      Color: {item.color} | Size: {item.size} | Condition: {item.condition}%
+                      Màu sắc {item.color} | Size: {item.size} | Tình trạng {item.condition}%
                     </p>
                     <p className="text-sm text-gray-600">
-                      Quantity: {item.quantity} | Price: {formatCurrency(item.unitPrice)}
+                      Số lượng: {item.quantity} | Giá bán: {formatCurrency(item.unitPrice)}
                     </p>
                     <p className="text-sm font-medium text-gray-800 mt-1">
-                      Subtotal: {formatCurrency(item.totalAmount)}
+                      Tạm tính: {formatCurrency(item.totalAmount)}
                     </p>
                   </div>
                 </div>

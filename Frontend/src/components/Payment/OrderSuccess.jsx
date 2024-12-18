@@ -15,12 +15,12 @@ const OrderSuccess = () => {
           <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Đặt hàng thành công</h1>
           <p className="text-sm text-gray-600 mb-8">Bạn vui lòng thanh toán để hoàn thành đơn hàng!</p>
           
-          {orderID && orderCode ? (
+          {/* {orderID && orderCode ? (
             <div className="text-left bg-gray-50 p-4 rounded-md mb-6">
               <p className="text-sm text-gray-600">Mã đơn hàng: <span className="font-medium text-gray-900">{orderID}</span></p>
               <p className="text-sm text-gray-600">ID đơn hàng: <span className="font-medium text-gray-900">{orderCode}</span></p>
             </div>
-          ) : null}
+          ) : null} */}
           
   
         </div>
