@@ -42,6 +42,9 @@ namespace _2Sport_BE.Service.Services
         Task UpdateProducts(IQueryable<Product> products);
         Task<IQueryable<Product>> GetProductsByProductName(string productName);
         Task<IQueryable<Product>> GetProductsByCategoryId(int categoryId);
+        Task<IQueryable<Product>> SearchProducts(Expression<Func<Product, bool>> filter = null,
+                                                    string includeProperties = "",
+                                                    int? pageIndex = null, int? pageSize = null);
     }
     public class ProductService : IProductService
     {
@@ -319,6 +322,15 @@ namespace _2Sport_BE.Service.Services
         {
             var query = await _unitOfWork.ProductRepository.GetAsync(_ => _.CategoryId == categoryId, "ImagesVideos");
             return query.AsQueryable();
+        }
+
+        public async Task<IQueryable<Product>> SearchProducts(Expression<Func<Product, bool>> filter = null, string includeProperties = "", int? pageIndex = null, int? pageSize = null)
+        {
+            var query = await _unitOfWork.ProductRepository.GetAsync(filter, includeProperties, pageIndex, pageSize);
+            var distinctProducts = query
+                    .GroupBy(p => new { p.ProductCode, p.ProductName })
+                    .Select(g => g.First());
+            return distinctProducts.AsQueryable();
         }
     }
 }
