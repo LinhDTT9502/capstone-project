@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { fetchBlogById } from "../services/blogService";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
 const BlogDetail = () => {
   const navigate = useNavigate();
@@ -37,12 +39,15 @@ const BlogDetail = () => {
     return (
       <div className="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
         <i className="fas fa-exclamation-circle text-6xl text-red-500 mb-4"></i>
-        <p className="text-xl text-gray-700 mb-4">No blog data available.</p>
+        <p className="text-xl text-gray-700 mb-4">Hiện tại không có bài viết nào.</p>
         <button
           onClick={() => navigate(-1)}
           className="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition duration-300 ease-in-out flex items-center"
         >
-          <i className="fas fa-arrow-left mr-2"></i> Go Back
+          <FontAwesomeIcon
+            className="pr-2"
+            icon={faArrowLeft}
+          /> Quay lại
         </button>
       </div>
     );
@@ -82,7 +87,7 @@ const BlogDetail = () => {
             </div>
           </div>
 
-      
+
           <div
             className="prose prose-lg max-w-none text-gray-800 leading-relaxed"
             dangerouslySetInnerHTML={{ __html: blog.content }}
@@ -95,7 +100,10 @@ const BlogDetail = () => {
             onClick={() => navigate(-1)}
             className="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition duration-300 ease-in-out flex items-center"
           >
-            <i className="fas fa-arrow-left mr-2"></i> Back to Blogs
+            <FontAwesomeIcon
+              className="pr-2"
+              icon={faArrowLeft}
+            /> Quay lại
           </button>
           <div className="flex space-x-4">
             <button className="text-blue-500 hover:text-blue-600 transition duration-300 ease-in-out">

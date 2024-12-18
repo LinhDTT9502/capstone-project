@@ -35,7 +35,7 @@ const CommentList = ({ productCode }) => {
 
     fetchToken();
     fetchComments();
-    
+
   }, [productCode]);
 
   const buildCommentTree = (comments) => {

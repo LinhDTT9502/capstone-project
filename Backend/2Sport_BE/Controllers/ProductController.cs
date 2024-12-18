@@ -339,7 +339,7 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var query = await _productService.GetProducts(_ => _.Status == true &&
+                var query = await _productService.SearchProducts(_ => _.Status == true &&
                                                                 (_.ProductName.ToLower().Contains(keywords.ToLower()) ||
                                                                 _.ProductCode.ToLower().Contains(keywords.ToLower()))
                                                                 , "", defaultSearch.currentPage, defaultSearch.perPage);

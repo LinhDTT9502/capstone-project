@@ -138,6 +138,7 @@ namespace _2Sport_BE.Controllers
                 {
                     deletedBranch.Status = true;
                 }
+                await _branchService.UpdateBranchAsync(deletedBranch);
                 return Ok($"Delete branch with id: {branchId}!");
             }
             return BadRequest($"Cannot find branch with id {branchId}!");

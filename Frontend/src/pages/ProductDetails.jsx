@@ -92,6 +92,7 @@ const ProductDetails = () => {
       try {
         const response = await checkQuantityProduct(product.id);
 
+
         if (quantity <= response.availableQuantity) {
           const rentalData = { product, quantity };
           localStorage.setItem("rentalData", JSON.stringify(rentalData));

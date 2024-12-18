@@ -3,11 +3,11 @@
     public enum UserRole : int
     {
         Admin = 1,
-        Manager = 2,
-        Staff = 3,
-        Customer = 4,
-        Owner = 5,
-        OrderCoordinator = 16,
-        ContentStaff = 17
+        Owner = 2,
+        Manager = 3,
+        OrderCoordinator = 4,
+        Staff = 5,
+        ContentStaff = 6,
+        Customer = 7,
     }
 }

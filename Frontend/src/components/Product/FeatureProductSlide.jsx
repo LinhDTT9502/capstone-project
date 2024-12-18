@@ -68,6 +68,7 @@ export default function FeatureProductSlide() {
           <FontAwesomeIcon icon={faArrowRight} />
         </Link>
       </div>
+
       <div className="relative">
         <div className="overflow-hidden">
           <div
