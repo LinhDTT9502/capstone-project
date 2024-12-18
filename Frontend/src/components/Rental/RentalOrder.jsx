@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import OrderMethod from "../Order/OrderMethod";
 import { toast, ToastContainer } from "react-toastify";
+import { addGuestRentalOrder } from "../../redux/slices/guestOrderSlice";
 
 const RentalOrder = () => {
   const user = useSelector(selectUser);
@@ -26,6 +27,7 @@ const RentalOrder = () => {
   const [apiResponse, setApiResponse] = useState(null);
   const token = localStorage.getItem("token");
   const rentalData = JSON.parse(localStorage.getItem("rentalData"));
+  const dispatch = useDispatch();
 
   const handleStartDateChange = (e) => {
     const newStartDate = e.target.value;
@@ -118,7 +120,7 @@ const RentalOrder = () => {
               rentalEndDate: new Date(endDate).toISOString(),
               rentalDays:
                 (new Date(endDate) - new Date(startDate)) /
-                  (1000 * 60 * 60 * 24) +
+                (1000 * 60 * 60 * 24) +
                 1,
             },
             rentalCosts: {
@@ -141,7 +143,9 @@ const RentalOrder = () => {
           },
         }
       );
-
+      if (!token) {
+        dispatch(addGuestRentalOrder(response.data))
+      }
       setApiResponse(response.data.data);
       navigate("/order_success", {
         state: {
@@ -164,7 +168,7 @@ const RentalOrder = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-200">
         <p className="text-gray-600 text-lg font-medium">
-          No product selected for rental.
+          Không có  sản phẩm nào được chọn
         </p>
       </div>
     );
@@ -241,12 +245,12 @@ const RentalOrder = () => {
                   min={
                     startDate
                       ? new Date(
-                          new Date(startDate).setDate(
-                            new Date(startDate).getDate() + 1
-                          )
+                        new Date(startDate).setDate(
+                          new Date(startDate).getDate() + 1
                         )
-                          .toISOString()
-                          .split("T")[0]
+                      )
+                        .toISOString()
+                        .split("T")[0]
                       : getTomorrowDate()
                   }
                   value={endDate}
@@ -283,11 +287,10 @@ const RentalOrder = () => {
               <button
                 onClick={handleCreateRentalOrder}
                 disabled={loading}
-                className={`bg-orange-500 text-white w-full py-3 rounded ${
-                  loading
+                className={`bg-orange-500 text-white w-full py-3 rounded ${loading
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-orange-600"
-                }`}
+                  }`}
               >
                 {loading ? "Đang tiến hành..." : "Tạo đơn hàng"}
               </button>

@@ -1,18 +1,20 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import OrderMethod from "../Order/OrderMethod";
 import { Button } from "@material-tailwind/react";
 import { toast, ToastContainer } from "react-toastify";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { addGuestRentalOrder } from "../../redux/slices/guestOrderSlice";
 
 const RentalPlacedOrder = () => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
   const [selectedProducts, setSelectedProducts] = useState(
     location.state?.selectedProducts || []
   );
@@ -43,18 +45,17 @@ const RentalPlacedOrder = () => {
     return tomorrow.toISOString().split("T")[0];
   };
 
-  const handleDateChange = (cartItemId, field, value) => {
+  const handleDateChange = (id, field, value) => {
     setSelectedProducts((prevProducts) =>
       prevProducts.map((product) =>
-        product.cartItemId === cartItemId
+       (product.id || product.cartItemId) === id
           ? {
-              ...product,
-              [field]: value,
-            }
+            ...product,
+            [field]: value,
+          }
           : product
       )
     );
-    console.log(selectedProducts);
   };
 
   const updatedProducts = selectedProducts.map((product) => {
@@ -118,7 +119,7 @@ const RentalPlacedOrder = () => {
 
     const payload = {
       customerInformation: {
-        userId: token ? user.UserId : 0,
+        userId: token ? user.UserId : null,
         email: userData.email,
         fullName: userData.fullName,
         gender: userData.gender,
@@ -129,8 +130,8 @@ const RentalPlacedOrder = () => {
       deliveryMethod: selectedOption,
       branchId: selectedOption === "STORE_PICKUP" ? branchId : null,
       productInformations: updatedProducts.map((product) => ({
-        cartItemId: product.cartItemId,
-        productId: product.productId,
+        cartItemId: product.cartItemId || null,
+        productId: product.id,
         productCode: product.productCode,
         productName: product.productName,
         quantity: product.quantity,
@@ -165,23 +166,21 @@ const RentalPlacedOrder = () => {
           },
         }
       );
-
-      setApiResponse(response.data.data);
-      navigate("/order_success", {
-        state: {
-          orderID: response.data.data.id,
-          orderCode: response.data.data.rentalOrderCode,
-        },
-      });
-      alert("Rental order created successfully!");
+      console.log(response.data);
+        if (!token) {
+          dispatch(addGuestRentalOrder(response.data.data))
+        }
+        setApiResponse(response.data.data);
+        navigate("/order_success");
     } catch (error) {
       console.error("Error creating rental order:", error);
-      alert("Failed to create rental order.");
     } finally {
       setLoading(false);
     }
   };
-
+ useEffect(() => {
+    
+  }, [loading]);
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
   };
@@ -242,7 +241,7 @@ const RentalPlacedOrder = () => {
                     <li>Kích thước: {product.size}</li>
                     <li>Tình trạng: {product.condition}%</li>
                     <li>
-                      Giá thuê: {product.rentPrice.toLocaleString()} ₫/ngày
+                      Giá thuê: {product.rentPrice.toLocaleString()|| "Đang tính.."} ₫/ngày
                     </li>
                   </ul>
                   <div className="mt-2 space-y-2">
@@ -254,7 +253,7 @@ const RentalPlacedOrder = () => {
                         value={product.rentalStartDate || ""}
                         onChange={(e) =>
                           handleDateChange(
-                            product.cartItemId,
+                            product.id || product.cartItemId,
                             "rentalStartDate",
                             e.target.value
                           )
@@ -270,7 +269,7 @@ const RentalPlacedOrder = () => {
                         value={product.rentalEndDate || ""}
                         onChange={(e) =>
                           handleDateChange(
-                            product.cartItemId,
+                            product.id || product.cartItemId,
                             "rentalEndDate",
                             e.target.value
                           )
@@ -281,17 +280,17 @@ const RentalPlacedOrder = () => {
                   </div>
                 </div>
                 <p className="text-lg font-semibold">
-                  {product.totalPrice.toLocaleString()} ₫
+                  {product.totalPrice.toLocaleString() || "Đang tính.."} ₫
                 </p>
               </div>
             ))}
 
             <div className="space-y-4 px-6 py-4">
               <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Tạm tính</h3>
-                  <div className="flex gap-3">
+                <h3 className="text-lg font-semibold">Tạm tính</h3>
+                <div className="flex gap-3">
 
-                  <p>{subTotal.toLocaleString()} ₫</p>
+                  <p>{subTotal.toLocaleString() || "Đang tính.."} ₫</p>
 
                   <div
                     className="relative cursor-pointer"
@@ -303,23 +302,24 @@ const RentalPlacedOrder = () => {
                       className="text-xl text-orange-500"
                     />
                     {showTooltip && (
-                      
+
                       <div className="absolute right-0 top-6 w-40 p-2 bg-white text-black text-xs rounded shadow-md">
                         {updatedProducts.map((product) => (
                           <div key={product.cartItemId}>
-                        <p>Giá thuê: {product.rentPrice.toLocaleString()} ₫</p>
-                        <p>× {product.quantity} (số lượng)</p>
-                        <p>× {product.rentDays.toLocaleString()} (ngày thuê)</p>
-                        <hr className="my-1 border-t border-black" />
-                        <p className="font-semibold">
-                          {subTotal.toLocaleString()} ₫
-                        </p>
-                        </div>))}
+                            <p>Giá thuê: {product.rentPrice.toLocaleString() || "Đang tính.."} ₫</p>
+                            <p>× {product.quantity} (số lượng)</p>
+                            <p>× {product.rentDays.toLocaleString()} (ngày thuê)</p>
+                         
+                            <p className="font-semibold">
+                              {subTotal.toLocaleString() || "Đang tính.."} ₫
+                            </p>
+                            <hr className="my-1 border-t border-black" />
+                          </div>))}
                       </div>
                     )}
-                    
 
-                    
+
+
                   </div>
                 </div>
               </div>
@@ -343,7 +343,7 @@ const RentalPlacedOrder = () => {
               <div className="flex justify-between items-center pt-1 mt-4">
                 <h3 className="text-lg font-semibold">Tổng giá</h3>
                 <p className="text-lg font-bold">
-                  {subTotal.toLocaleString()} ₫
+                  {subTotal.toLocaleString()|| "Đang tính.." } ₫
                 </p>
               </div>
             </div>
@@ -351,11 +351,10 @@ const RentalPlacedOrder = () => {
               <button
                 onClick={handleCreateRentalOrder}
                 disabled={loading}
-                className={`bg-orange-500 text-white w-full py-3 rounded ${
-                  loading
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-orange-600"
-                }`}
+                className={`bg-orange-500 text-white w-full py-3 rounded ${loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-orange-600"
+                  }`}
               >
                 {loading ? "Đang tiến hành..." : "Tạo đơn hàng"}
               </button>

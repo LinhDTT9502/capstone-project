@@ -36,6 +36,8 @@ const paymentStatusColors = {
 
 const GuestOrder = () => {
   const orders = useSelector(selectGuestOrders);
+  console.log(orders);
+  
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [selectedStatus, setSelectedStatus] = useState("Tất cả");

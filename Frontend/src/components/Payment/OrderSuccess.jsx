@@ -4,8 +4,6 @@ import { faCircleCheck, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { useLocation, Link } from "react-router-dom";
 
 const OrderSuccess = () => {
-  const location = useLocation();
-  const { orderID, orderCode } = location.state || {};
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
