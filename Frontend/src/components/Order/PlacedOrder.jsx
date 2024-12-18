@@ -17,8 +17,9 @@ const PlacedOrder = () => {
   const navigate = useNavigate();
   const shipment = useSelector(selectedShipment);
   const location = useLocation();
-
   const { selectedProducts } = location.state || { selectedProducts: [] };
+  console.log(selectedProducts)
+
   const [branchId, setBranchId] = useState(null);
   const [selectedOption, setSelectedOption] = useState("");
   const [orderSuccess, setOrderSuccess] = useState(false);
@@ -37,7 +38,7 @@ const PlacedOrder = () => {
   const [note, setNote] = useState("");
 
   const totalPrice = selectedProducts.reduce(
-    (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
+    (acc, item) => acc + (item.price || 0),
     0
   );
 
@@ -192,9 +193,7 @@ const PlacedOrder = () => {
                     </ul>
                   </div>
                   <p className="text-lg font-semibold">
-                    {(
-                      (item.price || 0) * (item.quantity || 1)
-                    ).toLocaleString()}{" "}
+                    {(item.price || 0).toLocaleString()}{" "}
                     ₫
                   </p>
                 </div>
