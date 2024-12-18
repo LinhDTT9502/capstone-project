@@ -168,6 +168,11 @@ const UserCart = () => {
     }
   };
 
+  const isRentalDisabled = selectedItems.some((cartItemId) => {
+    const item = cartData.find((item) => item.cartItemId === cartItemId);
+    return item && item.rentPrice === 0;
+  });
+
   return (
     <div className="container mx-auto px-20 py-10">
       <ToastContainer />
@@ -367,8 +372,18 @@ const UserCart = () => {
                 Mua ngay
               </button>
               <button
-                className="bg-rose-700 rounded-md text-white px-4 py-2"
+                className={`rounded-md px-4 py-2 ${
+                  isRentalDisabled
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : "bg-rose-700 text-white"
+                }`}
                 onClick={handleRental}
+                disabled={isRentalDisabled}
+                title={
+                  isRentalDisabled
+                    ? "Có sản phẩm không thể thuê trong giỏ hàng."
+                    : ""
+                }
               >
                 Thuê ngay
               </button>

@@ -147,7 +147,7 @@ const RentalPlacedOrder = () => {
           rentalDays: product.rentDays,
         },
         rentalCosts: {
-          subTotal: product.totalPrice,
+          subTotal: product.rentPrice * rentalData.quantity,
           tranSportFee: 0,
           totalAmount: product.totalPrice,
         },
