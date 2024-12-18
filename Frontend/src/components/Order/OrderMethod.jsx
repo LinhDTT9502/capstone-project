@@ -92,7 +92,7 @@ const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange
                             <span className="ml-2">Nhận tại cửa hàng</span>
                         </label>
                         {selectedOption === "STORE_PICKUP" && (
-                            <div className="mt-4 text-sm text-black bg-gray-300 p-2 rounded text-wrap">
+                            <div className="max-h-[50vh] overflow-y-auto mt-4 text-sm text-black bg-gray-300 p-2 rounded text-wrap">
                                 <Card className="w-full">
                                     <List>
                                         {branches.map((branch) => (
