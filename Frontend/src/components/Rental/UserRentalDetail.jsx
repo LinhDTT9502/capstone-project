@@ -219,7 +219,7 @@ export default function UserRentalDetail() {
       );
       if (response && response.data.isSuccess) {
         alert("Đơn hàng của bạn đã được hoàn tất thành công.");
-        setShowReviewModal(true);
+        // setShowReviewModal(true);
         fetchOrderDetail();
       } else {
         alert("Không thể hoàn tất đơn hàng. Vui lòng thử lại sau.");
@@ -587,7 +587,7 @@ export default function UserRentalDetail() {
       </div>
 
       {/* Review Modal */}
-      {showReviewModal && (
+      {/* {showReviewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl w-96 max-w-full">
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">
@@ -639,7 +639,7 @@ export default function UserRentalDetail() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

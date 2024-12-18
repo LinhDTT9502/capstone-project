@@ -172,7 +172,7 @@ const GuestOrder = () => {
                       size="sm"
                       className="w-full"
                       onClick={() =>
-                        navigate(`/guest-order/${order.saleOrderId}`, {
+                        navigate(`/guest-order/${order.id}`, {
                           state: { order },
                         })
                       }
