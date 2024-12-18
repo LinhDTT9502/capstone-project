@@ -183,7 +183,7 @@ export default function ShipmentList() {
         </div>
       )}
       {isUpdateModalOpen && (
-        <UpdateShipment shipment={currentShipment} onClose={closeUpdateModal} setReload={reloadFunction}/>
+        <UpdateShipment refreshShipments={refreshShipments} shipment={currentShipment} onClose={closeUpdateModal} setReload={reloadFunction}/>
       )}
     </>
   );

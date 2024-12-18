@@ -14,8 +14,9 @@ const AvatarUpload = ({ userId, onAvatarChange }) => {
     setIsUploading(true);
     try {
       const response = await uploadAvatar(userId, file);
-      onAvatarChange(response.imgAvatarPath);
-      toast.success("Avatar uploaded successfully!");
+      const newAvatarPath = response.imgAvatarPath;
+      onAvatarChange(newAvatarPath);
+            toast.success("Avatar uploaded successfully!");
     } catch (error) {
       console.error("Error uploading avatar:", error);
       toast.error("Failed to upload avatar. Please try again.");
