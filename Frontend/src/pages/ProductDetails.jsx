@@ -90,7 +90,7 @@ const ProductDetails = () => {
     } else {
       try {
         const response = await checkQuantityProduct(product.id);
-  
+
         if (quantity <= response.availableQuantity) {
           const rentalData = { product, quantity };
           localStorage.setItem("rentalData", JSON.stringify(rentalData));
@@ -106,7 +106,7 @@ const ProductDetails = () => {
       }
     }
   };
-  
+
 
   const handlePlaceOrder = async () => {
     if (!selectedColor || !selectedSize || !selectedCondition) {
@@ -318,7 +318,7 @@ const ProductDetails = () => {
             </div>
           </div>
           <ProductReviews productCode={productCode} />
-          <CommentList productId={product?.id} />
+          <CommentList productCode={productCode} />
 
         </>
       )}
