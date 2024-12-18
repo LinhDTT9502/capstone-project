@@ -50,11 +50,10 @@ const AddressForm = ({ onAddressChange, province, district, ward, address }) => 
     setWards(result);
   };
 
-  // Watch for changes in province, district, and ward, and recompute the address
   useEffect(() => {
     if (formData.province && formData.district && formData.ward) {
       const addressString = getAddressString();
-      onAddressChange(addressString); // Pass the full address to the parent
+      onAddressChange(addressString);
     }
   }, [formData]);
 

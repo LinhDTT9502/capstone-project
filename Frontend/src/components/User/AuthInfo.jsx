@@ -111,7 +111,7 @@ export default function AuthInfo({
             resetAllState();
             setShowEmailDialog(true);
           }}        >
-          Thay đổi Email
+          Chỉnh sửa email
         </button>
       </div>
 
@@ -135,7 +135,7 @@ export default function AuthInfo({
             resetAllState();
             setShowPhoneDialog(true);
           }}        >
-          Thay đổi SĐT
+          Chỉnh sửa SĐT
         </button>
       </div>
 

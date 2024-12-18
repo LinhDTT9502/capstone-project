@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function UpdateShipment({ shipment, onClose, setReload }) {
+export default function UpdateShipment({ refreshShipments, shipment, onClose, setReload }) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(true);
   const [formData, setFormData] = useState({ ...shipment });
@@ -19,10 +19,10 @@ export default function UpdateShipment({ shipment, onClose, setReload }) {
   const parts = shipment.address.split(",");
 
   // Trim each part to remove unnecessary spaces
-  const numberAddress = parts[0].trim();
-  const wardName = parts[1].trim();
-  const districtName = parts[2].trim();
-  const provinceName = parts[3].trim();
+  const numberAddress = parts[0]?.trim();
+  const wardName = parts[1]?.trim();
+  const districtName = parts[2]?.trim();
+  const provinceName = parts[3]?.trim();
 
   useEffect(() => {
     setFormData({ ...shipment });
@@ -36,19 +36,22 @@ export default function UpdateShipment({ shipment, onClose, setReload }) {
         formData
       );
       toast.success("Cập nhật thành công!");
+      
       setReload();
       dispatch(updateShipment(updatedShipment));
       setIsOpen(false);
       onClose();
+      refreshShipments();
     } catch (error) {
       console.error("Error updating shipment details:", error);
     }
   };
 
-  const handleInputChange = (name, value) => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target; 
     setFormData({ ...formData, [name]: value });
   };
-
+  
   const handleAddressChange = (fullAddress) => {
     setFormData({ ...formData, address: fullAddress });
   };
@@ -74,7 +77,7 @@ export default function UpdateShipment({ shipment, onClose, setReload }) {
             <Dialog.Overlay className="fixed inset-0 bg-black opacity-50" />
           </Transition.Child>
 
-          <div className="fixed inset-0 max-h-[100vh] pt-20">
+          <div className="fixed inset-0 max-h-[100vh]">
             <div className="flex items-center justify-center min-h-screen">
               <Transition.Child
                 as={Fragment}

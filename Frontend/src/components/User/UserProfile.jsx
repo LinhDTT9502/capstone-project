@@ -57,8 +57,7 @@ const UserProfile = () => {
           setAvatar(response.imgAvatarPath || "/default-avatar.jpg");
         })
         .catch((error) => {
-          console.error("API Error:", error);
-          toast.error("Failed to fetch user profile!");
+          
         })
         .finally(() => setLoading(false));
     }
@@ -140,7 +139,6 @@ const UserProfile = () => {
             </div>
             <div>
               <h3 className="text-xl font-semibold">{formData.FullName}</h3>
-              <p className="text-gray-600">{formData.UserName}</p>
             </div>
           </div>
 
