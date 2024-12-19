@@ -87,7 +87,7 @@ function App() {
           <Route path="/shipping" element={<ShippingPolicyPage />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-success-2" element={<PaymentSuccessV2 />} />
-          <Route path="/payment-fail" element={<PaymentFail />} />
+          <Route path="/payment-cancel" element={<PaymentFail />} />
 
           {/* <Route path='/blog-list' element={<BlogList/>}/>
         <Route path='/blog-detail' element={<BlogDetail/>}/> */}
