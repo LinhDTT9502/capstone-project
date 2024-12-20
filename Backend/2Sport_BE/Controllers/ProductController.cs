@@ -375,8 +375,7 @@ namespace _2Sport_BE.Controllers
             {
                 var query = await _productService.SearchProducts(_ => _.Status == true &&
                                                                 (_.ProductName.ToLower().Contains(keywords.ToLower()) ||
-                                                                _.ProductCode.ToLower().Contains(keywords.ToLower()))
-                                                                , "", defaultSearch.currentPage, defaultSearch.perPage);
+                                                                _.ProductCode.ToLower().Contains(keywords.ToLower())));
 
                 var products = query.ToList();
                 foreach (var product in products)
