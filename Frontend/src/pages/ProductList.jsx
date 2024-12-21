@@ -98,7 +98,8 @@ const ProductList = ({
   return (
     <div className="container mx-auto">
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {currentProducts.map((product) => (
+        {currentProducts.length > 0 ? (
+        currentProducts.map((product) => (
           <div
             key={product.id}
             className="bg-white border hover:drop-shadow-lg p-4 relative flex flex-col justify-between text-left h-full hover:cursor-pointer"
@@ -128,7 +129,9 @@ const ProductList = ({
             </p>
           </div>
 
-        ))}
+        ))):("Không có sản phẩm được tìm thấy")
+      
+      }
 
       </div>
       {/* Pagination */}

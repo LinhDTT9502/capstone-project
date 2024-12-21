@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Input } from '@material-tailwind/react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import { fetchBranchs } from '../services/branchService';
-import MapLeaflet from '../components/Map';
-const ListBranchs = () => {
+
+const ListBranches = () => {
   const [branches, setBranches] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredBranches, setFilteredBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState(null);
-  // const [map, setMap] = useState(null)
+  // const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null); // To track the active marker
   const geocodeCache = new Map(); // Cache for geocoded results
 
@@ -21,27 +19,24 @@ const ListBranchs = () => {
   //   mapboxgl.accessToken = token;
 
   //   const mapInstance = new mapboxgl.Map({
-  //     container: 'map',
+  //     container: 'map', // Map container ID
   //     style: 'mapbox://styles/mapbox/streets-v11',
   //     center: [106.6297, 10.8231], // Default center (Ho Chi Minh City)
   //     zoom: 12,
   //   });
 
   //   setMap(mapInstance);
-  // }, []);
 
-  // map.addControl(
-  //   new MapboxGeocoder({
-  //     accessToken: mapboxgl.accessToken,
-  //     mapboxgl: mapboxgl
-  //   })
-  // );
+  //   return () => {
+  //     mapInstance.remove(); // Cleanup on component unmount
+  //   };
+  // }, []);
 
   // Fetch all branches
   useEffect(() => {
     const loadBranches = async () => {
       try {
-        const data = await fetchBranchs();
+        const data = await fetchBranchs(); // Replace this with your API call
         setBranches(data);
         setFilteredBranches(data);
       } catch (error) {
@@ -100,8 +95,6 @@ const ListBranchs = () => {
     //   const coordinates = await geocodeLocation(branch.location);
 
     //   if (coordinates) {
-    //     console.log(`Branch: ${branch.branchName}, Coordinates: ${coordinates}`); // Debugging
-
     //     // Center map and add marker
     //     map.flyTo({ center: coordinates, zoom: 15 });
 
@@ -110,15 +103,8 @@ const ListBranchs = () => {
     //       marker.remove();
     //     }
 
-    //     // Create a custom marker element
-    //     const markerElement = document.createElement('div');
-    //     markerElement.innerHTML = `<div style="color: red; font-size: 24px;">
-    //       <i class="fa-solid fa-location-dot"></i>
-    //     </div>`;
-    //     markerElement.style.cursor = 'pointer';
-
-    //     // Add the custom marker
-    //     const newMarker = new mapboxgl.Marker({ element: markerElement })
+    //     // Add a new marker
+    //     const newMarker = new mapboxgl.Marker()
     //       .setLngLat(coordinates)
     //       .setPopup(
     //         new mapboxgl.Popup().setHTML(
@@ -128,57 +114,61 @@ const ListBranchs = () => {
     //       .addTo(map);
 
     //     setMarker(newMarker); // Update the marker state
-
-    //     console.log('Marker added successfully.');
-    //   } else {
-    //     console.error('No coordinates found for this branch location.');
     //   }
-    // } else {
-    //   console.error('Map instance is not ready.');
     // }
   };
 
   return (
     <div className="flex h-screen">
-      {/* Left Column: Branch List */}
-      <div className="w-1/3 p-4 overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-4">Branch List</h1>
-
-        {/* Search Bar */}
-        <Input
-          label="Search by branch name or location"
-          value={searchQuery}
-          onChange={handleSearch}
-          className="mb-4"
-        />
-
-        {/* Branch List */}
-        <div>
-          {filteredBranches.length > 0 ? (
-            filteredBranches.map((branch) => (
-              <div
-                key={branch.id}
-                onClick={() => handleBranchClick(branch)}
-                className={`border rounded-lg p-4 mb-4 cursor-pointer hover:bg-blue-50 ${selectedBranch?.id === branch.id ? 'bg-blue-100' : ''
-                  }`}
-              >
-                <h2 className="text-xl font-semibold">{branch.branchName}</h2>
-                <p className="text-gray-600">{branch.location}</p>
-                <p className="text-gray-800 font-medium">Hotline: {branch.hotline}</p>
-              </div>
-            ))
-          ) : (
-            <p>No branches found.</p>
-          )}
-        </div>
-      </div>
-
-      {/* Right Column: Map */}
-      <div className="w-2/3 h-fit">
-        <MapLeaflet />
+    {/* Left Column: Branch List */}
+    <div className="w-1/3 p-4 overflow-y-auto">
+      <h1 className="text-2xl font-bold mb-4">Danh sách hệ thống cửa hàng</h1>
+  
+      {/* Search Bar */}
+      <Input
+        label="Tìm kiếm tên hệ thống hoặc vị trí..."
+        value={searchQuery}
+        onChange={handleSearch}
+        className="mb-4"
+      />
+  
+      {/* Branch List */}
+      <div>
+        {filteredBranches.length > 0 ? (
+          filteredBranches.map((branch) => (
+            <div
+              key={branch.id}
+              onClick={() => handleBranchClick(branch)}
+              className={`border rounded-lg p-4 mb-4 cursor-pointer hover:bg-blue-50 ${
+                selectedBranch?.id === branch.id ? 'bg-blue-100' : ''
+              }`}
+            >
+              <h2 className="text-xl font-semibold">{branch.branchName}</h2>
+              <p className="text-gray-600">{branch.location}</p>
+              <p className="text-gray-800 font-medium">Hotline: {branch.hotline}</p>
+            </div>
+          ))
+        ) : (
+          <p>Không có hệ thống nào.</p>
+        )}
       </div>
     </div>
+  
+    {/* Right Column: Branch Image */}
+    <div className="w-2/3 p-4 flex items-center justify-center">
+      {selectedBranch?.imgAvatarPath ? (
+        <img
+          src={selectedBranch.imgAvatarPath}
+          alt={selectedBranch.branchName}
+          className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+        />
+      ) : (
+        <p className="text-gray-500">Chọn một cửa hàng để xem hình ảnh.</p>
+      )}
+    </div>
+  </div>
+  
   );
 };
 
-export default ListBranchs;
+export default ListBranches;

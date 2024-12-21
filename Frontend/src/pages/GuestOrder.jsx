@@ -36,6 +36,8 @@ const paymentStatusColors = {
 
 const GuestOrder = () => {
   const orders = useSelector(selectGuestOrders);
+  console.log(orders);
+  
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [selectedStatus, setSelectedStatus] = useState("Tất cả");
@@ -61,25 +63,17 @@ const GuestOrder = () => {
 
   if (!orders || orders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <div className="bg-white p-8 rounded-lg shadow-md flex flex-col items-center my-10 py-20">
-          <img
-            src="/assets/images/cart-icon.png"
-            className="w-48 h-auto object-contain"
-          />
-          <p className="text-xl font-semibold text-gray-700  py-8">
-            {t("guest_order.empty")}
-          </p>
-          <Link
-            to="/product"
-            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 transition duration-150 ease-in-out"
-          >
-            <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
-            {t("guest_order.continue_shopping")}
-          </Link>
-        </div>
-
-      </div>
+      <div className="flex flex-col items-center my-10 py-32">
+              <img src="/assets/images/cart-icon.png" className="w-48 h-auto object-contain" />
+              <p className="pt-4 text-lg font-poppins">{t("guest_order.empty")}</p>
+              <Link
+                to="/product"
+                className="text-blue-500 flex items-center font-poppins"
+              >
+                <FontAwesomeIcon className="pr-2" icon={faArrowLeft} />{" "}
+                {t("guest_order.continue_shopping")}
+              </Link>
+            </div>
     );
   }
 
@@ -178,7 +172,7 @@ const GuestOrder = () => {
                       size="sm"
                       className="w-full"
                       onClick={() =>
-                        navigate(`/guest-order/${order.saleOrderId}`, {
+                        navigate(`/guest-order/${order.id}`, {
                           state: { order },
                         })
                       }
@@ -220,7 +214,7 @@ const GuestOrder = () => {
                             Tình trạng: {item.condition}%
                           </p>
                           <p className="font-medium text-base text-rose-700">
-                            Giá: {formatCurrency(item.unitPrice)}₫
+                            Giá bán: {formatCurrency(item.unitPrice)}₫
                           </p>
                           <p className="font-medium text-sm">
                             Số lượng: {item.quantity}

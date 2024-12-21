@@ -182,21 +182,21 @@ export default function UserListRental() {
                   Hình thức nhận hàng: {parent.deliveryMethod}
                 </p>
                 <p className="text-gray-600">
+                  Đặt cọc: {parent.depositAmount}%
+                </p>
+                <p className="text-gray-600">
                   Ngày đặt: {new Date(parent.createdAt).toLocaleDateString()}
                 </p>
                 <p className="mt-2 font-bold text-lg">
                   Tổng giá:{" "}
                   <span className="text-orange-500">
-                    {new Intl.NumberFormat("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
-                    }).format(parent.totalAmount)}
+                    {parent.totalAmount.toLocaleString()} ₫
                   </span>
                 </p>
               </div>
               <div className="flex flex-col w-1/4 h-auto items-end">
                 <img
-                  src={parent.orderImage}
+                  src={parent.orderImage || "/assets/images/default_package.png"}
                   alt={parent.orderImage}
                   className="w-full h-auto object-contain rounded"
                 />
@@ -249,11 +249,15 @@ export default function UserListRental() {
                             {child.color} - {child.size} - {child.condition}%
                           </p>
                           <p className="font-medium text-base text-rose-700">
-                            Số tiền:{" "}
+                            Giá thuê:{" "}
                             {new Intl.NumberFormat("vi-VN", {
                               style: "currency",
                               currency: "VND",
                             }).format(child.totalAmount)}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Số lượng: {" "}
+                            {child.quantity}
                           </p>
                         </div>
                       </div>

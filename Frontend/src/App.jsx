@@ -48,6 +48,7 @@ import PaymentSuccessV2 from './pages/AfterPayment/PaymentSuccessV2';
 import ZaloButton from './components/Social/ZaloButton';
 import FacebookButton from './components/Social/FacebookButton';
 import BlogRoutes from './routes/BlogRoutes';
+import RefundForm from './components/Refund/RefundForm';
 
 
 function App() {
@@ -59,6 +60,7 @@ function App() {
       {/* {!isStaffOrAdmin && ( */}
       <div>
         <Header />
+        <ScrollToTop/>
         <div className="fixed bottom-0 left-0 right-0 z-50 p-4 flex flex-col items-end space-y-4 sm:flex-row sm:justify-between sm:items-end sm:space-y-0 sm:space-x-4">
       <div className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full shadow-lg transition-colors duration-200 ease-in-out">
         <BranchSystem />
@@ -70,9 +72,10 @@ function App() {
     </div>
         {/* <BreadcrumbsDefault/> */}
         <Routes>
-          {/* <ScrollToTop /> */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/manage-account/*" element={<UserRoutes />} />
+          <Route path="/refund-request" element={<RefundForm />} />
+
 
           <Route path="/complaints-handling" element={<ComplaintsHandlingPage />} />
           <Route path="/returns-refunds" element={<ReturnsRefundsPage />} />
@@ -101,7 +104,7 @@ function App() {
           <Route path="/guest-order" element={<GuestOrder />} />
           <Route path="/guest-order/:orderId" element={<GuestOrderDetail />} />
           <Route path="/guest-rent-order" element={<GuestRentOrder />} />
-          <Route path="/guest-rent-order/:orderId" element={<GuestRentOrderDetail />} />
+          <Route path="/guest-rent-order/:orderCode" element={<GuestRentOrderDetail />} />
           <Route path="/shipment" element={<UserShipment />} />
           <Route path="/branch-system" element={<ListBranchs />} />
 
@@ -137,4 +140,3 @@ function App() {
 }
 
 export default App;
-

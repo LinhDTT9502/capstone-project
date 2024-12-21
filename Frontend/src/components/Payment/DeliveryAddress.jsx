@@ -26,7 +26,7 @@ const DeliveryAddress = ({
   const user = useSelector(selectUser);
   const shipments = useSelector(selectShipment);
   // console.log(shipments);
-  
+
   const shipment = useSelector(selectedShipment);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
@@ -86,38 +86,37 @@ const DeliveryAddress = ({
     navigate("/cart");
   };
 
-  // const handleAddressChange = (fullAddress) => {
-  //   setUserData((prevData) => ({ ...prevData, address: fullAddress }));
-  // };
-
+  const handleAddressChange = (fullAddress) => {
+    setUserData((prevData) => ({ ...prevData, address: fullAddress }));
+  };
   const handleGenderChange = (e) => {
     setUserData((prevData) => ({ ...prevData, gender: e.target.value }));
   };
 
   return (
- 
-        <div className="w-full bg-white border border-gray-200 rounded-lg shadow-md p-6 space-y-2">
-          <h3 className="text-sm font-bold">Thông tin khách hàng</h3>
-          <div className="flex gap-10 ">
-          <Radio
+
+    <div className="w-full bg-white border border-gray-200 rounded-lg shadow-md p-6 space-y-2">
+     
+      <div className="flex gap-10 ">
+        <Radio
           name="gender"
           label="Anh"
-          value="Male" 
+          value="Male"
           onChange={handleGenderChange}
           checked={userData.gender === "Male"}
         />
         <Radio
           name="gender"
           label="Chị"
-          value="Female" 
+          value="Female"
           onChange={handleGenderChange}
           checked={userData.gender === "Female"}
           className="border-2"
         />
-          </div>
-          
-          {!user ? (
-            <div className="space-y-2">
+      </div>
+
+      {!user ? (
+        <div className="space-y-2">
           <Input
             type="text"
             label={t("payment.full_name")}
@@ -142,13 +141,17 @@ const DeliveryAddress = ({
             onChange={(e) => setUserData((prevData) => ({ ...prevData, phoneNumber: e.target.value }))}
             required
           />
+    
+            {/* <DeliveryAddress userData={userData} setUserData={setUserData} /> */}
+            <AddressForm onAddressChange={handleAddressChange} />
+          
 
           {/* <AddressForm onAddressChange={handleAddressChange} /> */}
         </div>
       ) : (
         shipments.length > 0 ? (
           <>
-           
+
             {shipment && (
               <div className="w-full bg-white border border-gray-200 rounded-lg shadow-md p-6 my-4 space-y-2 ">
                 <h4 className="text-lg font-semibold mb-4">{t("payment.selected_shipment")}:</h4>
@@ -171,9 +174,9 @@ const DeliveryAddress = ({
               </div>
             )}
             <div className="">
-            <ShipmentList />
+              <ShipmentList />
             </div>
-             
+
           </>
         ) : (
           <AddShipment
@@ -181,11 +184,11 @@ const DeliveryAddress = ({
             onCancel={handleCancel}
             initialData={userData}
             setUserData={setUserData}
-            
+
           />
         )
       )}
-</div>
+    </div>
 
   );
 };

@@ -112,7 +112,7 @@ export default function AddShipment({ refreshShipments, setReload }) {
                     <label className="block text-sm font-medium text-gray-700">
                       Họ và tên
                     </label>
-                    <Input
+                    <Input required
                       type="text"
                       name="fullName"
                       value={formData.fullName}
@@ -124,7 +124,7 @@ export default function AddShipment({ refreshShipments, setReload }) {
                     <label className="block text-sm font-medium text-gray-700">
                       Số điện thoại
                     </label>
-                    <Input
+                    <Input required
                       type="tel"
                       name="phoneNumber"
                       value={formData.phoneNumber}
@@ -136,7 +136,7 @@ export default function AddShipment({ refreshShipments, setReload }) {
                     <label className="block text-sm font-medium text-gray-700">
                       Địa chỉ email
                     </label>
-                    <Input
+                    <Input required
                       type="email"
                       name="email"
                       value={formData.email}

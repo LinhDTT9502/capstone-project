@@ -15,11 +15,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
-  "Đã xác nhận": "bg-blue-100 text-blue-800",
+  "Đã xác nhận đơn": "bg-blue-100 text-blue-800",
+  "Đã thanh toán": "bg-green-100 text-green-800",
   "Đang xử lý": "bg-purple-100 text-purple-800",
-  "Đã giao cho đơn vị vận chuyển": "bg-cyan-100 text-cyan-800",
-  "Đã giao hàng": "bg-green-100 text-green-800",
+  "Đã giao hàng": "bg-indigo-100 text-indigo-800",
+  "Đã từ chối": "bg-red-100 text-red-800",
   "Đã hủy": "bg-red-200 text-red-900",
+  "Đã hoàn thành": "bg-orange-100 text-orange-800",
   
 };
 
@@ -169,14 +171,14 @@ export default function UserOrderStatus() {
               <p className="mt-2 font-bold text-lg">
                 Tổng giá:{" "}
                 <span className="text-orange-500">
-                  {formatCurrency(order.totalAmount)}₫
+                  {order.totalAmount.toLocaleString()} ₫
                 </span>
               </p>
             </div>
 
             <div className="flex flex-col w-1/4 h-auto items-end">
               <img
-                src={order.orderImage}
+                src={order.orderImage || "/assets/images/default_package.png"}
                 alt={order.orderImage}
                 className="w-full h-auto object-contain rounded"
               />
@@ -216,7 +218,8 @@ export default function UserOrderStatus() {
                       trạng: {item.condition}%
                     </p>
                     <p className="font-medium text-base text-rose-700">
-                      Giá: {formatCurrency(item.unitPrice)}₫
+                      Giá bán: {item.unitPrice.toLocaleString()} ₫
+                      
                     </p>
                     <p className="font-medium text-sm">
                       Số lượng: {item.quantity}
