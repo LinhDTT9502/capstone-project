@@ -191,7 +191,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 var saleOrder = (await _unitOfWork.SaleOrderRepository.GetObjectAsync(_ => _.Id == id, new string[] { "User", "OrderDetails" }));
                 if (saleOrder == null)
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = $"SaleOrder with id = {id} is not found";
                     return response;
                 }
@@ -252,11 +252,11 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.Message = "SaleOrders are not found";
                     return response;
                 }
-                if (orderStatus > 0 && orderStatus.ToString() != string.Empty)
+                if (orderStatus != null && orderStatus.ToString() != string.Empty)
                 {
                     query = query.Where(o => o.OrderStatus == orderStatus);
                 }
-                if (paymentStatus > 0 && paymentStatus.ToString() != string.Empty)
+                if (paymentStatus != null && paymentStatus.ToString() != string.Empty)
                 {
                     query = query.Where(o => o.PaymentStatus == paymentStatus);
                 }
@@ -993,6 +993,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
                     order.Reason = reason;
                     order.OrderStatus = (int)OrderStatus.CANCELLED;
+                    order.PaymentStatus = (int)PaymentStatus.CANCELED;
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(order);
 
                     await _notificationService.NotifyToGroupAsync(

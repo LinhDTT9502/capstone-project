@@ -159,7 +159,9 @@ namespace _2Sport_BE.Infrastructure.DTOs
         #endregion
 
         #region PaymentInformation
+
         public int? PaymentMethodId { get; set; }
+        public string? PaymentMethod { get; set; }
 
         public string? PaymentStatus { get; set; }
 
@@ -195,7 +197,6 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         #endregion
-        public string? PaymentMethod { get; set; }
         public string? PaymentLink { get; set; }
         public List<RentalOrderVM>? childOrders { get; set; }
     }
