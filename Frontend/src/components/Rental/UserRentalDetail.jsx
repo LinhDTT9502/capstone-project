@@ -12,9 +12,12 @@ import {
   faMoneyBillWave,
   faCalendarAlt,
   faTruck,
+  faCoins,
 } from "@fortawesome/free-solid-svg-icons";
 import StarRating from "../Product/StarRating";
 import { Button } from "@material-tailwind/react";
+import { submitReview } from "../../services/reviewService";
+
 
 export default function UserRentalDetail() {
   const { orderCode } = useParams();
@@ -103,6 +106,7 @@ export default function UserRentalDetail() {
     rentalStartDate,
     rentalEndDate,
     totalAmount,
+    depositAmount,
     orderStatus,
     paymentStatus,
     deliveryMethod,
@@ -163,13 +167,7 @@ export default function UserRentalDetail() {
       return;
     }
 
-    const confirmCancel = window.confirm(
-      "Bạn có chắc chắn muốn hủy đơn hàng này không?"
-    );
 
-    if (!confirmCancel) {
-      return;
-    }
 
     try {
       const response = await axios.post(
@@ -221,7 +219,7 @@ export default function UserRentalDetail() {
       );
       if (response && response.data.isSuccess) {
         alert("Đơn hàng của bạn đã được hoàn tất thành công.");
-        setShowReviewModal(true);
+        // setShowReviewModal(true);
         fetchOrderDetail();
       } else {
         alert("Không thể hoàn tất đơn hàng. Vui lòng thử lại sau.");
@@ -308,6 +306,13 @@ export default function UserRentalDetail() {
                 <span className="font-semibold">Mã đơn hàng:</span>{" "}
                 <i>{rentalOrderCode}</i>
               </p>
+              <p className="flex items-start gap-2 mb-2">
+                <FontAwesomeIcon icon={faCoins} className="text-blue-500" />
+                <span className="font-semibold flex-shrink-0">
+                Đặt cọc:
+                </span>
+                <span className="break-words">{depositAmount}%</span>
+              </p>
               <p className="flex items-start gap-2 mb-2 w-full">
                 <FontAwesomeIcon icon={faTruck} className="text-blue-500" />
                 <span className="font-semibold flex-shrink-0">
@@ -343,6 +348,39 @@ export default function UserRentalDetail() {
                   {orderStatus}
                 </span>
               </p>
+              <div className="flex justify-end items-center gap-3 mt-5">
+              {(
+              paymentStatus === "N/A") &&
+              orderDetail.deliveryMethod !== "HOME_DELIVERY" && (
+                <button
+                  className="bg-purple-500 font-bold text-white text-sm rounded-full py-2 px-4 hover:bg-purple-600"
+                  onClick={() =>
+                    navigate("/rental-checkout", {
+                      state: { selectedOrder: orderDetail },
+                    })
+                  }
+                >
+                  Thanh toán
+                </button>
+              )}
+              {orderDetail.orderStatus === "Chờ xử lý" && (
+              <button
+                className="bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600"
+                onClick={() => setShowModal(true)}
+              >
+                Hủy đơn hàng
+              </button>
+            )}
+            {orderDetail.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
+              <button
+                className={`bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                onClick={handleDoneOrder}
+              >
+                Đã nhận được đơn hàng
+              </button>
+            )}</div>
             </div>
           </div>
         </div>
@@ -512,40 +550,7 @@ export default function UserRentalDetail() {
               {orderDetail.totalAmount.toLocaleString("vi-VN")}₫
             </i>
           </p>
-          <div className="flex space-x-4 pt-4 justify-end">
-            {(paymentStatus === "Đang chờ thanh toán" ||
-              paymentStatus === "N/A") &&
-              orderDetail.deliveryMethod !== "HOME_DELIVERY" && (
-                <button
-                  className="bg-purple-500 font-bold text-white text-sm rounded-full py-2 px-4 hover:bg-purple-600"
-                  onClick={() =>
-                    navigate("/rental-checkout", {
-                      state: { selectedOrder: orderDetail },
-                    })
-                  }
-                >
-                  Thanh toán
-                </button>
-              )}
-            {orderDetail.orderStatus === "Chờ xử lý" && (
-              <button
-                className="bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600"
-                onClick={() => setShowModal(true)}
-              >
-                Hủy đơn hàng
-              </button>
-            )}
-            {orderDetail.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
-              <button
-                className={`bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600 ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                onClick={handleDoneOrder}
-              >
-                Đã nhận được đơn hàng
-              </button>
-            )}
-          </div>
+
         </div>
 
         {showModal && (
@@ -582,7 +587,7 @@ export default function UserRentalDetail() {
       </div>
 
       {/* Review Modal */}
-      {showReviewModal && (
+      {/* {showReviewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl w-96 max-w-full">
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">
@@ -634,7 +639,7 @@ export default function UserRentalDetail() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

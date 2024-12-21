@@ -182,6 +182,9 @@ export default function UserListRental() {
                   Hình thức nhận hàng: {parent.deliveryMethod}
                 </p>
                 <p className="text-gray-600">
+                  Đặt cọc: {parent.depositAmount}%
+                </p>
+                <p className="text-gray-600">
                   Ngày đặt: {new Date(parent.createdAt).toLocaleDateString()}
                 </p>
                 <p className="mt-2 font-bold text-lg">

@@ -36,6 +36,8 @@ const paymentStatusColors = {
 
 const GuestOrder = () => {
   const orders = useSelector(selectGuestOrders);
+  console.log(orders);
+  
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [selectedStatus, setSelectedStatus] = useState("Tất cả");
@@ -170,7 +172,7 @@ const GuestOrder = () => {
                       size="sm"
                       className="w-full"
                       onClick={() =>
-                        navigate(`/guest-order/${order.saleOrderId}`, {
+                        navigate(`/guest-order/${order.id}`, {
                           state: { order },
                         })
                       }
@@ -212,7 +214,7 @@ const GuestOrder = () => {
                             Tình trạng: {item.condition}%
                           </p>
                           <p className="font-medium text-base text-rose-700">
-                            Giá: {formatCurrency(item.unitPrice)}₫
+                            Giá bán: {formatCurrency(item.unitPrice)}₫
                           </p>
                           <p className="font-medium text-sm">
                             Số lượng: {item.quantity}

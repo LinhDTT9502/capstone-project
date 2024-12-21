@@ -104,7 +104,7 @@ function App() {
           <Route path="/guest-order" element={<GuestOrder />} />
           <Route path="/guest-order/:orderId" element={<GuestOrderDetail />} />
           <Route path="/guest-rent-order" element={<GuestRentOrder />} />
-          <Route path="/guest-rent-order/:orderId" element={<GuestRentOrderDetail />} />
+          <Route path="/guest-rent-order/:orderCode" element={<GuestRentOrderDetail />} />
           <Route path="/shipment" element={<UserShipment />} />
           <Route path="/branch-system" element={<ListBranchs />} />
 
