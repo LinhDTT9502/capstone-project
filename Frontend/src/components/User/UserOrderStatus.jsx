@@ -12,6 +12,7 @@ import {
   faShoppingBag,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { toast } from "react-toastify";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -22,9 +23,7 @@ const statusColors = {
   "Đã từ chối": "bg-red-100 text-red-800",
   "Đã hủy": "bg-red-200 text-red-900",
   "Đã hoàn thành": "bg-orange-100 text-orange-800",
-  
 };
-
 
 const paymentStatusColors = {
   "Đang chờ thanh toán": "text-yellow-800",
@@ -41,6 +40,8 @@ export default function UserOrderStatus() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -96,13 +97,20 @@ export default function UserOrderStatus() {
         <p>Bạn chưa có sản phẩm nào</p>
       </div>
     );
-
+  const handleSearch = (searchQuery) => {
+    // Ví dụ logic tìm kiếm (tùy chỉnh theo nhu cầu):
+    toast.info("Tìm kiếm với từ khóa:", searchQuery);
+    setSearchQuery(searchQuery);
+  };
   return (
     <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto">
-      <h2 className="text-orange-500 font-bold text-2xl">Danh sách đơn mua </h2>
+      <h2 className="text-orange-500 font-bold text-2xl pb-2">
+        Danh sách đơn mua{" "}
+      </h2>
 
       {/* Status Filter Tabs */}
       <div className="rounded-lg overflow-x-auto w-full">
+        {/* Button Group */}
         <div className="flex justify-start p-4 bg-gray-50 border-b space-x-2 whitespace-nowrap">
           {[
             "Tất cả",
@@ -126,6 +134,25 @@ export default function UserOrderStatus() {
             </button>
           ))}
         </div>
+
+        {/* Search Bar */}
+        {selectedStatus === "Tất cả" && (
+          <div className="flex justify-start items-center p-4 bg-gray-50 border-t">
+            <input
+              type="text"
+              placeholder="Tìm kiếm..."
+              className="w-80 px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button
+              className="ml-2 px-4 py-2 bg-indigo-500 text-white rounded-md text-sm font-medium hover:bg-indigo-600 transition-colors"
+              onClick={handleSearch}
+            >
+              Tìm kiếm
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Order List */}
@@ -169,9 +196,9 @@ export default function UserOrderStatus() {
                 Ngày đặt: {new Date(order.createdAt).toLocaleDateString()}
               </p>
               <p className="mt-2 font-bold text-lg">
-                Tổng giá:{" "}
+                Thành tiền:{" "}
                 <span className="text-orange-500">
-                  {order.totalAmount.toLocaleString()} ₫
+                  {order.totalAmount.toLocaleString("Vi-vn")} ₫
                 </span>
               </p>
             </div>
@@ -218,8 +245,7 @@ export default function UserOrderStatus() {
                       trạng: {item.condition}%
                     </p>
                     <p className="font-medium text-base text-rose-700">
-                      Giá bán: {item.unitPrice.toLocaleString()} ₫
-                      
+                      Giá bán: {item.unitPrice.toLocaleString("Vi-vn")} ₫
                     </p>
                     <p className="font-medium text-sm">
                       Số lượng: {item.quantity}

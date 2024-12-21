@@ -1,4 +1,4 @@
-import { getUserOrders } from "../api/apiUserOrder";
+import { getUserOrders, getUserRentalOrders } from "../api/apiUserOrder";
 
 export const fetchUserOrders = async (id, token) => {
     try {
@@ -8,4 +8,12 @@ export const fetchUserOrders = async (id, token) => {
       throw error;
     }
   };
-  
+
+export const fetchUserRentalOrders = async (id, token) => {
+    try {
+      const response = await getUserRentalOrders(id, token);
+      return response.data.data.$values;
+    } catch (error) {
+      throw error;
+    }
+  }; 

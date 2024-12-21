@@ -87,15 +87,15 @@ export default function UserListRental() {
   );
 
   const filteredOrders =
-  selectedStatus === "Tất cả"
-    ? groupedOrders.parents
-    : groupedOrders.parents.filter((order) => order.orderStatus === selectedStatus);
+    selectedStatus === "Tất cả"
+      ? groupedOrders.parents
+      : groupedOrders.parents.filter(
+          (order) => order.orderStatus === selectedStatus
+        );
 
   const toggleExpand = (orderId) => {
     setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
   };
-
-  
 
   if (isLoading)
     return (
@@ -182,21 +182,20 @@ export default function UserListRental() {
                   Hình thức nhận hàng: {parent.deliveryMethod}
                 </p>
                 <p className="text-gray-600">
-                  Đặt cọc: {parent.depositAmount}%
-                </p>
-                <p className="text-gray-600">
                   Ngày đặt: {new Date(parent.createdAt).toLocaleDateString()}
                 </p>
                 <p className="mt-2 font-bold text-lg">
-                  Tổng giá:{" "}
+                  Thành tiền:{" "}
                   <span className="text-orange-500">
-                    {parent.totalAmount.toLocaleString()} ₫
+                    {parent.totalAmount.toLocaleString("Vi-vn")} ₫
                   </span>
                 </p>
               </div>
               <div className="flex flex-col w-1/4 h-auto items-end">
                 <img
-                  src={parent.orderImage || "/assets/images/default_package.png"}
+                  src={
+                    parent.orderImage || "/assets/images/default_package.png"
+                  }
                   alt={parent.orderImage}
                   className="w-full h-auto object-contain rounded"
                 />
@@ -246,18 +245,18 @@ export default function UserListRental() {
                             {child.productName}
                           </h5>
                           <p className="text-sm text-gray-500">
-                            {child.color} - {child.size} - {child.condition}%
+                            Màu sắc: {child.color} - Kích thước: {child.size} -
+                            Tình trạng: {child.condition}%
                           </p>
                           <p className="font-medium text-base text-rose-700">
                             Giá thuê:{" "}
                             {new Intl.NumberFormat("vi-VN", {
                               style: "currency",
                               currency: "VND",
-                            }).format(child.totalAmount)}
+                            }).format(child.rentPrice)}
                           </p>
                           <p className="text-sm text-gray-500">
-                            Số lượng: {" "}
-                            {child.quantity}
+                            Số lượng: {child.quantity}
                           </p>
                         </div>
                       </div>
@@ -275,14 +274,18 @@ export default function UserListRental() {
                         {parent.productName}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        {parent.color} - {parent.size} - {parent.condition}%
+                        Màu sắc: {parent.color} - Kích thước: {parent.size} -
+                        Tình trạng: {parent.condition}%
                       </p>
                       <p className="font-medium text-base text-rose-700">
-                        Số tiền:{" "}
+                        Giá thuê:{" "}
                         {new Intl.NumberFormat("vi-VN", {
                           style: "currency",
                           currency: "VND",
-                        }).format(parent.totalAmount)}
+                        }).format(parent.rentPrice)}
+                      </p>
+                      <p className="font-medium text-sm">
+                        Số lượng: {parent.quantity}
                       </p>
                     </div>
                   </div>
