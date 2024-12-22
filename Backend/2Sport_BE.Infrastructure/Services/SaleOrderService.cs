@@ -159,8 +159,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 var query = await _unitOfWork.SaleOrderRepository.GetAllAsync(new string[] { "User", "OrderDetails" });
                 if (query == null || !query.Any())
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = "SaleOrders are not found";
+                    response.Data = new List<SaleOrderVM>();
                     return response;
                 }
                 var resultList = query.Select(saleOrder =>
@@ -191,8 +192,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 var saleOrder = (await _unitOfWork.SaleOrderRepository.GetObjectAsync(_ => _.Id == id, new string[] { "User", "OrderDetails" }));
                 if (saleOrder == null)
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = $"SaleOrder with id = {id} is not found";
+                    response.Data = null;
                     return response;
                 }
 
@@ -215,8 +217,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 var query = await _unitOfWork.SaleOrderRepository.GetAndIncludeAsync(o => o.UserId == userId, new string[] { "User", "OrderDetails" });
                 if (query == null || !query.Any())
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = "SaleOrders are not found";
+                    response.Data = new List<SaleOrderVM>();
                     return response;
                 }
                 var resultList = query.Select(saleOrder =>
@@ -248,8 +251,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 var query = await _unitOfWork.SaleOrderRepository.GetAllAsync(new string[] { "User", "OrderDetails" });
                 if (query == null || !query.Any())
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = "SaleOrders are not found";
+                    response.Data = new List<SaleOrderVM>();
                     return response;
                 }
                 if (orderStatus > 0 && orderStatus.ToString() != string.Empty)
@@ -881,7 +885,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 var query = await _unitOfWork.SaleOrderRepository.GetAndIncludeAsync(o => o.BranchId == branchId, new string[] { "User", "OrderDetails" });
                 if (query == null || !query.Any())
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = "SaleOrders are not found";
                     return response;
                 }
