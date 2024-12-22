@@ -270,6 +270,7 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpGet]
         [Route("list-all-image-of-a-product/{productId}")]
         public async Task<IActionResult> GetAllImagesOfAProductByProductId(int productId)
         {
