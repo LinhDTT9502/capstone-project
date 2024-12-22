@@ -83,9 +83,29 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var brand = await _brandService.GetBrandById(brandId);
-                var result = _mapper.Map<BrandVM>(brand);
-                return Ok(result);
+
+                var brand = (await _brandService.GetBrandById(brandId)).FirstOrDefault();
+                if (brand is not null)
+                {
+                    var warehouses = (await _warehouseService.GetAvailableWarehouse());
+                    var products = new List<Product>();
+                    foreach (var item in warehouses)
+                    {
+                        products.Add(await _productService.GetProductByProductCode(item.ProductCode));
+                    }
+                    brand.Quantity = 0;
+                    foreach (var product in products)
+                    {
+                        if (product.BrandId == brand.Id)
+                        {
+                            brand.Quantity += 1;
+                        }
+                    }
+                    var result = _mapper.Map<BrandVM>(brand);
+                    return Ok(result);
+                }
+                return Ok(new { data = new Brand() });
+                
             }
             catch (Exception e)
             {
