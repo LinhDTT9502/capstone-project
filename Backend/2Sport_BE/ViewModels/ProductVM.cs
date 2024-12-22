@@ -10,20 +10,26 @@ namespace _2Sport_BE.ViewModels
         [Required]
         public string ProductName { get; set; }
         [Required]
-        public bool IsRent { get; set; }
-        [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Price must be greater than 0.")]
         public decimal? Price { get; set; }
 
-        public decimal? RentPrice { get; set; }
         [Required]
         public string Size { get; set; }
         public string? Description { get; set; }
         public string Color { get; set; }
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Condition must be greater than 0.")]
         public int Condition { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Height must be greater than 0.")]
         public decimal? Height { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Length must be greater than 0.")]
         public decimal? Length { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Width must be greater than 0.")]
         public decimal? Width { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "Weight must be greater than 0.")]
         public decimal? Weight { get; set; }
         public string? Offers { get; set; }
         public int? Discount { get; set; }
@@ -32,6 +38,8 @@ namespace _2Sport_BE.ViewModels
     public class ProductVM : ProductDTO
     {
         public int Id { get; set; }
+        public bool IsRent { get; set; }
+        public decimal? RentPrice { get; set; }
         public int? BrandId { get; set; }
         public string BrandName { get; set; }
 		public int? SportId { get; set; }
@@ -57,6 +65,8 @@ namespace _2Sport_BE.ViewModels
         public int? SportId { get; set; }
         [Required]
         public string ProductCode { get; set; }
+        public bool IsRent { get; set; } = false;
+        public decimal? RentPrice { get; set; }
 
         public IFormFile? MainImage { get; set; }
 
