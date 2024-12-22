@@ -71,8 +71,6 @@ function Header() {
 
   useEffect(() => {
     getNotification();
-    console.log(noti);
-
   }, [user]);
 
   const handleLinkClick = () => {
