@@ -270,6 +270,22 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [Route("list-all-image-of-a-product/{productId}")]
+        public async Task<IActionResult> GetAllImagesOfAProductByProductId(int productId)
+        {
+            try
+            {
+                var imageList = (await _imageVideoService.GetAsyncs(_ => _.ProductId == productId))
+                                                         .Include(_ => _.Product).ToList();
+                var result = _mapper.Map<List<ImagesVideoVM>>(imageList);
+                return Ok(new { total = result.Count(), data = result });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
         [HttpDelete]
         [Route("delete-image-video/{productId}")]
         public async Task<IActionResult> DeleteImageVideo(int productId)
