@@ -1357,6 +1357,50 @@ namespace _2Sport_BE.Controllers
             return formFile;
         }
 
+        [HttpPost]
+        [Route("add-product")]
+        public async Task<IActionResult> AddProduct(ProductCM productCM)
+        {
+            try
+            {
+                int userId = GetCurrentUserIdFromToken();
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
+                var getProductByProductCodeAndDifferentName = await _productService
+                                                                    .GetProducts(_ => _.ProductCode.ToLower()
+                                                                    .Equals(productCM.ProductCode.ToLower()) &&
+                                                                    !_.ProductName.ToLower()
+                                                                    .Equals(productCM.ProductName.ToLower()));
+                if (getProductByProductCodeAndDifferentName is not null)
+                {
+                    return BadRequest("There is a product had this product code!");
+                }
+                var existedProduct = await _productService
+                                                    .GetProducts(_ => _.ProductCode.ToLower()
+                                                    .Equals(productCM.ProductCode.ToLower()) &&
+                                                    _.ProductName.ToLower()
+                                                    .Equals(productCM.ProductName.ToLower()) &&
+                                                    _.Color.ToLower()
+                                                    .Equals(productCM.Color) &&
+                                                    _.Size.ToLower()
+                                                    .Equals(productCM.Size) &&
+                                                    _.Condition == productCM.Condition);
+                if (existedProduct is not null)
+                {
+                    return BadRequest("The product has already existed!");
+                }
+
+                var product = _mapper.Map<Product>(productCM);
+                await _productService.AddProduct(product);
+                return Ok(product);
+
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
         [HttpPut]
         [Route("update-product/{productId}")]
@@ -1399,18 +1443,13 @@ namespace _2Sport_BE.Controllers
                     updatedProduct.Width = productUM.Width;
                     updatedProduct.Weight = productUM.Weight;
                     updatedProduct.Price = productUM.Price;
-                    updatedProduct.RentPrice = Math.Round((decimal)(updatedProduct.Price * (decimal)0.1 * productUM.Condition / 100));
-                    updatedProduct.IsRent = true;
+                    updatedProduct.RentPrice = productUM.RentPrice;
+                    updatedProduct.IsRent = productUM.IsRent;
                     updatedProduct.ProductName = productUM.ProductName;
                     updatedProduct.ProductCode = productUM.ProductCode;
                     updatedProduct.BrandId = (int)productUM.BrandId;
                     updatedProduct.CategoryId = (int)productUM.CategoryId;
                     updatedProduct.SportId = (int)productUM.SportId;
-                    if (updatedProduct.Condition < 80)
-                    {
-                        updatedProduct.IsRent = false;
-                        updatedProduct.RentPrice = 0;
-                    }
                     await _productService.UpdateProduct(updatedProduct);
 
                     //Add product's images into ImageVideo table

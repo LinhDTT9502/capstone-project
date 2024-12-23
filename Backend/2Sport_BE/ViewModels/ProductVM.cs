@@ -13,6 +13,9 @@ namespace _2Sport_BE.ViewModels
         [Range(1, int.MaxValue, ErrorMessage = "Price must be greater than 0.")]
         public decimal? Price { get; set; }
 
+        public bool IsRent { get; set; }
+        public decimal? RentPrice { get; set; }
+
         [Required]
         public string Size { get; set; }
         public string? Description { get; set; }
@@ -38,8 +41,6 @@ namespace _2Sport_BE.ViewModels
     public class ProductVM : ProductDTO
     {
         public int Id { get; set; }
-        public bool IsRent { get; set; }
-        public decimal? RentPrice { get; set; }
         public int? BrandId { get; set; }
         public string BrandName { get; set; }
 		public int? SportId { get; set; }
@@ -65,8 +66,6 @@ namespace _2Sport_BE.ViewModels
         public int? SportId { get; set; }
         [Required]
         public string ProductCode { get; set; }
-        public bool IsRent { get; set; } = false;
-        public decimal? RentPrice { get; set; }
 
         public IFormFile? MainImage { get; set; }
 
