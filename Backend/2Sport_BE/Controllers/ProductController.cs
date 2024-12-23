@@ -1368,16 +1368,17 @@ namespace _2Sport_BE.Controllers
                 {
                     return Unauthorized();
                 }
-                var getProductByProductCodeAndDifferentName = await _productService
+                var getProductByProductCodeAndDifferentName = (await _productService
                                                                     .GetProducts(_ => _.ProductCode.ToLower()
                                                                     .Equals(productCM.ProductCode.ToLower()) &&
                                                                     !_.ProductName.ToLower()
-                                                                    .Equals(productCM.ProductName.ToLower()));
+                                                                    .Equals(productCM.ProductName.ToLower())))
+                                                                    .FirstOrDefault();
                 if (getProductByProductCodeAndDifferentName is not null)
                 {
                     return BadRequest("There is a product had this product code!");
                 }
-                var existedProduct = await _productService
+                var existedProduct = (await _productService
                                                     .GetProducts(_ => _.ProductCode.ToLower()
                                                     .Equals(productCM.ProductCode.ToLower()) &&
                                                     _.ProductName.ToLower()
@@ -1386,7 +1387,8 @@ namespace _2Sport_BE.Controllers
                                                     .Equals(productCM.Color) &&
                                                     _.Size.ToLower()
                                                     .Equals(productCM.Size) &&
-                                                    _.Condition == productCM.Condition);
+                                                    _.Condition == productCM.Condition))
+                                                    .FirstOrDefault();
                 if (existedProduct is not null)
                 {
                     return BadRequest("The product has already existed!");
