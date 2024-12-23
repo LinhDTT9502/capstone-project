@@ -307,5 +307,21 @@ namespace _2Sport_BE.Controllers
             }
 
         }
+
+        [HttpDelete]
+        [Route("delete-image-video-by-id/{id}")]
+        public async Task<IActionResult> DeleteImageVideoById(int id)
+        {
+            try
+            {
+                await _imageVideoService.DeleteImagesVideoById(id);
+                return Ok("Delete image video successfully!");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+
+        }
     }
 }
