@@ -1443,13 +1443,21 @@ namespace _2Sport_BE.Controllers
                     updatedProduct.Width = productUM.Width;
                     updatedProduct.Weight = productUM.Weight;
                     updatedProduct.Price = productUM.Price;
-                    updatedProduct.RentPrice = productUM.RentPrice;
-                    updatedProduct.IsRent = productUM.IsRent;
                     updatedProduct.ProductName = productUM.ProductName;
                     updatedProduct.ProductCode = productUM.ProductCode;
                     updatedProduct.BrandId = (int)productUM.BrandId;
                     updatedProduct.CategoryId = (int)productUM.CategoryId;
                     updatedProduct.SportId = (int)productUM.SportId;
+                    if (!productUM.IsRent)
+                    {
+                        updatedProduct.IsRent = productUM.IsRent;
+                        updatedProduct.RentPrice = 0;
+                    } else
+                    {
+                        updatedProduct.IsRent = productUM.IsRent;
+                        updatedProduct.RentPrice = productUM.RentPrice;
+                    }
+
                     await _productService.UpdateProduct(updatedProduct);
 
                     //Add product's images into ImageVideo table
