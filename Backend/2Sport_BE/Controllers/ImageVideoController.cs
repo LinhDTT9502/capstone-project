@@ -270,6 +270,7 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpGet]
         [Route("list-all-image-of-a-product/{productId}")]
         public async Task<IActionResult> GetAllImagesOfAProductByProductId(int productId)
         {
@@ -298,6 +299,22 @@ namespace _2Sport_BE.Controllers
                     return BadRequest($"Cannot find image video with product id: {productId}");
                 }
                 await _imageVideoService.DeleteImagesVideos(deletedImageVideos);
+                return Ok("Delete image video successfully!");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+
+        }
+
+        [HttpDelete]
+        [Route("delete-image-video-by-id/{id}")]
+        public async Task<IActionResult> DeleteImageVideoById(int id)
+        {
+            try
+            {
+                await _imageVideoService.DeleteImagesVideoById(id);
                 return Ok("Delete image video successfully!");
             }
             catch (Exception e)
