@@ -203,7 +203,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 else
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = "Rental orders are not found";
                     response.Data = new List<RentalOrderVM>();
                 }
