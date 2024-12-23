@@ -18,6 +18,7 @@ namespace _2Sport_BE.Service.Services
         Task DeleteImagesVideos(List<ImagesVideo> imagesVideos);
         Task<IQueryable<ImagesVideo>> GetImageVideosByProductId(int productId);
         Task<IQueryable<ImagesVideo>> GetAsyncs(Expression<Func<ImagesVideo, bool>> filter = null);
+        Task DeleteImagesVideoById(int id);
     }
     public class ImageVideosService : IImageVideosService
     {
@@ -34,6 +35,11 @@ namespace _2Sport_BE.Service.Services
         {
             await _unitOfWork.ImagesVideoRepository.InsertAsync(image);
 
+        }
+
+        public async Task DeleteImagesVideoById(int id)
+        {
+            await _unitOfWork.ImagesVideoRepository.DeleteAsync(id);
         }
 
         public async Task DeleteImagesVideos(List<ImagesVideo> imagesVideos)
