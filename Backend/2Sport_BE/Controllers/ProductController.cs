@@ -1395,7 +1395,46 @@ namespace _2Sport_BE.Controllers
                 }
 
                 var product = _mapper.Map<Product>(productCM);
+
+                if (productCM.MainImage != null)
+                {
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(productCM.MainImage);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        product.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
+
                 await _productService.AddProduct(product);
+
+                //Add product's images into ImageVideo table
+                if (productCM.ProductImages is not null)
+                {
+                    foreach (var image in productCM.ProductImages)
+                    {
+                        var uploadResult = await _imageService.UploadImageToCloudinaryAsync(image);
+                        if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                        {
+
+                            var imageObject = new ImagesVideo()
+                            {
+                                ProductId = product.Id,
+                                ImageUrl = uploadResult.SecureUri.AbsoluteUri,
+                                CreateAt = DateTime.Now,
+                                VideoUrl = null,
+                            };
+                            await _imageVideosService.AddImage(imageObject);
+                        }
+                        else
+                        {
+                            return BadRequest("Something wrong!");
+                        }
+                    }
+                }
                 return Ok(product);
 
             } catch (Exception ex)
