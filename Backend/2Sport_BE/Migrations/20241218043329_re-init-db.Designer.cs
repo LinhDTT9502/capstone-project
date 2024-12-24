@@ -12,8 +12,8 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    [Migration("20241026133944_modify_order_and_orderDetails_table")]
-    partial class modify_order_and_orderDetails_table
+    [Migration("20241218043329_re-init-db")]
+    partial class reinitdb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,29 +33,74 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("BlogName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("BlogName");
-
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar")
+                        .HasColumnType("nvarchar(MAX)")
                         .HasColumnName("Content");
+
+                    b.Property<string>("CoverImgPath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar")
+                        .HasColumnName("CoverImgPath");
 
                     b.Property<DateTime?>("CreateAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("CreatedStaffId")
                         .HasColumnType("int")
-                        .HasColumnName("UserId");
+                        .HasColumnName("CreatedStaffId");
+
+                    b.Property<int?>("EditedByStaffId")
+                        .HasColumnType("int")
+                        .HasColumnName("EditedByStaffId");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SubTitle")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("SubTitle");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("Title");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("CreatedStaffId");
+
+                    b.HasIndex("EditedByStaffId");
 
                     b.ToTable("Blogs");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Bookmark", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("BlogId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlogId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Bookmarks");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Branch", b =>
@@ -71,6 +116,9 @@ namespace _2Sport_BE.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar")
                         .HasColumnName("BranchName");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Hotline")
                         .IsRequired()
@@ -112,6 +160,9 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("varchar")
                         .HasColumnName("BrandName");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Logo")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -129,107 +180,29 @@ namespace _2Sport_BE.Migrations
                     b.ToTable("Brands");
                 });
 
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.BrandBranch", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("BranchId")
-                        .HasColumnType("int")
-                        .HasColumnName("BranchId");
-
-                    b.Property<int?>("BrandId")
-                        .HasColumnType("int")
-                        .HasColumnName("BrandId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BranchId");
-
-                    b.HasIndex("BrandId");
-
-                    b.ToTable("BrandBranches");
-                });
-
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.BrandCategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("BrandId")
-                        .HasColumnType("int")
-                        .HasColumnName("BrandId");
-
-                    b.Property<int?>("CategoryId")
-                        .HasColumnType("int")
-                        .HasColumnName("CategoryId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BrandId");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("BrandCategories");
-                });
-
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.Cart", b =>
-                {
-                    b.Property<int>("CartId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("CartId");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartId"));
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("UserId");
-
-                    b.HasKey("CartId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Carts");
-                });
-
             modelBuilder.Entity("_2Sport_BE.Repository.Models.CartItem", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("CartItemId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ProductId")
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CartId")
-                        .HasColumnType("int")
-                        .HasColumnName("CartId");
 
                     b.Property<int?>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<bool?>("Status")
-                        .HasColumnType("bit");
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
 
-                    b.Property<decimal?>("TotalPrice")
-                        .HasColumnType("decimal")
-                        .HasColumnName("TotalPrice");
+                    b.HasKey("CartItemId");
 
-                    b.Property<int?>("WarehouseId")
-                        .HasColumnType("int")
-                        .HasColumnName("WarehouseId");
+                    b.HasIndex("ProductId");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("CartId");
-
-                    b.HasIndex("WarehouseId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("CartItems");
                 });
@@ -242,17 +215,19 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CategoryImgPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("CategoryImgPath");
+
                     b.Property<string>("CategoryName")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar")
                         .HasColumnName("CategoryName");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar")
-                        .HasColumnName("Description");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("Quantity")
                         .HasColumnType("int");
@@ -268,6 +243,43 @@ namespace _2Sport_BE.Migrations
                     b.HasIndex("SportId");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Comment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("Content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ParentCommentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(15)")
+                        .HasColumnName("ProductCode");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentCommentId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Customer", b =>
@@ -334,7 +346,7 @@ namespace _2Sport_BE.Migrations
                     b.ToTable("ErrorLogs");
                 });
 
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.ImagesVideo", b =>
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Feedback", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -342,9 +354,50 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("BlogId")
-                        .HasColumnType("int")
-                        .HasColumnName("BlogId");
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Email");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("FullName");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(12)")
+                        .HasColumnName("PhoneNumber");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("UserName");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Feedbacks");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.ImagesVideo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CreateAt")
                         .HasColumnType("datetime2");
@@ -365,8 +418,6 @@ namespace _2Sport_BE.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BlogId");
-
                     b.HasIndex("ProductId");
 
                     b.ToTable("ImagesVideos");
@@ -380,41 +431,70 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Content")
+                    b.Property<string>("Action")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar")
-                        .HasColumnName("Content");
+                        .HasColumnName("Action");
 
-                    b.Property<int>("EmployeeId")
+                    b.Property<string>("Color")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("Color");
+
+                    b.Property<int?>("Condition")
                         .HasColumnType("int")
-                        .HasColumnName("EmployeeId");
+                        .HasColumnName("Condition");
 
                     b.Property<DateTime?>("ImportDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("LotCode")
+                    b.Property<int>("ManagerId")
+                        .HasColumnType("int")
+                        .HasColumnName("ManagerId");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("Price");
+
+                    b.Property<string>("ProductCode")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar")
-                        .HasColumnName("LotCode");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("ProductCode");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int")
                         .HasColumnName("ProductId");
 
-                    b.Property<int>("Quantity")
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("ProductName");
+
+                    b.Property<int?>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SupplierId")
-                        .HasColumnType("int")
-                        .HasColumnName("SupplierId");
+                    b.Property<decimal?>("RentPrice")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("RentPrice");
+
+                    b.Property<string>("Size")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("Size");
+
+                    b.Property<int?>("StaffId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ManagerId");
+
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("SupplierId");
+                    b.HasIndex("StaffId");
 
                     b.ToTable("ImportHistories");
                 });
@@ -427,21 +507,19 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("BlogId")
-                        .HasColumnType("int")
-                        .HasColumnName("BlogId");
+                    b.Property<string>("ProductCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(15)")
+                        .HasColumnName("ProductCode");
 
                     b.Property<int?>("ProductId")
-                        .HasColumnType("int")
-                        .HasColumnName("ProductId");
+                        .HasColumnType("int");
 
                     b.Property<int?>("UserId")
                         .HasColumnType("int")
                         .HasColumnName("UserId");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BlogId");
 
                     b.HasIndex("ProductId");
 
@@ -466,6 +544,10 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("EndDate");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("StartDate");
@@ -481,6 +563,50 @@ namespace _2Sport_BE.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Managers");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsRead");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("Message");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ReadAt");
+
+                    b.Property<string>("ReferenceLink")
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("ReferenceLink");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Type");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UserId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.OrderDetail", b =>
@@ -499,17 +625,26 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("BranchName");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<string>("Color")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Color");
+
+                    b.Property<int?>("Condition")
+                        .HasColumnType("int")
+                        .HasColumnName("Condition");
+
+                    b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedAt");
 
-                    b.Property<int?>("OrderId")
-                        .HasColumnType("int")
-                        .HasColumnName("OrderId");
+                    b.Property<string>("ImgAvatarPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar")
+                        .HasColumnName("ImgAvatarPath");
 
-                    b.Property<decimal?>("Price")
-                        .HasColumnType("decimal")
-                        .HasColumnName("Price");
+                    b.Property<string>("ProductCode")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ProductCode");
 
                     b.Property<int?>("ProductId")
                         .HasColumnType("int")
@@ -523,8 +658,22 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Quantity");
 
-                    b.Property<int>("SaleOrderId")
-                        .HasColumnType("int");
+                    b.Property<string>("SaleOrderCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar")
+                        .HasColumnName("SaleOrderCode");
+
+                    b.Property<int?>("SaleOrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SaleOrderId");
+
+                    b.Property<string>("Size")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Size");
+
+                    b.Property<decimal?>("UnitPrice")
+                        .HasColumnType("decimal")
+                        .HasColumnName("UnitPrice");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2")
@@ -587,8 +736,16 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text")
+                        .HasColumnType("nvarchar(MAX)")
                         .HasColumnName("Description");
+
+                    b.Property<int>("Discount")
+                        .HasColumnType("int")
+                        .HasColumnName("Discount");
+
+                    b.Property<decimal?>("Height")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("Height");
 
                     b.Property<string>("ImgAvatarPath")
                         .IsRequired()
@@ -599,8 +756,12 @@ namespace _2Sport_BE.Migrations
                     b.Property<bool>("IsRent")
                         .HasColumnType("bit");
 
+                    b.Property<decimal?>("Length")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("Length");
+
                     b.Property<string>("Offers")
-                        .HasColumnType("nvarchar")
+                        .HasColumnType("nvarchar(MAX)")
                         .HasColumnName("Offers");
 
                     b.Property<decimal?>("Price")
@@ -634,6 +795,14 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<bool?>("Status")
                         .HasColumnType("bit");
+
+                    b.Property<decimal?>("Weight")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("Weight");
+
+                    b.Property<decimal?>("Width")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("Width");
 
                     b.HasKey("Id");
 
@@ -686,12 +855,88 @@ namespace _2Sport_BE.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.RefundRequest", b =>
+                {
+                    b.Property<int>("RefundID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RefundID"));
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsAgreementAccepted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PaymentGatewayTransactionID")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("ProcessedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<decimal?>("RefundAmount")
+                        .HasColumnType("decimal(18, 0)");
+
+                    b.Property<string>("RefundMethod")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("RentalOrderCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("RentalOrderID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SaleOrderCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SaleOrderID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StaffName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StaffNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("RefundID");
+
+                    b.HasIndex("RentalOrderID");
+
+                    b.HasIndex("SaleOrderID");
+
+                    b.ToTable("RefundRequests");
+                });
+
             modelBuilder.Entity("_2Sport_BE.Repository.Models.RentalOrder", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasColumnName("RentalOrderId");
+                        .HasColumnName("Id");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
@@ -703,6 +948,18 @@ namespace _2Sport_BE.Migrations
                     b.Property<int?>("BranchId")
                         .HasColumnType("int")
                         .HasColumnName("BranchId");
+
+                    b.Property<string>("BranchName")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("BranchName");
+
+                    b.Property<string>("Color")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Color");
+
+                    b.Property<int?>("Condition")
+                        .HasColumnType("int")
+                        .HasColumnName("Condition");
 
                     b.Property<string>("ContactPhone")
                         .IsRequired()
@@ -717,23 +974,73 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("decimal")
                         .HasColumnName("DamageFee");
 
+                    b.Property<DateTime?>("DateOfReceipt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DateOfReceipt");
+
+                    b.Property<string>("DeliveryMethod")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("DeliveryMethod");
+
+                    b.Property<decimal?>("DepositAmount")
+                        .HasColumnType("decimal")
+                        .HasColumnName("DepositAmount");
+
+                    b.Property<int?>("DepositStatus")
+                        .HasColumnType("int")
+                        .HasColumnName("DepositStatus");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("Email");
+
+                    b.Property<DateTime?>("ExtendedDueDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ExtendedDueDate");
+
+                    b.Property<decimal?>("ExtensionCost")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("ExtensionCost");
+
+                    b.Property<int?>("ExtensionDays")
+                        .HasColumnType("int")
+                        .HasColumnName("ExtensionDays");
+
+                    b.Property<int?>("ExtensionStatus")
+                        .HasColumnType("int")
+                        .HasColumnName("ExtensionStatus");
 
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("FullName");
 
-                    b.Property<bool>("IsInspected")
-                        .HasColumnType("bit");
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Gender");
 
-                    b.Property<bool>("IsRestocked")
-                        .HasColumnType("bit");
+                    b.Property<string>("ImgAvatarPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar")
+                        .HasColumnName("ImgAvatarPath");
 
-                    b.Property<decimal>("LateFee")
+                    b.Property<bool?>("IsExtended")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsExtended");
+
+                    b.Property<bool?>("IsInspected")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsInspected");
+
+                    b.Property<bool?>("IsRestocked")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsRestocked");
+
+                    b.Property<decimal?>("LateFee")
                         .HasColumnType("decimal")
                         .HasColumnName("LateFee");
 
@@ -742,25 +1049,64 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar")
                         .HasColumnName("Note");
 
-                    b.Property<string>("OrderCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar")
-                        .HasColumnName("OrderCode");
+                    b.Property<string>("OrderImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("OrderImage");
 
                     b.Property<int?>("OrderStatus")
                         .HasColumnType("int")
                         .HasColumnName("OrderStatus");
 
+                    b.Property<string>("ParentOrderCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar")
+                        .HasColumnName("ParentOrderCode");
+
                     b.Property<int?>("PaymentMethodId")
                         .HasColumnType("int")
                         .HasColumnName("PaymentMethodId");
 
-                    b.Property<string>("PaymentStatus")
-                        .HasColumnType("nvarchar(max)")
+                    b.Property<int?>("PaymentStatus")
+                        .HasColumnType("int")
                         .HasColumnName("PaymentStatus");
+
+                    b.Property<string>("ProductCode")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ProductCode");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductId");
+
+                    b.Property<string>("ProductName")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ProductName");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("int")
+                        .HasColumnName("Quantity");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("Reason");
+
+                    b.Property<decimal?>("RentPrice")
+                        .HasColumnType("decimal")
+                        .HasColumnName("RentPrice");
+
+                    b.Property<int>("RentalDays")
+                        .HasColumnType("int")
+                        .HasColumnName("RentalDays");
 
                     b.Property<DateTime?>("RentalEndDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("RentalOrderCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar")
+                        .HasColumnName("RentalOrderCode");
 
                     b.Property<DateTime?>("RentalStartDate")
                         .HasColumnType("datetime2");
@@ -770,6 +1116,10 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<int?>("ShipmentDetailId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Size")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Size");
 
                     b.Property<decimal?>("SubTotal")
                         .HasColumnType("decimal")
@@ -782,6 +1132,11 @@ namespace _2Sport_BE.Migrations
                     b.Property<decimal?>("TranSportFee")
                         .HasColumnType("decimal")
                         .HasColumnName("TranSportFee");
+
+                    b.Property<string>("TransactionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("TransactionId");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2")
@@ -812,13 +1167,20 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ProductCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(15)")
+                        .HasColumnName("ProductCode");
+
                     b.Property<int?>("ProductId")
-                        .HasColumnType("int")
-                        .HasColumnName("ProductId");
+                        .HasColumnType("int");
 
                     b.Property<string>("ReviewContent")
                         .IsRequired()
-                        .HasColumnType("nvarchar")
+                        .HasColumnType("nvarchar(200)")
                         .HasColumnName("ReviewContent");
 
                     b.Property<decimal?>("Star")
@@ -887,6 +1249,10 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("int")
                         .HasColumnName("BranchId");
 
+                    b.Property<string>("BranchName")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("BranchName");
+
                     b.Property<string>("ContactPhone")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -895,6 +1261,16 @@ namespace _2Sport_BE.Migrations
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedAt");
+
+                    b.Property<DateTime?>("DateOfReceipt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DateOfReceipt");
+
+                    b.Property<string>("DeliveryMethod")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("DeliveryMethod");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -906,15 +1282,20 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("FullName");
 
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Gender");
+
                     b.Property<string>("Note")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar")
                         .HasColumnName("Note");
 
-                    b.Property<string>("OrderCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar")
-                        .HasColumnName("OrderCode");
+                    b.Property<string>("OrderImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("OrderImage");
 
                     b.Property<int?>("OrderStatus")
                         .HasColumnType("int")
@@ -927,6 +1308,16 @@ namespace _2Sport_BE.Migrations
                     b.Property<int?>("PaymentStatus")
                         .HasColumnType("int")
                         .HasColumnName("PaymentStatus");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("Reason");
+
+                    b.Property<string>("SaleOrderCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar")
+                        .HasColumnName("SaleOrderCode");
 
                     b.Property<int?>("ShipmentDetailId")
                         .HasColumnType("int");
@@ -942,6 +1333,11 @@ namespace _2Sport_BE.Migrations
                     b.Property<decimal?>("TranSportFee")
                         .HasColumnType("decimal")
                         .HasColumnName("TranSportFee");
+
+                    b.Property<string>("TransactionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("TransactionId");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2")
@@ -1015,11 +1411,17 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar")
                         .HasColumnName("Name");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -1041,6 +1443,10 @@ namespace _2Sport_BE.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("EndDate");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
 
                     b.Property<int?>("ManagerId")
                         .HasColumnType("int")
@@ -1071,7 +1477,7 @@ namespace _2Sport_BE.Migrations
                     b.ToTable("Staffs");
                 });
 
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.Supplier", b =>
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.TwilioAccount", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1079,21 +1485,33 @@ namespace _2Sport_BE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Location")
+                    b.Property<string>("AccountSId")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar")
-                        .HasColumnName("Location");
+                        .HasColumnName("AccountSId");
 
-                    b.Property<string>("SupplierName")
+                    b.Property<string>("AuthToken")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar")
-                        .HasColumnName("SupplierName");
+                        .HasColumnName("AuthToken");
+
+                    b.Property<string>("FromNumber")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("FromNumber");
+
+                    b.Property<string>("ToNumber")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar")
+                        .HasColumnName("ToNumber");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("TwilioAccounts");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.User", b =>
@@ -1142,9 +1560,18 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("HashPassword");
 
+                    b.Property<string>("ImgAvatarPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar")
+                        .HasColumnName("ImgAvatarPath");
+
                     b.Property<bool?>("IsActived")
                         .HasColumnType("bit")
                         .HasColumnName("IsActived");
+
+                    b.Property<int>("OTP")
+                        .HasColumnType("int")
+                        .HasColumnName("OTP");
 
                     b.Property<string>("PasswordResetToken")
                         .HasColumnType("nvarchar(max)");
@@ -1152,6 +1579,10 @@ namespace _2Sport_BE.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("PhoneNumber");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsPhoneNumberConfirmed");
 
                     b.Property<int?>("RoleId")
                         .HasColumnType("int");
@@ -1207,71 +1638,54 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Blog", b =>
                 {
+                    b.HasOne("_2Sport_BE.Repository.Models.Staff", "CreatedByStaff")
+                        .WithMany("CreatedBlogs")
+                        .HasForeignKey("CreatedStaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("_2Sport_BE.Repository.Models.Staff", "EditedByStaff")
+                        .WithMany("EditedBlogs")
+                        .HasForeignKey("EditedByStaffId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedByStaff");
+
+                    b.Navigation("EditedByStaff");
+                });
+
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Bookmark", b =>
+                {
+                    b.HasOne("_2Sport_BE.Repository.Models.Blog", "Blog")
+                        .WithMany("Bookmarks")
+                        .HasForeignKey("BlogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("_2Sport_BE.Repository.Models.User", "User")
-                        .WithMany()
+                        .WithMany("Bookmarks")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.BrandBranch", b =>
-                {
-                    b.HasOne("_2Sport_BE.Repository.Models.Branch", "Branch")
-                        .WithMany("BrandBranches")
-                        .HasForeignKey("BranchId");
-
-                    b.HasOne("_2Sport_BE.Repository.Models.Brand", "Brand")
-                        .WithMany("BrandBranches")
-                        .HasForeignKey("BrandId");
-
-                    b.Navigation("Branch");
-
-                    b.Navigation("Brand");
-                });
-
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.BrandCategory", b =>
-                {
-                    b.HasOne("_2Sport_BE.Repository.Models.Brand", "Brand")
-                        .WithMany("BrandCategories")
-                        .HasForeignKey("BrandId");
-
-                    b.HasOne("_2Sport_BE.Repository.Models.Category", "Category")
-                        .WithMany("BrandCategories")
-                        .HasForeignKey("CategoryId");
-
-                    b.Navigation("Brand");
-
-                    b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.Cart", b =>
-                {
-                    b.HasOne("_2Sport_BE.Repository.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Blog");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.CartItem", b =>
                 {
-                    b.HasOne("_2Sport_BE.Repository.Models.Cart", "Cart")
+                    b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId");
+
+                    b.HasOne("_2Sport_BE.Repository.Models.User", "User")
                         .WithMany("CartItems")
-                        .HasForeignKey("CartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
-                    b.HasOne("_2Sport_BE.Repository.Models.Warehouse", "Warehouse")
-                        .WithMany("CartItems")
-                        .HasForeignKey("WarehouseId");
+                    b.Navigation("Product");
 
-                    b.Navigation("Cart");
-
-                    b.Navigation("Warehouse");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
@@ -1283,6 +1697,23 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Sport");
                 });
 
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Comment", b =>
+                {
+                    b.HasOne("_2Sport_BE.Repository.Models.Comment", "ParentComment")
+                        .WithMany()
+                        .HasForeignKey("ParentCommentId");
+
+                    b.HasOne("_2Sport_BE.Repository.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParentComment");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Customer", b =>
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.User", "User")
@@ -1292,55 +1723,56 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Feedback", b =>
+                {
+                    b.HasOne("_2Sport_BE.Repository.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ImagesVideo", b =>
                 {
-                    b.HasOne("_2Sport_BE.Repository.Models.Blog", "Blog")
-                        .WithMany()
-                        .HasForeignKey("BlogId");
-
                     b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
                         .WithMany("ImagesVideos")
                         .HasForeignKey("ProductId");
-
-                    b.Navigation("Blog");
 
                     b.Navigation("Product");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ImportHistory", b =>
                 {
+                    b.HasOne("_2Sport_BE.Repository.Models.Manager", "Manager")
+                        .WithMany()
+                        .HasForeignKey("ManagerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
                         .WithMany("ImportHistories")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("_2Sport_BE.Repository.Models.Supplier", "Supplier")
+                    b.HasOne("_2Sport_BE.Repository.Models.Staff", null)
                         .WithMany("ImportHistories")
-                        .HasForeignKey("SupplierId");
+                        .HasForeignKey("StaffId");
+
+                    b.Navigation("Manager");
 
                     b.Navigation("Product");
-
-                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Like", b =>
                 {
-                    b.HasOne("_2Sport_BE.Repository.Models.Blog", "Blog")
-                        .WithMany("Likes")
-                        .HasForeignKey("BlogId");
-
-                    b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
+                    b.HasOne("_2Sport_BE.Repository.Models.Product", null)
                         .WithMany("Likes")
                         .HasForeignKey("ProductId");
 
                     b.HasOne("_2Sport_BE.Repository.Models.User", "User")
                         .WithMany("Likes")
                         .HasForeignKey("UserId");
-
-                    b.Navigation("Blog");
-
-                    b.Navigation("Product");
 
                     b.Navigation("User");
                 });
@@ -1360,6 +1792,15 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Notification", b =>
+                {
+                    b.HasOne("_2Sport_BE.Repository.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("_2Sport_BE.Repository.Models.OrderDetail", b =>
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
@@ -1368,9 +1809,7 @@ namespace _2Sport_BE.Migrations
 
                     b.HasOne("_2Sport_BE.Repository.Models.SaleOrder", "SaleOrder")
                         .WithMany("OrderDetails")
-                        .HasForeignKey("SaleOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("SaleOrderId");
 
                     b.Navigation("Product");
 
@@ -1413,6 +1852,21 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.RefundRequest", b =>
+                {
+                    b.HasOne("_2Sport_BE.Repository.Models.RentalOrder", "RentalOrder")
+                        .WithMany("RefundRequests")
+                        .HasForeignKey("RentalOrderID");
+
+                    b.HasOne("_2Sport_BE.Repository.Models.SaleOrder", "SaleOrder")
+                        .WithMany("RefundRequests")
+                        .HasForeignKey("SaleOrderID");
+
+                    b.Navigation("RentalOrder");
+
+                    b.Navigation("SaleOrder");
+                });
+
             modelBuilder.Entity("_2Sport_BE.Repository.Models.RentalOrder", b =>
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.Branch", "Branch")
@@ -1440,15 +1894,13 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Review", b =>
                 {
-                    b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
+                    b.HasOne("_2Sport_BE.Repository.Models.Product", null)
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId");
 
                     b.HasOne("_2Sport_BE.Repository.Models.User", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId");
-
-                    b.Navigation("Product");
 
                     b.Navigation("User");
                 });
@@ -1534,13 +1986,11 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Blog", b =>
                 {
-                    b.Navigation("Likes");
+                    b.Navigation("Bookmarks");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Branch", b =>
                 {
-                    b.Navigation("BrandBranches");
-
                     b.Navigation("EmployeeDetails");
 
                     b.Navigation("Orders");
@@ -1550,22 +2000,11 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Brand", b =>
                 {
-                    b.Navigation("BrandBranches");
-
-                    b.Navigation("BrandCategories");
-
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.Cart", b =>
-                {
-                    b.Navigation("CartItems");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
                 {
-                    b.Navigation("BrandCategories");
-
                     b.Navigation("Products");
                 });
 
@@ -1591,6 +2030,11 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Warehouses");
                 });
 
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.RentalOrder", b =>
+                {
+                    b.Navigation("RefundRequests");
+                });
+
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Role", b =>
                 {
                     b.Navigation("Users");
@@ -1599,6 +2043,8 @@ namespace _2Sport_BE.Migrations
             modelBuilder.Entity("_2Sport_BE.Repository.Models.SaleOrder", b =>
                 {
                     b.Navigation("OrderDetails");
+
+                    b.Navigation("RefundRequests");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ShipmentDetail", b =>
@@ -1613,13 +2059,21 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.Supplier", b =>
+            modelBuilder.Entity("_2Sport_BE.Repository.Models.Staff", b =>
                 {
+                    b.Navigation("CreatedBlogs");
+
+                    b.Navigation("EditedBlogs");
+
                     b.Navigation("ImportHistories");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.User", b =>
                 {
+                    b.Navigation("Bookmarks");
+
+                    b.Navigation("CartItems");
+
                     b.Navigation("Customers");
 
                     b.Navigation("Likes");
@@ -1637,11 +2091,6 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("ShipmentDetails");
 
                     b.Navigation("Staffs");
-                });
-
-            modelBuilder.Entity("_2Sport_BE.Repository.Models.Warehouse", b =>
-                {
-                    b.Navigation("CartItems");
                 });
 #pragma warning restore 612, 618
         }
