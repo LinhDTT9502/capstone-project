@@ -87,7 +87,7 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPut]
         [Route("update-branch/{branchId}")]
         public async Task<IActionResult> UpdateBranch(int branchId, BranchUM branchUM)
         {
@@ -123,7 +123,25 @@ namespace _2Sport_BE.Controllers
 
         }
 
-        [HttpPost]
+        [HttpPut]
+        [Route("edit-status/{branchId}")]
+        public async Task<IActionResult> EditStatus(int branchId)
+        {
+            try
+            {
+                var updatedBranch = await _branchService.GetBranchById(branchId);
+                updatedBranch.Status = !updatedBranch.Status;
+                await _branchService.UpdateBranchAsync(updatedBranch);
+                return Ok("Update status successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
+
+        [HttpDelete]
         [Route("delete-branch/{branchId}")]
         public async Task<IActionResult> DeleteBranch(int branchId)
         {
