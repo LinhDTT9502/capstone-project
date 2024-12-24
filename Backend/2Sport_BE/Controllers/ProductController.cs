@@ -1395,7 +1395,7 @@ namespace _2Sport_BE.Controllers
                 }
 
                 var product = _mapper.Map<Product>(productCM);
-
+                product.Status = true;
                 if (productCM.MainImage != null)
                 {
                     var uploadResult = await _imageService.UploadImageToCloudinaryAsync(productCM.MainImage);
