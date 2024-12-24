@@ -71,8 +71,6 @@ function Header() {
 
   useEffect(() => {
     getNotification();
-    console.log(noti);
-
   }, [user]);
 
   const handleLinkClick = () => {
@@ -281,7 +279,7 @@ function Header() {
                 Blog
               </Link>
               <Link
-                to="/manage-account/refund-request"
+                to="/refund-request"
                 className=" hover:text-orange-500 focus:text-orange-500"
               >
                 Hoàn tiền
@@ -361,41 +359,57 @@ function Header() {
               </Link>
               {token && ( <>
                 <Menu open={openNoti} handler={setOpenNoti}>
-                <MenuHandler>
-                  <div
-                    className=" flex items-center justify-center border-l-2 pl-4"
-                    onClick={handleNotiToggle}
-                  >
-                    <FontAwesomeIcon icon={faBell} className="text-xl" />
-                    {unreadCount > 0 && (
-                      <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        {unreadCount}
-                      </span>
-                    )}
-                  </div>
-                </MenuHandler>
-                <MenuList className="max-h-[40vh] overflow-y-auto">
-                  {notifications.length === 0 ? (
-                    <MenuItem>Chưa có thông báo mới</MenuItem>
-                  ) : (
-                    notifications.map((notification, index) => (
-                      <MenuItem key={index}>
-                        <p className="text-sm">{highlightNumbers(notification)}</p>
-                      </MenuItem>
-                    ))
+      <MenuHandler>
+        <div
+          className="relative flex items-center justify-center cursor-pointer bg-white hover:bg-orange-500 p-2 rounded-full transition-colors duration-200"
+          onClick={handleNotiToggle}
+        >
+          <FontAwesomeIcon icon={faBell} className="text-xl text-orange-600 hover:text-white" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
+        </div>
+      </MenuHandler>
+      <MenuList className="max-h-[40vh] overflow-y-auto bg-white shadow-xl rounded-md divide-y divide-gray-200 w-80">
+        {notifications.length === 0 && noti.length === 0 ? (
+          <MenuItem className="py-4 px-6 text-gray-500 italic">
+            Chưa có thông báo mới
+          </MenuItem>
+        ) : (
+          <>
+            {notifications.map((notification, index) => (
+              <MenuItem 
+                key={`notification-${index}`}
+                className="hover:bg-orange-500 transition-colors duration-150 ease-in-out"
+              >
+                <p className="text-sm py-3 px-4">{highlightNumbers(notification)}</p>
+              </MenuItem>
+            ))}
+            {noti.map((notiItem) => (
+              <MenuItem
+                key={`noti-${notiItem.id}`}
+                className={`
+                  ${notiItem.isRead ? 'bg-white' : 'bg-blue-50'} 
+                  hover:bg-gray-200 transition-colors duration-150 ease-in-out
+                `}
+                // onClick={(event) => handleNotificationClick(notiItem.id, event)}
+              >
+                <div className="flex items-center py-3 px-4">
+                  {!notiItem.isRead && (
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 flex-shrink-0"></span>
                   )}
-                  {noti.map((notiItem) => (
-                    <MenuItem
-                      key={notiItem.id}
-                      className={notiItem.isRead ? "bg-white" : "bg-blue-100"}
-                    // onClick={(event) => handleNotificationClick(notification.id, event)} 
-                    >
-                      <div>{highlightNumbers(notiItem)}</div>
-                    </MenuItem>
-                  ))}
-
-                </MenuList>
-              </Menu>
+                  <p className={`text-sm ${notiItem.isRead ? 'text-gray-600' : 'text-gray-800 font-medium'}`}>
+                    {highlightNumbers(notiItem)}
+                  </p>
+                </div>
+              </MenuItem>
+            ))}
+          </>
+        )}
+      </MenuList>
+    </Menu>
               </>)
               }
              

@@ -48,6 +48,8 @@ import PaymentSuccessV2 from './pages/AfterPayment/PaymentSuccessV2';
 import ZaloButton from './components/Social/ZaloButton';
 import FacebookButton from './components/Social/FacebookButton';
 import BlogRoutes from './routes/BlogRoutes';
+import RefundForm from './components/Refund/RefundForm';
+import PaymentFail from './pages/AfterPayment/PaymentFail';
 
 
 function App() {
@@ -73,6 +75,8 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/manage-account/*" element={<UserRoutes />} />
+          <Route path="/refund-request" element={<RefundForm />} />
+
 
           <Route path="/complaints-handling" element={<ComplaintsHandlingPage />} />
           <Route path="/returns-refunds" element={<ReturnsRefundsPage />} />
@@ -83,6 +87,7 @@ function App() {
           <Route path="/shipping" element={<ShippingPolicyPage />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-success-2" element={<PaymentSuccessV2 />} />
+          <Route path="/payment-cancel" element={<PaymentFail />} />
 
           {/* <Route path='/blog-list' element={<BlogList/>}/>
         <Route path='/blog-detail' element={<BlogDetail/>}/> */}
@@ -101,7 +106,7 @@ function App() {
           <Route path="/guest-order" element={<GuestOrder />} />
           <Route path="/guest-order/:orderId" element={<GuestOrderDetail />} />
           <Route path="/guest-rent-order" element={<GuestRentOrder />} />
-          <Route path="/guest-rent-order/:orderId" element={<GuestRentOrderDetail />} />
+          <Route path="/guest-rent-order/:orderCode" element={<GuestRentOrderDetail />} />
           <Route path="/shipment" element={<UserShipment />} />
           <Route path="/branch-system" element={<ListBranchs />} />
 
@@ -137,4 +142,3 @@ function App() {
 }
 
 export default App;
-

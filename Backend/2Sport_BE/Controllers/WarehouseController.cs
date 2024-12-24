@@ -197,7 +197,8 @@ namespace _2Sport_BE.Controllers
 
         [HttpPut]
         [Route("update-quantity-of-warehouse/{warehouseId}")]
-        public async Task<IActionResult> UpdateQuantityOfWarehouse(int warehouseId, int quantity)
+        public async Task<IActionResult> UpdateQuantityOfWarehouse(int warehouseId, int availableQuantity, 
+                                                            int totalQuantity)
         {
             try
             {
@@ -206,10 +207,9 @@ namespace _2Sport_BE.Controllers
                 {
                     return BadRequest($"Cannot find warehouses with warehouse id: {warehouseId}");
                 }
-                var distanceQuantity = updatedWarehouses.TotalQuantity - updatedWarehouses.AvailableQuantity;
 
-                updatedWarehouses.TotalQuantity = quantity;
-                updatedWarehouses.AvailableQuantity = quantity - distanceQuantity;
+                updatedWarehouses.TotalQuantity = totalQuantity;
+                updatedWarehouses.AvailableQuantity = availableQuantity;
                 await _warehouseService.UpdateWarehouseAsync(updatedWarehouses);
                 return Ok("Update warehouse successfully!");
             }

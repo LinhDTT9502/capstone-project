@@ -42,12 +42,32 @@ const GuestCart = () => {
   }, [token, guestCartItems]);
 
   const handleRemoveFromCart = async (itemId) => {
-    if (token) {
-      dispatch(removeFromCusCart(itemId));
-    } else {
-      dispatch(removeFromCart(itemId));
+    const confirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?"
+    );
+    if (!confirmed) return;
+  
+    try {
+      if (token) {
+        dispatch(removeFromCusCart(itemId));
+      } else {
+        dispatch(removeFromCart(itemId));
+      }
+  
+      setCartData((prevData) => prevData.filter((item) => item.id !== itemId));
+  
+      setSelectedItems((prevSelected) =>
+        prevSelected.filter((id) => id !== itemId)
+      );
+  
+      toast.success("Xóa sản phẩm khỏi giỏ hàng thành công!");
+    } catch (error) {
+      console.error("Lỗi khi xóa sản phẩm:", error);
+  
+      toast.error("Không thể xóa sản phẩm. Vui lòng thử lại sau.");
     }
   };
+  
 
   const handleReduceQuantity = async (id) => {
     if (token) {
@@ -57,14 +77,16 @@ const GuestCart = () => {
     }
   };
 
-  const handleIncreaseQuantity = async (item) => {
-    if (token) {
-      dispatch(addCusCart({ ...item, quantity: item.quantity + 1 }));
-    } else {
-      // For guest, increase quantity in the Redux cart
-      dispatch(addCart({ ...item, quantity: item.quantity + 1 }));
-    }
+  const handleIncreaseQuantity = (item) => {
+    const quantityToAdd = 1; 
+    dispatch(
+      addCart({
+        ...item,
+        quantity: quantityToAdd,
+      })
+    );
   };
+  
 
   const handleSelectItem = (productId) => {
     setSelectedItems((prevSelected) =>
@@ -90,7 +112,7 @@ const GuestCart = () => {
 
   const handleCheckout = async () => {
     if (selectedItems.length === 0) {
-      toast.error("Please select at least one item to checkout.");
+      toast.error("Bạn cần phải chọn ít nhất một sản phẩm");
       return;
     }
 
@@ -100,7 +122,7 @@ const GuestCart = () => {
 
     try {
       for (const product of selectedProducts) {
-        const response = await checkQuantityProduct(product.productId);
+        const response = await checkQuantityProduct(product.id);
 
         if (product.quantity > response.availableQuantity) {
           toast.error(
@@ -119,7 +141,7 @@ const GuestCart = () => {
 
   const handleRental = async () => {
     if (selectedItems.length === 0) {
-      toast.error("Please select at least one item to checkout.");
+      toast.error("Bạn cần phải chọn ít nhất một sản phẩm");
       return;
     }
 
@@ -129,7 +151,7 @@ const GuestCart = () => {
 
     try {
       for (const product of selectedProducts) {
-        const response = await checkQuantityProduct(product.productId);
+        const response = await checkQuantityProduct(product.id);
 
         if (product.quantity > response.availableQuantity) {
           toast.error(
@@ -139,7 +161,7 @@ const GuestCart = () => {
         }
       }
 
-      navigate("/rental-order", { state: { selectedProducts } });
+      navigate("/rental-placed-order", { state: { selectedProducts } });
     } catch (error) {
       console.error("Error checking product quantities:", error);
       toast.error("Có lỗi xảy ra khi kiểm tra số lượng sản phẩm.");
