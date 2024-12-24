@@ -85,8 +85,6 @@ public class Product
 
     public virtual ICollection<ImagesVideo> ImagesVideos { get; set; } = new List<ImagesVideo>();
 
-    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
-
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     public virtual ICollection<Like> Likes { get; set; }
     public virtual ICollection<ImportHistory> ImportHistories { get; set; }
