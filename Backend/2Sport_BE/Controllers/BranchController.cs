@@ -145,21 +145,15 @@ namespace _2Sport_BE.Controllers
         [Route("delete-branch/{branchId}")]
         public async Task<IActionResult> DeleteBranch(int branchId)
         {
-            var deletedBranch = await _branchService.GetBranchById(branchId);
-            if (deletedBranch != null)
+            try
             {
-                if (deletedBranch.Status == true)
-                {
-                    deletedBranch.Status = false;
-                }
-                else
-                {
-                    deletedBranch.Status = true;
-                }
-                await _branchService.UpdateBranchAsync(deletedBranch);
-                return Ok($"Delete branch with id: {branchId}!");
+                await _branchService.DeleteBranchAsync(branchId);
+                return Ok("Delete successfully!");
             }
-            return BadRequest($"Cannot find branch with id {branchId}!");
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
     }
 }

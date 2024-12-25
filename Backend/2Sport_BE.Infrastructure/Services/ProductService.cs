@@ -87,10 +87,6 @@ namespace _2Sport_BE.Service.Services
                 await _unitOfWork.ImagesVideoRepository.DeleteRangeAsync(imagesVideos);
 
                 await _unitOfWork.ProductRepository.DeleteAsync(id);
-                //deletedProduct.Status = false;
-                //await _unitOfWork.ProductRepository.UpdateAsync(deletedProduct);
-
-                
 
             } catch(Exception ex) {
                 Console.WriteLine(ex.Message);

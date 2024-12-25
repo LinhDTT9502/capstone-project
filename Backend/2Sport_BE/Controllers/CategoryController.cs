@@ -184,31 +184,16 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        [HttpDelete]
-        [Route("delete-category/{categoryId}")]
-        public async Task<IActionResult> DeleteCategory(int categoryId)
+        [HttpPut]
+        [Route("edit-status/{categoryId}")]
+        public async Task<IActionResult> EditStatus(int categoryId)
         {
             try
             {
-                var deletedCategory = await _categoryService.GetCategoryById(categoryId);
-                if (deletedCategory != null)
-                {
-                    deletedCategory.Status = false;
-                    var deletedProducts = await _productService.GetProducts(_ => _.CategoryId == categoryId);
-                    if (deletedProducts != null)
-                    {
-                        foreach (var product in deletedProducts)
-                        {
-                            await _productService.DeleteProductById(product.Id);
-                        }
-                    }
-                    await _categoryService.UpdateCategory(deletedCategory);
-                    return Ok("Delete successfully");
-                } else
-                {
-                    return BadRequest($"Cannot find category with id: {categoryId}");
-                }
-                
+                var updatedCategory = await _categoryService.GetCategoryById(categoryId);
+                updatedCategory.Status = !updatedCategory.Status;
+                await _categoryService.UpdateCategory(updatedCategory);
+                return Ok($"Status of {updatedCategory.CategoryName} edited to {updatedCategory.Status}");
             }
             catch (Exception ex)
             {
@@ -216,36 +201,20 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        //[HttpDelete]
-        //[Route("delete-category/{categoryId}")]
-        //public async Task<IActionResult> DeleteCategory(int categoryId)
-        //{
-            //try
-            //{
-            //    var deletedCategory = await _categoryService.GetCategoryById(categoryId);
-            //    var deletedProducts = await _productService.GetProducts(_ => _.CategoryId == categoryId);
-            //    if (deletedCategory == null)
-            //    {
-            //        return BadRequest($"Cannot find category with id :{categoryId}");
-            //    }
-            //    if (deletedProducts != null)
-            //    {
-            //        foreach (var product in deletedProducts)
-            //        {
-            //            product.Category = null;
-            //            product.CategoryId = 0;
-            //            product.Status = false;
-            //            await _productService.UpdateProduct(product);
-            //        }
-            //    }
-                
-            //    await _categoryService.DeleteCategory(deletedCategory);
-            //    return Ok("Delete category successfully!");
-            //}
-            //catch (Exception ex)
-            //{
-            //    return BadRequest(ex);
-            //}
-        //}
+        [HttpDelete]
+        [Route("delete-category/{categoryId}")]
+        public async Task<IActionResult> DeleteCategory(int categoryId)
+        {
+            try
+            {
+                await _categoryService.DeleteCategoryById(categoryId);
+                return Ok("Deleted category successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
     }
 }
