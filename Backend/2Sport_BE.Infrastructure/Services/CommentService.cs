@@ -56,11 +56,16 @@ namespace _2Sport_BE.Service.Services
             var response = new ResponseDTO<int>();
             try
             {
-                var deletedComment = (await _unitOfWork.CommentRepository.GetAsync(_ => _.Id == commentId)).FirstOrDefault();
+                var deletedComment = (await _unitOfWork.CommentRepository.GetAsync(_ => _.Id == commentId))
+                                                                         .FirstOrDefault();
+
+                var deletedChildComments = (await _unitOfWork.CommentRepository
+                                                         .GetAsync(_ => _.ParentCommentId == commentId));
                 if (deletedComment != null)
                 {
-
-                    if (deletedComment.UserId != userId)
+                    var coordinator = await _unitOfWork.UserRepository.GetAsync(_ => _.Id == userId &&
+                                                                                    _.RoleId == 4);
+                    if (deletedComment.UserId != userId && coordinator is null)
                     {
                         response.Message = "You are not allowed to remove this comment!";
                         response.IsSuccess = false;
@@ -68,6 +73,7 @@ namespace _2Sport_BE.Service.Services
                         return response;
                     }
                     await _unitOfWork.CommentRepository.DeleteAsync(commentId);
+                    await _unitOfWork.CommentRepository.DeleteRangeAsync(deletedChildComments);
                     await _unitOfWork.SaveChanges();
                     response.Message = "Remove comment successfully!";
                     response.IsSuccess = true;
