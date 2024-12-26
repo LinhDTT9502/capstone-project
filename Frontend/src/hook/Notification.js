@@ -2,65 +2,86 @@ import { useEffect, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 
 const useOrderNotification = (onNotificationReceived) => {
-    const [connection, setConnection] = useState(null);
+  const [connection, setConnection] = useState(null);
 
-    useEffect(() => {
-        const options = {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            withCredentials: true,
-        };
+  useEffect(() => {
+    const token = localStorage.getItem("token");
 
-        // Create a new SignalR connection
-        const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl("https://capstone-project-703387227873.asia-southeast1.run.app/notificationHub", options)
-            .withAutomaticReconnect()  // Enable automatic reconnect
-            .build();
+    const newConnection = new signalR.HubConnectionBuilder()
+      //   .configureLogging(signalR.LogLevel.Debug)
+      .withUrl(`https://localhost:7276/notificationHub`, {
+        accessTokenFactory: () => `${token}`,
+        skipNegotiation: true,
+        transport: signalR.HttpTransportType.WebSockets,
+      })
+      .withAutomaticReconnect() // Tự động kết nối lại
+      .build();
 
-        setConnection(newConnection);
-        
+    setConnection(newConnection);
 
-        // Cleanup function
-        return () => {
-            if (newConnection && newConnection.state !== signalR.HubConnectionState.Disconnected) {
-                newConnection.stop();
-            }
-        };
-    }, []);  // Only run once
+    // Cleanup function
+    return () => {
+      if (
+        connection &&
+        connection.state !== signalR.HubConnectionState.Disconnected
+      ) {
+        connection.stop();
+        console.log("SignalR connection stopped.");
+      }
+    };
+  }, []); // Only run once
 
-    useEffect(() => {
-        if (connection) {
-            const startConnection = async () => {
-                if (connection.state === signalR.HubConnectionState.Connected) return;
-    
-                try {
-                    await connection.start();
-                    console.log("SignalR Connected");
-    
-                    connection.on("ReceiveNotification", (message) => {
-                        console.log("Notification received:", message);
-                        onNotificationReceived(message);
-                    });
-                } catch (error) {
-                    console.error("Error connecting to SignalR:", error);
-                }
-            };
-    
-            startConnection();
-    
-            return () => {
-                connection.off("ReceiveNotification");
-                connection.stop();
-            };
+  useEffect(() => {
+    if (connection) {
+      const startConnection = async () => {
+        if (connection.state === signalR.HubConnectionState.Connected) {
+          console.log("SignalR is already connected.");
+          return;
         }
-    }, [connection, onNotificationReceived]);
-    
 
+        if (
+          connection.state === signalR.HubConnectionState.Connecting ||
+          connection.state === signalR.HubConnectionState.Reconnecting
+        ) {
+          console.log("SignalR is already connecting or reconnecting.");
+          return;
+        }
+
+        try {
+          await connection.start();
+          console.log("SignalR Connected");
+
+          //Group
+          connection.on("ReceiveMessage", (message) => {
+            console.log("ReceiveMessage received:", message);
+            onNotificationReceived(message);
+          });
+
+          //User
+          connection.on("ReceiveNotification", (message) => {
+            console.log("Notification received:", message);
+            onNotificationReceived(message);
+          });
+        } catch (error) {
+          console.error("Error connecting to SignalR:", error);
+        }
+      };
+
+      if (connection) {
+        startConnection();
+
+        return () => {
+          if (connection) {
+            connection.off("ReceiveNotification");
+            connection.stop();
+          }
+        };
+      }
+    }
+  }, [connection, onNotificationReceived]);
 };
 
 export default useOrderNotification;
-
 
 // import { HubConnectionBuilder } from '@microsoft/signalr';
 

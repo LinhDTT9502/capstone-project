@@ -13,10 +13,14 @@ import {
   faCalendarAlt,
   faTruck,
   faBolt,
+  faCircleDollarToSlot,
+  faBan,
+  faVenusMars,
 } from "@fortawesome/free-solid-svg-icons";
 import { Button, Tooltip, Typography } from "@material-tailwind/react";
 import { submitReview } from "../../services/reviewService";
 import StarRating from "../Product/StarRating";
+import { toast } from "react-toastify";
 
 export default function UserOrderDetail() {
   const { orderCode } = useParams();
@@ -100,7 +104,7 @@ export default function UserOrderDetail() {
         }
       );
       fetchOrderDetail();
-      alert("Bạn đã hủy đơn hàng thành công");
+      toast.info("Bạn đã hủy đơn hàng thành công");
       setShowModal(false);
     } catch (error) {
       console.error("Error cancel order:", error);
@@ -132,25 +136,6 @@ export default function UserOrderDetail() {
   } = orderDetail;
 
   const products = orderDetail?.saleOrderDetailVMs?.$values || [];
-  // Hàm render nút "Thanh toán"
-  const renderPaymentButton = () => {
-    if (
-      orderDetail.paymentStatus === "N/A" &&
-      orderDetail.deliveryMethod !== "HOME_DELIVERY" &&
-      orderStatus === "Chờ xử lý"
-    ) {
-      return (
-        <Button
-          className="bg-purple-500 font-bold text-white text-sm rounded-full py-2 px-4 hover:bg-purple-600 normal-case"
-          onClick={() =>
-            navigate("/checkout", { state: { selectedOrder: orderDetail } })
-          }
-        >
-          Thanh toán
-        </Button>
-      );
-    }
-  };
 
   const handleDoneOrder = async () => {
     if (!orderDetail || !orderDetail.id) {
@@ -245,10 +230,49 @@ export default function UserOrderDetail() {
           </div>
         )}
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">
-            Chi tiết đơn hàng -{" "}
-            <span className="text-orange-500">#{saleOrderCode}</span>
-          </h2>
+          <div className="py-4 bg-white rounded-md shadow-sm">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-800 flex-1">
+                Chi tiết đơn hàng -{" "}
+                <span className="text-orange-500">#{saleOrderCode}</span>
+              </h2>
+              <div className="flex items-center gap-4">
+                {paymentStatus === "N/A" && orderStatus === "Chờ xử lý" && (
+                  <button
+                    className="bg-green-500 font-bold text-white text-sm rounded-full py-2 px-4 hover:bg-green-600"
+                    onClick={() =>
+                      navigate("/checkout", {
+                        state: { selectedOrder: orderDetail },
+                      })
+                    }
+                  >
+                    {console.log(orderDetail)}
+                    <FontAwesomeIcon
+                      icon={faCircleDollarToSlot}
+                      beat
+                      style={{ color: "#FFD43B" }}
+                      size="lg"
+                    />{" "}
+                    Thanh toán
+                  </button>
+                )}
+                {orderDetail.orderStatus === "Chờ xử lý" && (
+                  <button
+                    className="bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600"
+                    onClick={() => setShowModal(true)}
+                  >
+                    <FontAwesomeIcon
+                      icon={faBan}
+                      beat
+                      style={{ color: "#ededed" }}
+                      size="lg"
+                    />{" "}
+                    Hủy đơn
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
           <hr className="mb-5" />
           <div className="grid md:grid-cols-2 gap-6">
             <div>
@@ -258,6 +282,14 @@ export default function UserOrderDetail() {
               <p className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon icon={faUser} className="text-blue-500" />
                 <span className="font-semibold">Tên:</span> <i>{fullName}</i>
+              </p>
+              <p className="flex items-center gap-2 mb-2">
+                <FontAwesomeIcon
+                  icon={faVenusMars}
+                  className="text-blue-500 fa-xs"
+                />
+                <span className="font-semibold">Giới tính:</span>
+                <i>{orderDetail.gender}</i>
               </p>
               <p className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon icon={faEnvelope} className="text-blue-500" />
@@ -331,15 +363,6 @@ export default function UserOrderDetail() {
             </div>
           </div>
           <div className="flex justify-end items-center gap-3 mt-5">
-            {renderPaymentButton()}
-            {orderDetail.orderStatus === "Chờ xử lý" && (
-              <button
-                className="bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600"
-                onClick={() => setShowModal(true)}
-              >
-                Hủy đơn hàng
-              </button>
-            )}
             {orderDetail.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
               <button
                 className={`bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600 ${
@@ -347,11 +370,12 @@ export default function UserOrderDetail() {
                 }`}
                 onClick={handleDoneOrder}
               >
-                Đã nhận được đơn hàng
+                Đã nhận hàng
               </button>
             )}
           </div>
         </div>
+
         <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
           {products.map((product) => (
             <div
@@ -393,7 +417,7 @@ export default function UserOrderDetail() {
                     </p>
                     <p className="flex items-center">
                       <span className="flex items-center gap-1">
-                        <span className="font-semibold">Thành tiền:</span>
+                        <span className="font-semibold">Tổng tiền:</span>
                         <i className="ml-2">
                           {product.totalAmount.toLocaleString("vi-VN")}₫
                         </i>
@@ -401,14 +425,14 @@ export default function UserOrderDetail() {
                           content={
                             <div className="w-80">
                               <Typography color="white" className="font-medium">
-                                Thành tiền:
+                                Tổng tiền:
                               </Typography>
                               <Typography
                                 variant="small"
                                 color="white"
                                 className="font-normal opacity-80"
                               >
-                                Thành tiền được tính: Số lượng x Đơn giá bán
+                                Tổng tiền được tính: Số lượng x Đơn giá bán
                               </Typography>
                             </div>
                           }
@@ -449,7 +473,7 @@ export default function UserOrderDetail() {
           </p>
           <p className="text-xl flex justify-between items-center text-gray-700">
             <span className="flex items-center gap-1">
-              <b>Tổng tiền hàng:</b>
+              <b>Thành tiền:</b>
             </span>
             <i className="text-orange-500 font-bold">
               {orderDetail.totalAmount.toLocaleString("vi-VN")}₫
@@ -489,7 +513,7 @@ export default function UserOrderDetail() {
         </div>
       )}
       {/* Review Modal */}
-      {/* {showReviewModal && (
+      {showReviewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl w-96 max-w-full">
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">Đánh giá sản phẩm</h3>
@@ -530,7 +554,7 @@ export default function UserOrderDetail() {
             </div>
           </div>
         </div>
-      )} */}
+      )}
     </div>
   );
 }
