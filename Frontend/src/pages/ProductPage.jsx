@@ -203,11 +203,6 @@ function ProductPage() {
                   </span>
                   <br />
                 </div>
-                <div className="absolute top-[85%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-orange-500 p-2">
-                  <span className="text-black font-bold">
-                    {t("productv2.shop_now")}
-                  </span>
-                </div>
               </div>
             </div>
           </div>

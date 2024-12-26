@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,  Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import OrderMethod from "../Order/OrderMethod";
@@ -8,7 +8,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { addGuestRentalOrder } from "../../redux/slices/guestOrderSlice";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
+import { Button } from "@material-tailwind/react";
 const RentalOrder = () => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
@@ -202,139 +202,220 @@ const RentalOrder = () => {
             setSelectedBranchId={setBranchId}
           />
         </div>
-        <div className="flex-1 bg-slate-200  p-6 overflow-y-auto mt-10">
-          <div className="font-alfa bg-white text-center p-5 border rounded text-black mb-5">
-            <h2 className="text-xl">Tóm tắt đơn thuê</h2>
+        <div className="flex-1 bg-slate-200 p-6 overflow-y-auto mt-10">
+          <div className="font-extrabold bg-white text-center p-5 border rounded text-black mb-5">
+            <h2 className="text-xl">Thông tin đơn hàng - Đơn thuê</h2>
           </div>
 
           <div className="space-y-4 ">
-            <div className="flex bg-white items-center space-x-4 border p-4 rounded">
-              <div className="relative">
-                <div className="bg-white">
-                  <img
-                    src={rentalData.product.imgAvatarPath}
-                    alt={rentalData.product.productName}
-                    className="w-32 h-32 object-contain rounded"
-                  />
-                </div>
-                <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {rentalData.quantity}
-                </span>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold">
-                  {rentalData.product.productName}
-                </h3>
-                <ul className="text-sm">
-                  <li>Màu sắc: {rentalData.product.color}</li>
-                  <li>Kích thước: {rentalData.product.size}</li>
-                  <li>Tình trạng: {rentalData.product.condition}%</li>
-                </ul>
-              </div>
-              <p className="text-lg font-semibold">
-                {(
-                  rentalData.product.rentPrice * rentalData.quantity * rentalDays
-                ).toLocaleString()}{" "}
-                ₫
-              </p>
-            </div>
-
-            <div className="space-y-4 px-6 py-4">
-              <div>
-                <p className="text-xl font-semibold">Chọn thời gian thuê</p>
-                <hr className="my-2" />
-                <label className="block text-sm">Ngày bắt đầu:</label>
-                <input
-                  type="date"
-                  min={getTomorrowDate()}
-                  value={startDate}
-                  onChange={handleStartDateChange}
-                  className="border rounded px-4 py-2 w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm">Ngày kết thúc:</label>
-                <input
-                  type="date"
-                  min={
-                    startDate
-                      ? new Date(
-                        new Date(startDate).setDate(
-                          new Date(startDate).getDate() + 1
-                        )
-                      )
-                        .toISOString()
-                        .split("T")[0]
-                      : getTomorrowDate()
-                  }
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="border rounded px-4 py-2 w-full"
-                />
-              </div>
-
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Tạm tính</h3>
-                <div className="flex gap-3">
-                  <p>{(rentalData.product.rentPrice * rentalData.quantity * rentalDays).toLocaleString()} ₫</p>
-                  <div
-                    className="relative cursor-pointer"
-                    onMouseEnter={() => setShowTooltip(true)}
-                    onMouseLeave={() => setShowTooltip(false)}
-                  >
-                    <FontAwesomeIcon
-                      icon={faInfoCircle}
-                      className="text-xl text-orange-500"
+            <div className="p-4 rounded bg-gray-50">
+              <div className="flex flex-wrap items-start space-x-4 border p-4 rounded bg-white">
+                {/* Phần ảnh sản phẩm */}
+                <div className="relative">
+                  <div className="bg-white">
+                    <img
+                      src={rentalData.product.imgAvatarPath}
+                      alt={rentalData.product.productName}
+                      className="w-32 h-32 object-contain rounded"
                     />
-                    {showTooltip && (
-                      <div className="absolute right-0 top-6 w-40 p-2 bg-white text-black text-xs rounded shadow-md">
-                        <p>Giá thuê: {rentalData.product.rentPrice.toLocaleString()} ₫</p>
-                        <p>× {rentalData.quantity} (số lượng)</p>
-                        <p>× {rentalDays} (ngày thuê)</p>
-                        <p className="font-semibold">{(rentalData.product.rentPrice * rentalData.quantity * rentalDays).toLocaleString()} ₫</p>
+                  </div>
+                  <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {rentalData.quantity}
+                  </span>
+                </div>
+                <div className="flex flex-col flex-1">
+                  <div className="flex flex-wrap md:flex-nowrap items-start gap-6">
+                    {/* Thông tin sản phẩm */}
+                    <div className="flex-1 min-w-[200px]">
+                      <h3 className="text-lg font-semibold">
+                        {rentalData.product.productName}
+                      </h3>
+                      <ul className="text-sm">
+                        <li>Màu sắc: {rentalData.product.color}</li>
+                        <li>Kích thước: {rentalData.product.size}</li>
+                        <li>Tình trạng: {rentalData.product.condition}%</li>
+                        <li className="text-rose-700">
+                          Đơn giá thuê:{" "}
+                          {rentalData.product.rentPrice.toLocaleString("Vi-vn") ||
+                            "Đang tính.."}
+                          ₫/ngày
+                        </li>
+                      </ul>
+                    </div>
+                    {/* Thời gian thuê */}
+                    <div className="flex flex-col space-y-4 w-full md:w-auto">
+                      {/* Ngày bắt đầu */}
+                      <div className="flex items-center">
+                        <label className="text-sm w-1/3 md:w-auto mr-2">
+                          Ngày bắt đầu thuê:
+                        </label>
+                        <input
+                          type="date"
+                          min={getTomorrowDate()}
+                          value={startDate}
+                          onChange={handleStartDateChange}
+                          className="border rounded px-3 py-2 text-sm flex-1"
+                        />
                       </div>
-                    )}
+                      {/* Ngày kết thúc */}
+                      <div className="flex items-center">
+                        <label className="text-sm w-1/3 md:w-auto mr-2">
+                          Ngày kết thúc thuê:
+                        </label>
+                        <input
+                          type="date"
+                          min={
+                            startDate
+                              ? new Date(
+                                  new Date(startDate).setDate(
+                                    new Date(startDate).getDate() + 1
+                                  )
+                                )
+                                  .toISOString()
+                                  .split("T")[0]
+                              : getTomorrowDate()
+                          }
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="border rounded px-3 py-2 text-sm flex-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="h-px bg-gray-300 my-5"></div>
+                  {/* Thành tiền */}
+                  <div className="p-2 bg-gray-50 rounded-lg shadow-sm border">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-gray-700">
+                        Thành tiền:
+                      </h4>
+                      <div className="relative">
+                        <p className="inline-block text-lg font-bold text-orange-600">
+                          {(
+                            rentalData.product.rentPrice *
+                            rentalData.quantity *
+                            rentalDays
+                          ).toLocaleString("Vi-vn")}  
+                          ₫
+                        </p>
+                        <div
+                          className="relative inline-block ml-2 cursor-pointer"
+                          onMouseEnter={() => setShowTooltip(true)}
+                          onMouseLeave={() => setShowTooltip(false)}
+                        >
+                          <FontAwesomeIcon
+                            icon={faInfoCircle}
+                            className="text-xl text-orange-500"
+                          />
+                          {showTooltip && (
+                            <div className="absolute right-0 top-6 w-48 p-2 bg-white text-black text-xs rounded shadow-md border">
+                              <p>
+                                Giá thuê:{" "}
+                                {rentalData.product.rentPrice.toLocaleString()}{" "}
+                                ₫
+                              </p>
+                              <p>× {rentalData.quantity} (số lượng)</p>
+                              <p>× {rentalDays} (ngày thuê)</p>
+                              <p className="font-semibold text-orange-500">
+                                {(
+                                  rentalData.product.rentPrice *
+                                  rentalData.quantity *
+                                  rentalDays
+                                ).toLocaleString()}{" "}
+                                ₫
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
+            {/* Phần note */}
+            <div className="flex justify-between items-center pt-1 border rounded mt-4">
+              <label className="block text-lg font-semibold">Lời nhắn</label>
+              <input
+                type="text"
+                className="border rounded w-3/4 px-3 py-2 mt-2"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Ghi chú của bạn cho 2Sport"
+              />
+            </div>
+            <div className="h-px bg-gray-300 my-5"></div>
 
-              <div>
-                <label className="block text-sm">Ghi chú:</label>
-                <input
-                  type="text"
-                  className="border rounded w-full px-4 py-2 mt-2"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Your notes here"
-                />
+            {/* Phần tóm tắt giá */}
+            <div className="space-y-4 py-2">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold"> Tổng tiền hàng</h3>
+                <p className="text-base">
+                  {" "}
+                  {(
+                    rentalData.product.rentPrice *
+                    rentalData.quantity *
+                    rentalDays
+                  ).toLocaleString("Vi-vn")}
+                  ₫
+                </p>
               </div>
-              <div className="h-px bg-gray-300 my-5"></div>
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold">Phí giao hàng</h3>
-                <p className="text-lg">Sẽ được báo lại từ 2Sport</p>
+                <p className="text-base">
+                  Sẽ được{" "}
+                  <span className="text-blue-700">
+                    <Link to="">2Sport</Link>
+                  </span>{" "}
+                  thông báo lại sau
+                </p>
               </div>
-              <div className="flex justify-between items-center pt-1 mt-4">
-                <h3 className="text-lg font-semibold">Tổng giá</h3>
-                <p className="text-lg">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Tổng thanh toán</h3>
+                <p className="text-base">
+                  {" "}
                   {(
-                    rentalData.product.rentPrice * rentalData.quantity * rentalDays
-                  ).toLocaleString()}{" "}
+                    rentalData.product.rentPrice *
+                    rentalData.quantity *
+                    rentalDays
+                  ).toLocaleString("Vi-vn")}
                   ₫
                 </p>
               </div>
             </div>
-            <div className="flex justify-center mt-6">
+            <div className="flex items-center justify-between w-full my-4">
+              <p className="text-sm w-4/6">
+                Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý tuân theo{" "}
+                <span className="text-blue-500">
+                  <Link to="/second-hand-rentals">Điều khoản 2Sport</Link>
+                </span>
+              </p>
+              <Button
+                onClick={handleCreateRentalOrder}
+                disabled={loading}
+                className={`bg-orange-500 text-white px-6 py-3 rounded w-2/6 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                {loading ? "Đang xử lý..." : "Đặt hàng"}
+              </Button>
+            </div>
+
+            {/* <div className="flex justify-center mt-6">
               <button
                 onClick={handleCreateRentalOrder}
                 disabled={loading}
-                className={`bg-orange-500 text-white w-full py-3 rounded ${loading
+                className={`bg-orange-500 text-white w-full py-3 rounded ${
+                  loading
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-orange-600"
-                  }`}
+                }`}
               >
                 {loading ? "Đang tiến hành..." : "Tạo đơn hàng"}
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

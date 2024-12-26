@@ -29,7 +29,7 @@ const UserCart = () => {
     if (token) {
       const customerCartData = await getUserCart(token);
       setCartData(customerCartData);
-      console.log(customerCartData);
+      // console.log(customerCartData);
     }
   };
 

@@ -74,7 +74,7 @@ export default function AddShipment({ refreshShipments, setReload }) {
     <>
       <div>
         <button
-          className="rounded-lg px-3 py-2 bg-orange-500 text-white"
+          className="rounded-lg px-3 py-2 bg-orange-500 text-white  hover:bg-orange-700"
           type="button"
           onClick={openModal}
         >
@@ -82,7 +82,11 @@ export default function AddShipment({ refreshShipments, setReload }) {
         </button>
       </div>
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-[999999999999]" onClose={closeModal}>
+        <Dialog
+          as="div"
+          className="relative z-[999999999999]"
+          onClose={closeModal}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -107,12 +111,15 @@ export default function AddShipment({ refreshShipments, setReload }) {
                 leaveTo="opacity-0 scale-95"
               >
                 <Dialog.Panel className="bg-white p-6 rounded-md shadow-xl w-fit">
-                  <Dialog.Title className="text-lg font-bold">Thêm địa chỉ mới</Dialog.Title>
+                  <Dialog.Title className="text-lg font-bold">
+                    Thêm địa chỉ mới
+                  </Dialog.Title>
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700">
                       Họ và tên
                     </label>
-                    <Input required
+                    <Input
+                      required
                       type="text"
                       name="fullName"
                       value={formData.fullName}
@@ -124,7 +131,8 @@ export default function AddShipment({ refreshShipments, setReload }) {
                     <label className="block text-sm font-medium text-gray-700">
                       Số điện thoại
                     </label>
-                    <Input required
+                    <Input
+                      required
                       type="tel"
                       name="phoneNumber"
                       value={formData.phoneNumber}
@@ -136,7 +144,8 @@ export default function AddShipment({ refreshShipments, setReload }) {
                     <label className="block text-sm font-medium text-gray-700">
                       Địa chỉ email
                     </label>
-                    <Input required
+                    <Input
+                      required
                       type="email"
                       name="email"
                       value={formData.email}
