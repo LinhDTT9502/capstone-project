@@ -194,7 +194,7 @@ namespace _2Sport_BE.Controllers
                                             .NotifyForReplyComment(currUserId.ToString(), product);
                     if (!isSuccessNotify)
                     {
-                        return StatusCode(500, "Notify to admin failed!");
+                        return StatusCode(500, "Notify to customer failed!");
                     }
                     return Ok("Add comment successfully!");
                 }
