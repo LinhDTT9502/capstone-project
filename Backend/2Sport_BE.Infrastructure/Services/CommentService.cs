@@ -21,6 +21,7 @@ namespace _2Sport_BE.Service.Services
         Task<ResponseDTO<int>> UpdateComment (int currUserId, int commentId, Comment newComment);
         Task<ResponseDTO<int>> DeleteComment (int userId, int commentId);
         Task<Comment> GetCommentById(int commentId);
+        Task<IQueryable<Comment>> GetChildComments(int parentCommentId);
     }
     public class CommentService : ICommentService
     {
@@ -101,6 +102,15 @@ namespace _2Sport_BE.Service.Services
             return (await _unitOfWork.CommentRepository.GetAsync(_ => !string.IsNullOrEmpty(_.ProductCode)))
                                                        .AsQueryable()
                                                        .Include(_ => _.User);
+        }
+
+        public async Task<IQueryable<Comment>> GetChildComments(int parentCommentId)
+        {
+            return (await _unitOfWork.CommentRepository.GetAndIncludeAsync(_ => !string.IsNullOrEmpty(_.ProductCode) 
+                                                                        && _.ParentCommentId == parentCommentId,
+                                                                            new string[] { "User" }))
+                                           .AsQueryable()
+                                           .Include(_ => _.User);
         }
 
         public async Task<Comment> GetCommentById(int commentId)
