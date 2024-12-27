@@ -1033,7 +1033,6 @@ namespace _2Sport_BE.Controllers
                         {
                             if (!string.IsNullOrEmpty(avaImgValue))
                             {
-                                return avaImgValue;
                                 var imgURL = await UploadAvaImgFile(avaImgValue);
                                 if (imgURL != null) {
                                     product.ImgAvatarPath = imgURL;
