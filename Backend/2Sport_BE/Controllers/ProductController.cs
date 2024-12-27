@@ -893,12 +893,12 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var userId = GetCurrentUserIdFromToken();
+                //var userId = GetCurrentUserIdFromToken();
 
-                if (userId == 0)
-                {
-                    return Unauthorized();
-                }
+                //if (userId == 0)
+                //{
+                //    return Unauthorized();
+                //}
 
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
                 if (importFile == null || importFile.Length == 0)
