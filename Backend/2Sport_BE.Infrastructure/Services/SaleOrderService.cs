@@ -993,7 +993,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
                     order.Reason = reason;
                     order.OrderStatus = (int)OrderStatus.CANCELLED;
-                    order.PaymentStatus = (int)PaymentStatus.CANCELED;
+                    order.UpdatedAt = DateTime.UtcNow;
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(order);
 
                     await _notificationService.NotifyToGroupAsync(

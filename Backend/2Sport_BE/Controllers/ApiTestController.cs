@@ -17,12 +17,14 @@ namespace _2Sport_BE.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly ISaleOrderService _saleOrderService;
         private readonly IRentalOrderService _rentalOrderService;
+        private INotificationService _notificationService;
         public ApiTestController(IPaymentService paymentService,
             IPayOsService payOsService,
             IVnPayService vnPayService,
             IUnitOfWork unitOfWork,
             ISaleOrderService saleOrderService,
-            IRentalOrderService rentalOrderService)
+            IRentalOrderService rentalOrderService,
+            INotificationService notificationService)
         {
             _paymentService = paymentService;
             _payOsService = payOsService;
@@ -30,6 +32,7 @@ namespace _2Sport_BE.Controllers
             _unitOfWork = unitOfWork;
             _saleOrderService = saleOrderService;
             _rentalOrderService = rentalOrderService;
+            _notificationService = notificationService;
         }
         [HttpGet("payment-information")]
         public async Task<IActionResult> GetPaymentInformation(string orderCode, int orderType)
@@ -150,6 +153,15 @@ namespace _2Sport_BE.Controllers
            
             return Ok(response);
         }
+
+        [HttpGet]
+        [Route("SendNotificationToUser")]
+        public async Task<IActionResult> GetPaymentInformationPayOs(int userId ,string message)
+        {
+            _notificationService.SendNoifyToUser(userId, null, message);
+            return Ok();
+        }
+
 
     }
 }

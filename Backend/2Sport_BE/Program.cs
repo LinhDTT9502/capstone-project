@@ -10,16 +10,11 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
-using _2Sport_BE.Service.Services;
-using Google.Apis.Auth.OAuth2;
-using FirebaseAdmin;
-using System.Configuration;
-using Newtonsoft.Json;
 using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Infrastructure.Hubs;
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
-using System.IO;
+using Microsoft.AspNetCore.Http.Connections;
 
 var builder = WebApplication.CreateBuilder(args);
 //Setting Mail
@@ -27,10 +22,8 @@ builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("AppSe
 //Setting PayOs
 builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOSSettings"));
 //Register SignalR
-builder.Services.AddSignalR().AddHubOptions<NotificationHub>(options =>
-{
-    options.EnableDetailedErrors = true;
-}); ;
+builder.Services.AddSignalR();
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.Register();
 //Register Hangfire
@@ -50,12 +43,14 @@ var serviceConfiguration = appsettingSection.Get<ServiceConfiguration>();
 var JwtSecretkey = Encoding.ASCII.GetBytes(serviceConfiguration.JwtSettings.Secret);
 var tokenValidationParameters = new TokenValidationParameters
 {
-    ValidateIssuerSigningKey = true,
     IssuerSigningKey = new SymmetricSecurityKey(JwtSecretkey),
-    ValidateIssuer = false,
-    ValidateAudience = false,
+    ValidateIssuer = true,
+    ValidateAudience = true,
+    ValidateLifetime = true,
+    ValidateIssuerSigningKey = true,
     RequireExpirationTime = false,
-    ValidateLifetime = true
+    ValidIssuer = "https://localhost:7276",
+    ValidAudience = "http://localhost:5173"
 };
 
 builder.Services.AddSingleton(tokenValidationParameters);
@@ -67,7 +62,7 @@ builder.Services.AddAuthentication(options =>
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
-        options.RequireHttpsMetadata = false;
+        options.RequireHttpsMetadata = true;
         options.SaveToken = true;
         options.TokenValidationParameters = tokenValidationParameters;
         options.Events = new JwtBearerEvents
@@ -77,7 +72,11 @@ builder.Services.AddAuthentication(options =>
                 var path = context.HttpContext.Request.Path;
                 if (path.StartsWithSegments("/notificationHub"))
                 {
-                    context.Token = context.Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+                       var accessToken = context.Request.Query["access_token"];
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                context.Token = accessToken;
+            }
                 }
                 return Task.CompletedTask;
             }
@@ -175,22 +174,21 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-app.UseRouting();
 app.UseCors("CorsPolicy");
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
-
+app.UseWebSockets();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
     endpoints.MapHub<NotificationHub>("/notificationHub", opts =>
     {
-        opts.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+        opts.Transports = HttpTransportType.WebSockets | HttpTransportType.LongPolling;
     }).RequireCors("CorsPolicy");
 
 });
-app.UseWebSockets();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 app.UseHangfireServer();
 app.UseHangfireDashboard("/hangfire", new DashboardOptions

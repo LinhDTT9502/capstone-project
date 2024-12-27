@@ -26,7 +26,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task NotifyForExtensionRequestAsync(string parentOrderCode, string childOrderCode, int? branchId = null);
         Task NotifyForPendingOrderAsync(string orderCode, bool isRentalOrder, DateTime date, int? branchId = null);
         Task NotifyForRejectExtensionRequestAsync(string orderCode, int userId, string reason);
-        Task SendNoifyToUser(int userId, int branchId, string message);
+        Task SendNoifyToUser(int userId, int? branchId, string message);
         Task NotifyToGroupAsync(string message, int? branchId = null);
 
         Task<bool> NotifyForComment(int currUserId, List<User> coordinators, Product product);
@@ -566,7 +566,7 @@ namespace _2Sport_BE.Infrastructure.Services
             }
         }
 
-        public async Task SendNoifyToUser(int userId,int branchId, string message)
+        public async Task SendNoifyToUser(int userId,int? branchId, string message)
         {
             try
             {
@@ -591,9 +591,8 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 if (userId != null)
                 {
-                    var user = await _unitOfWork.UserRepository.GetObjectAsync(s => s.Id == userId);
-                    if (user != null)
-                        await _notificationHub.SendNotificationToCustomer(user.Id.ToString(), message);
+                    await _notificationHub.SendNotificationToCustomer(userId.ToString(), message);
+
 
                     var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
                                     ?? new List<Notification>();
