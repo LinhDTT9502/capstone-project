@@ -1324,9 +1324,15 @@ namespace _2Sport_BE.Controllers
         [NonAction]
         public IFormFile ConvertToIFormFile(string filePath)
         {
+            // Check if the filePath contains a prefix like "/app/" and remove it
+            if (filePath.StartsWith("/app/"))
+            {
+                filePath = filePath.Substring("/app/".Length); // Remove the "/app/" prefix
+            }
+
             var fileInfo = new FileInfo(filePath);
             var fileBytes = System.IO.File.ReadAllBytes(filePath); // Read file into memory
-            var stream = new MemoryStream(fileBytes);    // Create memory stream from file bytes
+            var stream = new MemoryStream(fileBytes);             // Create memory stream from file bytes
 
             IFormFile formFile = new FormFile(stream, 0, fileInfo.Length, null, fileInfo.Name)
             {
@@ -1336,6 +1342,7 @@ namespace _2Sport_BE.Controllers
 
             return formFile;
         }
+
 
         [HttpPost]
         [Route("add-product")]
