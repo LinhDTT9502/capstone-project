@@ -906,7 +906,7 @@ namespace _2Sport_BE.Controllers
                     // Handle invalid file input
                     return BadRequest("Cannot find import file!");
                 }
-                var importProductStatus = await ImportProductsIntoDB(importFile, userId);
+                var importProductStatus = await ImportProductsIntoDB(importFile, 1);
                 if (!importProductStatus.Equals("Import product successfully"))
                 {
                     return BadRequest(importProductStatus);
