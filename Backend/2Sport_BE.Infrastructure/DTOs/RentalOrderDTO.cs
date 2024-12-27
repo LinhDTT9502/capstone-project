@@ -168,6 +168,10 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public string? DepositStatus { get; set; }
 
         public decimal? DepositAmount { get; set; }
+
+        public DateTime? DepositeDate { get; set; }
+
+        public DateTime? PaymentDate { get; set; }
         #endregion
 
         #region ReturnInformation

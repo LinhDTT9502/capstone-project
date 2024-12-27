@@ -99,7 +99,13 @@ namespace _2Sport_BE.Repository.Models
 
         [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
         [DataType(DataType.DateTime)]
+
         public DateTime? DepositDate { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.DateTime)]
+        [Column("PaymentDate")]
+        public DateTime? PaymentDate { get; set; }
 
         [Column("RentalDays")]
         public int RentalDays { get; set; }

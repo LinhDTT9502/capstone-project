@@ -917,9 +917,9 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
 
                     order.OrderStatus = (int)RentalOrderStatus.CANCELED;
-                    order.DepositStatus = (int)DepositStatus.CANCELED;
-                    order.PaymentStatus = (int)DepositStatus.CANCELED;
                     order.Reason = reason;
+                    order.UpdatedAt = DateTime.Now;
+
                     await _unitOfWork.RentalOrderRepository.UpdateAsync(order);
 
                     var childs = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode == order.RentalOrderCode);
@@ -930,6 +930,8 @@ namespace _2Sport_BE.Infrastructure.Services
                         {
                             child.OrderStatus = (int)RentalOrderStatus.CANCELED;
                             child.Reason = reason;
+                            order.UpdatedAt = DateTime.Now;
+
                             await _unitOfWork.RentalOrderRepository.UpdateAsync(child);
                         }
                     }

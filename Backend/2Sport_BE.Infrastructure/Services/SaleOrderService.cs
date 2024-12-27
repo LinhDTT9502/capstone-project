@@ -1025,9 +1025,10 @@ namespace _2Sport_BE.Infrastructure.Services
                         response.Data = 0;
                         return response;
                     }
-                    order.Reason = reason;
+
                     order.OrderStatus = (int)OrderStatus.CANCELLED;
-                    order.UpdatedAt = DateTime.UtcNow;
+                    order.Reason = reason;
+                    order.UpdatedAt = DateTime.Now;
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(order);
 
                     await _notificationService.NotifyToGroupAsync(
