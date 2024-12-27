@@ -16,6 +16,7 @@ namespace _2Sport_BE.Service.Helpers
         { PaymentStatus.PAID, "Đã thanh toán" },
         { PaymentStatus.REFUNDED, "Đã hoàn tiền" },
         { PaymentStatus.CANCELED, "Đã hủy" },
+        { PaymentStatus.FAILED, "Thất bại" },
 
         { OrderStatus.CANCELLED, "Đã hủy" },
         { OrderStatus.PENDING, "Chờ xử lý" },

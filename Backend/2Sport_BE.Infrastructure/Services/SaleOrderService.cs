@@ -286,11 +286,11 @@ namespace _2Sport_BE.Infrastructure.Services
                     response.Data = new List<SaleOrderVM>();
                     return response;
                 }
-                if (orderStatus > 0 && orderStatus.ToString() != string.Empty)
+                if (orderStatus != null && orderStatus.ToString() != string.Empty)
                 {
                     query = query.Where(o => o.OrderStatus == orderStatus);
                 }
-                if (paymentStatus > 0 && paymentStatus.ToString() != string.Empty)
+                if (paymentStatus != null && paymentStatus.ToString() != string.Empty)
                 {
                     query = query.Where(o => o.PaymentStatus == paymentStatus);
                 }
@@ -1025,8 +1025,10 @@ namespace _2Sport_BE.Infrastructure.Services
                         response.Data = 0;
                         return response;
                     }
-                    order.Reason = reason;
+
                     order.OrderStatus = (int)OrderStatus.CANCELLED;
+                    order.Reason = reason;
+                    order.UpdatedAt = DateTime.Now;
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(order);
 
                     await _notificationService.NotifyToGroupAsync(

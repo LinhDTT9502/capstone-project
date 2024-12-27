@@ -66,7 +66,7 @@ namespace _2Sport_BE.Controllers
         {
             var response = await _rentalOrderServices.GetRentalOrdersByStatusAsync(orderStatus, paymentStatus);
             if (response.IsSuccess) return Ok(response);
-            return BadRequest(response);
+            return StatusCode(404,response);
         }
 
         [HttpGet("get-rental-order-by-orderCode")]
