@@ -1,9 +1,13 @@
-﻿using _2Sport_BE.Repository.Interfaces;
+﻿using _2Sport_BE.Infrastructure.DTOs;
+using _2Sport_BE.Infrastructure.Services;
+using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
 using _2Sport_BE.ViewModels;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 using System.Security.Claims;
 
 namespace _2Sport_BE.Controllers
@@ -13,15 +17,22 @@ namespace _2Sport_BE.Controllers
 	public class ReviewController : ControllerBase
 	{
 		private readonly IUnitOfWork _unitOfWork;
-		private readonly IReviewService _reviewService;
+		private readonly IMapper _mapper;
+        private readonly IReviewService _reviewService;
+		private readonly ISaleOrderService _saleOrderService;
 
-		public ReviewController(IUnitOfWork unitOfWork, IReviewService reviewService)
+        public ReviewController(IUnitOfWork unitOfWork, 
+								IReviewService reviewService,
+								ISaleOrderService saleOrderService,
+								IMapper mapper)
 		{
 			_unitOfWork = unitOfWork;
 			_reviewService = reviewService;
-		}
+			_saleOrderService = saleOrderService;
+			_saleOrderService = saleOrderService;
+        }
 
-		[HttpGet]
+        [HttpGet]
 		[Route("get-all-reviews")]
 		public async Task<IActionResult> GetAllReviews()
 		{
@@ -34,7 +45,6 @@ namespace _2Sport_BE.Controllers
 				return BadRequest(ex);
 			}
 		}
-
 
         [HttpGet]
         [Route("get-all-reviews-of-product/{productCode}")]
@@ -51,9 +61,30 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("check-is-review/{saleOrderId}")]
+        public async Task<IActionResult> CheckIsReivew(int saleOrderId)
+        {
+            try
+            {
+				var reviewsInSaleOrder = (await _saleOrderService.GetSaleOrderDetailsByIdAsync(saleOrderId))
+															.Data
+															.Reviews;
+				if (reviewsInSaleOrder.Count > 0)
+				{
+					return Ok(true);
+				}
+                return Ok(false);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
         [HttpPost]
-		[Route("add-review/{productCode}")]
-		public async Task<IActionResult> AddReview(string productCode, ReviewCM reviewCM)
+		[Route("add-review/{saleOrderId}")]
+		public async Task<IActionResult> AddReview(int saleOrderId, ReviewCM reviewCM)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -67,21 +98,48 @@ namespace _2Sport_BE.Controllers
 				{
 					return Unauthorized();
 				}
-				var addedReview = new Review
+
+				var saleOrderDetails = (await _saleOrderService.GetSaleOrderDetailsBySaleOrderIdAsync(saleOrderId))
+																.Data;
+				var saleOrderDetailVMs = _mapper.Map<List<SaleOrderDetailVM>>(saleOrderDetails);
+
+                var addedReviewList = new List<Review>();
+
+				foreach (var item in saleOrderDetailVMs)
 				{
-					Star = reviewCM.Star,
-					ReviewContent = reviewCM.Review1,
-					Status = true,
-					UserId = userId,
-					ProductCode = productCode,
-					CreatedAt = DateTime.Now,
-				};
-				await _reviewService.AddReview(addedReview);
+                    var addedReview = new Review
+                    {
+                        Star = reviewCM.Star,
+                        ReviewContent = reviewCM.Review1,
+                        Status = true,
+                        UserId = userId,
+                        ProductCode = item.ProductCode ?? "",
+                        CreatedAt = DateTime.Now,
+                    };
+					addedReviewList.Add(addedReview);
+                }
+
+				
+				await _reviewService.AddReview(addedReviewList);
 				_unitOfWork.Save();
-				return Ok(addedReview);
+				return Ok("Add review successfuly!");
 			} catch (Exception ex)
 			{
 				return BadRequest(ex);
+			}
+		}
+
+		[HttpDelete]
+		[Route("delete-review/{reviewId}")]
+		public async Task<IActionResult> DeleteReview(int reviewId)
+		{
+			try
+			{
+				var deletedReview = await _reviewService.DeleteReview(reviewId);
+				return Ok("Delete successfully!");
+			} catch (Exception e)
+			{
+				return StatusCode(500, e.Message);
 			}
 		}
 

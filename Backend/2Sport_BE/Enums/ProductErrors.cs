@@ -2,6 +2,8 @@
 {
     public enum ProductErrors
     {
+        AddImagesError = -8,
+        AddImageError = -7,
         SportNameError = -6,
         CategoryNameError = -5,
         SupplierNameError = -4,

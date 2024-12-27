@@ -1145,7 +1145,7 @@ namespace _2Sport_BE.Controllers
                                         }
                                         else
                                         {
-                                            return (int)ProductErrors.NotExcepted;
+                                            return (int)ProductErrors.AddImageError;
                                         }
                                     }
                                     else
@@ -1172,7 +1172,7 @@ namespace _2Sport_BE.Controllers
 
                                     if (!isSuccess)
                                     {
-                                        return (int)ProductErrors.NotExcepted;
+                                        return (int)ProductErrors.AddImagesError;
                                     }
 
                                 } else

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using _2Sport_BE.Repository.Models;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -96,6 +97,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public string? PaymentMethod { get; set; }
         public string? PaymentLink { get; set; }
         public List<SaleOrderDetailVM> SaleOrderDetailVMs { get; set; }
+        public List<Review> Reviews { get; set; }
     }
     public class RevenueVM
     {

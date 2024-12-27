@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241227045854_add-isReview-column-at-SaleOrder-table")]
+    partial class addisReviewcolumnatSaleOrdertable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1178,10 +1181,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("ReviewContent");
 
-                    b.Property<int?>("SaleOrderId")
-                        .HasColumnType("int")
-                        .HasColumnName("SaleOrderId");
-
                     b.Property<decimal?>("Star")
                         .HasColumnType("decimal")
                         .HasColumnName("Star");
@@ -1196,8 +1195,6 @@ namespace _2Sport_BE.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("SaleOrderId");
 
                     b.HasIndex("UserId");
 
@@ -1287,6 +1284,10 @@ namespace _2Sport_BE.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("Gender");
+
+                    b.Property<bool?>("IsReview")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsReview");
 
                     b.Property<string>("Note")
                         .HasMaxLength(500)
@@ -1893,15 +1894,9 @@ namespace _2Sport_BE.Migrations
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId");
 
-                    b.HasOne("_2Sport_BE.Repository.Models.SaleOrder", "SaleOrder")
-                        .WithMany("Reviews")
-                        .HasForeignKey("SaleOrderId");
-
                     b.HasOne("_2Sport_BE.Repository.Models.User", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId");
-
-                    b.Navigation("SaleOrder");
 
                     b.Navigation("User");
                 });
@@ -2044,8 +2039,6 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("OrderDetails");
 
                     b.Navigation("RefundRequests");
-
-                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ShipmentDetail", b =>
