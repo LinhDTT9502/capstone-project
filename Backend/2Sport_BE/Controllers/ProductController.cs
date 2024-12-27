@@ -1334,10 +1334,10 @@ namespace _2Sport_BE.Controllers
             }
 
             var fileInfo = new FileInfo(filePath);
-            return $"{filePath} - {fileInfo}";
-            //var fileBytes = System.IO.File.ReadAllBytes(filePath); // Read file into memory
+            var fileBytes = System.IO.File.ReadAllBytes(filePath); // Read file into memory
             //var stream = new MemoryStream(fileBytes);             // Create memory stream from file bytes
-
+            return $"{fileBytes}";
+            
             //IFormFile formFile = new FormFile(stream, 0, fileInfo.Length, null, fileInfo.Name)
             //{
             //    Headers = new HeaderDictionary(),
