@@ -556,13 +556,13 @@ namespace _2Sport_BE.Controllers
                             var thirdImgValue = productCM.ProductImages[2].ToString();
                             var fourthImgValue = productCM.ProductImages[3].ToString();
                             var fifthImgValue = productCM.ProductImages[4].ToString();
-                            var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
-                                                        fourthImgValue, fifthImgValue);
+                            //var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
+                            //                            fourthImgValue, fifthImgValue);
 
-                            if (!isSuccess)
-                            {
-                                return StatusCode(500, "Something wrong!");
-                            }
+                            //if (!isSuccess)
+                            //{
+                            //    return StatusCode(500, "Something wrong!");
+                            //}
 
                         }
                         else
@@ -792,13 +792,13 @@ namespace _2Sport_BE.Controllers
                                     var thirdImgValue = productCM.ProductImages[2].ToString();
                                     var fourthImgValue = productCM.ProductImages[3].ToString();
                                     var fifthImgValue = productCM.ProductImages[4].ToString();
-                                    var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
-                                                                fourthImgValue, fifthImgValue);
+                                    //var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
+                                    //                            fourthImgValue, fifthImgValue);
 
-                                    if (!isSuccess)
-                                    {
-                                        return StatusCode(500, "Something wrong!");
-                                    }
+                                    //if (!isSuccess)
+                                    //{
+                                    //    return StatusCode(500, "Something wrong!");
+                                    //}
 
                                 }
                                 else
@@ -1067,13 +1067,13 @@ namespace _2Sport_BE.Controllers
                             var thirdImgValue = reader.GetValue(18)?.ToString();
                             var fourthImgValue = reader.GetValue(19)?.ToString();
                             var fifthImgValue = reader.GetValue(20)?.ToString();
-                            var isSuccess = await UploadProductImages(product.Id,firstImgValue, secondImgValue, thirdImgValue,
-                                                        fourthImgValue, fifthImgValue);
+                            //var isSuccess = await UploadProductImages(product.Id,firstImgValue, secondImgValue, thirdImgValue,
+                            //                            fourthImgValue, fifthImgValue);
                             
-                            if (!isSuccess)
-                            {
-                                return "Upload image failed!";
-                            }
+                            //if (!isSuccess)
+                            //{
+                            //    return "Upload image failed!";
+                            //}
 
                             //Import product into warehouse
                             var warehouse = new Warehouse()
@@ -1149,13 +1149,13 @@ namespace _2Sport_BE.Controllers
                                     var thirdImgValue = reader.GetValue(18)?.ToString();
                                     var fourthImgValue = reader.GetValue(19)?.ToString();
                                     var fifthImgValue = reader.GetValue(20)?.ToString();
-                                    var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
-                                                                fourthImgValue, fifthImgValue);
+                                    //var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
+                                    //                            fourthImgValue, fifthImgValue);
 
-                                    if (!isSuccess)
-                                    {
-                                        return "Upload image failed!";
-                                    }
+                                    //if (!isSuccess)
+                                    //{
+                                    //    return "Upload image failed!";
+                                    //}
 
                                 } else
                                 {
@@ -1255,58 +1255,58 @@ namespace _2Sport_BE.Controllers
             return "Import product successfully";
         }
 
-        [NonAction]
-        private async Task<bool> UploadProductImages(int productId, string? firstImgValue, 
-                        string? secondImgValue, string? thirdImgValue, string? fourthImgValue, string? fifthImgValue)
-        {
-            var listProductImages = new List<string>();
-            if (!string.IsNullOrEmpty(firstImgValue))
-            {
-                listProductImages.Add(firstImgValue);
-            }
-            if (!string.IsNullOrEmpty(secondImgValue))
-            {
-                listProductImages.Add(secondImgValue);
-            }
-            if (!string.IsNullOrEmpty(thirdImgValue))
-            {
-                listProductImages.Add(thirdImgValue);
-            }
-            if (!string.IsNullOrEmpty(fourthImgValue))
-            {
-                listProductImages.Add(fourthImgValue);
-            }
-            if (!string.IsNullOrEmpty(fifthImgValue))
-            {
-                listProductImages.Add(fifthImgValue);
-            }
+        //[NonAction]
+        //private async Task<bool> UploadProductImages(int productId, string? firstImgValue, 
+        //                string? secondImgValue, string? thirdImgValue, string? fourthImgValue, string? fifthImgValue)
+        //{
+        //    var listProductImages = new List<string>();
+        //    if (!string.IsNullOrEmpty(firstImgValue))
+        //    {
+        //        listProductImages.Add(firstImgValue);
+        //    }
+        //    if (!string.IsNullOrEmpty(secondImgValue))
+        //    {
+        //        listProductImages.Add(secondImgValue);
+        //    }
+        //    if (!string.IsNullOrEmpty(thirdImgValue))
+        //    {
+        //        listProductImages.Add(thirdImgValue);
+        //    }
+        //    if (!string.IsNullOrEmpty(fourthImgValue))
+        //    {
+        //        listProductImages.Add(fourthImgValue);
+        //    }
+        //    if (!string.IsNullOrEmpty(fifthImgValue))
+        //    {
+        //        listProductImages.Add(fifthImgValue);
+        //    }
 
-            if (listProductImages.Count > 0)
-            {
-                foreach (var imagePath in listProductImages)
-                {
-                    var imageFile = ConvertToIFormFile(imagePath);
-                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(imageFile);
-                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        var imageObject = new ImagesVideo()
-                        {
-                            ProductId = productId,
-                            ImageUrl = uploadResult.SecureUri.AbsoluteUri,
-                            CreateAt = DateTime.Now,
-                            VideoUrl = null,
-                        };
-                        await _imageVideosService.AddImage(imageObject);
-                    }
-                    else
-                    {
-                        return false;
+        //    if (listProductImages.Count > 0)
+        //    {
+        //        foreach (var imagePath in listProductImages)
+        //        {
+        //            var imageFile = ConvertToIFormFile(imagePath);
+        //            var uploadResult = await _imageService.UploadImageToCloudinaryAsync(imageFile);
+        //            if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+        //            {
+        //                var imageObject = new ImagesVideo()
+        //                {
+        //                    ProductId = productId,
+        //                    ImageUrl = uploadResult.SecureUri.AbsoluteUri,
+        //                    CreateAt = DateTime.Now,
+        //                    VideoUrl = null,
+        //                };
+        //                await _imageVideosService.AddImage(imageObject);
+        //            }
+        //            else
+        //            {
+        //                return false;
 
-                    }
-                }
-            }
-            return true;
-        }
+        //            }
+        //        }
+        //    }
+        //    return true;
+        //}
 
         [NonAction]
         private async Task<string> UploadAvaImgFile(string avaImgValue)
