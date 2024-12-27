@@ -11,8 +11,10 @@ namespace _2Sport_BE.Service.Services
 	public interface IReviewService
 	{
 		Task AddReview(Review review);
-		Task<IQueryable<Review>> GetReviewsOfProduct(string productCode);
+		Task AddReview(List<Review> reviews);
+        Task<IQueryable<Review>> GetReviewsOfProduct(string productCode);
         Task<IQueryable<Review>> GetAllReviews();
+        Task<bool> DeleteReview(int reviewId);
     }
     public class ReviewService : IReviewService
 	{
@@ -28,7 +30,25 @@ namespace _2Sport_BE.Service.Services
 			await _unitOfWork.ReviewRepository.InsertAsync(review);
 		}
 
-		public async Task<IQueryable<Review>> GetAllReviews()
+        public async Task AddReview(List<Review> reviews)
+        {
+            await _unitOfWork.ReviewRepository.InsertRangeAsync(reviews);
+        }
+
+        public async Task<bool> DeleteReview(int reviewId)
+        {
+            try
+			{
+				await _unitOfWork.ReviewRepository.DeleteAsync(reviewId);
+				return true;
+			} catch (Exception ex)
+			{
+				return false;
+				Console.WriteLine(ex.Message);
+			}
+        }
+
+        public async Task<IQueryable<Review>> GetAllReviews()
 		{
 			return (await _unitOfWork.ReviewRepository.GetAllAsync()).AsQueryable();
 		}

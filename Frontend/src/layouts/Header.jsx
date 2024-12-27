@@ -10,7 +10,7 @@ import {
   faUser,
   faCartShopping,
   faBinoculars,
-  faBell
+  faBell,
 } from "@fortawesome/free-solid-svg-icons";
 import GetCurrentLocation from "../components/GetCurrentLocation";
 import { useTranslation } from "react-i18next";
@@ -24,7 +24,13 @@ import BranchSystem from "../components/BranchButton";
 import { getUserCart } from "../services/cartService";
 import { useCart } from "../components/Cart/CartContext";
 import SearchOrderDropDown from "../components/Research/SearchOrderDropDown";
-import { Menu, MenuHandler, MenuList, MenuItem, Button } from "@material-tailwind/react";
+import {
+  Menu,
+  MenuHandler,
+  MenuList,
+  MenuItem,
+  Button,
+} from "@material-tailwind/react";
 import useOrderNotification from "../hook/Notification";
 import { useSelector } from "react-redux";
 import { selectUser } from "../redux/slices/authSlice";
@@ -40,7 +46,7 @@ function Header() {
   const [openNoti, setOpenNoti] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [noti, setNoti] = useState([])
+  const [noti, setNoti] = useState([]);
   const user = useSelector(selectUser);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const navigate = useNavigate();
@@ -63,17 +69,18 @@ function Header() {
     };
   }, []);
 
-  const getNotification = async () => {
-    const data = await getNoti(user.UserId, token);
-    const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    setNoti(sortedData);
-  };
+  // const getNotification = async () => {
+  //   const data = await getNoti(user.UserId, token);
+  //   console.log(data);
+  //   const sortedData = data.sort(
+  //     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  //   );
+  //   setNoti(sortedData);
+  // };
 
-  useEffect(() => {
-    getNotification();
-    console.log(noti);
-
-  }, [user]);
+  // useEffect(() => {
+  //   getNotification();
+  // }, [user]);
 
   const handleLinkClick = () => {
     setIsPolicyDropdownOpen(false);
@@ -116,7 +123,7 @@ function Header() {
   useOrderNotification((message) => {
     setNotifications((prev) => [...prev, message]); // Add new notification to the list
     setUnreadCount((prev) => prev + 1); // Increment unread count
-    getNotification()
+    getNotification();
   });
 
   const handleNotiToggle = () => {
@@ -126,7 +133,6 @@ function Header() {
       setUnreadCount(0); // Clear unread count when opening the menu
     }
   };
-
 
   const highlightNumbers = (notification) => {
     let message;
@@ -156,30 +162,32 @@ function Header() {
   };
 
   const handleOpenModal = async (orderCode, id) => {
-
     const numericOrderCode = orderCode.replace(/^[A-Za-z]-/, "");
 
     // Set the selectedOrder to the numeric part
     setSelectedOrder(numericOrderCode);
-    const response = await fetch(`https://capstone-project-703387227873.asia-southeast1.run.app/api/Notification/update-status?id=${id}&isRead=true`, {
-      method: 'PUT',
-      headers: {
-        'accept': '*/*',
-      },
-    });
+    const response = await fetch(
+      `https://capstone-project-703387227873.asia-southeast1.run.app/api/Notification/update-status?id=${id}&isRead=true`,
+      {
+        method: "PUT",
+        headers: {
+          accept: "*/*",
+        },
+      }
+    );
 
     // Open the appropriate modal based on the prefix
     if (orderCode.startsWith("S-")) {
-      navigate(`/manage-account/sale-order/${numericOrderCode}`)
+      navigate(`/manage-account/sale-order/${numericOrderCode}`);
     } else if (orderCode.startsWith("T-")) {
-      navigate(`/manage-account/user-rental/${numericOrderCode}`)
+      navigate(`/manage-account/user-rental/${numericOrderCode}`);
     }
 
     getNotification();
   };
 
   const handleCloseModal = () => {
-    setSelectedOrder(null)
+    setSelectedOrder(null);
     setModalOpen(false);
   };
 
@@ -191,8 +199,9 @@ function Header() {
     <>
       <div className="w-full relative z-50 pb-28">
         <div
-          className={`fixed top-0 left-0 right-0 transition-all duration-300 ease-in-out ${visible ? "transform translate-y-0" : "transform -translate-y-full"
-            }`}
+          className={`fixed top-0 left-0 right-0 transition-all duration-300 ease-in-out ${
+            visible ? "transform translate-y-0" : "transform -translate-y-full"
+          }`}
         >
           {" "}
           <div className="bg-white/95 backdrop-blur-lg font-medium text-black flex justify-between items-center relative text-xs py-2 z-50">
@@ -205,7 +214,7 @@ function Header() {
                 />
               </Link>
               <FontAwesomeIcon icon={faLocationDot} />
-     
+
               <GetCurrentLocation />
               <div className=" pl-5">
                 <BranchSystem />
@@ -346,7 +355,6 @@ function Header() {
             <div className="flex space-x-4 justify-center items-center">
               <SearchOrderDropDown />
 
-
               <SignInModal />
               <Link to="/cart" className="flex space-x-2 ">
                 <div className="relative">
@@ -359,62 +367,73 @@ function Header() {
                 </div>
                 <p>Giỏ hàng</p>
               </Link>
-              {token && ( <>
-                <Menu open={openNoti} handler={setOpenNoti}>
-      <MenuHandler>
-        <div
-          className="relative flex items-center justify-center cursor-pointer bg-white hover:bg-orange-500 p-2 rounded-full transition-colors duration-200"
-          onClick={handleNotiToggle}
-        >
-          <FontAwesomeIcon icon={faBell} className="text-xl text-orange-600 hover:text-white" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              {unreadCount}
-            </span>
-          )}
-        </div>
-      </MenuHandler>
-      <MenuList className="max-h-[40vh] overflow-y-auto bg-white shadow-xl rounded-md divide-y divide-gray-200 w-80">
-        {notifications.length === 0 && noti.length === 0 ? (
-          <MenuItem className="py-4 px-6 text-gray-500 italic">
-            Chưa có thông báo mới
-          </MenuItem>
-        ) : (
-          <>
-            {notifications.map((notification, index) => (
-              <MenuItem 
-                key={`notification-${index}`}
-                className="hover:bg-orange-500 transition-colors duration-150 ease-in-out"
-              >
-                <p className="text-sm py-3 px-4">{highlightNumbers(notification)}</p>
-              </MenuItem>
-            ))}
-            {noti.map((notiItem) => (
-              <MenuItem
-                key={`noti-${notiItem.id}`}
-                className={`
-                  ${notiItem.isRead ? 'bg-white' : 'bg-blue-50'} 
+              {token && (
+                <>
+                  <Menu open={openNoti} handler={setOpenNoti}>
+                    <MenuHandler>
+                      <div
+                        className="relative flex items-center justify-center cursor-pointer bg-white hover:bg-orange-500 p-2 rounded-full transition-colors duration-200"
+                        onClick={handleNotiToggle}
+                      >
+                        <FontAwesomeIcon
+                          icon={faBell}
+                          className="text-xl text-orange-600 hover:text-white"
+                        />
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                            {unreadCount}
+                          </span>
+                        )}
+                      </div>
+                    </MenuHandler>
+                    <MenuList className="max-h-[40vh] overflow-y-auto bg-white shadow-xl rounded-md divide-y divide-gray-200 w-80">
+                      {notifications.length === 0 && noti.length === 0 ? (
+                        <MenuItem className="py-4 px-6 text-gray-500 italic">
+                          Chưa có thông báo mới
+                        </MenuItem>
+                      ) : (
+                        <>
+                          {notifications.map((notification, index) => (
+                            <MenuItem
+                              key={`notification-${index}`}
+                              className="hover:bg-orange-500 transition-colors duration-150 ease-in-out"
+                            >
+                              <p className="text-sm py-3 px-4">
+                                {highlightNumbers(notification)}
+                              </p>
+                            </MenuItem>
+                          ))}
+                          {noti.map((notiItem) => (
+                            <MenuItem
+                              key={`noti-${notiItem.id}`}
+                              className={`
+                  ${notiItem.isRead ? "bg-white" : "bg-blue-50"} 
                   hover:bg-gray-200 transition-colors duration-150 ease-in-out
                 `}
-                // onClick={(event) => handleNotificationClick(notiItem.id, event)}
-              >
-                <div className="flex items-center py-3 px-4">
-                  {!notiItem.isRead && (
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 flex-shrink-0"></span>
-                  )}
-                  <p className={`text-sm ${notiItem.isRead ? 'text-gray-600' : 'text-gray-800 font-medium'}`}>
-                    {highlightNumbers(notiItem)}
-                  </p>
-                </div>
-              </MenuItem>
-            ))}
-          </>
-        )}
-      </MenuList>
-    </Menu>
-              </>)
-              }
-             
+                              // onClick={(event) => handleNotificationClick(notiItem.id, event)}
+                            >
+                              <div className="flex items-center py-3 px-4">
+                                {!notiItem.isRead && (
+                                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 flex-shrink-0"></span>
+                                )}
+                                <p
+                                  className={`text-sm ${
+                                    notiItem.isRead
+                                      ? "text-gray-600"
+                                      : "text-gray-800 font-medium"
+                                  }`}
+                                >
+                                  {highlightNumbers(notiItem)}
+                                </p>
+                              </div>
+                            </MenuItem>
+                          ))}
+                        </>
+                      )}
+                    </MenuList>
+                  </Menu>
+                </>
+              )}
             </div>
           </div>
           <motion.div

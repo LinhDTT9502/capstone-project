@@ -40,7 +40,7 @@ export default function UserListRental() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [expandedOrderId, setExpandedOrderId] = useState(null);
-
+  const [searchQuery, setSearchQuery] = useState("");
   useEffect(() => {
     const fetchRentalOrders = async () => {
       try {
@@ -59,7 +59,6 @@ export default function UserListRental() {
             return new Date(b.createdAt) - new Date(a.createdAt);
           });
           setRentalOrders(sortedOrders);
-          console.log(rentalOrders);
         } else {
           setError("Không thể lấy danh sách đơn thuê.");
         }
@@ -87,15 +86,15 @@ export default function UserListRental() {
   );
 
   const filteredOrders =
-  selectedStatus === "Tất cả"
-    ? groupedOrders.parents
-    : groupedOrders.parents.filter((order) => order.orderStatus === selectedStatus);
+    selectedStatus === "Tất cả"
+      ? groupedOrders.parents
+      : groupedOrders.parents.filter(
+          (order) => order.orderStatus === selectedStatus
+        );
 
   const toggleExpand = (orderId) => {
     setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
   };
-
-  
 
   if (isLoading)
     return (
@@ -111,8 +110,34 @@ export default function UserListRental() {
       </div>
     );
 
+  const handleSearch = () => {
+    toast.info(`Tìm kiếm với từ khóa: ${searchQuery}`);
+    setSearchQuery(searchQuery);
+    if (searchQuery) {
+      const filtered = orders.filter((order) => {
+        return order.saleOrderDetailVMs.$values.some((item) => {
+          // Kiểm tra nếu tên sản phẩm, màu sắc, hoặc kích thước chứa từ khóa tìm kiếm
+          return (
+            item.productName
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            item.color.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.size.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        });
+      });
+      if (filtered.length === 0) {
+        toast.info("Không tìm thấy sản phẩm nào khớp với từ khóa");
+        return;
+      }
+      setFilteredSaleOrders(filtered);
+    } else {
+      setFilteredSaleOrders(orders);
+    }
+  };
+
   return (
-    <div className="container mx-auto pt-2 rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
       <h2 className="text-orange-500 font-bold text-2xl">
         Danh sách đơn thuê{" "}
       </h2>
@@ -130,10 +155,10 @@ export default function UserListRental() {
           ].map((status) => (
             <button
               key={status}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
+              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
                 selectedStatus === status
-                  ? "bg-orange-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  ? statusColors[status] || "bg-orange-500 text-white" // Màu khi được chọn
+                  : "bg-gray-200 text-gray-700" // Áp dụng màu từ statusColors
               }`}
               onClick={() => setSelectedStatus(status)}
             >
@@ -141,19 +166,38 @@ export default function UserListRental() {
             </button>
           ))}
         </div>
+
+        {/* Search Bar */}
+        {selectedStatus === "Tất cả" && (
+          <div className="flex justify-start items-center p-4 bg-gray-50 border-t">
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo tên sản phẩm, màu sắc, kích thước..."
+              className="w-96 px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button
+              className="ml-2 px-4 py-2 bg-orange-500 text-white rounded-md text-sm font-medium hover:bg-orange-600 transition-colors"
+              onClick={handleSearch}
+            >
+              Tìm kiếm
+            </button>
+          </div>
+        )}
       </div>
-      <div className="space-y-6">
+      <div className="max-h-[60vh] overflow-y-auto">
         {filteredOrders.map((parent) => (
           <div
             key={parent.id}
-            className="p-4 border border-gray-200 rounded-lg shadow-sm mt-4"
+            className="border border-gray-200 rounded-lg shadow-sm mt-4"
           >
             <div
-              className="flex justify-between items-center p-6 cursor-pointer hover:bg-slate-200 transition-colors duration-150 ease-in-out"
+              className="flex justify-between items-center p-4 cursor-pointer hover:bg-slate-200 transition-colors duration-150 ease-in-out"
               onClick={() => toggleExpand(parent.id)}
             >
               <div>
-                <h4 className="font-semibold text-lg text-gray-800">
+                <h4 className="font-bold text-lg text-gray-800">
                   Mã đơn hàng:{" "}
                   <span className="text-orange-500">
                     {parent.rentalOrderCode}
@@ -179,31 +223,31 @@ export default function UserListRental() {
                   </span>
                 </p>
                 <p className="text-gray-600">
-                  Hình thức nhận hàng: {parent.deliveryMethod}
+                  Hình thức nhận hàng: <i>{parent.deliveryMethod}</i>
                 </p>
                 <p className="text-gray-600">
-                  Đặt cọc: {parent.depositAmount}%
+                  Ngày đặt:{" "}
+                  <i>{new Date(parent.createdAt).toLocaleDateString()}</i>
                 </p>
-                <p className="text-gray-600">
-                  Ngày đặt: {new Date(parent.createdAt).toLocaleDateString()}
-                </p>
-                <p className="mt-2 font-bold text-lg">
-                  Tổng giá:{" "}
+                <p className="text-gray-600 mt-2 font-semibold text-lg pt-5">
+                  Thành tiền:{" "}
                   <span className="text-orange-500">
-                    {parent.totalAmount.toLocaleString()} ₫
+                    {parent.totalAmount.toLocaleString("Vi-vn")}₫
                   </span>
                 </p>
               </div>
               <div className="flex flex-col w-1/4 h-auto items-end">
                 <img
-                  src={parent.orderImage || "/assets/images/default_package.png"}
+                  src={
+                    parent.orderImage || "/assets/images/default_package.png"
+                  }
                   alt={parent.orderImage}
-                  className="w-full h-auto object-contain rounded"
+                  className="w-40 h-40 object-contain rounded"
                 />
                 <Button
                   color="orange"
                   size="sm"
-                  className="w-full"
+                  className="w-40"
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(
@@ -246,18 +290,18 @@ export default function UserListRental() {
                             {child.productName}
                           </h5>
                           <p className="text-sm text-gray-500">
-                            {child.color} - {child.size} - {child.condition}%
+                            Màu sắc: {child.color} - Kích thước: {child.size} -
+                            Tình trạng: {child.condition}%
                           </p>
                           <p className="font-medium text-base text-rose-700">
                             Giá thuê:{" "}
                             {new Intl.NumberFormat("vi-VN", {
                               style: "currency",
                               currency: "VND",
-                            }).format(child.totalAmount)}
+                            }).format(child.rentPrice)}
                           </p>
-                          <p className="text-sm text-gray-500">
-                            Số lượng: {" "}
-                            {child.quantity}
+                          <p className="font-medium text-sm">
+                            Số lượng: {child.quantity}
                           </p>
                         </div>
                       </div>
@@ -275,14 +319,18 @@ export default function UserListRental() {
                         {parent.productName}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        {parent.color} - {parent.size} - {parent.condition}%
+                        Màu sắc: {parent.color} - Kích thước: {parent.size} -
+                        Tình trạng: {parent.condition}%
                       </p>
                       <p className="font-medium text-base text-rose-700">
-                        Số tiền:{" "}
+                        Giá thuê:{" "}
                         {new Intl.NumberFormat("vi-VN", {
                           style: "currency",
                           currency: "VND",
-                        }).format(parent.totalAmount)}
+                        }).format(parent.rentPrice)}
+                      </p>
+                      <p className="font-medium text-sm">
+                        Số lượng: {parent.quantity}
                       </p>
                     </div>
                   </div>

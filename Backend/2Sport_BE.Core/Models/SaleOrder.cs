@@ -109,5 +109,6 @@ public class SaleOrder
     public virtual User User { get; set; }
     public virtual Branch Branch { get; set; }
     public virtual ICollection<RefundRequest> RefundRequests { get; set; }
+    public virtual ICollection<Review> Reviews { get; set; }
     #endregion
 }

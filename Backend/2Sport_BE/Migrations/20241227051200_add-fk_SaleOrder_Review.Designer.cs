@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241227051200_add-fk_SaleOrder_Review")]
+    partial class addfk_SaleOrder_Review
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -982,9 +985,6 @@ namespace _2Sport_BE.Migrations
                     b.Property<decimal?>("DepositAmount")
                         .HasColumnType("decimal")
                         .HasColumnName("DepositAmount");
-
-                    b.Property<DateTime?>("DepositDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<int?>("DepositStatus")
                         .HasColumnType("int")

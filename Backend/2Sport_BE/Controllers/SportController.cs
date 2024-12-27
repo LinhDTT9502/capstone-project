@@ -99,28 +99,31 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpPut]
+        [Route("edit-status/{sportId}")]
+        public async Task<IActionResult> EditStatus(int sportId)
+        {
+            try
+            {
+                var updatedSport = await _sportService.GetSportById(sportId);
+                updatedSport.Status = !updatedSport.Status;
+                await _sportService.UpdateSport(updatedSport);
+                return Ok($"Status of {updatedSport.Name} edited to {updatedSport.Status}");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
         [HttpDelete]
         [Route("delete-sport/{sportId}")]
         public async Task<IActionResult> DeleteSport(int sportId)
         {
             try
             {
-                var deletedSport =  await _sportService.GetSportById(sportId);
-                if (deletedSport != null)
-                {
-                    deletedSport.Status = !deletedSport.Status;
-                    await _sportService.UpdateSport(deletedSport);
-                    var deletedProducts = await _productService.GetProducts(_ => _.SportId == sportId);
-                    if (deletedProducts != null)
-                    {
-                        foreach (var product in deletedProducts)
-                        {
-                            await _productService.DeleteProductById(product.Id);
-                        }
-                    }
-                    return Ok($"Delete brand with id: {sportId}!");
-                }
-                return BadRequest($"Cannot find brand with id {sportId}!");
+                await _sportService.DeleteSportById(sportId);
+                return Ok("Deleted sport successfully!");
             }
             catch (Exception ex)
             {

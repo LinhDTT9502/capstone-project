@@ -97,6 +97,10 @@ namespace _2Sport_BE.Repository.Models
         [DataType(DataType.DateTime)]
         public DateTime? RentalEndDate { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.DateTime)]
+        public DateTime? DepositDate { get; set; }
+
         [Column("RentalDays")]
         public int RentalDays { get; set; }
 

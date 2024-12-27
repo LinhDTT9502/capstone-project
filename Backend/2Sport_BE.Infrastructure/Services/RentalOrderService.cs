@@ -211,8 +211,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 else
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = "Rental orders are not found";
+                    response.Data = new List<RentalOrderVM>();
                 }
             }
             catch (Exception ex)
@@ -327,6 +328,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 {
                     response.IsSuccess = true;
                     response.Message = $"No orders found";
+                    response.Data = new List<RentalOrderVM>();
                 }
             }
             catch (Exception ex)

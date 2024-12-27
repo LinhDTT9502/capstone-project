@@ -87,7 +87,7 @@ namespace _2Sport_BE.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPut]
         [Route("update-branch/{branchId}")]
         public async Task<IActionResult> UpdateBranch(int branchId, BranchUM branchUM)
         {
@@ -123,25 +123,37 @@ namespace _2Sport_BE.Controllers
 
         }
 
-        [HttpPost]
+        [HttpPut]
+        [Route("edit-status/{branchId}")]
+        public async Task<IActionResult> EditStatus(int branchId)
+        {
+            try
+            {
+                var updatedBranch = await _branchService.GetBranchById(branchId);
+                updatedBranch.Status = !updatedBranch.Status;
+                await _branchService.UpdateBranchAsync(updatedBranch);
+                return Ok("Update status successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
+
+        [HttpDelete]
         [Route("delete-branch/{branchId}")]
         public async Task<IActionResult> DeleteBranch(int branchId)
         {
-            var deletedBranch = await _branchService.GetBranchById(branchId);
-            if (deletedBranch != null)
+            try
             {
-                if (deletedBranch.Status == true)
-                {
-                    deletedBranch.Status = false;
-                }
-                else
-                {
-                    deletedBranch.Status = true;
-                }
-                await _branchService.UpdateBranchAsync(deletedBranch);
-                return Ok($"Delete branch with id: {branchId}!");
+                await _branchService.DeleteBranchAsync(branchId);
+                return Ok("Delete successfully!");
             }
-            return BadRequest($"Cannot find branch with id {branchId}!");
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
     }
 }

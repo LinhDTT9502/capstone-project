@@ -419,6 +419,13 @@ namespace _2Sport_BE.Controllers
             var product = _mapper.Map<Product>(productCM);
             product.CreateAt = DateTime.Now;
             product.Status = true;
+            product.IsRent = false;
+            product.RentPrice = 0;
+            if (productCM.Condition >= 80)
+            {
+                product.IsRent = true;
+                product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * productCM.Condition / 100));
+            }
             try
             {
                 var userId = GetCurrentUserIdFromToken();
@@ -648,6 +655,13 @@ namespace _2Sport_BE.Controllers
                     var product = _mapper.Map<Product>(productCM);
                     product.CreateAt = DateTime.Now;
                     product.Status = true;
+                    product.IsRent = false;
+                    product.RentPrice = 0;
+                    if (productCM.Condition >= 80)
+                    {
+                        product.IsRent = true;
+                        product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * productCM.Condition / 100));
+                    }
                     try
                     {
                         var userId = GetCurrentUserIdFromToken();
@@ -892,35 +906,15 @@ namespace _2Sport_BE.Controllers
                     return BadRequest("Cannot find import file!");
                 }
                 var importProductStatus = await ImportProductsIntoDB(importFile, userId);
-                if (importProductStatus == (int)ProductErrors.NullError)
+                if (!importProductStatus.Equals("Import product successfully"))
                 {
-                    return BadRequest("One or more field are required");
-                }
-                if (importProductStatus == (int)ProductErrors.NotExcepted)
-                {
-                    return StatusCode(500, "Unknown error");
-                }
-                if (importProductStatus == (int)ProductErrors.BrandNameError)
-                {
-                    return BadRequest("Brand name seems wrong please check again");
-                }
-                if (importProductStatus == (int)ProductErrors.CategoryNameError)
-                {
-                    return BadRequest("Category name seems wrong please check again");
-                }
-                if (importProductStatus == (int)ProductErrors.SportNameError)
-                {
-                    return BadRequest("Sport name seems wrong please check again");
-                }
-                if (importProductStatus == (int)ProductErrors.SupplierNameError)
-                {
-                    return BadRequest("Supplier name seems wrong please check again");
+                    return BadRequest(importProductStatus);
                 }
                 //using (var dbct = new TwoSportCapstoneDbContext())
                 //{
                 //    dbct.BulkInsert(products);
                 //}
-                return Ok("Import product successfull!");
+                return Ok("Import product successfullu!");
             }
             catch (Exception e)
             {
@@ -930,7 +924,7 @@ namespace _2Sport_BE.Controllers
         }
 
         [NonAction]
-        protected async Task<int> ImportProductsIntoDB(IFormFile importFile, int managerId)
+        protected async Task<string> ImportProductsIntoDB(IFormFile importFile, int managerId)
         {
 
             using var fileStream = importFile.OpenReadStream();
@@ -960,16 +954,14 @@ namespace _2Sport_BE.Controllers
                     var productCodeValue = reader.GetValue(5)?.ToString();
                     var quantityValue = reader.GetValue(6)?.ToString();
                     var priceValue = reader.GetValue(7)?.ToString();
-                    var rentPriceValue = reader.GetValue(8)?.ToString();
-                    var sizeValue = reader.GetValue(9)?.ToString();
-                    var colorValue = reader.GetValue(10)?.ToString();
-                    var conditionValue = reader.GetValue(11)?.ToString();
-                    var lengthValue = reader.GetValue(12)?.ToString();
-                    var widthValue = reader.GetValue(13)?.ToString();
-                    var heightValue = reader.GetValue(14)?.ToString();
-                    var weightValue = reader.GetValue(15)?.ToString();
-                    var avaImgValue = reader.GetValue(17)?.ToString();
-                    var isRent = reader.GetValue(16)?.ToString();
+                    var sizeValue = reader.GetValue(8)?.ToString();
+                    var colorValue = reader.GetValue(9)?.ToString();
+                    var conditionValue = reader.GetValue(10)?.ToString();
+                    var lengthValue = reader.GetValue(11)?.ToString();
+                    var widthValue = reader.GetValue(12)?.ToString();
+                    var heightValue = reader.GetValue(13)?.ToString();
+                    var weightValue = reader.GetValue(14)?.ToString();
+                    var avaImgValue = reader.GetValue(15)?.ToString();
 
                     // Check for null or empty mandatory fields
                     if (string.IsNullOrEmpty(brandValue) ||
@@ -988,7 +980,7 @@ namespace _2Sport_BE.Controllers
                         string.IsNullOrEmpty(lengthValue) ||
                         string.IsNullOrEmpty(widthValue))
                     {
-                        return (int)ProductErrors.NullError;
+                        return "There is any value null!";
                     }
 
                     try
@@ -999,19 +991,19 @@ namespace _2Sport_BE.Controllers
                         var brand = (await _brandService.GetBrandsAsync(brandValue)).FirstOrDefault();
                         if (brand == null)
                         {
-                            return (int)ProductErrors.BrandNameError;
+                            return "There is no brand";
                         }
 
                         var sport = (await _sportService.GetSportByName(sportValue)).FirstOrDefault();
                         if (sport == null)
                         {
-                            return (int)ProductErrors.SportNameError;
+                            return "There is no sport";
                         }
 
                         var category = (await _categoryService.GetCategoryByName(categoryValue)).FirstOrDefault();
                         if (category == null)
                         {
-                            return (int)ProductErrors.CategoryNameError;
+                            return "There is no category";
                         }
 
                         var existedProduct = await _productService.GetProductByProductCode(productCodeValue);
@@ -1047,21 +1039,18 @@ namespace _2Sport_BE.Controllers
                                 }
                                 else
                                 {
-                                    return (int)ProductErrors.NotExcepted;
+                                    return "Upload image failed!";
                                 }
                             }
                             else
                             {
-                                return (int)ProductErrors.NullError;
+                                return "There is no image file!";
                             }
 
-                            if (isRent.ToLower().Equals("yes"))
+                            if (product.Condition >= 80)
                             {
                                 product.IsRent = true;
-                                if (!string.IsNullOrEmpty(rentPriceValue))
-                                {
-                                    product.RentPrice = decimal.Parse(rentPriceValue);
-                                }
+                                product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100));
                             }
                             else
                             {
@@ -1071,17 +1060,17 @@ namespace _2Sport_BE.Controllers
                             await _productService.AddProduct(product);
 
                             //Add product's images into ImageVideo table
-                            var firstImgValue = reader.GetValue(18)?.ToString();
-                            var secondImgValue = reader.GetValue(19)?.ToString();
-                            var thirdImgValue = reader.GetValue(20)?.ToString();
-                            var fourthImgValue = reader.GetValue(21)?.ToString();
-                            var fifthImgValue = reader.GetValue(22)?.ToString();
+                            var firstImgValue = reader.GetValue(16)?.ToString();
+                            var secondImgValue = reader.GetValue(17)?.ToString();
+                            var thirdImgValue = reader.GetValue(18)?.ToString();
+                            var fourthImgValue = reader.GetValue(19)?.ToString();
+                            var fifthImgValue = reader.GetValue(20)?.ToString();
                             var isSuccess = await UploadProductImages(product.Id,firstImgValue, secondImgValue, thirdImgValue,
                                                         fourthImgValue, fifthImgValue);
                             
                             if (!isSuccess)
                             {
-                                return (int)ProductErrors.NotExcepted;
+                                return "Upload image failed!";
                             }
 
                             //Import product into warehouse
@@ -1111,11 +1100,14 @@ namespace _2Sport_BE.Controllers
                                     Size = sizeValue,
                                     Color = colorValue,
                                     Condition = int.Parse(conditionValue),
+                                    RentPrice = 0,
                                     Price = decimal.Parse(priceValue),
-                                    RentPrice = decimal.Parse(rentPriceValue),
                                     CreateAt = DateTime.Now
                                 };
-
+                                if (newProduct.IsRent)
+                                {
+                                    newProduct.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100));
+                                }
 
                                 var existedProductWithProductCodeAndColor = (await _productService
                                                             .GetProducts(_ => _.ProductCode.Equals(existedProduct.ProductCode)
@@ -1133,12 +1125,12 @@ namespace _2Sport_BE.Controllers
                                         }
                                         else
                                         {
-                                            return (int)ProductErrors.NotExcepted;
+                                            return "Upload image failed!";
                                         }
                                     }
                                     else
                                     {
-                                        return (int)ProductErrors.NullError;
+                                        return "There is no image file!";
                                     }
                                 } else
                                 {
@@ -1150,17 +1142,17 @@ namespace _2Sport_BE.Controllers
                                 if (existedProductWithProductCodeAndColor is null)
                                 {
                                     //Add product's images into ImageVideo table
-                                    var firstImgValue = reader.GetValue(18)?.ToString();
-                                    var secondImgValue = reader.GetValue(19)?.ToString();
-                                    var thirdImgValue = reader.GetValue(20)?.ToString();
-                                    var fourthImgValue = reader.GetValue(21)?.ToString();
-                                    var fifthImgValue = reader.GetValue(22)?.ToString();
+                                    var firstImgValue = reader.GetValue(16)?.ToString();
+                                    var secondImgValue = reader.GetValue(17)?.ToString();
+                                    var thirdImgValue = reader.GetValue(18)?.ToString();
+                                    var fourthImgValue = reader.GetValue(19)?.ToString();
+                                    var fifthImgValue = reader.GetValue(20)?.ToString();
                                     var isSuccess = await UploadProductImages(newProduct.Id, firstImgValue, secondImgValue, thirdImgValue,
                                                                 fourthImgValue, fifthImgValue);
 
                                     if (!isSuccess)
                                     {
-                                        return (int)ProductErrors.NotExcepted;
+                                        return "Upload image failed!";
                                     }
 
                                 } else
@@ -1242,7 +1234,7 @@ namespace _2Sport_BE.Controllers
                     }
                     catch (Exception ex)
                     {
-                        return (int)ProductErrors.NotExcepted;
+                        return ex.Message;
                     }
 
 
@@ -1258,7 +1250,7 @@ namespace _2Sport_BE.Controllers
             //    dbct.BulkInsert(products);
             //}
 
-            return 1;
+            return "Import product successfully";
         }
 
         [NonAction]
@@ -1332,9 +1324,15 @@ namespace _2Sport_BE.Controllers
         [NonAction]
         public IFormFile ConvertToIFormFile(string filePath)
         {
+            // Check if the filePath contains a prefix like "/app/" and remove it
+            if (filePath.StartsWith("/app/"))
+            {
+                filePath = filePath.Substring("/app/".Length); // Remove the "/app/" prefix
+            }
+
             var fileInfo = new FileInfo(filePath);
             var fileBytes = System.IO.File.ReadAllBytes(filePath); // Read file into memory
-            var stream = new MemoryStream(fileBytes);    // Create memory stream from file bytes
+            var stream = new MemoryStream(fileBytes);             // Create memory stream from file bytes
 
             IFormFile formFile = new FormFile(stream, 0, fileInfo.Length, null, fileInfo.Name)
             {
@@ -1345,6 +1343,92 @@ namespace _2Sport_BE.Controllers
             return formFile;
         }
 
+
+        [HttpPost]
+        [Route("add-product")]
+        public async Task<IActionResult> AddProduct(ProductCM productCM)
+        {
+            try
+            {
+                int userId = GetCurrentUserIdFromToken();
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
+                var getProductByProductCodeAndDifferentName = (await _productService
+                                                                    .GetProducts(_ => _.ProductCode.ToLower()
+                                                                    .Equals(productCM.ProductCode.ToLower()) &&
+                                                                    !_.ProductName.ToLower()
+                                                                    .Equals(productCM.ProductName.ToLower())))
+                                                                    .FirstOrDefault();
+                if (getProductByProductCodeAndDifferentName is not null)
+                {
+                    return BadRequest("There is a product had this product code!");
+                }
+                var existedProduct = (await _productService
+                                                    .GetProducts(_ => _.ProductCode.ToLower()
+                                                    .Equals(productCM.ProductCode.ToLower()) &&
+                                                    _.ProductName.ToLower()
+                                                    .Equals(productCM.ProductName.ToLower()) &&
+                                                    _.Color.ToLower()
+                                                    .Equals(productCM.Color) &&
+                                                    _.Size.ToLower()
+                                                    .Equals(productCM.Size) &&
+                                                    _.Condition == productCM.Condition))
+                                                    .FirstOrDefault();
+                if (existedProduct is not null)
+                {
+                    return BadRequest("The product has already existed!");
+                }
+
+                var product = _mapper.Map<Product>(productCM);
+                product.Status = true;
+                if (productCM.MainImage != null)
+                {
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(productCM.MainImage);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        product.ImgAvatarPath = uploadResult.SecureUrl.AbsoluteUri;
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
+
+                await _productService.AddProduct(product);
+
+                //Add product's images into ImageVideo table
+                if (productCM.ProductImages is not null)
+                {
+                    foreach (var image in productCM.ProductImages)
+                    {
+                        var uploadResult = await _imageService.UploadImageToCloudinaryAsync(image);
+                        if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                        {
+
+                            var imageObject = new ImagesVideo()
+                            {
+                                ProductId = product.Id,
+                                ImageUrl = uploadResult.SecureUri.AbsoluteUri,
+                                CreateAt = DateTime.Now,
+                                VideoUrl = null,
+                            };
+                            await _imageVideosService.AddImage(imageObject);
+                        }
+                        else
+                        {
+                            return BadRequest("Something wrong!");
+                        }
+                    }
+                }
+                return Ok(product);
+
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
         [HttpPut]
         [Route("update-product/{productId}")]
@@ -1387,12 +1471,21 @@ namespace _2Sport_BE.Controllers
                     updatedProduct.Width = productUM.Width;
                     updatedProduct.Weight = productUM.Weight;
                     updatedProduct.Price = productUM.Price;
-                    updatedProduct.RentPrice = productUM.RentPrice;
                     updatedProduct.ProductName = productUM.ProductName;
                     updatedProduct.ProductCode = productUM.ProductCode;
                     updatedProduct.BrandId = (int)productUM.BrandId;
                     updatedProduct.CategoryId = (int)productUM.CategoryId;
                     updatedProduct.SportId = (int)productUM.SportId;
+                    if (!productUM.IsRent)
+                    {
+                        updatedProduct.IsRent = productUM.IsRent;
+                        updatedProduct.RentPrice = 0;
+                    } else
+                    {
+                        updatedProduct.IsRent = productUM.IsRent;
+                        updatedProduct.RentPrice = productUM.RentPrice;
+                    }
+
                     await _productService.UpdateProduct(updatedProduct);
 
                     //Add product's images into ImageVideo table

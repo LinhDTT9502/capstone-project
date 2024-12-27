@@ -22,6 +22,8 @@ public class Review
     public bool? Status { get; set; }
     public DateTime CreatedAt { get; set; }
 
+    [Column("SaleOrderId")]
+    public int? SaleOrderId { get; set; }
 
     [Column("UserId")]
     public int? UserId { get; set; }
@@ -30,4 +32,5 @@ public class Review
     [Column("ProductCode", TypeName = "nvarchar(15)")]
     public string ProductCode { get; set; }
     public virtual User User { get; set; }
+    public virtual SaleOrder SaleOrder { get; set; }
 }

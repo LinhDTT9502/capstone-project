@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241218043329_re-init-db")]
+    partial class reinitdb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -678,6 +681,8 @@ namespace _2Sport_BE.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ProductId");
+
                     b.HasIndex("SaleOrderId");
 
                     b.ToTable("OrderDetails");
@@ -983,9 +988,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("decimal")
                         .HasColumnName("DepositAmount");
 
-                    b.Property<DateTime?>("DepositDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<int?>("DepositStatus")
                         .HasColumnType("int")
                         .HasColumnName("DepositStatus");
@@ -1181,10 +1183,6 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("ReviewContent");
 
-                    b.Property<int?>("SaleOrderId")
-                        .HasColumnType("int")
-                        .HasColumnName("SaleOrderId");
-
                     b.Property<decimal?>("Star")
                         .HasColumnType("decimal")
                         .HasColumnName("Star");
@@ -1199,8 +1197,6 @@ namespace _2Sport_BE.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("SaleOrderId");
 
                     b.HasIndex("UserId");
 
@@ -1695,7 +1691,7 @@ namespace _2Sport_BE.Migrations
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.Sport", "Sport")
-                        .WithMany("Categories")
+                        .WithMany()
                         .HasForeignKey("SportId");
 
                     b.Navigation("Sport");
@@ -1807,9 +1803,15 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.OrderDetail", b =>
                 {
+                    b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
+                        .WithMany("OrderDetails")
+                        .HasForeignKey("ProductId");
+
                     b.HasOne("_2Sport_BE.Repository.Models.SaleOrder", "SaleOrder")
                         .WithMany("OrderDetails")
                         .HasForeignKey("SaleOrderId");
+
+                    b.Navigation("Product");
 
                     b.Navigation("SaleOrder");
                 });
@@ -1896,15 +1898,9 @@ namespace _2Sport_BE.Migrations
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId");
 
-                    b.HasOne("_2Sport_BE.Repository.Models.SaleOrder", "SaleOrder")
-                        .WithMany("Reviews")
-                        .HasForeignKey("SaleOrderId");
-
                     b.HasOne("_2Sport_BE.Repository.Models.User", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId");
-
-                    b.Navigation("SaleOrder");
 
                     b.Navigation("User");
                 });
@@ -2027,6 +2023,8 @@ namespace _2Sport_BE.Migrations
 
                     b.Navigation("Likes");
 
+                    b.Navigation("OrderDetails");
+
                     b.Navigation("Reviews");
 
                     b.Navigation("Warehouses");
@@ -2047,8 +2045,6 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("OrderDetails");
 
                     b.Navigation("RefundRequests");
-
-                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ShipmentDetail", b =>
@@ -2060,8 +2056,6 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Sport", b =>
                 {
-                    b.Navigation("Categories");
-
                     b.Navigation("Products");
                 });
 

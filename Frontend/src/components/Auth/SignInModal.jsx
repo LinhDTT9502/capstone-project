@@ -39,7 +39,6 @@ export default function SignInModal() {
   const onSubmit = async (data) => {
     try {
       const decoded = await authenticateUser(dispatch, data);
-      console.log(decoded);
       // const currentTime = Date.now() / 1000;
       // console.log(currentTime);
       setIsSignInOpen(false);
@@ -90,7 +89,11 @@ export default function SignInModal() {
       </div>
 
       <Transition appear show={isSignInOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10 max-h-[70vh] overflow-y-auto" onClose={closeSignInModal}>
+        <Dialog
+          as="div"
+          className="relative z-10 max-h-[70vh] overflow-y-auto"
+          onClose={closeSignInModal}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -216,7 +219,6 @@ export default function SignInModal() {
                     <LoginGoogle setIsSignInOpen={setIsSignInOpen} />
                   </div>
                 </Dialog.Panel>
-
               </Transition.Child>
             </div>
           </div>

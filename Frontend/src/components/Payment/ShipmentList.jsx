@@ -91,13 +91,12 @@ export default function ShipmentList() {
       <button
         type="button"
         onClick={openModal}
-        className="pt-2 pl-2 text-orange-500"
+        className="text-blue-500 text-base"
       >
-        Thay đổi thông tin
+        | Thay đổi
       </button>
       {isShipmentListOpen && (
         <div className="mb-4">
-
           <Transition appear show={isShipmentListOpen} as={Fragment}>
             <Dialog as="div" className="" onClose={closeModal}>
               <Transition.Child
@@ -156,7 +155,9 @@ export default function ShipmentList() {
                                     {shipment.phoneNumber}
                                   </p>
                                 </div>
-                                <p className="text-gray-600">{shipment.address}</p>
+                                <p className="text-gray-600">
+                                  {shipment.address}
+                                </p>
                               </div>
                               <button
                                 className="rounded-lg p-2 text-orange-500 hover:bg-orange-500 hover:text-white"
@@ -167,11 +168,12 @@ export default function ShipmentList() {
                               </button>
                             </div>
                           ))}
-                          <AddShipment
-                            refreshShipments={refreshShipments}
-                            setReload={reloadFunction}
-                            
-                          />
+                          <div className="pt-4">
+                            <AddShipment
+                              refreshShipments={refreshShipments}
+                              setReload={reloadFunction}
+                            />
+                          </div>
                         </div>
                       )}
                     </Dialog.Panel>
@@ -183,7 +185,12 @@ export default function ShipmentList() {
         </div>
       )}
       {isUpdateModalOpen && (
-        <UpdateShipment refreshShipments={refreshShipments} shipment={currentShipment} onClose={closeUpdateModal} setReload={reloadFunction}/>
+        <UpdateShipment
+          refreshShipments={refreshShipments}
+          shipment={currentShipment}
+          onClose={closeUpdateModal}
+          setReload={reloadFunction}
+        />
       )}
     </>
   );

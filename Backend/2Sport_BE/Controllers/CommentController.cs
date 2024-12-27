@@ -105,6 +105,32 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("get-child-comments/{parentCommentId}")]
+        public async Task<IActionResult> GetChildComments(int parentCommentId)
+        {
+            try
+            {
+                var allChildComments= (await _commentService.GetChildComments(parentCommentId));
+                var result = _mapper.Map<List<CommentVM>>(allChildComments.ToList());
+
+                foreach (var item in result)
+                {
+                    var product = await _productService.GetProductByProductCode(item.ProductCode);
+                    //var user = await _userService.GetUserById(result.UserId);
+                    item.ProductName = product.ProductName ?? "";
+                    //result.FullName = user.FullName ?? "";
+                    //result.Email = user.Email ?? "";
+                }
+
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost]
         [Route("comment/{productCode}")]
         public async Task<IActionResult> Comment(string productCode, CommentCM commentCM)
@@ -168,7 +194,7 @@ namespace _2Sport_BE.Controllers
                                             .NotifyForReplyComment(currUserId.ToString(), product);
                     if (!isSuccessNotify)
                     {
-                        return StatusCode(500, "Notify to admin failed!");
+                        return StatusCode(500, "Notify to customer failed!");
                     }
                     return Ok("Add comment successfully!");
                 }
