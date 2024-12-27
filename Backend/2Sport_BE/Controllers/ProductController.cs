@@ -893,12 +893,12 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                //var userId = GetCurrentUserIdFromToken();
+                var userId = GetCurrentUserIdFromToken();
 
-                //if (userId == 0)
-                //{
-                //    return Unauthorized();
-                //}
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
 
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
                 if (importFile == null || importFile.Length == 0)
@@ -906,7 +906,7 @@ namespace _2Sport_BE.Controllers
                     // Handle invalid file input
                     return BadRequest("Cannot find import file!");
                 }
-                var importProductStatus = await ImportProductsIntoDB(importFile, 1);
+                var importProductStatus = await ImportProductsIntoDB(importFile, userId);
                 if (!importProductStatus.Equals("Import product successfully"))
                 {
                     return BadRequest(importProductStatus);
