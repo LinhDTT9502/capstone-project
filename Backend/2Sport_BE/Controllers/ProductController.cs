@@ -930,6 +930,14 @@ namespace _2Sport_BE.Controllers
                 {
                     return BadRequest("Supplier name seems wrong please check again");
                 }
+                if (importProductStatus == (int)ProductErrors.AddImageError)
+                {
+                    return BadRequest("Add image error!");
+                }
+                if (importProductStatus == (int)ProductErrors.AddImagesError)
+                {
+                    return BadRequest("Add images error!");
+                }
                 //using (var dbct = new TwoSportCapstoneDbContext())
                 //{
                 //    dbct.BulkInsert(products);
