@@ -44,13 +44,11 @@ var JwtSecretkey = Encoding.ASCII.GetBytes(serviceConfiguration.JwtSettings.Secr
 var tokenValidationParameters = new TokenValidationParameters
 {
     IssuerSigningKey = new SymmetricSecurityKey(JwtSecretkey),
-    ValidateIssuer = true,
-    ValidateAudience = true,
+    ValidateIssuer = false,
+    ValidateAudience = false,
     ValidateLifetime = true,
     ValidateIssuerSigningKey = true,
     RequireExpirationTime = false,
-    ValidIssuer = "https://localhost:7276",
-    ValidAudience = "http://localhost:5173"
 };
 
 builder.Services.AddSingleton(tokenValidationParameters);
@@ -62,7 +60,7 @@ builder.Services.AddAuthentication(options =>
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
-        options.RequireHttpsMetadata = true;
+        options.RequireHttpsMetadata = false;
         options.SaveToken = true;
         options.TokenValidationParameters = tokenValidationParameters;
         options.Events = new JwtBearerEvents
