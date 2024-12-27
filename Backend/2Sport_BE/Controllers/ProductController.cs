@@ -527,6 +527,7 @@ namespace _2Sport_BE.Controllers
                             if (!string.IsNullOrEmpty(productCM.MainImage.ToString()))
                             {
                                 var imgURL = await UploadAvaImgFile(productCM.MainImage.ToString());
+                                return Ok($"{productCM.MainImage.ToString()} - {imgURL}");
                                 if (imgURL != null)
                                 {
                                     newProduct.ImgAvatarPath = imgURL;
@@ -1034,6 +1035,7 @@ namespace _2Sport_BE.Controllers
                             if (!string.IsNullOrEmpty(avaImgValue))
                             {
                                 var imgURL = await UploadAvaImgFile(avaImgValue);
+                                return $"{avaImgValue} - {imgURL}" ;
                                 if (imgURL != null) {
                                     product.ImgAvatarPath = imgURL;
                                 }
@@ -1310,19 +1312,20 @@ namespace _2Sport_BE.Controllers
         private async Task<string> UploadAvaImgFile(string avaImgValue)
         {
             var avaImgFile = ConvertToIFormFile(avaImgValue);
-            var uploadResult = await _imageService.UploadImageToCloudinaryAsync(avaImgFile);
-            if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                return uploadResult.SecureUrl.AbsoluteUri;
-            }
-            else
-            {
-                return null;
-            }
+            return avaImgFile;
+            //var uploadResult = await _imageService.UploadImageToCloudinaryAsync(avaImgFile);
+            //if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+            //{
+            //    return uploadResult.SecureUrl.AbsoluteUri;
+            //}
+            //else
+            //{
+            //    return null;
+            //}
         }
 
         [NonAction]
-        public IFormFile ConvertToIFormFile(string filePath)
+        public string ConvertToIFormFile(string filePath)
         {
             // Check if the filePath contains a prefix like "/app/" and remove it
             if (filePath.StartsWith("/app/"))
@@ -1331,16 +1334,17 @@ namespace _2Sport_BE.Controllers
             }
 
             var fileInfo = new FileInfo(filePath);
-            var fileBytes = System.IO.File.ReadAllBytes(filePath); // Read file into memory
-            var stream = new MemoryStream(fileBytes);             // Create memory stream from file bytes
+            return $"{filePath} - {fileInfo}";
+            //var fileBytes = System.IO.File.ReadAllBytes(filePath); // Read file into memory
+            //var stream = new MemoryStream(fileBytes);             // Create memory stream from file bytes
 
-            IFormFile formFile = new FormFile(stream, 0, fileInfo.Length, null, fileInfo.Name)
-            {
-                Headers = new HeaderDictionary(),
-                ContentType = "image/jpeg"
-            };
+            //IFormFile formFile = new FormFile(stream, 0, fileInfo.Length, null, fileInfo.Name)
+            //{
+            //    Headers = new HeaderDictionary(),
+            //    ContentType = "image/jpeg"
+            //};
 
-            return formFile;
+            //return formFile;
         }
 
 
