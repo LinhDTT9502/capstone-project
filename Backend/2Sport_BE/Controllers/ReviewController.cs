@@ -101,11 +101,9 @@ namespace _2Sport_BE.Controllers
 
 				var saleOrderDetails = (await _saleOrderService.GetSaleOrderDetailsBySaleOrderIdAsync(saleOrderId))
 																.Data;
-				var saleOrderDetailVMs = _mapper.Map<List<SaleOrderDetailVM>>(saleOrderDetails);
-
                 var addedReviewList = new List<Review>();
 
-				foreach (var item in saleOrderDetailVMs)
+				foreach (var item in saleOrderDetails)
 				{
                     var addedReview = new Review
                     {

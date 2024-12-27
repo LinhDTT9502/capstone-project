@@ -906,43 +906,15 @@ namespace _2Sport_BE.Controllers
                     return BadRequest("Cannot find import file!");
                 }
                 var importProductStatus = await ImportProductsIntoDB(importFile, userId);
-                if (importProductStatus == (int)ProductErrors.NullError)
+                if (!importProductStatus.Equals("Import product successfully"))
                 {
-                    return BadRequest("One or more field are required");
-                }
-                if (importProductStatus == (int)ProductErrors.NotExcepted)
-                {
-                    return StatusCode(500, "Unknown error");
-                }
-                if (importProductStatus == (int)ProductErrors.BrandNameError)
-                {
-                    return BadRequest("Brand name seems wrong please check again");
-                }
-                if (importProductStatus == (int)ProductErrors.CategoryNameError)
-                {
-                    return BadRequest("Category name seems wrong please check again");
-                }
-                if (importProductStatus == (int)ProductErrors.SportNameError)
-                {
-                    return BadRequest("Sport name seems wrong please check again");
-                }
-                if (importProductStatus == (int)ProductErrors.SupplierNameError)
-                {
-                    return BadRequest("Supplier name seems wrong please check again");
-                }
-                if (importProductStatus == (int)ProductErrors.AddImageError)
-                {
-                    return BadRequest("Add image error!");
-                }
-                if (importProductStatus == (int)ProductErrors.AddImagesError)
-                {
-                    return BadRequest("Add images error!");
+                    return BadRequest(importProductStatus);
                 }
                 //using (var dbct = new TwoSportCapstoneDbContext())
                 //{
                 //    dbct.BulkInsert(products);
                 //}
-                return Ok("Import product successfull!");
+                return Ok("Import product successfullu!");
             }
             catch (Exception e)
             {
@@ -952,7 +924,7 @@ namespace _2Sport_BE.Controllers
         }
 
         [NonAction]
-        protected async Task<int> ImportProductsIntoDB(IFormFile importFile, int managerId)
+        protected async Task<string> ImportProductsIntoDB(IFormFile importFile, int managerId)
         {
 
             using var fileStream = importFile.OpenReadStream();
@@ -1008,7 +980,7 @@ namespace _2Sport_BE.Controllers
                         string.IsNullOrEmpty(lengthValue) ||
                         string.IsNullOrEmpty(widthValue))
                     {
-                        return (int)ProductErrors.NullError;
+                        return "There is any value null!";
                     }
 
                     try
@@ -1019,19 +991,19 @@ namespace _2Sport_BE.Controllers
                         var brand = (await _brandService.GetBrandsAsync(brandValue)).FirstOrDefault();
                         if (brand == null)
                         {
-                            return (int)ProductErrors.BrandNameError;
+                            return "There is no brand";
                         }
 
                         var sport = (await _sportService.GetSportByName(sportValue)).FirstOrDefault();
                         if (sport == null)
                         {
-                            return (int)ProductErrors.SportNameError;
+                            return "There is no sport";
                         }
 
                         var category = (await _categoryService.GetCategoryByName(categoryValue)).FirstOrDefault();
                         if (category == null)
                         {
-                            return (int)ProductErrors.CategoryNameError;
+                            return "There is no category";
                         }
 
                         var existedProduct = await _productService.GetProductByProductCode(productCodeValue);
@@ -1067,12 +1039,12 @@ namespace _2Sport_BE.Controllers
                                 }
                                 else
                                 {
-                                    return (int)ProductErrors.NotExcepted;
+                                    return "Upload image failed!";
                                 }
                             }
                             else
                             {
-                                return (int)ProductErrors.NullError;
+                                return "There is no image file!";
                             }
 
                             if (product.Condition >= 80)
@@ -1098,7 +1070,7 @@ namespace _2Sport_BE.Controllers
                             
                             if (!isSuccess)
                             {
-                                return (int)ProductErrors.NotExcepted;
+                                return "Upload image failed!";
                             }
 
                             //Import product into warehouse
@@ -1153,12 +1125,12 @@ namespace _2Sport_BE.Controllers
                                         }
                                         else
                                         {
-                                            return (int)ProductErrors.AddImageError;
+                                            return "Upload image failed!";
                                         }
                                     }
                                     else
                                     {
-                                        return (int)ProductErrors.NullError;
+                                        return "There is no image file!";
                                     }
                                 } else
                                 {
@@ -1180,7 +1152,7 @@ namespace _2Sport_BE.Controllers
 
                                     if (!isSuccess)
                                     {
-                                        return (int)ProductErrors.AddImagesError;
+                                        return "Upload image failed!";
                                     }
 
                                 } else
@@ -1262,7 +1234,7 @@ namespace _2Sport_BE.Controllers
                     }
                     catch (Exception ex)
                     {
-                        return (int)ProductErrors.NotExcepted;
+                        return ex.Message;
                     }
 
 
@@ -1278,7 +1250,7 @@ namespace _2Sport_BE.Controllers
             //    dbct.BulkInsert(products);
             //}
 
-            return 1;
+            return "Import product successfully";
         }
 
         [NonAction]
