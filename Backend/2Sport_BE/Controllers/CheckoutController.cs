@@ -147,10 +147,6 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest("Rental Order not found.");
             }
-            /*if (order.PaymentStatus != (int)PaymentStatus.IsWating || (order.PaymentStatus == (int)PaymentStatus.IsCanceled && order.OrderStatus == (int)OrderStatus.CANCELLED))
-            {
-                return BadRequest("PaymentStatus is not allowed to checkout.");
-            }*/
 
             if (checkoutModel.PaymentMethodID == (int)OrderMethods.PayOS || checkoutModel.PaymentMethodID == (int)OrderMethods.VnPay)
             {
@@ -166,11 +162,17 @@ namespace _2Sport_BE.Controllers
                     order.DepositStatus = (int)DepositStatus.PARTIALLY_PENDING;
                     createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext, true);
                 }
-                else if(checkoutModel.TransactionType == "DEPOSIT_100")
+                else if (checkoutModel.TransactionType == "DEPOSIT_100")
                 {
-                    createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext, false);
                     order.DepositStatus = (int)DepositStatus.PENDING;
+                    createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext, false);
                 }
+                //else if (checkoutModel.TransactionType == "DEPOSIT")
+                //{
+                //    order.DepositStatus = (int)DepositStatus.PENDING;
+                //    order.PaymentStatus = (int)PaymentStatus.PENDING;
+                //    createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext, false);
+                //}
                 else
                 {
                     return BadRequest("Loại giao dịch không hợp lệ.");

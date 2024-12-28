@@ -567,6 +567,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 {
                     saleOrder.TransactionId = response.Data.TxnRef;
                     saleOrder.PaymentStatus = (int)PaymentStatus.PAID;
+                    saleOrder.PaymentDate = DateTime.Now;
                     saleOrder.UpdatedAt = DateTime.Now;
 
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
@@ -677,7 +678,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                 await _notificationService.NotifyPaymentCancellation(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
-                return _rentalOrderService.GenerateSuccessResponse(rentalOrder, null, "Canceled.");
+                return _rentalOrderService.GenerateSuccessResponse(rentalOrder, null, "Canceled");
             }
             else
             {
@@ -686,13 +687,13 @@ namespace _2Sport_BE.Infrastructure.Services
                 rentalOrder.PaymentStatus = (int)paymentStatus;
                 rentalOrder.DepositAmount = response.Data.Amount;
                 rentalOrder.TransactionId = response.Data.TxnRef;
-                rentalOrder.UpdatedAt = DateTime.Now;
                 rentalOrder.DepositDate = DateTime.Now;
+                rentalOrder.UpdatedAt = DateTime.Now;
 
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                 await _notificationService.NotifyPaymentPaid(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
-                return _rentalOrderService.GenerateSuccessResponse(rentalOrder, null, "Completed.");
+                return _rentalOrderService.GenerateSuccessResponse(rentalOrder, null, "Completed");
             }
         }
 

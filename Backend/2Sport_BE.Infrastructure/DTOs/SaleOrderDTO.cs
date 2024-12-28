@@ -82,7 +82,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
         #endregion
 
         #region PaymentInformation
-        public int? PaymentMethodId { get; set; }
+        public string? PaymentMethod { get; set; }
         public string? PaymentStatus { get; set; }
         public DateTime? PaymentDate {  get; set; }
         #endregion
@@ -94,7 +94,6 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public string? TransactionId {  get; set; }
         public string? OrderImage { get; set; }
         #endregion  
-        public string? PaymentMethod { get; set; }
         public string? PaymentLink { get; set; }
        
         public List<SaleOrderDetailVM> SaleOrderDetailVMs { get; set; }

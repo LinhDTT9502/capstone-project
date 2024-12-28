@@ -159,8 +159,6 @@ namespace _2Sport_BE.Infrastructure.DTOs
         #endregion
 
         #region PaymentInformation
-
-        public int? PaymentMethodId { get; set; }
         public string? PaymentMethod { get; set; }
 
         public string? PaymentStatus { get; set; }
@@ -169,7 +167,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         public decimal? DepositAmount { get; set; }
 
-        public DateTime? DepositeDate { get; set; }
+        public DateTime? DepositDate { get; set; }
 
         public DateTime? PaymentDate { get; set; }
         #endregion
