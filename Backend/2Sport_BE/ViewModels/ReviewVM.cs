@@ -1,11 +1,16 @@
 ﻿using _2Sport_BE.Repository.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace _2Sport_BE.ViewModels
 {
 	public class ReviewDTO
 	{
-		public decimal? Star { get; set; }
-        public string Review1 { get; set; }
+		[Required]
+        public string ProductCode { get; set; }
+		[Required]
+        [Range(1, 5, ErrorMessage = "Star must be between 1 and 5.")]
+        public decimal Star { get; set; }
+        public string Review { get; set; }
 
     }
     public class ReviewVM : ReviewDTO
@@ -15,7 +20,6 @@ namespace _2Sport_BE.ViewModels
 		public virtual User User { get; set; }
         public int? SaleOrderId { get; set; }
 		public int? UserId { get; set; }
-        public string? ProductCode { get; set; }
 		public bool? Status { get; set; }
     }
 

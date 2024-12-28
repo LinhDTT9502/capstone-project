@@ -99,26 +99,27 @@ namespace _2Sport_BE.Controllers
 					return Unauthorized();
 				}
 
-				var saleOrderDetails = (await _saleOrderService.GetSaleOrderDetailsBySaleOrderIdAsync(saleOrderId))
-																.Data;
-                var addedReviewList = new List<Review>();
+                var userInSaleOrder = (await _saleOrderService.GetSaleOrderDetailsByIdAsync(saleOrderId))
+                                                            .Data
+                                                            .UserId;
 
-				foreach (var item in saleOrderDetails)
+				if (userId != userInSaleOrder)
 				{
-                    var addedReview = new Review
-                    {
-                        Star = reviewCM.Star,
-                        ReviewContent = reviewCM.Review1,
-                        Status = true,
-                        UserId = userId,
-                        ProductCode = item.ProductCode ?? "",
-                        CreatedAt = DateTime.Now,
-                    };
-					addedReviewList.Add(addedReview);
-                }
+					return Unauthorized("You are not allow to review other sale order!");
+				}
 
+                var addedReview = new Review
+                {
+                    Star = reviewCM.Star,
+                    ReviewContent = reviewCM.Review,
+                    Status = true,
+                    UserId = userId,
+					SaleOrderId = saleOrderId,
+                    ProductCode = reviewCM.ProductCode,
+                    CreatedAt = DateTime.Now,
+                };
 				
-				await _reviewService.AddReview(addedReviewList);
+				await _reviewService.AddReview(addedReview);
 				_unitOfWork.Save();
 				return Ok("Add review successfuly!");
 			} catch (Exception ex)
