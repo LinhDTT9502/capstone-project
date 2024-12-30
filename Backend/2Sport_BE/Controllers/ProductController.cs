@@ -9,8 +9,10 @@ using _2Sport_BE.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
 using CloudinaryDotNet.Actions;
+using DotNetEnv;
 using EntityFrameworkCore.SqlServer.SimpleBulks.BulkInsert;
 using ExcelDataReader;
+using Google.Cloud.Storage.V1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
@@ -100,6 +102,23 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest(ex);
             }
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> AddFile()
+        {
+            Env.Load();
+            string bucketName = "2sport-bucket"; // Tên bucket
+            string localFilePath = @"C:\Users\talax\Pictures\TwoSportImages\giay-cau-long-victor-a171-xanh-1.webp"; // ???ng d?n file local
+            string objectName = "uploaded-file.webp"; // Tên file trong bucket
+
+            var storageClient = StorageClient.Create();
+            using (var fileStream = System.IO.File.OpenRead(localFilePath))
+            {
+                storageClient.UploadObject(bucketName, objectName, "image/jpeg", fileStream);
+            }
+            return Ok($"Uploaded {localFilePath} to bucket {bucketName} as {objectName}");
         }
 
         [HttpGet]
