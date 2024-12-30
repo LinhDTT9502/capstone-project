@@ -75,7 +75,7 @@ public class Product
     [Column("RentPrice", TypeName = "decimal")]
     public decimal? RentPrice { get; set; }
     public bool IsRent { get; set; }
-    [Column("ImgAvatarPath", TypeName = "varchar")]
+    [Column("ImgAvatarPath", TypeName = "varchar(MAX)")]
     [MaxLength(500)]
     public string ImgAvatarPath { get; set; }
 
