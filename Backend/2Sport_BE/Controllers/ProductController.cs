@@ -115,10 +115,6 @@ namespace _2Sport_BE.Controllers
                 string localFilePath = @"C:\Users\talax\Pictures\TwoSportImages\giay-cau-long-victor-a171-xanh-1.webp"; // ???ng d?n file local
                 string objectName = "uploaded-file.webp"; // Tên file trong bucket
 
-                // Strip out the drive and user path in a development environment
-                string relativePath = localFilePath.Replace(@"C:\Users\talax\Pictures\TwoSportImages\SHB_39XEX\giay-cau-long-yonex-shb-39ex-main.jpg", "").Replace("\\", "/");
-                localFilePath = Path.Combine("/app", relativePath);
-
                 var storageClient = StorageClient.Create();
                 using (var fileStream = System.IO.File.OpenRead(localFilePath))
                 {
