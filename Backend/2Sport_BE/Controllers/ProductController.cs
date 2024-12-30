@@ -108,17 +108,24 @@ namespace _2Sport_BE.Controllers
         [HttpPost]
         public async Task<IActionResult> AddFile()
         {
-            //Env.Load(); //just run local
-            string bucketName = "2sport-bucket"; // Tên bucket
-            string localFilePath = @"C:\Users\talax\Pictures\TwoSportImages\giay-cau-long-victor-a171-xanh-1.webp"; // ???ng d?n file local
-            string objectName = "uploaded-file.webp"; // Tên file trong bucket
-
-            var storageClient = StorageClient.Create();
-            using (var fileStream = System.IO.File.OpenRead(localFilePath))
+            try
             {
-                storageClient.UploadObject(bucketName, objectName, "image/jpeg", fileStream);
+                //Env.Load(); //just run local
+                string bucketName = "2sport-bucket"; // Tên bucket
+                string localFilePath = @"C:\Users\talax\Pictures\TwoSportImages\giay-cau-long-victor-a171-xanh-1.webp"; // ???ng d?n file local
+                string objectName = "uploaded-file.webp"; // Tên file trong bucket
+
+                var storageClient = StorageClient.Create();
+                using (var fileStream = System.IO.File.OpenRead(localFilePath))
+                {
+                    storageClient.UploadObject(bucketName, objectName, "image/jpeg", fileStream);
+                }
+                return Ok($"Uploaded {localFilePath} to bucket {bucketName} as {objectName}");
+            } catch (Exception ex)
+            {
+                return Ok(ex.Message);
             }
-            return Ok($"Uploaded {localFilePath} to bucket {bucketName} as {objectName}");
+
         }
 
         [HttpGet]
