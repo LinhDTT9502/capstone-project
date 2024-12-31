@@ -74,7 +74,7 @@ const RefundForm = () => {
     };
 
     setIsSubmitting(true);
-    console.log(payload);
+    // console.log(payload);
     try {
       const response = await axios.post(
         "https://capstone-project-703387227873.asia-southeast1.run.app/api/RefundRequest/create",
@@ -86,13 +86,15 @@ const RefundForm = () => {
           },
         }
       );
-      console.log(response);
+      // console.log(response);
       if (response.data.isSuccess === true) {
         toast.success("Yêu cầu hoàn tiền đã được gửi thành công!");
         setOrderCode("");
         setOrderType(1);
         setReason("");
         setNotes("");
+        setFilteredRentalOrders([]);
+        setFilteredSaleOrders([]);
         setIsAgreementAccepted(false);
 
         setIsSubmitting(false);
@@ -384,7 +386,7 @@ const RefundForm = () => {
                               {new Date(parent.createdAt).toLocaleDateString()}
                             </span>
                           </p>
-                          <p className="text-gray-600">
+                          <p className="text-green-700 font-semibold">
                             Đã đặt cọc:{" "}
                             {(parent.depositAmount
                               ? parent.depositAmount

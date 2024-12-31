@@ -24,6 +24,7 @@ import {
 import StarRating from "../Product/StarRating";
 import { submitReview } from "../../services/reviewService";
 import { Button, Tooltip, Typography, Input } from "@material-tailwind/react";
+import CancelRentalOrderButton from "../User/CancelRentalOrderButton";
 
 export default function UserRentalDetail() {
   const { orderCode } = useParams();
@@ -43,6 +44,7 @@ export default function UserRentalDetail() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedChildOrder, setSelectedChildOrder] = useState(null);
   const [extensionDate, setExtensionDate] = useState("");
+  const [reload, setReload] = useState(false);
 
   const statusColors = {
     "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -90,7 +92,7 @@ export default function UserRentalDetail() {
 
   useEffect(() => {
     fetchOrderDetail();
-  }, [orderCode]);
+  }, [orderCode, reload]);
 
   if (isLoading)
     return (
@@ -155,7 +157,7 @@ export default function UserRentalDetail() {
         payload,
         {
           headers: {
-            accept: "*/*", 
+            accept: "*/*",
           },
         }
       );
@@ -280,11 +282,12 @@ export default function UserRentalDetail() {
         </div>
         {orderStatus === "Đã hủy" && (
           <div className="bg-yellow-50 p-4 rounded-lg shadow-sm mb-6">
+            {console.log(orderDetail)}
             <p className="text-xl">
               <b className="text-red-500">Đã hủy đơn hàng </b>
               <i className="text-lg">
                 vào lúc{" "}
-                {new Date(updatedAt).toLocaleString("vi-VN", {
+                {new Date(orderDetail.updatedAt).toLocaleString("vi-VN", {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",
@@ -296,24 +299,24 @@ export default function UserRentalDetail() {
             </p>
             <p className="flex items-center gap-2 mb-2">
               <FontAwesomeIcon icon={faBolt} style={{ color: "#fd7272" }} />
-              <span className="font-semibold">Lý do:</span> {reason}
+              <span className="font-semibold">Lý do:</span> {orderDetail.reason}
             </p>
           </div>
         )}
-        {depositAmount && (
+        {depositAmount != null && depositAmount > 0 && (
           <div className="bg-green-100 p-4 rounded-lg shadow-sm mb-6">
             <p className="text-xl">
               <b className="text-yellow-300">Đơn hàng đã được đặt cọc </b>
               <i className="text-lg">
                 vào lúc{" "}
-                {new Date(updatedAt).toLocaleString("vi-VN", {
+                {new Date(orderDetail.depositDate).toLocaleString("vi-VN", {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",
                   hour: "2-digit",
                   minute: "2-digit",
                   second: "2-digit",
-                })}
+                })} - {orderDetail.paymentMethod}
               </i>
             </p>
             <p className="flex items-center gap-2 mb-2">
@@ -330,6 +333,7 @@ export default function UserRentalDetail() {
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
           <div className="py-4 bg-white rounded-md shadow-sm">
             <div className="flex justify-between items-center">
+              {console.log(orderDetail)}
               <h2 className="text-2xl font-bold text-gray-800 flex-1">
                 Chi tiết đơn hàng -{" "}
                 <span className="text-orange-500">#{rentalOrderCode}</span>
@@ -338,36 +342,23 @@ export default function UserRentalDetail() {
                 {paymentStatus === "N/A" &&
                   orderStatus === "Chờ xử lý" &&
                   orderDetail.deliveryMethod !== "HOME_DELIVERY" && (
-                    <button
-                      className="bg-green-500 font-bold text-white text-sm rounded-full py-2 px-4 hover:bg-green-600"
+                    <Button
+                      size="sm"
+                      className="w-40 text-green-700  bg-white border border-green-700 rounded-md hover:bg-green-200"
                       onClick={() =>
                         navigate("/rental-checkout", {
                           state: { selectedOrder: orderDetail },
                         })
                       }
                     >
-                      <FontAwesomeIcon
-                        icon={faCircleDollarToSlot}
-                        beat
-                        style={{ color: "#FFD43B" }}
-                        size="lg"
-                      />{" "}
                       Thanh toán
-                    </button>
+                    </Button>
                   )}
                 {orderDetail.orderStatus === "Chờ xử lý" && (
-                  <button
-                    className="bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600"
-                    onClick={() => setShowModal(true)}
-                  >
-                    <FontAwesomeIcon
-                      icon={faBan}
-                      beat
-                      style={{ color: "#ededed" }}
-                      size="lg"
-                    />{" "}
-                    Hủy đơn
-                  </button>
+                  <CancelRentalOrderButton
+                    rentalOrderId={id}
+                    setReload={setReload}
+                  />
                 )}
               </div>
             </div>
@@ -478,7 +469,7 @@ export default function UserRentalDetail() {
                   }`}
                   onClick={handleDoneOrder}
                 >
-                  Đã nhận hàng
+                  Đã nhận được đơn hàng
                 </button>
               )}
               <p className="flex items-start gap-2 mb-2 w-full">
@@ -507,24 +498,6 @@ export default function UserRentalDetail() {
                 key={child.id}
                 className="bg-gray-100 p-4 mt-4 rounded-lg shadow-sm "
               >
-                {/* {expandedId === child.id && (
-                  <div>
-                    {console.log(expandedId)}
-                    <div className="bg-yellow-50 p-4 rounded-lg shadow-sm mb-6">
-                      <p className="text-xl">
-                        <b className="text-red-500">Chọn thời gian gia hạn</b>
-                        <input
-                          type="date"
-                          onChange={(e) => setSelectedDate(e.target.value)}
-                          min={child.rentalEndDate.split("T")[0]}
-                        />
-                      </p>
-                      <button onClick={() => handleExtendOrder(child)}>
-                        Xác nhận ngày gia hạn
-                      </button>
-                    </div>
-                  </div>
-                )} */}
                 <div className="flex flex-col md:flex-row gap-4">
                   <img
                     src={child.imgAvatarPath}
@@ -781,38 +754,6 @@ export default function UserRentalDetail() {
             </i>
           </p>
         </div>
-
-        {showModal && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded-md shadow-lg w-96">
-              <h2 className="text-lg font-semibold">Xác nhận hủy đơn hàng</h2>
-              <p className="mb-4 text-sm">
-                <i>Bạn có chắc rằng hủy đơn hàng này không?</i>
-              </p>
-              <textarea
-                className="w-full border rounded-md p-2 mb-4"
-                rows="4"
-                placeholder="Vui lòng nhập lý do hủy đơn hàng"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              ></textarea>
-              <div className="flex justify-end space-x-4">
-                <button
-                  className="bg-gray-500 text-white py-2 px-4 rounded-md"
-                  onClick={() => setShowModal(false)}
-                >
-                  Đóng
-                </button>
-                <button
-                  className="bg-red-500 text-white py-2 px-4 rounded-md"
-                  onClick={handleCancelOrder}
-                >
-                  Xác nhận
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
         {showExtendedModal && selectedChildOrder && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white p-6 rounded-md shadow-lg w-2/5">
@@ -910,61 +851,6 @@ export default function UserRentalDetail() {
           </div>
         )}
       </div>
-
-      {/* Review Modal */}
-      {/* {showReviewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-96 max-w-full">
-            <h3 className="text-2xl font-semibold mb-4 text-gray-800">
-              Đánh giá sản phẩm
-            </h3>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Đánh giá của bạn
-              </label>
-              <StarRating
-                rating={reviewData.star}
-                onRatingChange={(newRating) =>
-                  setReviewData({ ...reviewData, star: newRating })
-                }
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="review"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Nhận xét
-              </label>
-              <textarea
-                id="review"
-                rows="4"
-                className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
-                value={reviewData.review}
-                onChange={(e) =>
-                  setReviewData({ ...reviewData, review: e.target.value })
-                }
-                placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
-              ></textarea>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button
-                color="gray"
-                onClick={() => setShowReviewModal(false)}
-                className="px-4 py-2 rounded-lg"
-              >
-                Hủy
-              </Button>
-              <button
-                onClick={handleSubmitReview}
-                className={`bg-blue-500 text-white px-4 py-2 rounded-lg`}
-              >
-                Gửi đánh giá
-              </button>
-            </div>
-          </div>
-        </div>
-      )} */}
     </div>
   );
 }

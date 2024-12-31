@@ -60,7 +60,7 @@ const SaleOrder = () => {
     setLoading(true);
     
     try {
-      if (selectedOption === "HOME_DELIVERY" && !userData.address.trim()) {
+      if (!userData.address.trim()) {
         toast.error("Vui lòng nhập địa chỉ giao hàng.");
         return;
       }

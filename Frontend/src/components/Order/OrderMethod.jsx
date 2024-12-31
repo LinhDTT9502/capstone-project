@@ -8,7 +8,7 @@ import AddressForm from "../AddressForm";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 
-const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange, selectedBranchId, setSelectedBranchId, selectedProducts }) => {
+const   OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange, selectedBranchId, setSelectedBranchId, selectedProducts }) => {
     const { t } = useTranslation();
     const [branches, setBranches] = useState([]);
     const [branchStatus, setBranchStatus] = useState({});
@@ -22,13 +22,16 @@ const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange
             try {
                 const branchData = await fetchBranchs();
                 setBranches(branchData);
-
+              
                 const statusPromises = branchData.map(async (branch) => {
                     const products = await fetchProductsbyBranch(branch.id);
                     // Track unavailable products for each branch
                     const unavailableProducts = selectedProducts.map((selectedProduct) => {
                         // Find the branch product by matching selected product id
-                        const branchProduct = products.find((p) => p.productId === Number(selectedProduct.id)); // Use Number to ensure type consistency
+                        const branchProduct = products.find(
+                          (p) =>
+                            Number(p.productId) === Number(selectedProduct.id)
+                        ); // Use Number to ensure type consistency
       
                         // If the branch product exists and selected product quantity exceeds available quantity
                         if (branchProduct && selectedProduct.quantity > branchProduct.availableQuantity) {
@@ -38,8 +41,6 @@ const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange
                                 productId: selectedProduct.id,
                                 availableQuantity: branchProduct.availableQuantity,
                             };
-                            
-                            
                         }
 
                         // If product is available or not selected for out of stock, return null

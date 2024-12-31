@@ -50,6 +50,8 @@ import FacebookButton from './components/Social/FacebookButton';
 import BlogRoutes from './routes/BlogRoutes';
 import RefundForm from './components/Refund/RefundForm';
 import PaymentFail from './pages/AfterPayment/PaymentFail';
+import GuestRoutes from './routes/GuestRoutes';
+import { ToastContainer } from 'react-toastify';
 
 
 function App() {
@@ -60,30 +62,37 @@ function App() {
     <>
       {/* {!isStaffOrAdmin && ( */}
       <div>
+                <ToastContainer />
         <Header />
-        <ScrollToTop/>
+        <ScrollToTop />
         <div className="fixed bottom-0 left-0 right-0 z-50 p-4 flex flex-col items-end space-y-4 sm:flex-row sm:justify-between sm:items-end sm:space-y-0 sm:space-x-4">
-      <div className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full shadow-lg transition-colors duration-200 ease-in-out">
-        <BranchSystem />
-      </div>
-      <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
-        <ZaloButton />
-        <FacebookButton />
-      </div>
-    </div>
+          <div className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full shadow-lg transition-colors duration-200 ease-in-out">
+            <BranchSystem />
+          </div>
+          <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+            <ZaloButton />
+            <FacebookButton />
+          </div>
+        </div>
         {/* <BreadcrumbsDefault/> */}
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/manage-account/*" element={<UserRoutes />} />
+          <Route path="/guest/*" element={<GuestRoutes />} />
           <Route path="/refund-request" element={<RefundForm />} />
 
-
-          <Route path="/complaints-handling" element={<ComplaintsHandlingPage />} />
+          <Route
+            path="/complaints-handling"
+            element={<ComplaintsHandlingPage />}
+          />
           <Route path="/returns-refunds" element={<ReturnsRefundsPage />} />
           <Route path="/payment" element={<PaymentPolicyPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/membership" element={<MembershipPolicyPage />} />
-          <Route path="/second-hand-rentals" element={<SecondHandRentalsPolicyPage />} />
+          <Route
+            path="/second-hand-rentals"
+            element={<SecondHandRentalsPolicyPage />}
+          />
           <Route path="/shipping" element={<ShippingPolicyPage />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-success-2" element={<PaymentSuccessV2 />} />
@@ -103,10 +112,13 @@ function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/rental-checkout" element={<RentalCheckout />} />
           <Route path="/invoice" element={<Invoice />} />
-          <Route path="/guest-order" element={<GuestOrder />} />
+          {/* <Route path="/guest-order" element={<GuestOrder />} />
           <Route path="/guest-order/:orderId" element={<GuestOrderDetail />} />
           <Route path="/guest-rent-order" element={<GuestRentOrder />} />
-          <Route path="/guest-rent-order/:orderCode" element={<GuestRentOrderDetail />} />
+          <Route
+            path="/guest-rent-order/:orderCode"
+            element={<GuestRentOrderDetail />}
+          /> */}
           <Route path="/shipment" element={<UserShipment />} />
           <Route path="/branch-system" element={<ListBranchs />} />
 

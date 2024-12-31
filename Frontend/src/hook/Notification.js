@@ -13,6 +13,7 @@ const useOrderNotification = (onNotificationReceived) => {
         accessTokenFactory: () => `${token}`,
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets,
+        withCredentials: true
       })
       .withAutomaticReconnect() // Tự động kết nối lại
       .build();

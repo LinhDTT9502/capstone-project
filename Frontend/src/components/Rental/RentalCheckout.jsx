@@ -31,16 +31,6 @@ import {
     const [selectedDeposit, setSelectedDeposit] = useState("");
     const newTabRef = useRef(null);
 
-    const handleDepositChange = (value) => {
-      if (value === "DEPOSIT_50") {
-        setSelectedDeposit("DEPOSIT_50");
-      } else if (value === "DEPOSIT_100") {
-        setSelectedDeposit("DEPOSIT_100");
-      }else{
-        alert("Lỗi transaction type")
-      }
-    };
-
     const handleOptionChange = (event) => {
       setSelectedOption(event.target.value);
     };
@@ -54,7 +44,7 @@ import {
           orderCode: selectedOrder.rentalOrderCode,
           transactionType: selectedDeposit,
         };
-        console.log(payload)
+
         const response = await axios.post(
           "https://capstone-project-703387227873.asia-southeast1.run.app/api/Checkout/checkout-rental-order",
           payload,
@@ -66,10 +56,16 @@ import {
             },
           }
         );
+        const paymentLink = response.data.data.paymentLink;
+        if (selectedOption == 2 || selectedOption == 3) {
+          window.location.href = paymentLink;
+          return;
+        } else navigate("/manage-account/rental-order/");
 
         if (response.data.isSuccess) {
           const paymentLink = response.data.data.paymentLink;
           newTabRef.current = window.open(paymentLink, "_blank");
+
         } else {
           alert("Checkout failed: " + response.data.message);
         }
@@ -239,7 +235,7 @@ import {
                           name="option"
                           value="DEPOSIT_50"
                           className="form-radio text-[#FA7D0B]"
-                          onChange={(e) => handleDepositChange(e.target.value)}
+                          onChange={() => setSelectedDeposit("DEPOSIT_50")}
                         />
                         <FontAwesomeIcon
                           icon={faCircleHalfStroke}
@@ -257,7 +253,7 @@ import {
                           name="option"
                           value="FULL_PAYMENT"
                           className="form-radio text-[#FA7D0B]"
-                          onChange={(e) => handleDepositChange(null)}
+                          onChange={() => setSelectedDeposit("DEPOSIT_100")}
                         />
                         <FontAwesomeIcon
                           icon={faCircle}
