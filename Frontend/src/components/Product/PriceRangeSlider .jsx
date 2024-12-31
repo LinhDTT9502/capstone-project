@@ -3,7 +3,7 @@ import './PriceRangeSlider.css';
 
 const PriceRangeSlider = ({ minPrice, maxPrice, setMinPrice, setMaxPrice }) => {
   const min = 0;
-  const max = 10000000;
+  const max = 100000000;
 
   const [minThumb, setMinThumb] = useState(0);
   const [maxThumb, setMaxThumb] = useState(0);
@@ -83,7 +83,7 @@ const PriceRangeSlider = ({ minPrice, maxPrice, setMinPrice, setMaxPrice }) => {
           <div className="flex py-2 px-2 rounded border justify-between w-1/2">
             <input
               type="number"
-              maxLength="8"
+              maxLength="9"
               value={minPrice}
               onChange={handleMinChange}
               className="w-2/3 text-center"
@@ -94,7 +94,7 @@ const PriceRangeSlider = ({ minPrice, maxPrice, setMinPrice, setMaxPrice }) => {
           <div className="flex py-2 px-2 rounded border justify-between w-1/2">
             <input
               type="number"
-              maxLength="8"
+              maxLength="9"
               value={maxPrice}
               onChange={handleMaxChange}
               className="w-2/3 text-center"

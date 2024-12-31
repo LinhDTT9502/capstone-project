@@ -25,7 +25,7 @@ function ProductPage() {
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(10000000);
+  const [maxPrice, setMaxPrice] = useState(100000000);
   const products = useSelector(selectProducts);
   const location = useLocation();
 

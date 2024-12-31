@@ -132,7 +132,7 @@ const   OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChan
                   />
                 </div>
                 {selectedOption === "STORE_PICKUP" && (
-                  <div className="max-h-[50vh] overflow-y-auto mt-4 text-sm text-black bg-gray-300 p-3 rounded text-wrap border border-gray-200 rounded-lg shadow-md">
+                  <div className="max-h-[50vh] overflow-y-auto mt-4 text-sm text-black bg-gray-300 p-3  text-wrap border border-gray-200 rounded-lg shadow-md">
                     {/* w-full bg-white border border-gray-200 rounded-lg shadow-md p-4 my-4 space-y-2 */}
                     <p className="text-base mb-1">
                       Danh sách cửa hàng có sản phẩm
