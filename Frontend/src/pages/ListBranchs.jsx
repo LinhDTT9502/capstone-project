@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Input } from '@material-tailwind/react';
 import { fetchBranchs } from '../services/branchService';
+import MapComponent from '../components/MapComponent';
 
 const ListBranches = () => {
   const [branches, setBranches] = useState([]);
@@ -90,7 +91,6 @@ const ListBranches = () => {
   // Handle branch selection
   const handleBranchClick = async (branch) => {
     setSelectedBranch(branch);
-
     // if (map) {
     //   const coordinates = await geocodeLocation(branch.location);
 
@@ -118,44 +118,44 @@ const ListBranches = () => {
     // }
   };
 
+
   return (
     <div className="flex h-screen">
-    {/* Left Column: Branch List */}
-    <div className="w-1/3 p-4 overflow-y-auto">
-      <h1 className="text-2xl font-bold mb-4">Danh sách hệ thống cửa hàng</h1>
-  
-      {/* Search Bar */}
-      <Input
-        label="Tìm kiếm tên hệ thống hoặc vị trí..."
-        value={searchQuery}
-        onChange={handleSearch}
-        className="mb-4"
-      />
-  
-      {/* Branch List */}
-      <div>
-        {filteredBranches.length > 0 ? (
-          filteredBranches.map((branch) => (
-            <div
-              key={branch.id}
-              onClick={() => handleBranchClick(branch)}
-              className={`border rounded-lg p-4 mb-4 cursor-pointer hover:bg-blue-50 ${
-                selectedBranch?.id === branch.id ? 'bg-blue-100' : ''
-              }`}
-            >
-              <h2 className="text-xl font-semibold">{branch.branchName}</h2>
-              <p className="text-gray-600">{branch.location}</p>
-              <p className="text-gray-800 font-medium">Hotline: {branch.hotline}</p>
-            </div>
-          ))
-        ) : (
-          <p>Không có hệ thống nào.</p>
-        )}
+      {/* Left Column: Branch List */}
+      <div className="w-1/3 p-4 overflow-y-auto">
+        <h1 className="text-2xl font-bold mb-4">Danh sách hệ thống cửa hàng</h1>
+
+        {/* Search Bar */}
+        <Input
+          label="Tìm kiếm tên hệ thống hoặc vị trí..."
+          value={searchQuery}
+          onChange={handleSearch}
+          className="mb-4"
+        />
+
+        {/* Branch List */}
+        <div>
+          {filteredBranches.length > 0 ? (
+            filteredBranches.map((branch) => (
+              <div
+                key={branch.id}
+                onClick={() => handleBranchClick(branch)}
+                className={`border rounded-lg p-4 mb-4 cursor-pointer hover:bg-blue-50 ${selectedBranch?.id === branch.id ? 'bg-blue-100' : ''
+                  }`}
+              >
+                <h2 className="text-xl font-semibold">{branch.branchName}</h2>
+                <p className="text-gray-600">{branch.location}</p>
+                <p className="text-gray-800 font-medium">Hotline: {branch.hotline}</p>
+              </div>
+            ))
+          ) : (
+            <p>Không có hệ thống nào.</p>
+          )}
+        </div>
       </div>
-    </div>
-  
-    {/* Right Column: Branch Image */}
-    <div className="w-2/3 p-4 flex items-center justify-center">
+
+      {/* Right Column: Branch Image */}
+      {/* <div className="w-2/3 p-4 flex items-center justify-center">
       {selectedBranch?.imgAvatarPath ? (
         <img
           src={selectedBranch.imgAvatarPath}
@@ -165,9 +165,10 @@ const ListBranches = () => {
       ) : (
         <p className="text-gray-500">Chọn một cửa hàng để xem hình ảnh.</p>
       )}
+    </div> */}
+      <MapComponent branch={selectedBranch} />
     </div>
-  </div>
-  
+
   );
 };
 
