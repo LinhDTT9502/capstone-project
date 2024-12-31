@@ -447,11 +447,14 @@ namespace _2Sport_BE.Controllers
             product.Status = true;
             product.IsRent = false;
             product.RentPrice = 0;
-            if (productCM.Condition >= 80)
+            if (productCM.Condition >= 80 &&
+               (productCM.CategoryId == (int)CategoryIDs.BasketballBall ||
+                productCM.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
             {
                 product.IsRent = true;
                 product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * productCM.Condition / 100));
             }
+           
             try
             {
                 var userId = GetCurrentUserIdFromToken();
@@ -1073,7 +1076,9 @@ namespace _2Sport_BE.Controllers
                                 return "There is no image file!";
                             }
 
-                            if (product.Condition >= 80)
+                            if (product.Condition >= 80 &&
+                               (product.CategoryId == (int)CategoryIDs.BasketballBall ||
+                                product.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
                             {
                                 product.IsRent = true;
                                 product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100));
