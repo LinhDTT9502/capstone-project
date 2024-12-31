@@ -1370,6 +1370,9 @@ namespace _2Sport_BE.Infrastructure.Services
             result.PaymentStatus = order.PaymentStatus != null
                 ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(order.PaymentStatus.Value)
                 : "N/A";
+            result.PaymentMethod = order.PaymentMethodId != null
+                ? EnumDisplayHelper.GetEnumDescription<OrderMethods>(order.PaymentMethodId.Value)
+                : "N/A";
             result.DeliveryMethod = _deliveryMethodService.GetDescription(order.DeliveryMethod);
             result.Id = order.Id;
             if (listChild == null || !listChild.Any())

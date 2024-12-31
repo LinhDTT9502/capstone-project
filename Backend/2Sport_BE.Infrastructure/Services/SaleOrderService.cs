@@ -628,9 +628,10 @@ namespace _2Sport_BE.Infrastructure.Services
             saleOrderVM.OrderStatus = saleOrder.OrderStatus != null
               ? EnumDisplayHelper.GetEnumDescription<OrderStatus>(saleOrder.OrderStatus.Value)
               : "N/A";
-            saleOrderVM.PaymentMethod = saleOrder.PaymentMethodId.HasValue
-                                ? Enum.GetName(typeof(OrderMethods), saleOrder.PaymentMethodId.Value)
-                                : "Unknown PaymentMethod";
+            saleOrderVM.PaymentMethod = saleOrder.PaymentMethodId != null
+                            ? EnumDisplayHelper.GetEnumDescription<OrderMethods>(saleOrder.PaymentMethodId.Value)
+                            : "N/A";
+                              
             saleOrderVM.DeliveryMethod = _deliveryMethodService.GetDescription(saleOrder.DeliveryMethod);
         }
         #endregion
@@ -831,7 +832,9 @@ namespace _2Sport_BE.Infrastructure.Services
             result.PaymentStatus = order.PaymentStatus != null
                 ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(order.PaymentStatus.Value)
                 : "N/A";
-            
+            result.PaymentMethod = order.PaymentMethodId != null
+                            ? EnumDisplayHelper.GetEnumDescription<OrderMethods>(order.PaymentMethodId.Value)
+                            : "N/A";
 
             result.DeliveryMethod = _deliveryMethodService.GetDescription(order.DeliveryMethod);
 
