@@ -56,7 +56,7 @@ const totalPrice = selectedProducts.reduce(
 
     setLoading(true);
     try {
-      if (selectedOption === "HOME_DELIVERY" && !userData.address.trim()) {
+      if (!userData.address.trim()) {
         toast.error("Vui lòng nhập địa chỉ giao hàng.");
         return;
       }
@@ -97,7 +97,7 @@ const totalPrice = selectedProducts.reduce(
 
         productInformations: selectedProducts.map((item) => ({
           cartItemId: item.cartItemId || null,
-          productId: item.id,
+          productId: item.productId,
           productName: item.productName,
           productCode: item.productCode,
           quantity: item.quantity,
@@ -131,7 +131,7 @@ const totalPrice = selectedProducts.reduce(
       }
     } catch (error) {
       console.error("Error during checkout:", error);
-      toast.error("Vui lòng nhập đầy đủ thông tin");
+      toast.error("Có lỗi trong quá trình đặt hàng. Vui lòng chờ trong giây lát...");
     } finally {
       setLoading(false);
     }

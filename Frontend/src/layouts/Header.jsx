@@ -367,7 +367,7 @@ function Header() {
                 </div>
                 <p>Giỏ hàng</p>
               </Link>
-              {token && (
+              {/* {token && (
                 <>
                   <Menu open={openNoti} handler={setOpenNoti}>
                     <MenuHandler>
@@ -433,7 +433,7 @@ function Header() {
                     </MenuList>
                   </Menu>
                 </>
-              )}
+              )} */}
             </div>
           </div>
           <motion.div

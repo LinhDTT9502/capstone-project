@@ -5,23 +5,21 @@ import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import { fetchUserOrders } from "../../services/userOrderService";
 import { useNavigate } from "react-router-dom";
-import {
-  faCaretDown,
-  faCaretUp,
-  faExclamationCircle,
-  faShoppingBag,
-} from "@fortawesome/free-solid-svg-icons";
+import { faShoppingBag } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { toast } from "react-toastify";
+import axios from "axios";
+import CancelSaleOrderButton from "./CancelSaleOrderButton";
+import DoneSaleOrderButton from "./DoneSaleOrderButton";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
-  "Đã xác nhận": "bg-green-100 text-green-800",
+  "Đã xác nhận": "bg-orange-100 text-orange-800",
   "Đang xử lý": "bg-purple-100 text-purple-800",
   "Đã giao hàng": "bg-indigo-100 text-indigo-800",
-  "Đã từ chối": "bg-red-100 text-red-800",
+  "Đã giao cho đơn vị vận chuyển": "bg-blue-100 text-blue-800",
   "Đã hủy": "bg-red-200 text-red-900",
-  "Đã hoàn thành": "bg-orange-100 text-orange-800",
+  "Đã hoàn thành": "bg-green-100 text-green-800",
 };
 
 const paymentStatusColors = {
@@ -41,28 +39,30 @@ export default function UserOrderStatus() {
   const [error, setError] = useState(null);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [reload, setReload] = useState(false);
+  const [confirmReload, setConfirmReload] = useState(false);
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetchUserOrders(user.UserId, token);
+  const fetchOrders = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetchUserOrders(user.UserId, token);
 
-        const sortedOrders = response.sort((a, b) => {
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        });
-        setOrders(sortedOrders);
-        setFilteredSaleOrders(sortedOrders);
-      } catch (err) {
-        setError(err.message || "Failed to fetch orders");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      const sortedOrders = response.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+      setOrders(sortedOrders);
+      setFilteredSaleOrders(sortedOrders);
+    } catch (err) {
+      setError(err.message || "Failed to fetch orders");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
     fetchOrders();
-  }, [user.UserId]);
+  }, [user.UserId, reload, confirmReload]);
 
   const toggleExpand = (orderId) => {
     setExpandedOrderId((prevOrderId) =>
@@ -76,15 +76,6 @@ export default function UserOrderStatus() {
       : filteredSaleOrder.filter(
           (order) => order.orderStatus === selectedStatus
         );
-
-  const formatCurrency = (amount) => {
-    let formattedAmount = new Intl.NumberFormat("vi-VN").format(amount);
-    formattedAmount = formattedAmount
-      .replace(/,/g, "TEMP_COMMA")
-      .replace(/\./g, ",")
-      .replace(/TEMP_COMMA/g, ".");
-    return formattedAmount;
-  };
 
   if (isLoading)
     return (
@@ -156,7 +147,6 @@ export default function UserOrderStatus() {
             </button>
           ))}
         </div>
-
         {/* Search Bar */}
         {selectedStatus === "Tất cả" && (
           <div className="flex justify-start items-center p-4 bg-gray-50 border-t">
@@ -184,10 +174,10 @@ export default function UserOrderStatus() {
             className="border border-gray-200 rounded-lg shadow-sm mt-4 relative flex flex-col"
           >
             <div
-              className="flex justify-between items-center p-4 cursor-pointer hover:bg-slate-200 transition-colors duration-150 ease-in-out"
+              className="flex justify-between items-center p-2 cursor-pointer hover:bg-slate-200 transition-colors duration-150 ease-in-out"
               onClick={() => toggleExpand(order.saleOrderCode)}
             >
-              <div className="flex flex-col">
+              <div className="flex flex-col w-3/4 pl-4">
                 <h4 className="font-bold text-lg text-gray-800">
                   Mã đơn hàng:{" "}
                   <span className="text-orange-500">{order.saleOrderCode}</span>
@@ -218,39 +208,19 @@ export default function UserOrderStatus() {
                   Ngày đặt:{" "}
                   <i>{new Date(order.createdAt).toLocaleDateString()}</i>
                 </p>
-                <p className="text-gray-600 mt-2 font-semibold text-lg pt-5">
-                  Thành tiền:{" "}
-                  <span className="text-orange-500">
-                    {order.totalAmount.toLocaleString("Vi-vn")}₫
-                  </span>
-                </p>
               </div>
 
               <div className="flex flex-col w-1/4 h-auto items-end">
                 <img
                   src={order.orderImage || "/assets/images/default_package.png"}
                   alt={order.orderImage}
-                  className="w-40 h-40 object-contain rounded"
+                  className="w-32 h-32 object-contain rounded"
                 />
-                <Button
-                  color="orange"
-                  size="sm"
-                  className="w-40"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(
-                      `/manage-account/sale-order/${order.saleOrderCode}`
-                    );
-                  }}
-                >
-                  Xem chi tiết
-                </Button>
               </div>
             </div>
-
             {/* Product Details */}
             {expandedOrderId === order.saleOrderCode && (
-              <div className="mt-4 pl-8 border-l">
+              <div className="my-2 pl-8 border-l bg-orange-50">
                 {order.saleOrderDetailVMs.$values.map((item) => (
                   <div
                     key={item.productId}
@@ -280,6 +250,63 @@ export default function UserOrderStatus() {
                 ))}
               </div>
             )}
+
+            <div>
+              <div className="h-px bg-gray-300 my-2 sm:my-2"></div>
+              {/* Container for Thành tiền and buttons */}
+              <div className="flex items-center justify-between my-4 px-2">
+                <p className="text-gray-600 font-semibold text-lg pl-2  ">
+                  Thành tiền:{" "}
+                  <span className="text-orange-500">
+                    {order.totalAmount.toLocaleString("Vi-vn")}₫
+                  </span>
+                </p>
+                <div className="flex gap-2">
+                  {order.paymentStatus === "N/A" &&
+                    order.orderStatus === "Chờ xử lý" && (
+                      <Button
+                        size="sm"
+                        className="w-40 text-green-700  bg-white border border-green-700 rounded-md hover:bg-green-200"
+                        onClick={() =>
+                          navigate("/checkout", {
+                            state: { selectedOrder: order },
+                          })
+                        }
+                      >
+                        Thanh toán
+                      </Button>
+                    )}
+                  {order.orderStatus === "Chờ xử lý" &&
+                    order.paymentStatus != "Đã hủy" && (
+                      <CancelSaleOrderButton
+                        saleOrderId={order.id}
+                        setReload={setReload}
+                      />
+                    )}
+                  {order.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
+                    <DoneSaleOrderButton
+                      saleOrderId={order.id}
+                      setConfirmReload={setConfirmReload}
+                    />
+                  )}
+                  {/* {order.orderStatus === "Đã hoàn thành" && (
+                    <ReviewSaleOrderButton/>
+                  )} */}
+                  <Button
+                    color="orange"
+                    className="w-40 text-white rounded-md hover:bg-orange-700"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(
+                        `/manage-account/sale-order/${order.saleOrderCode}`
+                      );
+                    }}
+                  >
+                    Xem chi tiết
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         ))}
       </div>

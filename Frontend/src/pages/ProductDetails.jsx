@@ -39,7 +39,7 @@ const ProductDetails = () => {
   const [comments, setComments] = useState([]);
 
   useEffect(() => {
-    console.log("Số lượng hiện tại:", quantity);
+    // console.log("Số lượng hiện tại:", quantity);
     const getProduct = async () => {
       try {
         const productData = await fetchProductByProductCode(
@@ -263,6 +263,7 @@ const ProductDetails = () => {
                   </div>
                   <LikeButton
                     productId={product.id}
+                    productCode= {product.productCode}
                     initialLikes={product.likes}
                     isLikedInitially={product.isLiked}
                   />
@@ -300,28 +301,6 @@ const ProductDetails = () => {
                   ƯU ĐÃI
                 </h3>
                 <div dangerouslySetInnerHTML={{ __html: product.offers }} />
-                {/* <ul className="list-disc ml-5 space-y-2 text-gray-800 mt-2">
-                  <li>
-                    Tặng 1 đôi vớ cầu lông (vớ{" "}
-                    <span className="text-orange-600 font-semibold">
-                      dài nhiều màu
-                    </span>{" "}
-                    hoặc{" "}
-                    <span className="text-orange-600 font-semibold">
-                      vớ ngắn
-                    </span>
-                    )
-                  </li>
-                  <li>Sản phẩm cam kết chính hãng</li>
-                  <li>Thanh toán sau khi kiểm tra và nhận hàng</li>
-                  <li>
-                    Bảo hành chính hãng theo nhà sản xuất
-                    <span className="text-gray-500">
-                      {" "}
-                      (Trừ hàng nội địa, xách tay)
-                    </span>
-                  </li>
-                </ul> */}
               </div>
             </div>
           </div>

@@ -13,14 +13,16 @@ import {
   faCalendarAlt,
   faTruck,
   faBolt,
-  faCircleDollarToSlot,
-  faBan,
+faDollarSign,
   faVenusMars,
 } from "@fortawesome/free-solid-svg-icons";
 import { Button, Tooltip, Typography } from "@material-tailwind/react";
 import { submitReview } from "../../services/reviewService";
 import StarRating from "../Product/StarRating";
 import { toast } from "react-toastify";
+import DoneSaleOrderButton from "../User/DoneSaleOrderButton";
+import CancelSaleOrderButton from "../User/CancelSaleOrderButton";
+
 
 export default function UserOrderDetail() {
   const { orderCode } = useParams();
@@ -28,31 +30,31 @@ export default function UserOrderDetail() {
   const [orderDetail, setOrderDetail] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showModal, setShowModal] = useState(false);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewData, setReviewData] = useState({ star: 5, review: "" });
   const [currentProduct, setCurrentProduct] = useState(null);
+  const [confirmReload, setConfirmReload] = useState(false)
+  const [reload, setReload] = useState(false);
+
 
   const statusColors = {
     "Chờ xử lý": "bg-yellow-100 text-yellow-800",
-    "Đã xác nhận đơn": "bg-blue-100 text-blue-800",
-    "Đã thanh toán": "bg-green-100 text-green-800",
+    "Đã xác nhận": "bg-orange-100 text-orange-800",
     "Đang xử lý": "bg-purple-100 text-purple-800",
     "Đã giao hàng": "bg-indigo-100 text-indigo-800",
-    "Đã giao cho đơn vị vận chuyển": "bg-indigo-100 text-indigo-800",
-    "Đã từ chối": "bg-red-100 text-red-800",
+    "Đã giao cho đơn vị vận chuyển": "bg-blue-100 text-blue-800",
     "Đã hủy": "bg-red-200 text-red-900",
-    "Đã hoàn thành": "bg-orange-100 text-orange-800",
+    "Đã hoàn thành": "bg-green-100 text-green-800",
+    "Đã thanh toán": "bg-green-100 text-green-800",
   };
 
   const paymentStatusColors = {
     "Đang chờ thanh toán": "text-yellow-800",
     "Đã đặt cọc": "text-blue-800",
     "Đã thanh toán": "text-green-800",
-    "Đã hủy": "btext-red-800",
+    "Đã hủy": "text-red-800",
   };
 
   const fetchOrderDetail = async () => {
@@ -82,7 +84,7 @@ export default function UserOrderDetail() {
 
   useEffect(() => {
     fetchOrderDetail();
-  }, [orderCode]);
+  }, [orderCode,reload, confirmReload]);
 
   const handleCancelOrder = async () => {
     if (!reason.trim()) {
@@ -122,7 +124,7 @@ export default function UserOrderDetail() {
     return <div className="text-center text-red-500 mt-4">Error: {error}</div>;
 
   const {
-    saleOrderId,
+    id,
     fullName,
     email,
     contactPhone,
@@ -133,49 +135,51 @@ export default function UserOrderDetail() {
     deliveryMethod,
     saleOrderDetailVMs,
     updatedAt,
+    paymentDate,
+    totalAmount,
   } = orderDetail;
 
   const products = orderDetail?.saleOrderDetailVMs?.$values || [];
 
-  const handleDoneOrder = async () => {
-    if (!orderDetail || !orderDetail.id) {
-      alert("Không tìm thấy thông tin đơn hàng để hoàn tất.");
-      return;
-    }
+  // const handleDoneOrder = async () => {
+  //   if (!orderDetail || !orderDetail.id) {
+  //     alert("Không tìm thấy thông tin đơn hàng để hoàn tất.");
+  //     return;
+  //   }
 
-    const confirmDone = window.confirm(
-      "Bạn có chắc chắn muốn hoàn tất đơn hàng này không?"
-    );
+  //   const confirmDone = window.confirm(
+  //     "Bạn có chắc chắn muốn hoàn tất đơn hàng này không?"
+  //   );
 
-    if (!confirmDone) {
-      return;
-    }
+  //   if (!confirmDone) {
+  //     return;
+  //   }
 
-    const newStatus = 5;
+  //   const newStatus = 5;
 
-    try {
-      const response = await axios.put(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/update-order-status/${orderDetail.id}?status=${newStatus}`,
-        {},
-        {
-          headers: {
-            accept: "*/*",
-          },
-        }
-      );
+  //   try {
+  //     const response = await axios.put(
+  //       `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/update-order-status/${orderDetail.id}?status=${newStatus}`,
+  //       {},
+  //       {
+  //         headers: {
+  //           accept: "*/*",
+  //         },
+  //       }
+  //     );
 
-      if (response && response.data.isSuccess) {
-        alert("Đơn hàng của bạn đã được hoàn tất thành công.");
-        // setShowReviewModal(true);
-        fetchOrderDetail();
-      } else {
-        alert("Không thể hoàn tất đơn hàng. Vui lòng thử lại sau.");
-      }
-    } catch (error) {
-      console.error("Error updating order status:", error);
-      alert("Đã xảy ra lỗi khi hoàn tất đơn hàng. Vui lòng thử lại sau.");
-    }
-  };
+  //     if (response && response.data.isSuccess) {
+  //       alert("Đơn hàng của bạn đã được hoàn tất thành công.");
+  //       // setShowReviewModal(true);
+  //       fetchOrderDetail();
+  //     } else {
+  //       alert("Không thể hoàn tất đơn hàng. Vui lòng thử lại sau.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error updating order status:", error);
+  //     alert("Đã xảy ra lỗi khi hoàn tất đơn hàng. Vui lòng thử lại sau.");
+  //   }
+  // };
 
   const handleSubmitReview = async () => {
     if (!currentProduct) return;
@@ -229,6 +233,33 @@ export default function UserOrderDetail() {
             </p>
           </div>
         )}
+        {paymentStatus === "Đã thanh toán" && (
+          <div className="bg-green-500 p-4 rounded-lg shadow-sm mb-6">
+            <p className="text-xl">
+              <b className="text-white">Đơn hàng đã được thanh toán </b>
+              <i className="text-lg">
+                vào lúc{" "}
+                {new Date(paymentDate).toLocaleString("vi-VN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })}{" "}
+                - {orderDetail.paymentMethod}
+              </i>
+            </p>
+            <p className="flex items-center gap-2 mb-2 text-white">
+              <FontAwesomeIcon
+                icon={faDollarSign}
+                style={{ color: "#FFD43B" }}
+              />
+              <span className="font-semibold">Số tiền: </span>
+              {totalAmount.toLocaleString("Vi-vn")}₫
+            </p>
+          </div>
+        )}
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
           <div className="py-4 bg-white rounded-md shadow-sm">
             <div className="flex justify-between items-center">
@@ -238,37 +269,23 @@ export default function UserOrderDetail() {
               </h2>
               <div className="flex items-center gap-4">
                 {paymentStatus === "N/A" && orderStatus === "Chờ xử lý" && (
-                  <button
-                    className="bg-green-500 font-bold text-white text-sm rounded-full py-2 px-4 hover:bg-green-600"
+                  <Button
+                    size="sm"
+                    className="w-40 text-green-700  bg-white border border-green-700 rounded-md hover:bg-green-200"
                     onClick={() =>
                       navigate("/checkout", {
                         state: { selectedOrder: orderDetail },
                       })
                     }
                   >
-                    {console.log(orderDetail)}
-                    <FontAwesomeIcon
-                      icon={faCircleDollarToSlot}
-                      beat
-                      style={{ color: "#FFD43B" }}
-                      size="lg"
-                    />{" "}
                     Thanh toán
-                  </button>
+                  </Button>
                 )}
                 {orderDetail.orderStatus === "Chờ xử lý" && (
-                  <button
-                    className="bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600"
-                    onClick={() => setShowModal(true)}
-                  >
-                    <FontAwesomeIcon
-                      icon={faBan}
-                      beat
-                      style={{ color: "#ededed" }}
-                      size="lg"
-                    />{" "}
-                    Hủy đơn
-                  </button>
+                  <CancelSaleOrderButton
+                    saleOrderId={id}
+                    setReload={setReload}
+                  />
                 )}
               </div>
             </div>
@@ -279,6 +296,8 @@ export default function UserOrderDetail() {
               <h3 className="text-lg font-semibold mb-2 text-gray-700">
                 Thông tin khách hàng
               </h3>
+
+              {console.log(orderDetail)}
               <p className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon icon={faUser} className="text-blue-500" />
                 <span className="font-semibold">Tên:</span> <i>{fullName}</i>
@@ -363,15 +382,11 @@ export default function UserOrderDetail() {
             </div>
           </div>
           <div className="flex justify-end items-center gap-3 mt-5">
-            {orderDetail.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
-              <button
-                className={`bg-red-500 text-white font-bold text-sm rounded-full py-2 px-4 hover:bg-red-600 ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                onClick={handleDoneOrder}
-              >
-                Đã nhận hàng
-              </button>
+            {orderStatus === "Đã giao cho đơn vị vận chuyển" && (
+              <DoneSaleOrderButton
+                saleOrderId={id}
+                setConfirmReload={setConfirmReload}
+              />
             )}
           </div>
         </div>
@@ -481,51 +496,29 @@ export default function UserOrderDetail() {
           </p>
         </div>
       </div>
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-md shadow-lg w-96">
-            <h2 className="text-lg font-semibold">Xác nhận hủy đơn hàng</h2>
-            <p className="mb-4 text-sm">
-              <i>Bạn có chắc rằng hủy đơn hàng này không?</i>
-            </p>
-            <textarea
-              className="w-full border rounded-md p-2 mb-4"
-              rows="4"
-              placeholder="Vui lòng nhập lý do hủy đơn hàng"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-            ></textarea>
-            <div className="flex justify-end space-x-4">
-              <button
-                className="bg-gray-500 text-white py-2 px-4 rounded-md"
-                onClick={() => setShowModal(false)}
-              >
-                Đóng
-              </button>
-              <button
-                className="bg-red-500 text-white py-2 px-4 rounded-md"
-                onClick={handleCancelOrder}
-              >
-                Xác nhận
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {/* Review Modal */}
       {showReviewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl w-96 max-w-full">
-            <h3 className="text-2xl font-semibold mb-4 text-gray-800">Đánh giá sản phẩm</h3>
+            <h3 className="text-2xl font-semibold mb-4 text-gray-800">
+              Đánh giá sản phẩm
+            </h3>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Đánh giá của bạn</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Đánh giá của bạn
+              </label>
               <StarRating
                 rating={reviewData.star}
-                onRatingChange={(newRating) => setReviewData({ ...reviewData, star: newRating })}
+                onRatingChange={(newRating) =>
+                  setReviewData({ ...reviewData, star: newRating })
+                }
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="review" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="review"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Nhận xét
               </label>
               <textarea
@@ -533,22 +526,21 @@ export default function UserOrderDetail() {
                 rows="4"
                 className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
                 value={reviewData.review}
-                onChange={(e) => setReviewData({ ...reviewData, review: e.target.value })}
+                onChange={(e) =>
+                  setReviewData({ ...reviewData, review: e.target.value })
+                }
                 placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
               ></textarea>
             </div>
             <div className="flex justify-end space-x-2">
-              <Button 
-                color="gray" 
+              <Button
+                color="gray"
                 onClick={() => setShowReviewModal(false)}
                 className="px-4 py-2 rounded-lg"
               >
                 Hủy
               </Button>
-              <button
-                onClick={handleSubmitReview}
-                
-              >
+              <button onClick={handleSubmitReview}>
                 {loading ? "Đang tiến hành..." : "Gửi đánh giá"}
               </button>
             </div>

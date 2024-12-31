@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate,  Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import OrderMethod from "../Order/OrderMethod";
@@ -48,6 +48,15 @@ const RentalOrder = () => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().split("T")[0];
   };
+
+  const calculateRentalDays = () => {
+    if (!startDate || !endDate) return 0;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+  };
+
+  const rentalDays = calculateRentalDays();
 
   const handleCreateRentalOrder = async () => {
     setLoading(true);
@@ -121,15 +130,12 @@ const RentalOrder = () => {
               ).toISOString(),
               rentalStartDate: new Date(startDate).toISOString(),
               rentalEndDate: new Date(endDate).toISOString(),
-              rentalDays:
-                (new Date(endDate) - new Date(startDate)) /
-                (1000 * 60 * 60 * 24) +
-                1,
+              rentalDays: rentalDays,
             },
             rentalCosts: {
-              subTotal: product.rentPrice * rentalData.quantity,
+              subTotal: product.rentPrice * rentalData.quantity * rentalDays,
               tranSportFee: 0,
-              totalAmount: product.rentPrice * rentalData.quantity,
+              totalAmount: product.rentPrice * rentalData.quantity * rentalDays,
             },
           },
         ],
@@ -146,8 +152,10 @@ const RentalOrder = () => {
           },
         }
       );
+
+      
       if (!token) {
-        dispatch(addGuestRentalOrder(response.data.data))
+        dispatch(addGuestRentalOrder(response.data.data));
       }
       setApiResponse(response.data.data);
       navigate("/order_success", {
@@ -171,23 +179,12 @@ const RentalOrder = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-200">
         <p className="text-gray-600 text-lg font-medium">
-          Không có  sản phẩm nào được chọn
+          Không có sản phẩm nào được chọn
         </p>
       </div>
     );
   }
-
-  const calculateRentalDays = () => {
-    if (!startDate || !endDate) return 0; 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    return Math.ceil((end - start) / (1000 * 60 * 60 * 24)); 
-  };
-
-  const rentalDays = calculateRentalDays();
-  
- 
-
+const productArray = [rentalData.product];
   return (
     <>
       <ToastContainer position="top-right" autoClose={3000} />
@@ -200,13 +197,13 @@ const RentalOrder = () => {
             handleOptionChange={handleOptionChange}
             selectedBranchId={branchId}
             setSelectedBranchId={setBranchId}
+            selectedProducts={productArray}
           />
         </div>
         <div className="flex-1 bg-slate-200 p-6 overflow-y-auto mt-10">
           <div className="font-extrabold bg-white text-center p-5 border rounded text-black mb-5">
             <h2 className="text-xl">Thông tin đơn hàng - Đơn thuê</h2>
           </div>
-
           <div className="space-y-4 ">
             <div className="p-4 rounded bg-gray-50">
               <div className="flex flex-wrap items-start space-x-4 border p-4 rounded bg-white">
@@ -236,8 +233,9 @@ const RentalOrder = () => {
                         <li>Tình trạng: {rentalData.product.condition}%</li>
                         <li className="text-rose-700">
                           Đơn giá thuê:{" "}
-                          {rentalData.product.rentPrice.toLocaleString("Vi-vn") ||
-                            "Đang tính.."}
+                          {rentalData.product.rentPrice.toLocaleString(
+                            "Vi-vn"
+                          ) || "Đang tính.."}
                           ₫/ngày
                         </li>
                       </ul>
@@ -297,7 +295,7 @@ const RentalOrder = () => {
                             rentalData.product.rentPrice *
                             rentalData.quantity *
                             rentalDays
-                          ).toLocaleString("Vi-vn")}  
+                          ).toLocaleString("Vi-vn")}
                           ₫
                         </p>
                         <div

@@ -17,6 +17,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AuthInfo from "./AuthInfo";
 import { fetchUserProfile } from "../../services/ManageUserService";
 import AvatarUpload from "./AvatarUpload";
+import axios from "axios";
 
 const UserProfile = () => {
   const user = useSelector(selectUser);
@@ -29,28 +30,53 @@ const UserProfile = () => {
   );
   const [phone, setPhone] = useState("");
   const [phoneNumberConfirmed, setPhoneNumberConfirmed] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
+  const [fullName, setFullName] = useState("");
+
   const [formData, setFormData] = useState({
     UserName: user.UserName,
     FullName: user.FullName,
     Gender: user.Gender || null,
     Address: user.Address || null,
-    BirthDate: user.BirthDate ? user.BirthDate.split("T")[0] : "",
-    EmailConfirmed: user.EmailConfirmed || false,
+    BirthDate: user.DOB ? user.DOB.split("T")[0] : "",
   });
 
   const fetchUserData = async () => {
     try {
       setLoading(true);
-      const response = await fetchUserProfile(user.UserId);
-      console.log("Full Response:", response);
-      const { phoneNumber, phoneNumberConfirmed, imgAvatarPath } = response;
-      setPhone(phoneNumber || "");
-      setPhoneNumberConfirmed(phoneNumberConfirmed || false);
-      setAvatar(imgAvatarPath || "/assets/images/default-avatar.jpg");
-      setFormData(prev => ({
-        ...prev,
-        EmailConfirmed: response.emailConfirmed || false,
-      }));
+      const response = await axios.get(
+        `https://capstone-project-703387227873.asia-southeast1.run.app/api/User/get-users-detail?userId=${user.UserId}`,
+        { headers: { accept: "*/*" } }
+      );
+      if (response.data.user.isSuccess) {
+        const userData = response.data.user.data;
+         const {
+           phoneNumber,
+           phoneNumberConfirmed,
+           imgAvatarPath,
+           fullName,
+           gender,
+           address,
+           dob,
+           email,
+           emailConfirmed,
+         } = userData;
+
+         setPhone(phoneNumber || "");
+         setPhoneNumberConfirmed(phoneNumberConfirmed || false);
+         setAvatar(imgAvatarPath || "/assets/images/default-avatar.jpg");
+         setEmail(email)
+         setEmailConfirmed(emailConfirmed);
+        setFullName(fullName); 
+         setFormData((prev) => ({
+           ...prev,
+           FullName: fullName || prev.FullName,
+           Gender: gender || prev.Gender,
+           Address: address || prev.Address,
+           BirthDate: dob || prev.BirthDate,
+         }));
+      }
     } catch (error) {
       console.error("Error fetching user profile:", error);
       toast.error(t("user_profile.fetch_failed"));
@@ -66,27 +92,26 @@ const UserProfile = () => {
   const handleEditClick = () => setIsEditing(true);
 
   const handleSaveClick = () => {
+    console.log(formData);
     if (
       JSON.stringify(formData) ===
       JSON.stringify({
-        UserName: user.UserName,
-        FullName: user.FullName,
-        Gender: user.Gender,
-        Address: user.Address,
-        BirthDate: user.BirthDate,
-        EmailConfirmed: user.EmailConfirmed || false,
+        userName: user.UserName,
+        fullName: user.FullName,
+        gender: user.Gender,
+        address: user.Address,
+        birthDate: user.BirthDate,
       })
     ) {
       toast.warn(t("user_profile.no_changes"));
       return;
     }
-
-    updateProfile(user.UserId, formData)
+    var response = updateProfile(user.UserId, formData)
       .then(() => {
         setIsEditing(false);
-        toast.success(t("user_profile.update_success"));
+        toast.success("Cập nhật hồ sơ thành công");
         dispatch(updateUser({ ...user, ...formData }));
-        fetchUserData(); 
+        fetchUserData();
       })
       .catch(() => toast.error(t("user_profile.save_failed")));
   };
@@ -97,8 +122,9 @@ const UserProfile = () => {
       FullName: user.FullName,
       Gender: user.Gender || null,
       Address: user.Address || null,
-      BirthDate: user.BirthDate ? user.BirthDate.split("T")[0] : "",
-      EmailConfirmed: user.EmailConfirmed || false,
+      BirthDate: user.BirthDate
+        ? convertToISODate(user.BirthDate)
+        : formData.BirthDate || "",
     });
     setIsEditing(false);
   };
@@ -110,20 +136,32 @@ const UserProfile = () => {
 
   const handleAvatarChange = async (newAvatarPath) => {
     setAvatar(newAvatarPath);
-    await fetchUserData(); 
+    await fetchUserData();
   };
 
   const handleVerifyEmail = async (newEmail) => {
-    dispatch(updateUser({ ...user, Email: newEmail, EmailConfirmed: true }));
-    setFormData(prev => ({ ...prev, EmailConfirmed: true }));
+    dispatch(updateUser({ ...user, Email: newEmail }));
     await fetchUserData();
   };
 
   const handleVerifyPhone = async (newPhone) => {
     setPhone(newPhone);
     setPhoneNumberConfirmed(true);
-    await fetchUserData(); 
+    await fetchUserData();
   };
+
+const convertToISODate = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toISOString().split("T")[0]; // Trả về 'YYYY-MM-DD'
+};
+
+// Hàm chuyển đổi ngược lại 'YYYY-MM-DD' thành 'YYYY-MM-DDTHH:MM:SS.MMM'
+const convertToFullISODate = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toISOString(); // Trả về 'YYYY-MM-DDTHH:MM:SS.MMM'
+};
 
   if (loading) {
     return <div>Loading...</div>;
@@ -136,7 +174,6 @@ const UserProfile = () => {
         <h2 className="text-orange-500 font-bold text-2xl mb-6">
           {t("user_profile.user_profile")}
         </h2>
-
         <div className="space-y-6">
           <div className="flex items-center space-x-4 mb-6">
             <div className="relative">
@@ -144,10 +181,12 @@ const UserProfile = () => {
                 src={avatar}
                 alt="Avatar"
                 className="w-20 h-20 rounded-full object-cover border-2 border-orange-500"
-                onError={(e) => (e.target.src = "/assets/images/default-avatar.jpg")}
+                onError={(e) =>
+                  (e.target.src = "/assets/images/default-avatar.jpg")
+                }
               />
               <div className="absolute bottom-0 right-0">
-              <AvatarUpload
+                <AvatarUpload
                   userId={user.UserId}
                   onAvatarChange={handleAvatarChange}
                   imgAvatarPath={avatar}
@@ -157,10 +196,9 @@ const UserProfile = () => {
               </div>
             </div>
             <div>
-              <h3 className="text-xl font-semibold">{formData.FullName}</h3>
+              <h3 className="text-xl font-semibold">{fullName}</h3>
             </div>
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
             <div className="relative">
               <FontAwesomeIcon
@@ -202,41 +240,53 @@ const UserProfile = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
-          <div className="relative">
-  <FontAwesomeIcon
-    icon={faVenusMars}
-    className="absolute left-4 top-10 text-gray-500"
-  />
-  <label className="block text-gray-700">
-    {t("user_profile.gender")}:
-  </label>
-  {isEditing ? (
-    <>
-      <select
-        name="Gender"
-        className="w-full p-3 pl-12 pr-10 border border-gray-300 appearance-none"
-        value={formData.Gender}
-        onChange={handleChange}
-      >
-        <option value="Male">{t("user_profile.gender_male")}</option>
-        <option value="Female">{t("user_profile.gender_female")}</option>
-        <option value="Other">{t("user_profile.gender_other")}</option>
-      </select>
-      <FontAwesomeIcon
-        icon={faCaretDown}
-        className="absolute right-3 top-12 transform -translate-y-1/2 text-gray-500"
-      />
-    </>
-  ) : (
-    <input
-      type="text"
-      name="Gender"
-      className="w-full p-3 pl-12 bg-gray-100 text-gray-500 cursor-not-allowed"
-      value={formData.Gender === "male" ? t("user_profile.gender_male") : formData.Gender === "female" ? t("user_profile.gender_female") : t("user_profile.gender_other")}
-      readOnly
-    />
-  )}
-</div>
+            <div className="relative">
+              <FontAwesomeIcon
+                icon={faVenusMars}
+                className="absolute left-4 top-10 text-gray-500"
+              />
+              <label className="block text-gray-700">
+                {t("user_profile.gender")}:
+              </label>
+              {isEditing ? (
+                <>
+                  <select
+                    name="Gender"
+                    className="w-full p-3 pl-12 pr-10 border border-gray-300 appearance-none"
+                    value={formData.Gender}
+                    onChange={handleChange}
+                  >
+                    <option value="Male">
+                      {t("user_profile.gender_male")}
+                    </option>
+                    <option value="Female">
+                      {t("user_profile.gender_female")}
+                    </option>
+                    <option value="Other">
+                      {t("user_profile.gender_other")}
+                    </option>
+                  </select>
+                  <FontAwesomeIcon
+                    icon={faCaretDown}
+                    className="absolute right-3 top-12 transform -translate-y-1/2 text-gray-500"
+                  />
+                </>
+              ) : (
+                <input
+                  type="text"
+                  name="Gender"
+                  className="w-full p-3 pl-12 bg-gray-100 text-gray-500 cursor-not-allowed"
+                  value={
+                    formData.Gender === "Nam"
+                      ? t("user_profile.gender_male")
+                      : formData.Gender === "Nữ"
+                      ? t("user_profile.gender_female")
+                      : t("user_profile.gender_other")
+                  }
+                  readOnly
+                />
+              )}
+            </div>
             <div className="relative">
               <FontAwesomeIcon
                 icon={faMapMarkerAlt}
@@ -269,9 +319,14 @@ const UserProfile = () => {
               <input
                 type="date"
                 name="BirthDate"
-                value={formData.BirthDate}
+                value={
+                  formData.BirthDate ? convertToISODate(formData.BirthDate) : ""
+                }
                 onChange={(e) =>
-                  setFormData({ ...formData, BirthDate: e.target.value })
+                  setFormData({
+                    ...formData,
+                    BirthDate: convertToFullISODate(e.target.value), // Chuyển đổi ngày khi người dùng thay đổi
+                  })
                 }
                 readOnly={!isEditing}
                 className={`w-full p-3 pl-12 ${
@@ -309,9 +364,9 @@ const UserProfile = () => {
               Thông tin xác thực
             </h3>
             <AuthInfo
-              email={user.Email}
+              email={email}
               phone={phone}
-              emailConfirmed={formData.EmailConfirmed}
+              emailConfirmed={emailConfirmed}
               phoneNumberConfirmed={phoneNumberConfirmed}
               userId={user.UserId}
               onVerifyEmail={handleVerifyEmail}

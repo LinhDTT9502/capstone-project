@@ -10,21 +10,25 @@ import {
   faShoppingBag,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import CancelRentalOrderButton from "./CancelRentalOrderButton";
 
-const statusColors = {
-  "Chờ xử lý": "bg-yellow-100 text-yellow-800",
-  "Đã xác nhận đơn": "bg-blue-100 text-blue-800",
-  "Đang xử lý": "bg-purple-100 text-purple-800",
-  "Đã giao cho đơn vị vận chuyển": "bg-indigo-100 text-indigo-800",
-  "Đã giao hàng": "bg-green-100 text-green-800",
-  "Đã hủy": "bg-red-100 text-red-800",
-};
+  const statusColors = {
+    "Chờ xử lý": "bg-yellow-100 text-yellow-800",
+    "Đã xác nhận": "bg-orange-100 text-orange-800",
+    "Đang xử lý": "bg-purple-100 text-purple-800",
+    "Đã giao hàng": "bg-indigo-100 text-indigo-800",
+    "Đã giao cho đơn vị vận chuyển": "bg-blue-100 text-blue-800",
+    "Đã hủy": "bg-red-200 text-red-900",
+    "Đã hoàn thành": "bg-green-100 text-green-800",
+  };
+
 const paymentStatusColors = {
   "Đang chờ thanh toán": "text-yellow-800",
   "Đã đặt cọc": "text-blue-800",
   "Đã thanh toán": "text-green-800",
   "Đã hủy": "btext-red-800",
 };
+
 const depositStatusColors = {
   "Đã thanh toán": "text-green-800",
   "Đã thanh toán một phần": "text-blue-800",
@@ -41,6 +45,8 @@ export default function UserListRental() {
   const navigate = useNavigate();
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [reload, setReload] = useState(false);
+
   useEffect(() => {
     const fetchRentalOrders = async () => {
       try {
@@ -69,7 +75,7 @@ export default function UserListRental() {
       }
     };
     fetchRentalOrders();
-  }, [user.UserId]);
+  }, [user.UserId, reload]);
 
   const groupedOrders = rentalOrders.reduce(
     (acc, order) => {
@@ -147,18 +153,18 @@ export default function UserListRental() {
           {[
             "Tất cả",
             "Chờ xử lý",
-            "Đã xác nhận đơn",
-            "Đang xử lý",
+            "Đã xác nhận",
             "Đã giao cho đơn vị vận chuyển",
             "Đã giao hàng",
+            "Đã hoàn thành",
             "Đã hủy",
           ].map((status) => (
             <button
               key={status}
               className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
                 selectedStatus === status
-                  ? statusColors[status] || "bg-orange-500 text-white" // Màu khi được chọn
-                  : "bg-gray-200 text-gray-700" // Áp dụng màu từ statusColors
+                  ? "bg-orange-500 text-white" // Màu khi được chọn
+                  : statusColors[status] || "bg-gray-200 text-gray-700" // Áp dụng màu từ statusColors
               }`}
               onClick={() => setSelectedStatus(status)}
             >
@@ -229,12 +235,6 @@ export default function UserListRental() {
                   Ngày đặt:{" "}
                   <i>{new Date(parent.createdAt).toLocaleDateString()}</i>
                 </p>
-                <p className="text-gray-600 mt-2 font-semibold text-lg pt-5">
-                  Thành tiền:{" "}
-                  <span className="text-orange-500">
-                    {parent.totalAmount.toLocaleString("Vi-vn")}₫
-                  </span>
-                </p>
               </div>
               <div className="flex flex-col w-1/4 h-auto items-end">
                 <img
@@ -242,33 +242,9 @@ export default function UserListRental() {
                     parent.orderImage || "/assets/images/default_package.png"
                   }
                   alt={parent.orderImage}
-                  className="w-40 h-40 object-contain rounded"
+                  className="w-32 h-32 object-contain rounded"
                 />
-                <Button
-                  color="orange"
-                  size="sm"
-                  className="w-40"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(
-                      `/manage-account/user-rental/${parent.rentalOrderCode}`
-                    );
-                  }}
-                >
-                  Xem chi tiết
-                </Button>
               </div>
-              {/* {expandedOrderId === parent.id ? (
-                <FontAwesomeIcon
-                  icon={faCaretDown}
-                  className="w-6 h-6 text-gray-500"
-                />
-              ) : (
-                <FontAwesomeIcon
-                  icon={faCaretUp}
-                  className="w-6 h-6 text-gray-500"
-                />
-              )} */}
             </div>
 
             {expandedOrderId === parent.id && (
@@ -337,6 +313,47 @@ export default function UserListRental() {
                 )}
               </div>
             )}
+            <div>
+              <div className="h-px bg-gray-300 my-2 sm:my-2"></div>
+              <div className="flex items-center justify-between my-4 px-2">
+                <p className="text-gray-600 font-semibold text-lg pl-2  ">
+                  Thành tiền:{" "}
+                  <span className="text-orange-500">
+                    {parent.totalAmount.toLocaleString("Vi-vn")}₫
+                  </span>
+                </p>
+                <div className="flex gap-2">
+                  {parent.orderStatus === "Chờ xử lý" && (
+                    <CancelRentalOrderButton
+                      rentalOrderId={parent.id}
+                      setReload={setReload}
+                    />
+                  )}
+                  {/* {order.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
+                    <DoneSaleOrderButton
+                      saleOrderId={order.id}
+                      setConfirmReload={setConfirmReload}
+                    />
+                  )} */}
+                  {/* {order.orderStatus === "Đã hoàn thành" && (
+                    <ReviewSaleOrderButton/>
+                  )} */}
+                  <Button
+                    color="orange"
+                    size="sm"
+                    className="w-40"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(
+                        `/manage-account/user-rental/${parent.rentalOrderCode}`
+                      );
+                    }}
+                  >
+                    Xem chi tiết
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         ))}
       </div>
