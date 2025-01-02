@@ -31,13 +31,13 @@ namespace _2Sport_BE.Service.Services
         {
             try
             {
-                var staff = (await _unitOfWork.StaffRepository.GetAsync(_ => _.UserId == userId)).FirstOrDefault();
-                if (staff == null)
+                var user = (await _unitOfWork.UserRepository.GetAsync(_ => _.Id == userId)).FirstOrDefault();
+                if (user == null)
                 {
                     return -1;
                 }
                 blog.CreateAt = DateTime.Now;
-                blog.CreatedStaffId = staff.StaffId;
+                blog.CreatedStaffId = user.Id;
                 blog.UpdatedAt = null;
                 blog.EditedByStaffId = null;
                 blog.Status = true;
@@ -70,13 +70,13 @@ namespace _2Sport_BE.Service.Services
                                                                                       .Include(_ => _.EditedByStaff);
             foreach (var blog in blogs)
             {
-                var createdStaff = await _unitOfWork.StaffRepository.GetAsync(_ => _.StaffId == blog.CreatedStaffId);
+                var createdStaff = await _unitOfWork.UserRepository.GetAsync(_ => _.Id == blog.CreatedStaffId);
                 if (createdStaff != null)
                 {
                     blog.CreatedByStaff = createdStaff.FirstOrDefault();
                 }
 
-                var editedStaff = await _unitOfWork.StaffRepository.GetAsync(_ => _.StaffId == blog.EditedByStaffId);
+                var editedStaff = await _unitOfWork.UserRepository.GetAsync(_ => _.Id == blog.EditedByStaffId);
                 if (editedStaff != null)
                 {
                     blog.EditedByStaff = editedStaff.FirstOrDefault();
@@ -108,13 +108,13 @@ namespace _2Sport_BE.Service.Services
         public async Task<Blog> GetBlogById(int blogId)
         {
             var blog = (await _unitOfWork.BlogRepository.GetAsync(_ => _.Id == blogId)).FirstOrDefault();
-            var createdStaff = await _unitOfWork.StaffRepository.GetAsync(_ => _.StaffId == blog.CreatedStaffId);
+            var createdStaff = await _unitOfWork.UserRepository.GetAsync(_ => _.Id == blog.CreatedStaffId);
             if (createdStaff != null)
             {
                 blog.CreatedByStaff = createdStaff.FirstOrDefault();
             }
 
-            var editedStaff = await _unitOfWork.StaffRepository.GetAsync(_ => _.StaffId == blog.EditedByStaffId);
+            var editedStaff = await _unitOfWork.UserRepository.GetAsync(_ => _.Id == blog.EditedByStaffId);
             if (editedStaff != null)
             {
                 blog.EditedByStaff = editedStaff.FirstOrDefault();
