@@ -78,5 +78,7 @@ namespace _2Sport_BE.Repository.Models
         public virtual ICollection<Customer> Customers { get; set; }
         public virtual ICollection<CartItem> CartItems { get; set; }
         public virtual ICollection<Bookmark> Bookmarks { get; set; }
+        public virtual ICollection<Blog> CreatedBlogs { get; set; } // Blogs created by this staff
+        public virtual ICollection<Blog> EditedBlogs { get; set; } // Blogs edited by this staff
     }
 }

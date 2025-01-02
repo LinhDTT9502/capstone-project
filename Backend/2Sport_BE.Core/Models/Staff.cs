@@ -44,7 +44,5 @@ namespace _2Sport_BE.Repository.Models
 
         public virtual ICollection<ImportHistory> ImportHistories { get; set; }
 
-        public virtual ICollection<Blog> CreatedBlogs { get; set; } // Blogs created by this staff
-        public virtual ICollection<Blog> EditedBlogs { get; set; } // Blogs edited by this staff
     }
 }
