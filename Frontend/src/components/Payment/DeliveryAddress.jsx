@@ -15,6 +15,8 @@ import { useNavigate } from "react-router-dom";
 import { addUserShipmentDetail, getUserShipmentDetails } from "../../services/shipmentService";
 import { useTranslation } from "react-i18next";
 import AddressForm from "../AddressForm";
+import { faLocationDot, faVenusMars } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const DeliveryAddress = ({
   userData,
@@ -26,7 +28,7 @@ const DeliveryAddress = ({
   const user = useSelector(selectUser);
   const shipments = useSelector(selectShipment);
   // console.log(shipments);
-  
+
   const shipment = useSelector(selectedShipment);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
@@ -86,44 +88,35 @@ const DeliveryAddress = ({
     navigate("/cart");
   };
 
-  // const handleAddressChange = (fullAddress) => {
-  //   setUserData((prevData) => ({ ...prevData, address: fullAddress }));
-  // };
-
+  const handleAddressChange = (fullAddress) => {
+    setUserData((prevData) => ({ ...prevData, address: fullAddress }));
+  };
   const handleGenderChange = (e) => {
     setUserData((prevData) => ({ ...prevData, gender: e.target.value }));
   };
 
   return (
- 
-        <div className="w-full bg-white border border-gray-200 rounded-lg shadow-md p-6 space-y-2">
-          <h3 className="text-sm font-bold">Thông tin khách hàng</h3>
-          <div className="flex gap-10 ">
-          <Radio
-          name="gender"
-          label="Anh"
-          value="Male" 
-          onChange={handleGenderChange}
-          checked={userData.gender === "Male"}
-        />
-        <Radio
-          name="gender"
-          label="Chị"
-          value="Female" 
-          onChange={handleGenderChange}
-          checked={userData.gender === "Female"}
-          className="border-2"
-        />
-          </div>
-          
-          {!user ? (
-            <div className="space-y-2">
+    <div className="w-full bg-white border border-gray-200 rounded-lg shadow-md p-3 space-y-2">
+      {!user ? (
+        <div className="w-full bg-white border border-gray-200 rounded-lg shadow-md p-4 mb-4 space-y-2">
+          <h4 className="text-lg font-semibold mb-4">
+            <FontAwesomeIcon
+              icon={faLocationDot}
+              style={{ color: "#ff0000" }}
+            />{" "}
+            {t("payment.selected_shipment")}:
+          </h4>
           <Input
             type="text"
             label={t("payment.full_name")}
             name="fullName"
             value={userData.fullName}
-            onChange={(e) => setUserData((prevData) => ({ ...prevData, fullName: e.target.value }))}
+            onChange={(e) =>
+              setUserData((prevData) => ({
+                ...prevData,
+                fullName: e.target.value,
+              }))
+            }
             required
           />
           <Input
@@ -131,7 +124,12 @@ const DeliveryAddress = ({
             label="Email"
             name="email"
             value={userData.email}
-            onChange={(e) => setUserData((prevData) => ({ ...prevData, email: e.target.value }))}
+            onChange={(e) =>
+              setUserData((prevData) => ({
+                ...prevData,
+                email: e.target.value,
+              }))
+            }
             required
           />
           <Input
@@ -139,54 +137,97 @@ const DeliveryAddress = ({
             label={t("payment.phone_number")}
             name="phoneNumber"
             value={userData.phoneNumber}
-            onChange={(e) => setUserData((prevData) => ({ ...prevData, phoneNumber: e.target.value }))}
+            onChange={(e) =>
+              setUserData((prevData) => ({
+                ...prevData,
+                phoneNumber: e.target.value,
+              }))
+            }
             required
           />
 
+          {/* <DeliveryAddress userData={userData} setUserData={setUserData} /> */}
+          <AddressForm onAddressChange={handleAddressChange} />
+
           {/* <AddressForm onAddressChange={handleAddressChange} /> */}
         </div>
-      ) : (
-        shipments.length > 0 ? (
-          <>
-           
-            {shipment && (
-              <div className="w-full bg-white border border-gray-200 rounded-lg shadow-md p-6 my-4 space-y-2 ">
-                <h4 className="text-lg font-semibold mb-4">{t("payment.selected_shipment")}:</h4>
+      ) : shipments.length > 0 ? (
+        <>
+          {shipment && (
+            <div className="w-full bg-white border border-gray-200 rounded-lg shadow-md p-4 mb-4 space-y-2 flex">
+              <div className="w-4/5">
+                <h4 className="text-lg font-semibold mb-4">
+                  <FontAwesomeIcon
+                    icon={faLocationDot}
+                    style={{ color: "#ff0000" }}
+                  />{" "}
+                  {t("payment.selected_shipment")}:
+                </h4>
                 <p className="text-gray-700">
-                  <span className="font-semibold">{t("payment.full_name")}:</span>{" "}
+                  <span className="font-semibold">
+                    {t("payment.full_name")}:
+                  </span>{" "}
                   {shipment.fullName}
                 </p>
                 <p className="text-gray-700">
-                  <span className="font-semibold">Email:</span>{" "}
-                  {shipment.email}
+                  <span className="font-semibold">Email:</span> {shipment.email}
                 </p>
-                <p className="text-gray-70">
+                <p className="text-gray-700">
                   <span className="font-semibold">{t("payment.address")}:</span>{" "}
                   {shipment.address}
                 </p>
                 <p className="text-gray-700">
-                  <span className="font-semibold">{t("payment.phone_number")}:</span>{" "}
+                  <span className="font-semibold">
+                    {t("payment.phone_number")}:
+                  </span>{" "}
                   {shipment.phoneNumber}
                 </p>
               </div>
-            )}
-            <div className="">
-            <ShipmentList />
+              <div className="flex items-center justify-center w-1/5">
+                <ShipmentList />
+              </div>
             </div>
-             
-          </>
-        ) : (
-          <AddShipment
-            onSubmit={handleSaveClick}
-            onCancel={handleCancel}
-            initialData={userData}
-            setUserData={setUserData}
-            
-          />
-        )
+          )}
+          {!shipment && (
+            <div className="">
+              <ShipmentList />
+            </div>
+          )}
+        </>
+      ) : (
+        <AddShipment
+          onSubmit={handleSaveClick}
+          onCancel={handleCancel}
+          initialData={userData}
+          setUserData={setUserData}
+        />
       )}
-</div>
-
+      <div className="w-full bg-white border border-gray-200 rounded-lg shadow-md p-3 space-y-2">
+        <div className="text-lg font-semibolds">
+          <h4>
+            <FontAwesomeIcon icon={faVenusMars} style={{ color: "#ff0000" }} />{" "}
+            Giới tính:
+          </h4>
+        </div>
+        <div className=" flex gap-10">
+          <Radio
+            name="gender"
+            label="Anh"
+            value="Male"
+            onChange={handleGenderChange}
+            checked={userData.gender === "Male"}
+          />
+          <Radio
+            name="gender"
+            label="Chị"
+            value="Female"
+            onChange={handleGenderChange}
+            checked={userData.gender === "Female"}
+            className="border-2"
+          />
+        </div>
+      </div>
+    </div>
   );
 };
 

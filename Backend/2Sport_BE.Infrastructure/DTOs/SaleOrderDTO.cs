@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using _2Sport_BE.Repository.Models;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -81,9 +82,9 @@ namespace _2Sport_BE.Infrastructure.DTOs
         #endregion
 
         #region PaymentInformation
-        public int? PaymentMethodId { get; set; }
+        public string? PaymentMethod { get; set; }
         public string? PaymentStatus { get; set; }
-
+        public DateTime? PaymentDate {  get; set; }
         #endregion
 
         #region AuditInformation
@@ -93,9 +94,10 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public string? TransactionId {  get; set; }
         public string? OrderImage { get; set; }
         #endregion  
-        public string? PaymentMethod { get; set; }
         public string? PaymentLink { get; set; }
+       
         public List<SaleOrderDetailVM> SaleOrderDetailVMs { get; set; }
+        public List<Review> Reviews { get; set; }
     }
     public class RevenueVM
     {

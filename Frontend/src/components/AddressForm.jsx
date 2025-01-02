@@ -50,11 +50,10 @@ const AddressForm = ({ onAddressChange, province, district, ward, address }) => 
     setWards(result);
   };
 
-  // Watch for changes in province, district, and ward, and recompute the address
   useEffect(() => {
     if (formData.province && formData.district && formData.ward) {
       const addressString = getAddressString();
-      onAddressChange(addressString); // Pass the full address to the parent
+      onAddressChange(addressString);
     }
   }, [formData]);
 
@@ -77,7 +76,7 @@ const AddressForm = ({ onAddressChange, province, district, ward, address }) => 
         name="street"
         value={formData.street}
         onChange={handleInputChange}
-        label="số nhà, tên đường. ví dụ 123 đường Mạc Đĩnh Chi"
+        label="Số nhà, tên đường. Ví dụ 123 đường Mạc Đĩnh Chi"
         required
       />
       <div className="space-x-2 flex">

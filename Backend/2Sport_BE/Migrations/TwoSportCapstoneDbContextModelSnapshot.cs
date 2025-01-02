@@ -401,7 +401,7 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar")
+                        .HasColumnType("varchar(MAX)")
                         .HasColumnName("ImageUrl");
 
                     b.Property<int?>("ProductId")
@@ -410,7 +410,7 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<string>("VideoUrl")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar")
+                        .HasColumnType("varchar(MAX)")
                         .HasColumnName("VideoUrl");
 
                     b.HasKey("Id");
@@ -678,8 +678,6 @@ namespace _2Sport_BE.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId");
-
                     b.HasIndex("SaleOrderId");
 
                     b.ToTable("OrderDetails");
@@ -747,7 +745,7 @@ namespace _2Sport_BE.Migrations
                     b.Property<string>("ImgAvatarPath")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("varchar")
+                        .HasColumnType("varchar(MAX)")
                         .HasColumnName("ImgAvatarPath");
 
                     b.Property<bool>("IsRent")
@@ -985,6 +983,9 @@ namespace _2Sport_BE.Migrations
                         .HasColumnType("decimal")
                         .HasColumnName("DepositAmount");
 
+                    b.Property<DateTime?>("DepositDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("DepositStatus")
                         .HasColumnType("int")
                         .HasColumnName("DepositStatus");
@@ -1059,6 +1060,10 @@ namespace _2Sport_BE.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar")
                         .HasColumnName("ParentOrderCode");
+
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("PaymentDate");
 
                     b.Property<int?>("PaymentMethodId")
                         .HasColumnType("int")
@@ -1169,7 +1174,7 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<string>("ProductCode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(15)")
+                        .HasColumnType("nvarchar(25)")
                         .HasColumnName("ProductCode");
 
                     b.Property<int?>("ProductId")
@@ -1179,6 +1184,10 @@ namespace _2Sport_BE.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("ReviewContent");
+
+                    b.Property<int?>("SaleOrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SaleOrderId");
 
                     b.Property<decimal?>("Star")
                         .HasColumnType("decimal")
@@ -1194,6 +1203,8 @@ namespace _2Sport_BE.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("SaleOrderId");
 
                     b.HasIndex("UserId");
 
@@ -1297,6 +1308,10 @@ namespace _2Sport_BE.Migrations
                     b.Property<int?>("OrderStatus")
                         .HasColumnType("int")
                         .HasColumnName("OrderStatus");
+
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("PaymentDate");
 
                     b.Property<int?>("PaymentMethodId")
                         .HasColumnType("int")
@@ -1635,13 +1650,13 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Blog", b =>
                 {
-                    b.HasOne("_2Sport_BE.Repository.Models.Staff", "CreatedByStaff")
+                    b.HasOne("_2Sport_BE.Repository.Models.User", "CreatedByStaff")
                         .WithMany("CreatedBlogs")
                         .HasForeignKey("CreatedStaffId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("_2Sport_BE.Repository.Models.Staff", "EditedByStaff")
+                    b.HasOne("_2Sport_BE.Repository.Models.User", "EditedByStaff")
                         .WithMany("EditedBlogs")
                         .HasForeignKey("EditedByStaffId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1688,7 +1703,7 @@ namespace _2Sport_BE.Migrations
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Category", b =>
                 {
                     b.HasOne("_2Sport_BE.Repository.Models.Sport", "Sport")
-                        .WithMany()
+                        .WithMany("Categories")
                         .HasForeignKey("SportId");
 
                     b.Navigation("Sport");
@@ -1800,15 +1815,9 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.OrderDetail", b =>
                 {
-                    b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
-                        .WithMany("OrderDetails")
-                        .HasForeignKey("ProductId");
-
                     b.HasOne("_2Sport_BE.Repository.Models.SaleOrder", "SaleOrder")
                         .WithMany("OrderDetails")
                         .HasForeignKey("SaleOrderId");
-
-                    b.Navigation("Product");
 
                     b.Navigation("SaleOrder");
                 });
@@ -1895,9 +1904,15 @@ namespace _2Sport_BE.Migrations
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId");
 
+                    b.HasOne("_2Sport_BE.Repository.Models.SaleOrder", "SaleOrder")
+                        .WithMany("Reviews")
+                        .HasForeignKey("SaleOrderId");
+
                     b.HasOne("_2Sport_BE.Repository.Models.User", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId");
+
+                    b.Navigation("SaleOrder");
 
                     b.Navigation("User");
                 });
@@ -2020,8 +2035,6 @@ namespace _2Sport_BE.Migrations
 
                     b.Navigation("Likes");
 
-                    b.Navigation("OrderDetails");
-
                     b.Navigation("Reviews");
 
                     b.Navigation("Warehouses");
@@ -2042,6 +2055,8 @@ namespace _2Sport_BE.Migrations
                     b.Navigation("OrderDetails");
 
                     b.Navigation("RefundRequests");
+
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ShipmentDetail", b =>
@@ -2053,15 +2068,13 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Sport", b =>
                 {
+                    b.Navigation("Categories");
+
                     b.Navigation("Products");
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Staff", b =>
                 {
-                    b.Navigation("CreatedBlogs");
-
-                    b.Navigation("EditedBlogs");
-
                     b.Navigation("ImportHistories");
                 });
 
@@ -2071,7 +2084,11 @@ namespace _2Sport_BE.Migrations
 
                     b.Navigation("CartItems");
 
+                    b.Navigation("CreatedBlogs");
+
                     b.Navigation("Customers");
+
+                    b.Navigation("EditedBlogs");
 
                     b.Navigation("Likes");
 

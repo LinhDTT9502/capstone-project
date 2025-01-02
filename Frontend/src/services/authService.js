@@ -94,8 +94,6 @@ export const checkAndRefreshToken = async () => {
         refreshToken,
         decoded.UserId
       );
-      console.log(token);
-      console.log(refreshToken);
       const newToken = response.data.data.token;
       const newRefreshToken = response.data.data.refreshToken;
       localStorage.setItem("token", newToken);

@@ -1,12 +1,14 @@
 using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
+using _2Sport_BE.Service.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Twilio.Rest.Api.V2010.Account;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -26,10 +28,14 @@ namespace _2Sport_BE.Infrastructure.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly TwoSportCapstoneDbContext _dBContext;
-        public BrandService(IUnitOfWork unitOfWork, TwoSportCapstoneDbContext dBContext)
+        private readonly IProductService _productService;
+        public BrandService(IUnitOfWork unitOfWork, 
+                            TwoSportCapstoneDbContext dBContext, 
+                            IProductService productService)
         {
             _unitOfWork = unitOfWork;
             _dBContext = dBContext;
+            _productService = productService;
         }
 
         public async Task CreateANewBrandAsync(Brand brand)
@@ -41,11 +47,13 @@ namespace _2Sport_BE.Infrastructure.Services
 
         public async Task DeleteBrandAsync(int id)
         {
-            var toDeleteObject = await _dBContext.Brands.FirstOrDefaultAsync(_ => _.Id == id);
-            if (toDeleteObject != null)
+            var products = await _unitOfWork.ProductRepository.GetAsync(_ => _.BrandId == id);
+            foreach (var product in products)
             {
-                await _unitOfWork.BrandRepository.DeleteAsync(toDeleteObject);
+                await _productService.DeleteProductById(product.Id);
             }
+
+            await _unitOfWork.BrandRepository.DeleteAsync(id);
         }
 
         public async Task<IQueryable<Brand>> GetBrandById(int? id)

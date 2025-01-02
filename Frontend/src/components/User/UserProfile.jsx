@@ -17,6 +17,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AuthInfo from "./AuthInfo";
 import { fetchUserProfile } from "../../services/ManageUserService";
 import AvatarUpload from "./AvatarUpload";
+import axios from "axios";
 
 const UserProfile = () => {
   const user = useSelector(selectUser);
@@ -25,69 +26,92 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [avatar, setAvatar] = useState(
-    user?.imgAvatarPath || "/default-avatar.jpg"
+    user?.imgAvatarPath || "/assets/images/default-avatar.jpg"
   );
+  const [phone, setPhone] = useState("");
+  const [phoneNumberConfirmed, setPhoneNumberConfirmed] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
+  const [fullName, setFullName] = useState("");
 
   const [formData, setFormData] = useState({
     UserName: user.UserName,
     FullName: user.FullName,
     Gender: user.Gender || null,
     Address: user.Address || null,
-    BirthDate: user.BirthDate || null,
-    EmailConfirmed: user.EmailConfirmed || false,
-    PhoneNumberConfirmed: user.PhoneNumberConfirmed || false,
+    BirthDate: user.DOB ? user.DOB.split("T")[0] : "",
   });
 
-  useEffect(() => {
-    if (
-      user.PhoneNumberConfirmed === undefined ||
-      user.PhoneNumberConfirmed === null
-    ) {
+  const fetchUserData = async () => {
+    try {
       setLoading(true);
-      fetchUserProfile(user.UserId)
-        .then((response) => {
-          console.log("Full Response:", response);
-          // Lấy trực tiếp từ response thay vì response.data
-          const phoneNumberConfirmed = response.phoneNumberConfirmed;
-          setFormData((prev) => ({
-            ...prev,
-            PhoneNumberConfirmed: phoneNumberConfirmed ?? false,
-          }));
+      const response = await axios.get(
+        `https://capstone-project-703387227873.asia-southeast1.run.app/api/User/get-users-detail?userId=${user.UserId}`,
+        { headers: { accept: "*/*" } }
+      );
+      if (response.data.user.isSuccess) {
+        const userData = response.data.user.data;
+         const {
+           phoneNumber,
+           phoneNumberConfirmed,
+           imgAvatarPath,
+           fullName,
+           gender,
+           address,
+           dob,
+           email,
+           emailConfirmed,
+         } = userData;
 
-          setAvatar(response.imgAvatarPath || "/default-avatar.jpg");
-        })
-        .catch((error) => {
-          console.error("API Error:", error);
-          toast.error("Failed to fetch user profile!");
-        })
-        .finally(() => setLoading(false));
+         setPhone(phoneNumber || "");
+         setPhoneNumberConfirmed(phoneNumberConfirmed || false);
+         setAvatar(imgAvatarPath || "/assets/images/default-avatar.jpg");
+         setEmail(email)
+         setEmailConfirmed(emailConfirmed);
+        setFullName(fullName); 
+         setFormData((prev) => ({
+           ...prev,
+           FullName: fullName || prev.FullName,
+           Gender: gender || prev.Gender,
+           Address: address || prev.Address,
+           BirthDate: dob || prev.BirthDate,
+         }));
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      toast.error(t("user_profile.fetch_failed"));
+    } finally {
+      setLoading(false);
     }
-  }, [user.UserId, user.PhoneNumberConfirmed]);
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, [user.UserId]);
 
   const handleEditClick = () => setIsEditing(true);
 
   const handleSaveClick = () => {
+    console.log(formData);
     if (
       JSON.stringify(formData) ===
       JSON.stringify({
-        UserName: user.UserName,
-        FullName: user.FullName,
-        Gender: user.Gender,
-        Address: user.Address,
-        BirthDate: user.BirthDate,
-        EmailConfirmed: user.EmailConfirmed || false,
-        PhoneNumberConfirmed: user.PhoneNumberConfirmed || false,
+        userName: user.UserName,
+        fullName: user.FullName,
+        gender: user.Gender,
+        address: user.Address,
+        birthDate: user.BirthDate,
       })
     ) {
       toast.warn(t("user_profile.no_changes"));
       return;
     }
-
-    updateProfile(user.UserId, formData)
+    var response = updateProfile(user.UserId, formData)
       .then(() => {
         setIsEditing(false);
-        toast.success(t("user_profile.update_success"));
-        dispatch(updateUser(formData));
+        toast.success("Cập nhật hồ sơ thành công");
+        dispatch(updateUser({ ...user, ...formData }));
+        fetchUserData();
       })
       .catch(() => toast.error(t("user_profile.save_failed")));
   };
@@ -98,9 +122,9 @@ const UserProfile = () => {
       FullName: user.FullName,
       Gender: user.Gender || null,
       Address: user.Address || null,
-      BirthDate: user.BirthDate || null,
-      EmailConfirmed: user.EmailConfirmed || false,
-      PhoneNumberConfirmed: user.PhoneNumberConfirmed || false,
+      BirthDate: user.BirthDate
+        ? convertToISODate(user.BirthDate)
+        : formData.BirthDate || "",
     });
     setIsEditing(false);
   };
@@ -110,9 +134,38 @@ const UserProfile = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAvatarChange = (newAvatarPath) => {
+  const handleAvatarChange = async (newAvatarPath) => {
     setAvatar(newAvatarPath);
+    await fetchUserData();
   };
+
+  const handleVerifyEmail = async (newEmail) => {
+    dispatch(updateUser({ ...user, Email: newEmail }));
+    await fetchUserData();
+  };
+
+  const handleVerifyPhone = async (newPhone) => {
+    setPhone(newPhone);
+    setPhoneNumberConfirmed(true);
+    await fetchUserData();
+  };
+
+const convertToISODate = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toISOString().split("T")[0]; // Trả về 'YYYY-MM-DD'
+};
+
+// Hàm chuyển đổi ngược lại 'YYYY-MM-DD' thành 'YYYY-MM-DDTHH:MM:SS.MMM'
+const convertToFullISODate = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toISOString(); // Trả về 'YYYY-MM-DDTHH:MM:SS.MMM'
+};
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
@@ -121,7 +174,6 @@ const UserProfile = () => {
         <h2 className="text-orange-500 font-bold text-2xl mb-6">
           {t("user_profile.user_profile")}
         </h2>
-
         <div className="space-y-6">
           <div className="flex items-center space-x-4 mb-6">
             <div className="relative">
@@ -129,21 +181,24 @@ const UserProfile = () => {
                 src={avatar}
                 alt="Avatar"
                 className="w-20 h-20 rounded-full object-cover border-2 border-orange-500"
-                onError={(e) => (e.target.src = "/default-avatar.jpg")}
+                onError={(e) =>
+                  (e.target.src = "/assets/images/default-avatar.jpg")
+                }
               />
               <div className="absolute bottom-0 right-0">
                 <AvatarUpload
                   userId={user.UserId}
                   onAvatarChange={handleAvatarChange}
+                  imgAvatarPath={avatar}
+                  setAvatar={setAvatar}
+                  fetchUserData={fetchUserData}
                 />
               </div>
             </div>
             <div>
-              <h3 className="text-xl font-semibold">{formData.FullName}</h3>
-              <p className="text-gray-600">{formData.UserName}</p>
+              <h3 className="text-xl font-semibold">{fullName}</h3>
             </div>
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
             <div className="relative">
               <FontAwesomeIcon
@@ -184,7 +239,6 @@ const UserProfile = () => {
             </div>
           </div>
 
-          {/* Column 2: 3 fields (Gender, Address, Birth Date) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
             <div className="relative">
               <FontAwesomeIcon
@@ -202,11 +256,13 @@ const UserProfile = () => {
                     value={formData.Gender}
                     onChange={handleChange}
                   >
-                    <option value="Nam">{t("user_profile.gender_male")}</option>
-                    <option value="Nữ">
+                    <option value="Male">
+                      {t("user_profile.gender_male")}
+                    </option>
+                    <option value="Female">
                       {t("user_profile.gender_female")}
                     </option>
-                    <option value="Khác">
+                    <option value="Other">
                       {t("user_profile.gender_other")}
                     </option>
                   </select>
@@ -220,7 +276,13 @@ const UserProfile = () => {
                   type="text"
                   name="Gender"
                   className="w-full p-3 pl-12 bg-gray-100 text-gray-500 cursor-not-allowed"
-                  value={formData.Gender}
+                  value={
+                    formData.Gender === "Nam"
+                      ? t("user_profile.gender_male")
+                      : formData.Gender === "Nữ"
+                      ? t("user_profile.gender_female")
+                      : t("user_profile.gender_other")
+                  }
                   readOnly
                 />
               )}
@@ -258,12 +320,13 @@ const UserProfile = () => {
                 type="date"
                 name="BirthDate"
                 value={
-                  formData.BirthDate
-                    ? new Date(formData.BirthDate).toISOString().split("T")[0]
-                    : ""
+                  formData.BirthDate ? convertToISODate(formData.BirthDate) : ""
                 }
                 onChange={(e) =>
-                  setFormData({ ...formData, BirthDate: e.target.value })
+                  setFormData({
+                    ...formData,
+                    BirthDate: convertToFullISODate(e.target.value), // Chuyển đổi ngày khi người dùng thay đổi
+                  })
                 }
                 readOnly={!isEditing}
                 className={`w-full p-3 pl-12 ${
@@ -275,7 +338,6 @@ const UserProfile = () => {
             </div>
           </div>
 
-          {/* Nút chỉnh sửa và lưu */}
           <div className="flex justify-end mb-4">
             {isEditing ? (
               <>
@@ -297,17 +359,18 @@ const UserProfile = () => {
             )}
           </div>
 
-          {/* Thông tin xác thực */}
           <div className="mt-6">
             <h3 className="text-xl font-semibold text-orange-500">
               Thông tin xác thực
             </h3>
             <AuthInfo
-              email={user.Email}
-              phone={user.Phone}
-              emailConfirmed={user.EmailConfirmed}
-              phoneNumberConfirmed={formData.PhoneNumberConfirmed}
+              email={email}
+              phone={phone}
+              emailConfirmed={emailConfirmed}
+              phoneNumberConfirmed={phoneNumberConfirmed}
               userId={user.UserId}
+              onVerifyEmail={handleVerifyEmail}
+              onVerifyPhone={handleVerifyPhone}
             />
           </div>
         </div>

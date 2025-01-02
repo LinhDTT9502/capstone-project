@@ -2,6 +2,7 @@
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,11 +43,27 @@ namespace _2Sport_BE.Service.Services
 
         public async Task DeleteBranchAsync(int id)
         {
-            var toDeleteObject = await _dBContext.Branches.FirstOrDefaultAsync(_ => _.Id == id);
-            if (toDeleteObject != null)
+            try
             {
-                await _unitOfWork.BranchRepository.DeleteAsync(toDeleteObject);
+                //delete warehouses have BranchId same as Branch.Id
+                var warehouses = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.BranchId == id);
+                await _unitOfWork.WarehouseRepository.DeleteRangeAsync(warehouses);
+
+                //delete orders have BranchId same as Branch.Id
+                var orders = await _unitOfWork.SaleOrderRepository.GetAsync(_ => _.BranchId == id);
+                await _unitOfWork.SaleOrderRepository.DeleteRangeAsync(orders);
+
+                //delete employees have BranchId same as Branch.Id
+                var employees = await _unitOfWork.StaffRepository.GetAsync(_ => _.BranchId == id);
+                await _unitOfWork.StaffRepository.DeleteRangeAsync(employees);
+
+                //delete Branch
+                await _unitOfWork.BranchRepository.DeleteAsync(id);
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
+
         }
 
         public async Task<Branch> GetBranchById(int? id)

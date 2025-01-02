@@ -29,7 +29,7 @@ const UserCart = () => {
     if (token) {
       const customerCartData = await getUserCart(token);
       setCartData(customerCartData);
-      console.log(customerCartData);
+      // console.log(customerCartData);
     }
   };
 
@@ -39,7 +39,11 @@ const UserCart = () => {
 
   const handleRemoveFromCart = async (itemId) => {
     const response = await removeCartItem(itemId, token);
-    // console.log(response);
+    const confirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?"
+    );
+    if (!confirmed) return;
+    toast.success("Xóa sản phẩm khỏi giỏ hàng thành công!");
     getCart();
   };
 
@@ -96,7 +100,7 @@ const UserCart = () => {
 
   const handleCheckout = async () => {
     if (selectedItems.length === 0) {
-      toast.error("Please select at least one item to checkout.");
+      toast.error("Vui lòng chọn ít nhất một sản phẩm để tiếp tục");
       return;
     }
 
@@ -125,7 +129,7 @@ const UserCart = () => {
 
   const handleRental = async () => {
     if (selectedItems.length === 0) {
-      toast.error("Please select at least one item to checkout.");
+      toast.error("Vui lòng chọn ít nhất một sản phẩm để tiếp tục");
       return;
     }
 
@@ -163,6 +167,11 @@ const UserCart = () => {
       toast.error("Có lỗi xảy ra khi kiểm tra số lượng sản phẩm.");
     }
   };
+
+  const isRentalDisabled = selectedItems.some((cartItemId) => {
+    const item = cartData.find((item) => item.cartItemId === cartItemId);
+    return item && item.rentPrice === 0;
+  });
 
   return (
     <div className="container mx-auto px-20 py-10">
@@ -363,8 +372,18 @@ const UserCart = () => {
                 Mua ngay
               </button>
               <button
-                className="bg-rose-700 rounded-md text-white px-4 py-2"
+                className={`rounded-md px-4 py-2 ${
+                  isRentalDisabled
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : "bg-rose-700 text-white"
+                }`}
                 onClick={handleRental}
+                disabled={isRentalDisabled}
+                title={
+                  isRentalDisabled
+                    ? "Có sản phẩm không thể thuê trong giỏ hàng."
+                    : ""
+                }
               >
                 Thuê ngay
               </button>

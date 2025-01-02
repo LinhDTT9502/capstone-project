@@ -27,7 +27,7 @@ export default function SearchOrderDropDown() {
     if (user) {
       navigate("/manage-account/sale-order");
     } else {
-      navigate("/guest-order");
+      navigate("/guest/guest-order");
     }
   };
 
@@ -35,7 +35,7 @@ export default function SearchOrderDropDown() {
     if (user) {
       navigate("/manage-account/user-rental");
     } else {
-      navigate("/guest-rent-order");
+      navigate("/guest/guest-rent-order");
     }
   };
 

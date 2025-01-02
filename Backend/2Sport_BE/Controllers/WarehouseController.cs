@@ -193,5 +193,31 @@ namespace _2Sport_BE.Controllers
             }
 
         }
+
+
+        [HttpPut]
+        [Route("update-quantity-of-warehouse/{warehouseId}")]
+        public async Task<IActionResult> UpdateQuantityOfWarehouse(int warehouseId, int availableQuantity, 
+                                                            int totalQuantity)
+        {
+            try
+            {
+                var updatedWarehouses = (await _warehouseService.GetWarehouseById(warehouseId)).FirstOrDefault();
+                if (updatedWarehouses is null)
+                {
+                    return BadRequest($"Cannot find warehouses with warehouse id: {warehouseId}");
+                }
+
+                updatedWarehouses.TotalQuantity = totalQuantity;
+                updatedWarehouses.AvailableQuantity = availableQuantity;
+                await _warehouseService.UpdateWarehouseAsync(updatedWarehouses);
+                return Ok("Update warehouse successfully!");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+
+        }
     }
 }

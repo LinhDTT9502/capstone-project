@@ -77,8 +77,6 @@ public class OrderDetail
     #region NavigationProperties
     public virtual SaleOrder SaleOrder { get; set; }
 
-    public virtual Product Product { get; set; }
-
     #endregion
 }
 

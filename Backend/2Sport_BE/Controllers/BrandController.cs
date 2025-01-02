@@ -83,9 +83,29 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var brand = await _brandService.GetBrandById(brandId);
-                var result = _mapper.Map<BrandVM>(brand);
-                return Ok(result);
+
+                var brand = (await _brandService.GetBrandById(brandId)).FirstOrDefault();
+                if (brand is not null)
+                {
+                    var warehouses = (await _warehouseService.GetAvailableWarehouse());
+                    var products = new List<Product>();
+                    foreach (var item in warehouses)
+                    {
+                        products.Add(await _productService.GetProductByProductCode(item.ProductCode));
+                    }
+                    brand.Quantity = 0;
+                    foreach (var product in products)
+                    {
+                        if (product.BrandId == brand.Id)
+                        {
+                            brand.Quantity += 1;
+                        }
+                    }
+                    var result = _mapper.Map<BrandVM>(brand);
+                    return Ok(result);
+                }
+                return Ok(new { data = new Brand() });
+                
             }
             catch (Exception e)
             {
@@ -183,28 +203,38 @@ namespace _2Sport_BE.Controllers
 
         }
 
+        [HttpPut]
+        [Route("edit-status/{brandId}")]
+        public async Task<IActionResult> EditStatus(int brandId)
+        {
+            var updatedBrand = (await _brandService.GetBrandById(brandId)).FirstOrDefault();
+            if (updatedBrand != null)
+            {
+                try
+                {
+                    updatedBrand.Status = !updatedBrand.Status;
+
+                    await _brandService.UpdateBrandAsync(updatedBrand);
+                    return Ok("Update brand successfully!");
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, ex.Message);
+                }
+            }
+            return BadRequest($"Cannot find brand with id: {brandId}");
+
+        }
+
         [HttpDelete]
         [Route("delete-brand/{brandId}")]
         public async Task<IActionResult> DeleteBrand(int brandId)
         {
             try
             {
-                var deletedBrand =  (await _brandService.GetBrandById(brandId)).FirstOrDefault();
-                if (deletedBrand != null)
-                {
-                    deletedBrand.Status = !deletedBrand.Status;
-                    await _brandService.UpdateBrandAsync(deletedBrand);
-                    var deletedProducts = await _productService.GetProducts(_ => _.BrandId == brandId);
-                    if (deletedProducts != null)
-                    {
-                        foreach (var product in deletedProducts)
-                        {
-                            await _productService.DeleteProductById(product.Id);
-                        }
-                    }
-                    return Ok($"Delete brand with id: {brandId}!");
-                }
-                return BadRequest($"Cannot find brand with id {brandId}!");
+                await _brandService.DeleteBrandAsync(brandId);
+            
+                return Ok($"Delete brand with id: {brandId}!");
             } catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);

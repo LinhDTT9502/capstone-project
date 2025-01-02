@@ -13,6 +13,7 @@ namespace _2Sport_BE.ViewModels
         public int? Quantity { get; set; }
         public bool? Status { get; set; }
         public string Logo { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
     public class BrandCM : BrandDTO

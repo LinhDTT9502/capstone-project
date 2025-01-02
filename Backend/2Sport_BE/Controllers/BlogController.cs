@@ -87,12 +87,12 @@ namespace _2Sport_BE.Controllers
                 var blogs = await _blogService.GetAllBlogs();
                 foreach (var blog in blogs)
                 {
-                    var createdStaffAccount = await _userService.GetUserById((int)blog.CreatedByStaff.UserId);
-                    blog.CreatedByStaff.User = createdStaffAccount;
+                    var createdStaffAccount = await _userService.GetUserById((int)blog.CreatedByStaff.Id);
+                    blog.CreatedByStaff = createdStaffAccount;
                     if (blog.EditedByStaff != null)
                     {
-                        var editedStaffAccount = await _userService.GetUserById((int)blog.EditedByStaff.UserId);
-                        blog.CreatedByStaff.User = editedStaffAccount;
+                        var editedStaffAccount = await _userService.GetUserById((int)blog.EditedByStaff.Id);
+                        blog.CreatedByStaff = editedStaffAccount;
                     }
 
                 }
@@ -113,12 +113,12 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var blog = await _blogService.GetBlogById(id);
-                var createdStaffAccount = await _userService.GetUserById((int)blog.CreatedByStaff.UserId);
-                blog.CreatedByStaff.User = createdStaffAccount;
+                var createdStaffAccount = await _userService.GetUserById((int)blog.CreatedByStaff.Id);
+                blog.CreatedByStaff = createdStaffAccount;
                 if (blog.EditedByStaff != null)
                 {
-                    var editedStaffAccount = await _userService.GetUserById((int)blog.EditedByStaff.UserId);
-                    blog.CreatedByStaff.User = editedStaffAccount;
+                    var editedStaffAccount = await _userService.GetUserById((int)blog.EditedByStaff.Id);
+                    blog.CreatedByStaff = editedStaffAccount;
                 }
                 var result = _mapper.Map<BlogVM>(blog);
                 return Ok(result);
@@ -254,12 +254,12 @@ namespace _2Sport_BE.Controllers
                 }
                 foreach (var blog in blogs)
                 {
-                    var createdStaffAccount = await _userService.GetUserById((int)blog.CreatedByStaff.UserId);
-                    blog.CreatedByStaff.User = createdStaffAccount;
+                    var createdStaffAccount = await _userService.GetUserById((int)blog.CreatedByStaff.Id);
+                    blog.CreatedByStaff = createdStaffAccount;
                     if (blog.EditedByStaff != null)
                     {
-                        var editedStaffAccount = await _userService.GetUserById((int)blog.EditedByStaff.UserId);
-                        blog.CreatedByStaff.User = editedStaffAccount;
+                        var editedStaffAccount = await _userService.GetUserById((int)blog.EditedByStaff.Id);
+                        blog.CreatedByStaff = editedStaffAccount;
                     }
 
                 }

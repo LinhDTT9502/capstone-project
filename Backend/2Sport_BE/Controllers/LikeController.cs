@@ -62,7 +62,7 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpPost]
-		[Route("like-product/{productCode}")]
+		[Route("like-unlike-product/{productCode}")]
 		public async Task<IActionResult> LikeProduct(string productCode)
 		{
 			try
@@ -73,7 +73,15 @@ namespace _2Sport_BE.Controllers
 				{
 					return Unauthorized();
 				}
-				var user = await _userService.GetUserById(userId);
+
+				var unlikeObject = await _likeService.GetLikeByProductCodeAndUserId(productCode, userId);
+				if (unlikeObject is not null)
+				{
+					await _likeService.DeleteLike(unlikeObject);
+                    return Ok("Unlike product successfully!");
+                }
+
+                var user = await _userService.GetUserById(userId);
 				var products = await _productService.GetProductsByProductCode(productCode);
 				foreach (var product in products)
 				{

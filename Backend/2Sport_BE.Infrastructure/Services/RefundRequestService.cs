@@ -77,7 +77,13 @@ namespace _2Sport_BE.Infrastructure.Services
                             response.Message = "The Sale Order does not belong to any branch.";
                             return response;
                         }
-
+                        var checkExist = await _unitOfwork.RefundRequestRepository.GetObjectAsync(_ => _.SaleOrderCode == refundRequestCM.OrderCode);
+                        if (checkExist != null)
+                        {
+                            response.IsSuccess = false;
+                            response.Message = "This sale order is existed in refund request.";
+                            return response;
+                        }
                         refundRequest = new RefundRequest
                         {
                             SaleOrderCode = saleOrder.SaleOrderCode,
@@ -106,7 +112,13 @@ namespace _2Sport_BE.Infrastructure.Services
                             response.Message = "The Rental Order does not belong to any branch.";
                             return response;
                         }
-
+                        var checkExist = await _unitOfwork.RefundRequestRepository.GetObjectAsync(_ => _.RentalOrderCode == refundRequestCM.OrderCode);
+                        if (checkExist != null)
+                        {
+                            response.IsSuccess = false;
+                            response.Message = "This rental order is existed in refund request.";
+                            return response;
+                        }
                         refundRequest = new RefundRequest
                         {
                             RentalOrderCode = rentalOrder.RentalOrderCode,

@@ -90,10 +90,10 @@ const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
 
   return (
     <Button
-      className="text-white bg-orange-500 w-40 py-3 rounded"
+      className="mt-6 w-full bg-orange-500 text-white py-2 rounded-md"
       onClick={handleCheckout}
     >
-      Checkout
+      Thanh toán
     </Button>
   );
 };

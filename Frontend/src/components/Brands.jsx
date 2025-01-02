@@ -8,7 +8,9 @@ import {
 
 import { fetchBrands } from "../services/brandService";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 
 function ParallaxText({ brands, baseVelocity = 10 }) {
   const baseX = useMotionValue(0);
@@ -24,8 +26,8 @@ function ParallaxText({ brands, baseVelocity = 10 }) {
 
   const repeatCount = Math.ceil(100 / brands.length);
   const repeatedBrands = Array.from({ length: repeatCount }, () => brands).flat();
-  
-    const navigate = useNavigate();
+
+  const navigate = useNavigate();
   const handleBrandClick = (brandId) => {
 
     navigate(`/product?brandID=${brandId}`);
@@ -56,8 +58,8 @@ function ParallaxText({ brands, baseVelocity = 10 }) {
           <img
             key={brand.id}
             src={brand.logo}
-            onClick={() => handleBrandClick(brand.id)} 
-            style={{ cursor: "pointer" }} 
+            onClick={() => handleBrandClick(brand.id)}
+            style={{ cursor: "pointer" }}
             alt={brand.brandName}
             className="object-scale-down w-24 h-full"
           />
@@ -86,14 +88,28 @@ export default function Brands() {
 
   return (
     <div className="flex flex-col px-20">
-    <p className="font-alfa text-orange-500 text-3xl pt-10">
-      {t("brand.name")}
-    </p>
-    {brands.length > 0 ? (
-      <ParallaxText brands={brands} baseVelocity={0.4} />
-    ) : (
-      <p>Loading...</p>
-    )}
-  </div>
+      <div className="flex justify-between">
+        <p className="font-alfa text-orange-500 text-3xl pt-10">
+          {t("brand.name")}
+        </p>
+        <Link
+          to="/product"
+          className="flex items-center text-orange-500 hover:text-orange-600 transition-colors duration-200"
+        >
+          <button className="font-poppins font-semibold mr-2">
+            {t("fearureproduct.viewall")}
+          </button>
+          <FontAwesomeIcon
+            className="pl-2 text-orange-500"
+            icon={faArrowRight}
+          />
+        </Link>
+      </div>
+      {brands.length > 0 ? (
+        <ParallaxText brands={brands} baseVelocity={0.4} />
+      ) : (
+        <p>Loading...</p>
+      )}
+    </div>
   );
 }

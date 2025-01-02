@@ -25,7 +25,7 @@ function ProductPage() {
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(10000000);
+  const [maxPrice, setMaxPrice] = useState(100000000);
   const products = useSelector(selectProducts);
   const location = useLocation();
 
@@ -202,11 +202,6 @@ function ProductPage() {
                     {t("productv2.best_gear")}
                   </span>
                   <br />
-                </div>
-                <div className="absolute top-[85%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-orange-500 p-2">
-                  <span className="text-black font-bold">
-                    {t("productv2.shop_now")}
-                  </span>
                 </div>
               </div>
             </div>

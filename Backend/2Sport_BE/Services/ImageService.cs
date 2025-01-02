@@ -7,6 +7,7 @@ namespace _2Sport_BE.Services
     public interface IImageService
     {
         Task<ImageUploadResult> UploadImageToCloudinaryAsync(IFormFile file);
+        Task<ImageUploadResult> UploadImageToCloudinaryAsync(string filePath);
         Task<ImageUploadResult> UploadImageToCloudinaryAsync(IFormFile file, string folder);
         Task<List<string>> ListImagesAsync(string folderName);
         Task<bool> DeleteAnImage(string fileName);
@@ -32,6 +33,27 @@ namespace _2Sport_BE.Services
                     };
                     uploadResult = await cloudinary.UploadAsync(uploadParams);
                 }
+            }
+
+            return uploadResult;
+        }
+        public async Task<ImageUploadResult> UploadImageToCloudinaryAsync(string filePath)
+        {
+            DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
+            Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
+            cloudinary.Api.Secure = true;
+            var uploadResult = new ImageUploadResult();
+            if (filePath is not null)
+            {
+                
+                var uploadParams = new ImageUploadParams()
+                {
+                    File = new FileDescription(filePath),
+                    UseFilename = true,
+                    UniqueFilename = false,
+                    Overwrite = true
+                };
+                uploadResult = await cloudinary.UploadAsync(uploadParams);
             }
 
             return uploadResult;
@@ -126,5 +148,6 @@ namespace _2Sport_BE.Services
 
 
         }
+
     }
 }

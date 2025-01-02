@@ -75,7 +75,7 @@ public class Product
     [Column("RentPrice", TypeName = "decimal")]
     public decimal? RentPrice { get; set; }
     public bool IsRent { get; set; }
-    [Column("ImgAvatarPath", TypeName = "varchar")]
+    [Column("ImgAvatarPath", TypeName = "varchar(MAX)")]
     [MaxLength(500)]
     public string ImgAvatarPath { get; set; }
 
@@ -84,8 +84,6 @@ public class Product
     public virtual Category? Category { get; set; }
 
     public virtual ICollection<ImagesVideo> ImagesVideos { get; set; } = new List<ImagesVideo>();
-
-    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     public virtual ICollection<Like> Likes { get; set; }

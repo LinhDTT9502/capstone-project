@@ -31,8 +31,16 @@ const AddToCart = ({ product, quantity, selectedColor, selectedSize, selectedCon
   
         if (quantity <= response.availableQuantity) {
           const token = localStorage.getItem("token");
+
+          const itemPayload = {
+            ...product,
+            quantity,
+            selectedColor,
+            selectedSize,
+            selectedCondition,
+          };
           if (!token) {
-            dispatch(addCart(product));
+            dispatch(addCart(itemPayload));
             toast.info(`${product.productName} đã được thêm vào giỏ hàng`);
           } else {
             const addToCartResponse = await addToCart(token, product.id, quantity);

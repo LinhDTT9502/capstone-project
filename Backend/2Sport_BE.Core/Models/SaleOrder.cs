@@ -52,6 +52,11 @@ public class SaleOrder
     [Column("DateOfReceipt")]
     public DateTime? DateOfReceipt { get; set; }
 
+    [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+    [DataType(DataType.DateTime)]
+    [Column("PaymentDate")]
+    public DateTime? PaymentDate { get; set; }
+
     [Column("SubTotal", TypeName = "decimal")]
     public decimal? SubTotal { get; set; }
 
@@ -109,5 +114,6 @@ public class SaleOrder
     public virtual User User { get; set; }
     public virtual Branch Branch { get; set; }
     public virtual ICollection<RefundRequest> RefundRequests { get; set; }
+    public virtual ICollection<Review> Reviews { get; set; }
     #endregion
 }

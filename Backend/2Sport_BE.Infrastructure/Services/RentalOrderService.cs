@@ -152,20 +152,28 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 if (orders != null && orders.Any())
                 {
-                    var resultList = orders.Select(rentalOrder =>
+                    var resultList = new List<RentalOrderVM>();
+
+                    foreach (var rentalOrder in orders)
                     {
                         var result = _mapper.Map<RentalOrderVM>(rentalOrder);
                         MapToRentalOrderVM(rentalOrder, result);
-                        return result;
-                    }).ToList();
+
+                        // Truy vấn child orders
+                        var listChild = await _unitOfWork.RentalOrderRepository.GetAsync(r => r.ParentOrderCode == rentalOrder.RentalOrderCode);
+
+                        result.childOrders = _mapper.Map<List<RentalOrderVM>>(listChild);
+
+                        resultList.Add(result);
+                    }
 
                     response.IsSuccess = true;
                     response.Message = "Orders retrieved successfully";
-                    response.Data = resultList;
+                    response.Data = resultList.ToList();
                 }
                 else
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = $"No orders found for user with ID = {userId}";
                 }
             }
@@ -203,8 +211,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 else
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = "Rental orders are not found";
+                    response.Data = new List<RentalOrderVM>();
                 }
             }
             catch (Exception ex)
@@ -319,6 +328,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 {
                     response.IsSuccess = true;
                     response.Message = $"No orders found";
+                    response.Data = new List<RentalOrderVM>();
                 }
             }
             catch (Exception ex)
@@ -908,6 +918,8 @@ namespace _2Sport_BE.Infrastructure.Services
 
                     order.OrderStatus = (int)RentalOrderStatus.CANCELED;
                     order.Reason = reason;
+                    order.UpdatedAt = DateTime.Now;
+
                     await _unitOfWork.RentalOrderRepository.UpdateAsync(order);
 
                     var childs = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode == order.RentalOrderCode);
@@ -918,6 +930,8 @@ namespace _2Sport_BE.Infrastructure.Services
                         {
                             child.OrderStatus = (int)RentalOrderStatus.CANCELED;
                             child.Reason = reason;
+                            order.UpdatedAt = DateTime.Now;
+
                             await _unitOfWork.RentalOrderRepository.UpdateAsync(child);
                         }
                     }
@@ -1356,6 +1370,9 @@ namespace _2Sport_BE.Infrastructure.Services
             result.PaymentStatus = order.PaymentStatus != null
                 ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(order.PaymentStatus.Value)
                 : "N/A";
+            result.PaymentMethod = order.PaymentMethodId != null
+                ? EnumDisplayHelper.GetEnumDescription<OrderMethods>(order.PaymentMethodId.Value)
+                : "N/A";
             result.DeliveryMethod = _deliveryMethodService.GetDescription(order.DeliveryMethod);
             result.Id = order.Id;
             if (listChild == null || !listChild.Any())
@@ -1503,7 +1520,11 @@ namespace _2Sport_BE.Infrastructure.Services
             rentalOrderVM.ExtensionStatus = rentalOrder.ExtensionStatus != null
                ? EnumDisplayHelper.GetEnumDescription<ExtensionRequestStatus>(rentalOrder.ExtensionStatus.Value)
                : "N/A";
+            rentalOrderVM.PaymentMethod = rentalOrder.PaymentMethodId != null
+               ? EnumDisplayHelper.GetEnumDescription<OrderMethods>(rentalOrder.PaymentMethodId.Value)
+                : "N/A";
             rentalOrderVM.DeliveryMethod = _deliveryMethodService.GetDescription(rentalOrder.DeliveryMethod);
+  
         }
 
         private ValidationResult ValidateStatusTransition(RentalOrder rentalOrder, int newStatus)

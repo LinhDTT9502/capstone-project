@@ -22,7 +22,6 @@ const UserRoutes = () => {
         <Route path="sale-order/:orderCode" element={<UserOrderDetail />} />
         <Route path="user-rental" element={<UserListRental />} />
         <Route path="user-rental/:orderCode" element={<UserRentalDetail />} />
-        <Route path="refund-request" element={<RefundForm />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

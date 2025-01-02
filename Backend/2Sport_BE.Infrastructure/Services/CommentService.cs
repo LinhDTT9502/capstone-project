@@ -21,6 +21,7 @@ namespace _2Sport_BE.Service.Services
         Task<ResponseDTO<int>> UpdateComment (int currUserId, int commentId, Comment newComment);
         Task<ResponseDTO<int>> DeleteComment (int userId, int commentId);
         Task<Comment> GetCommentById(int commentId);
+        Task<IQueryable<Comment>> GetChildComments(int parentCommentId);
     }
     public class CommentService : ICommentService
     {
@@ -55,11 +56,16 @@ namespace _2Sport_BE.Service.Services
             var response = new ResponseDTO<int>();
             try
             {
-                var deletedComment = (await _unitOfWork.CommentRepository.GetAsync(_ => _.Id == commentId)).FirstOrDefault();
+                var deletedComment = (await _unitOfWork.CommentRepository.GetAsync(_ => _.Id == commentId))
+                                                                         .FirstOrDefault();
+
+                var deletedChildComments = (await _unitOfWork.CommentRepository
+                                                         .GetAsync(_ => _.ParentCommentId == commentId));
                 if (deletedComment != null)
                 {
-
-                    if (deletedComment.UserId != userId)
+                    var coordinator = await _unitOfWork.UserRepository.GetAsync(_ => _.Id == userId &&
+                                                                                    _.RoleId == 4);
+                    if (deletedComment.UserId != userId && coordinator is null)
                     {
                         response.Message = "You are not allowed to remove this comment!";
                         response.IsSuccess = false;
@@ -67,6 +73,7 @@ namespace _2Sport_BE.Service.Services
                         return response;
                     }
                     await _unitOfWork.CommentRepository.DeleteAsync(commentId);
+                    await _unitOfWork.CommentRepository.DeleteRangeAsync(deletedChildComments);
                     await _unitOfWork.SaveChanges();
                     response.Message = "Remove comment successfully!";
                     response.IsSuccess = true;
@@ -101,6 +108,15 @@ namespace _2Sport_BE.Service.Services
             return (await _unitOfWork.CommentRepository.GetAsync(_ => !string.IsNullOrEmpty(_.ProductCode)))
                                                        .AsQueryable()
                                                        .Include(_ => _.User);
+        }
+
+        public async Task<IQueryable<Comment>> GetChildComments(int parentCommentId)
+        {
+            return (await _unitOfWork.CommentRepository.GetAndIncludeAsync(_ => !string.IsNullOrEmpty(_.ProductCode) 
+                                                                        && _.ParentCommentId == parentCommentId,
+                                                                            new string[] { "User" }))
+                                           .AsQueryable()
+                                           .Include(_ => _.User);
         }
 
         public async Task<Comment> GetCommentById(int commentId)

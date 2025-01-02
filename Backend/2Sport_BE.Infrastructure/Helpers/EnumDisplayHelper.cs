@@ -16,6 +16,7 @@ namespace _2Sport_BE.Service.Helpers
         { PaymentStatus.PAID, "Đã thanh toán" },
         { PaymentStatus.REFUNDED, "Đã hoàn tiền" },
         { PaymentStatus.CANCELED, "Đã hủy" },
+        { PaymentStatus.FAILED, "Thất bại" },
 
         { OrderStatus.CANCELLED, "Đã hủy" },
         { OrderStatus.PENDING, "Chờ xử lý" },
@@ -32,7 +33,7 @@ namespace _2Sport_BE.Service.Helpers
 
         { RentalOrderStatus.CANCELED, "Đã hủy" },
         { RentalOrderStatus.PENDING, "Chờ xử lý" },
-        { RentalOrderStatus.CONFIRMED, "Đã xác nhận đơn" },
+        { RentalOrderStatus.CONFIRMED, "Đã xác nhận" },
         { RentalOrderStatus.PROCESSING, "Đang xử lý" },
         { RentalOrderStatus.SHIPPED, "Đã giao cho đơn vị vận chuyển" },
         { RentalOrderStatus.DELIVERED, "Đã giao hàng" },
@@ -44,7 +45,7 @@ namespace _2Sport_BE.Service.Helpers
         { RentalOrderStatus.RETURN_REQUESTED, "Yêu cầu trả sản phẩm" },
         { RentalOrderStatus.RETURNED, "Đã trả sản phẩm" },
         { RentalOrderStatus.INSPECTING, "Đang kiểm tra sản phẩm trả" },
-        { RentalOrderStatus.COMPLETED, "Đơn thuê đã kết thúc" },
+        { RentalOrderStatus.COMPLETED, "Đã hoàn thành" },
         { RentalOrderStatus.FAILED, "Xử lý đơn thất bại" },
 
         { DepositStatus.FULL_PAID, "Đã thanh toán cọc 100% tiền thuê" },

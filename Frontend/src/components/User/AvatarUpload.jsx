@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { uploadAvatar } from "../../services/ManageUserService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCamera, faSpinner } from "@fortawesome/free-solid-svg-icons";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 
-const AvatarUpload = ({ userId, onAvatarChange }) => {
+const AvatarUpload = ({ userId, onAvatarChange, imgAvatarPath, setAvatar, fetchUserData }) => {
   const [isUploading, setIsUploading] = useState(false);
 
   const handleFileChange = async (e) => {
@@ -14,8 +14,10 @@ const AvatarUpload = ({ userId, onAvatarChange }) => {
     setIsUploading(true);
     try {
       const response = await uploadAvatar(userId, file);
-      onAvatarChange(response.imgAvatarPath);
-      toast.success("Avatar uploaded successfully!");
+      const newAvatarPath = response.imgAvatarPath;
+      onAvatarChange(newAvatarPath);
+      await fetchUserData(); // Refresh user data to get the latest avatar
+      toast.success("Thay ảnh đại diện thành công!");
     } catch (error) {
       console.error("Error uploading avatar:", error);
       toast.error("Failed to upload avatar. Please try again.");
