@@ -306,9 +306,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 existingUser.FullName = profile.FullName;
                 existingUser.Gender = profile.Gender;
-                existingUser.PhoneNumber = profile.Phone;
+                existingUser.DOB = profile.BirthDate;
                 existingUser.Address = profile.Address;
-                existingUser.UpdatedAt = DateTime.UtcNow;
+                existingUser.UpdatedAt = DateTime.Now;
 
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
                 response.IsSuccess = true;
@@ -559,7 +559,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                         return response;
                     }
-                    existingUser.UpdatedAt = DateTime.UtcNow;
+                    existingUser.UpdatedAt = DateTime.Now;
                     existingUser.Email = resetEmailModel.Email;
                     await _unitOfWork.UserRepository.UpdateAsync(existingUser);
 
