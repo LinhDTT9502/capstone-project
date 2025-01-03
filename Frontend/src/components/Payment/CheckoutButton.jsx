@@ -9,8 +9,6 @@ import axios from "axios";
 const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
-  console.log(selectedOrder);
-  
 
   const handleCheckout = async () => {
     if (!selectedOrder ) {

@@ -12,15 +12,16 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import CancelRentalOrderButton from "./CancelRentalOrderButton";
 
-  const statusColors = {
-    "Chờ xử lý": "bg-yellow-100 text-yellow-800",
-    "Đã xác nhận": "bg-orange-100 text-orange-800",
-    "Đang xử lý": "bg-purple-100 text-purple-800",
-    "Đã giao hàng": "bg-indigo-100 text-indigo-800",
-    "Đã giao cho đơn vị vận chuyển": "bg-blue-100 text-blue-800",
-    "Đã hủy": "bg-red-200 text-red-900",
-    "Đã hoàn thành": "bg-green-100 text-green-800",
-  };
+const statusColors = {
+  "Chờ xử lý": "bg-yellow-100 text-yellow-800",
+  "Đã xác nhận": "bg-orange-100 text-orange-800",
+  "Đang xử lý": "bg-purple-100 text-purple-800",
+  "Đã giao hàng": "bg-indigo-100 text-indigo-800",
+  "Đã giao cho ĐVVC": "bg-blue-100 text-blue-800",
+  "Đã hủy": "bg-red-200 text-red-900",
+  "Đang gia hạn": "bg-fuchsia-200 text-fuchsia-900",
+  "Đã hoàn thành": "bg-green-100 text-green-800",
+};
 
 const paymentStatusColors = {
   "Đang chờ thanh toán": "text-yellow-800",
@@ -143,8 +144,8 @@ export default function UserListRental() {
   };
 
   return (
-    <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
-      <h2 className="text-orange-500 font-bold text-2xl">
+    <div className="container mx-auto pt-2 rounded-lg max-w-5xl">
+      <h2 className="text-orange-500 font-bold text-2xl pb-2">
         Danh sách đơn thuê{" "}
       </h2>
       {/* Trạng thái filter */}
@@ -154,8 +155,9 @@ export default function UserListRental() {
             "Tất cả",
             "Chờ xử lý",
             "Đã xác nhận",
-            "Đã giao cho đơn vị vận chuyển",
+            "Đã giao cho ĐVVC",
             "Đã giao hàng",
+            "Đang gia hạn",
             "Đã hoàn thành",
             "Đã hủy",
           ].map((status) => (
@@ -254,14 +256,18 @@ export default function UserListRental() {
                     (child) => (
                       <div
                         key={child.id}
-                        className="flex p-2 border-b last:border-none cursor-pointer"
+                        className="flex p-2 border-b last:border-none cursor-pointer gap-4"
                       >
-                        <img
-                          src={child.imgAvatarPath || "default-image.jpg"}
-                          alt=" Order"
-                          className="w-24 h-24 object-contain rounded"
-                        />
-                        <div>
+                        {/* Hình ảnh */}
+                        <div className="flex-none">
+                          <img
+                            src={child.imgAvatarPath || "default-image.jpg"}
+                            alt="Order"
+                            className="w-24 h-24 object-contain rounded"
+                          />
+                        </div>
+                        {/* Nội dung */}
+                        <div className="flex-1">
                           <h5 className="font-medium text-base">
                             {child.productName}
                           </h5>
@@ -276,21 +282,30 @@ export default function UserListRental() {
                               currency: "VND",
                             }).format(child.rentPrice)}
                           </p>
-                          <p className="font-medium text-sm">
+                          <p className="font-semibold text-sm">
                             Số lượng: {child.quantity}
+                          </p>
+                          <p className="font-semibold text-sm text-gray-500">
+                            Thời gian thuê:{" "}
+                            {child.rentalStartDate.split("T")[0]} -{" "}
+                            {child.rentalEndDate.split("T")[0]}
                           </p>
                         </div>
                       </div>
                     )
                   )
                 ) : (
-                  <div>
-                    <img
-                      src={parent.imgAvatarPath || "default-image.jpg"}
-                      alt=" Order"
-                      className="w-24 h-24 object-contain rounded"
-                    />
-                    <div>
+                  <div className="flex p-2 gap-4">
+                    {/* Hình ảnh */}
+                    <div className="flex-none">
+                      <img
+                        src={parent.imgAvatarPath || "default-image.jpg"}
+                        alt="Order"
+                        className="w-24 h-24 object-contain rounded"
+                      />
+                    </div>
+                    {/* Nội dung */}
+                    <div className="flex-1">
                       <h3 className="font-medium text-base">
                         {parent.productName}
                       </h3>
@@ -298,15 +313,19 @@ export default function UserListRental() {
                         Màu sắc: {parent.color} - Kích thước: {parent.size} -
                         Tình trạng: {parent.condition}%
                       </p>
-                      <p className="font-medium text-base text-rose-700">
+                      <p className="font-medium text-sm text-rose-700">
                         Giá thuê:{" "}
                         {new Intl.NumberFormat("vi-VN", {
                           style: "currency",
                           currency: "VND",
                         }).format(parent.rentPrice)}
                       </p>
-                      <p className="font-medium text-sm">
+                      <p className="font-semibold text-sm">
                         Số lượng: {parent.quantity}
+                      </p>
+                      <p className="font-semibold text-sm text-gray-500">
+                        Thời gian thuê: {parent.rentalStartDate.split("T")[0]} -{" "}
+                        {parent.rentalEndDate.split("T")[0]}
                       </p>
                     </div>
                   </div>
@@ -334,9 +353,6 @@ export default function UserListRental() {
                       saleOrderId={order.id}
                       setConfirmReload={setConfirmReload}
                     />
-                  )} */}
-                  {/* {order.orderStatus === "Đã hoàn thành" && (
-                    <ReviewSaleOrderButton/>
                   )} */}
                   <Button
                     color="orange"

@@ -6,6 +6,7 @@
         PAID = 2,
         FAILED = 3,
         REFUNDED = 4,
+        DEPOSIT = 5,
         CANCELED = 0
     }
 }

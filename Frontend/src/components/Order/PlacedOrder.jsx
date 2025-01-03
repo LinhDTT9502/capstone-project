@@ -39,12 +39,13 @@ const PlacedOrder = () => {
   const [discountCode, setDiscountCode] = useState("");
   const [note, setNote] = useState("");
 
-const totalPrice = selectedProducts.reduce(
-  (acc, item) => acc + (item.price || 0) ,
-  0
-);
+  const totalPrice = selectedProducts.reduce(
+    (acc, item) => acc + (item.price * item.quantity || 0),
+    0
+  );
 
-
+  console.log(selectedProducts);
+  
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
     // if (event.target.value === "STORE_PICKUP") {
@@ -53,14 +54,13 @@ const totalPrice = selectedProducts.reduce(
   };
 
   const handleOrder = async () => {
-
     setLoading(true);
     try {
       if (!userData.address.trim()) {
         toast.error("Vui lòng nhập địa chỉ giao hàng.");
         return;
       }
-      
+
       if (!userData.fullName.trim()) {
         toast.error("Vui lòng nhập họ và tên!");
         return false;
@@ -77,7 +77,7 @@ const totalPrice = selectedProducts.reduce(
         toast.error("Vui lòng chọn giới tính!");
         return false;
       }
-
+      console.log(selectedProducts)
       const token = localStorage.getItem("token");
       const data = {
         customerInformation: {
@@ -97,7 +97,7 @@ const totalPrice = selectedProducts.reduce(
 
         productInformations: selectedProducts.map((item) => ({
           cartItemId: item.cartItemId || null,
-          productId: item.productId,
+          productId: item.id,
           productName: item.productName,
           productCode: item.productCode,
           quantity: item.quantity,
@@ -120,18 +120,21 @@ const totalPrice = selectedProducts.reduce(
           dispatch(addGuestOrder(response.data));
           // console.log(response.data, "")
         }
-        console.log(response)
+        console.log(response);
         setOrderSuccess(true);
         navigate("/order_success", {
           state: {
             orderID: response.data.saleOrderId,
             orderCode: response.data.orderCode,
+            userId: response.data.userId,
           },
         });
       }
     } catch (error) {
-      console.error("Error during checkout:", error);
-      toast.error("Có lỗi trong quá trình đặt hàng. Vui lòng chờ trong giây lát...");
+      console.error("Error during checkout:", error.response.data.message);
+      toast.error( error.response.data.message ??
+        "Có lỗi trong quá trình đặt hàng. Vui lòng chờ trong giây lát..."
+      );
     } finally {
       setLoading(false);
     }
@@ -205,10 +208,7 @@ const totalPrice = selectedProducts.reduce(
                           <li>Tình trạng: {item.condition}%</li>
                           <li className="text-rose-700">
                             Đơn giá bán:{" "}
-                            {(item.price / item.quantity || 0).toLocaleString(
-                              "vi-VN"
-                            )}
-                            ₫
+                            {(item.price || 0).toLocaleString("vi-VN")}₫
                           </li>
                         </ul>
                       </div>
@@ -222,7 +222,10 @@ const totalPrice = selectedProducts.reduce(
                           </h4>
                           <div className="relative">
                             <p className="inline-block text-sm sm:text-lg font-bold text-orange-600">
-                              {item.price.toLocaleString("vi-VN")} ₫
+                              {(item.price * item.quantity).toLocaleString(
+                                "vi-VN"
+                              )}
+                              ₫
                             </p>
                             {/* Tooltip */}
                             <div
@@ -238,15 +241,13 @@ const totalPrice = selectedProducts.reduce(
                                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mt-2 w-40 sm:w-48 p-2 bg-white text-black text-xs rounded shadow-md border">
                                   <p>
                                     Giá mua:{" "}
-                                    {(
-                                      (item.price || 0) / (item.quantity || 1)
-                                    ).toLocaleString("vi-VN")}{" "}
+                                    {(item.price || 0).toLocaleString("vi-VN")}{" "}
                                     ₫
                                   </p>
                                   <p>× {item.quantity || 1} (số lượng)</p>
                                   <p className="font-semibold text-orange-500">
                                     {(
-                                      (item.price || 0)
+                                      item.price * item.quantity || 0
                                     ).toLocaleString("vi-VN")}{" "}
                                     ₫
                                   </p>

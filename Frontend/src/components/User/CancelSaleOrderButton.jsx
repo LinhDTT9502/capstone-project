@@ -37,7 +37,7 @@ const CancelSaleOrderButton = ({ saleOrderId, setReload }) => {
       <Button
         color="white"
         size="sm"
-        className="w-40 text-red-700  bg-white border border-red-700 rounded-md hover:bg-red-200"
+        className="text-red-700 bg-white border border-red-700 rounded-md hover:bg-red-200"
         onClick={() => {
           setShowModal(true);
         }}

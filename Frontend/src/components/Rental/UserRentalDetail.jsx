@@ -14,17 +14,22 @@ import {
   faTruck,
   faCoins,
   faBolt,
-  faCircleDollarToSlot,
-  faBan,
+
   faVenusMars,
-  faChevronLeft,
-  faAngleRight,
   faDollarSign,
+  faClock,
+  faCheckCircle,
+  faCogs,
+  faFlagCheckered,
+  faArrowsDownToLine,
+  faRecycle,
 } from "@fortawesome/free-solid-svg-icons";
 import StarRating from "../Product/StarRating";
 import { submitReview } from "../../services/reviewService";
-import { Button, Tooltip, Typography, Input } from "@material-tailwind/react";
+import { Button, Tooltip, Typography, Input, Stepper, Step } from "@material-tailwind/react";
 import CancelRentalOrderButton from "../User/CancelRentalOrderButton";
+import DoneRentalOrderButton from "../User/DoneRentalOrderButton";
+import ExtensionRequestButton from "../User/ExtensionRequestButton";
 
 export default function UserRentalDetail() {
   const { orderCode } = useParams();
@@ -37,14 +42,16 @@ export default function UserRentalDetail() {
 
   const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [expandedId, setExpandedId] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+
   const [showExtendedModal, setExtendedShowModal] = useState(false);
   const [reason, setReason] = useState("");
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedChildOrder, setSelectedChildOrder] = useState(null);
   const [extensionDate, setExtensionDate] = useState("");
   const [reload, setReload] = useState(false);
+  const [confirmReload, setConfirmReload] = useState(false);
+  const [extendReload, setExtendReload] = useState(false);
+
 
   const statusColors = {
     "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -55,7 +62,7 @@ export default function UserRentalDetail() {
     "Đã giao cho đơn vị vận chuyển": "bg-indigo-100 text-indigo-800",
     "Bị trì hoãn": "bg-red-100 text-red-800",
     "Đã hủy": "bg-red-200 text-red-900",
-    "Hoàn thành": "bg-teal-100 text-teal-800",
+    "Đã hoàn thành": "bg-teal-100 text-teal-800",
   };
 
   const paymentStatusColors = {
@@ -63,6 +70,20 @@ export default function UserRentalDetail() {
     "Đã đặt cọc": "text-blue-800",
     "Đã thanh toán": "text-green-800",
     "Đã hủy": "btext-red-800",
+  };
+  const ORDER_STEPS = [
+    { id: 1, label: "Chờ Xác Nhận Đơn Hàng" },
+    { id: 2, label: "Đã Xác Nhận Thông Tin" },
+    { id: 3, label: " Đang Xử Lý Đơn Hàng" },
+    { id: 4, label: "Đã Giao Cho ĐVVC" },
+    { id: 5, label: "Đã Nhận Được Hàng" },
+    { id: 9, label: "Đang Gia Hạn" },
+    { id: 14, label: "Đã Hoàn Thành" },
+  ];
+
+  const getCurrentStepIndex = (orderStatus) => {
+    const step = ORDER_STEPS.find((step) => step.id === orderStatus);
+    return step ? ORDER_STEPS.indexOf(step) : -1; 
   };
 
   const fetchOrderDetail = async () => {
@@ -92,7 +113,8 @@ export default function UserRentalDetail() {
 
   useEffect(() => {
     fetchOrderDetail();
-  }, [orderCode, reload]);
+    getCurrentStepIndex();
+  }, [orderCode, reload, confirmReload]);
 
   if (isLoading)
     return (
@@ -120,6 +142,7 @@ export default function UserRentalDetail() {
     totalAmount,
     depositAmount,
     orderStatus,
+    orderStatusId,
     paymentStatus,
     deliveryMethod,
     imgAvatarPath,
@@ -163,80 +186,13 @@ export default function UserRentalDetail() {
       );
       if (!error.response.data.isSuccess) {
         console.log(error.response.data.message);
+
       }
 
       console.log("Request thành công:", response);
     } catch (error) {
       console.error("Request thất bại:", error.response || error.message);
       console.log(error.response.data.message);
-    }
-  };
-
-  const handleCancelOrder = async () => {
-    if (!reason.trim()) {
-      alert("Vui lòng nhập lý do hủy đơn hàng.");
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/request-cancel/${id}?reason=${encodeURIComponent(
-          reason
-        )}`,
-        null, // No request body needed
-        {
-          headers: {
-            accept: "*/*",
-          },
-        }
-      );
-      fetchOrderDetail();
-      alert("Bạn đã hủy đơn hàng thành công");
-      setShowModal(false); // Close the modal after success
-    } catch (error) {
-      console.error("Error cancel order:", error);
-      alert("Failed to cancel the order. Please try again.");
-    }
-  };
-
-  const handleDoneOrder = async () => {
-    console.log("!");
-    if (!orderDetail || !orderDetail.id) {
-      alert("Không tìm thấy thông tin đơn hàng để hoàn tất.");
-      return;
-    }
-
-    const confirmDone = window.confirm(
-      "Bạn có chắc chắn muốn hoàn tất đơn hàng này không?"
-    );
-
-    if (!confirmDone) {
-      return;
-    }
-
-    const newStatus = 5;
-
-    try {
-      const response = await axios.put(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/update-rental-order-status/${id}?orderStatus=${newStatus}`,
-        {},
-        {
-          headers: {
-            accept: "*/*",
-          },
-        }
-      );
-      if (response && response.data.isSuccess) {
-        alert("Đơn hàng của bạn đã được hoàn tất thành công.");
-        // setShowReviewModal(true);
-        fetchOrderDetail();
-      } else {
-        alert("Không thể hoàn tất đơn hàng. Vui lòng thử lại sau.");
-      }
-    } catch (error) {
-      console.error("Error updating order status:", error);
-
-      alert("Đã xảy ra lỗi khi hoàn tất đơn hàng. Vui lòng thử lại sau.");
     }
   };
 
@@ -316,7 +272,8 @@ export default function UserRentalDetail() {
                   hour: "2-digit",
                   minute: "2-digit",
                   second: "2-digit",
-                })} - {orderDetail.paymentMethod}
+                })}{" "}
+                - {orderDetail.paymentMethod}
               </i>
             </p>
             <p className="flex items-center gap-2 mb-2">
@@ -332,158 +289,211 @@ export default function UserRentalDetail() {
 
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
           <div className="py-4 bg-white rounded-md shadow-sm">
+            {/* Stepper */}
+            <div className="mb-16 bg-orange-100">
+              <Stepper
+                activeStep={getCurrentStepIndex(orderStatusId)}
+                className=" p-2 rounded-lg"
+              >
+                {ORDER_STEPS.map((status, index) => (
+                  <Step
+                    key={index}
+                    completed={index < getCurrentStepIndex(orderStatusId)}
+                    className={`${
+                      index < getCurrentStepIndex(orderStatusId)
+                        ? "bg-blue-500 text-wrap w-10 text-green-600"
+                        : "bg-green-600 text-green-600"
+                    }`}
+                  >
+                    <div className="relative flex flex-col items-center">
+                      <div
+                        className={`w-10 h-10 flex items-center justify-center rounded-full ${
+                          index <= getCurrentStepIndex(orderStatusId)
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-300 text-gray-600"
+                        }`}
+                      >
+                        <FontAwesomeIcon
+                          icon={
+                            index === 0
+                              ? faClock
+                              : index === 1
+                              ? faCheckCircle
+                              : index === 2
+                              ? faCogs
+                              : index === 3
+                              ? faTruck
+                              : index === 4
+                              ? faArrowsDownToLine
+                              : index === 5
+                              ? faRecycle
+                              : index === 13
+                              ? faFlagCheckered
+                              : faClock
+                          }
+                          className="text-lg"
+                        />
+                      </div>
+                      <div
+                        className={`absolute top-12 text-xs font-medium text-wrap w-20 text-center ${
+                          index <= getCurrentStepIndex(orderStatusId)
+                            ? "text-green-600"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        {status.label}
+                      </div>
+                    </div>
+                  </Step>
+                ))}
+              </Stepper>
+            </div>
             <div className="flex justify-between items-center">
-              {console.log(orderDetail)}
+              {/* {console.log(orderDetail)} */}
               <h2 className="text-2xl font-bold text-gray-800 flex-1">
-                Chi tiết đơn hàng -{" "}
+                MÃ ĐƠN HÀNG THUÊ -{" "}
                 <span className="text-orange-500">#{rentalOrderCode}</span>
               </h2>
               <div className="flex items-center gap-4">
-                {paymentStatus === "N/A" &&
-                  orderStatus === "Chờ xử lý" &&
-                  orderDetail.deliveryMethod !== "HOME_DELIVERY" && (
-                    <Button
-                      size="sm"
-                      className="w-40 text-green-700  bg-white border border-green-700 rounded-md hover:bg-green-200"
-                      onClick={() =>
-                        navigate("/rental-checkout", {
-                          state: { selectedOrder: orderDetail },
-                        })
-                      }
-                    >
-                      Thanh toán
-                    </Button>
-                  )}
-                {orderDetail.orderStatus === "Chờ xử lý" && (
-                  <CancelRentalOrderButton
-                    rentalOrderId={id}
-                    setReload={setReload}
-                  />
-                )}
+                <h2 className="text-2xl font-semibold  text-gray-800 flex-1">
+                  {orderStatus.toUpperCase()}
+                </h2>
               </div>
             </div>
           </div>
 
           <hr className="mb-5" />
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-700">
-                Thông tin khách hàng
-              </h3>
-              <p className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon
-                  icon={faUser}
-                  className="text-blue-500 fa-sm"
-                />
-                <span className="font-semibold">Tên:</span>
-                <i>{fullName}</i>
-              </p>
-              <p className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon
-                  icon={faVenusMars}
-                  className="text-blue-500 fa-xs"
-                />
-                <span className="font-semibold">Giới tính:</span>
-                <i>{gender}</i>
-              </p>
-              <p className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon
-                  icon={faEnvelope}
-                  className="text-blue-500 fa-sm"
-                />
-                <span className="font-semibold">Email:</span>
-                <i>{email}</i>
-              </p>
-              <p className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon
-                  icon={faPhone}
-                  className="text-blue-500 fa-sm"
-                />
-                <span className="font-semibold">Số điện thoại:</span>
-                <i>{contactPhone}</i>
-              </p>
-              <p className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon
-                  icon={faMapMarkerAlt}
-                  className="text-blue-500"
-                />
-                <span className="font-semibold flex-shrink-0">Địa chỉ:</span>
-                <span className="break-words">
-                  <i>{address}</i>
-                </span>
-              </p>
+          <div className="grid grid-cols-4 gap-6">
+            <div className="col-span-3">
+              {/* Thong tin khach hang */}
+              <div>
+                <h2 className="text-lg font-bold mb-2 text-gray-700">
+                  Thông tin khách hàng
+                </h2>
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={faUser}
+                    className="text-blue-500 fa-sm"
+                  />
+                  <span className="font-base">Tên:</span>
+                  <i>{fullName}</i>
+                </p>
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={faVenusMars}
+                    className="text-blue-500 fa-xs"
+                  />
+                  <span className="font-base">Giới tính:</span>
+                  <i>{gender}</i>
+                </p>
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={faEnvelope}
+                    className="text-blue-500 fa-sm"
+                  />
+                  <span className="font-base">Email:</span>
+                  <i>{email}</i>
+                </p>
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={faPhone}
+                    className="text-blue-500 fa-sm"
+                  />
+                  <span className="font-base">Số điện thoại:</span>
+                  <i>{contactPhone}</i>
+                </p>
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={faMapMarkerAlt}
+                    className="text-blue-500"
+                  />
+                  <span className="font-base flex-shrink-0">Địa chỉ:</span>
+                  <span className="break-words">
+                    <i>{address}</i>
+                  </span>
+                </p>
+              </div>
+              {/* Thong tin don hang */}
+              <div>
+                <h2 className="text-lg font-bold mb-2 text-gray-700">
+                  Thông tin đơn hàng
+                </h2>
+                <p className="flex items-start gap-2 mb-2">
+                  <FontAwesomeIcon icon={faCoins} className="text-blue-500" />
+                  <span className="font-base flex-shrink-0">
+                    Số tiền đặt cọc:{" "}
+                  </span>
+                  <i>
+                    {(depositAmount ? depositAmount : 0).toLocaleString(
+                      "vi-VN"
+                    )}
+                    ₫
+                  </i>
+                </p>
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={faMoneyBillWave}
+                    className="text-blue-500"
+                  />
+                  <span className="font-base">Tình trạng thanh toán:</span>{" "}
+                  <span
+                    className={`py-2 px-2.5 mr-1.5 rounded-full text-xs font-bold ${
+                      paymentStatusColors[paymentStatus] ||
+                      "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {paymentStatus}
+                  </span>
+                </p>
+                <p className="flex items-start gap-2 mb-2 w-full">
+                  <FontAwesomeIcon
+                    icon={faTruck}
+                    className="text-blue-500 fa-sm"
+                  />
+                  <span className="font-base flex-shrink-0">
+                    Phương thức nhận hàng:
+                  </span>
+                  <span className="break-words">
+                    <i>{deliveryMethod}</i>
+                  </span>
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-700">
-                Thông tin đơn hàng
-              </h3>
-              <p className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon
-                  icon={faShoppingCart}
-                  className="text-blue-500"
+            <div className="col-span-1 flex flex-col gap-4">
+              {/* Thanh toan button */}
+              {paymentStatus !== "Đã đặt cọc" &&
+                (orderStatus === "Đã xác nhận" ||
+                  orderStatus === "Chờ xử lý") && (
+                  <Button
+                    size="sm"
+                    className="w-full text-blue-700 bg-white border border-blue-700 rounded-md hover:bg-blue-200"
+                    onClick={() =>
+                      navigate("/rental-checkout", {
+                        state: { selectedOrder: orderDetail },
+                      })
+                    }
+                  >
+                    {console.log(orderDetail)}
+                    Thanh toán
+                  </Button>
+                )}
+              {/* Huy don hang button */}
+              {orderDetail.orderStatus === "Chờ xử lý" && (
+                <CancelRentalOrderButton
+                  rentalOrderId={id}
+                  setReload={setReload}
+                  className="w-full"
                 />
-                <span className="font-semibold">Mã đơn hàng:</span>{" "}
-                <i>{rentalOrderCode}</i>
-              </p>
-              <p className="flex items-start gap-2 mb-2">
-                <FontAwesomeIcon icon={faCoins} className="text-blue-500" />
-                <span className="font-semibold flex-shrink-0">
-                  Số tiền đặt cọc:{" "}
-                </span>
-                <i>
-                  {(depositAmount ? depositAmount : 0).toLocaleString("vi-VN")}₫
-                </i>
-              </p>
-              <p className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon
-                  icon={faMoneyBillWave}
-                  className="text-blue-500"
-                />
-                <span className="font-semibold">Tình trạng thanh toán:</span>{" "}
-                <span
-                  className={`py-2 px-2.5 mr-1.5 rounded-full text-xs font-bold ${
-                    statusColors[paymentStatus] || "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {paymentStatus}
-                </span>
-              </p>
-              <p className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon
-                  icon={faCalendarAlt}
-                  className="text-blue-500"
-                />
-                <span className="font-semibold">Tình trạng đơn hàng:</span>{" "}
-                <span
-                  className={`px-2.5 py-2 mr-5 rounded-full text-xs font-bold ${
-                    statusColors[orderStatus] || "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {orderStatus}
-                </span>
-              </p>
-              {orderDetail.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
-                <button
-                  className={`bg-red-500 text-white font-semibold text-sm rounded-full py-2 px-4 hover:bg-red-600 ${
-                    loading ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  onClick={handleDoneOrder}
-                >
-                  Đã nhận được đơn hàng
-                </button>
               )}
-              <p className="flex items-start gap-2 mb-2 w-full">
-                <FontAwesomeIcon
-                  icon={faTruck}
-                  className="text-blue-500 fa-sm"
+              {/*  Đã nhận hàng button */}
+              {orderDetail.orderStatus === "Đã giao cho ĐVVC" && (
+                <DoneRentalOrderButton
+                  rentalOrderId={orderDetail.id}
+                  setConfirmReload={setConfirmReload}
+                  className="w-full"
                 />
-                <span className="font-semibold flex-shrink-0">
-                  Phương thức nhận hàng:
-                </span>
-                <span className="break-words">
-                  <i>{deliveryMethod}</i>
-                </span>
-              </p>
+              )}
+              {/* REVIEW */}
             </div>
           </div>
         </div>
@@ -527,7 +537,6 @@ export default function UserRentalDetail() {
                         <span className="font-semibold">Giá thuê:</span>{" "}
                         <i>{child.rentPrice.toLocaleString("vi-VN")}₫</i>
                       </p>
-
                       <p>
                         <span className="font-semibold">Kích thước:</span>{" "}
                         <i>{child.size}</i>
@@ -587,7 +596,7 @@ export default function UserRentalDetail() {
                       </svg>
                     </Tooltip>
                   </div>
-                  <button
+                  {/* <button
                     className={`rounded text-white p-2 font-semibold ${
                       orderStatus !== "Đã giao hàng"
                         ? "bg-orange-200 cursor-not-allowed rounded-full"
@@ -602,22 +611,56 @@ export default function UserRentalDetail() {
                     disabled={orderStatus !== "Đã giao hàngg"}
                   >
                     Yêu cầu gia hạn
-                  </button>
+                  </button> */}
+                  {orderStatus === "Đã giao hàng" && (
+                    <ExtensionRequestButton
+                      selectedChildOrde={child}
+                      setExtendReload={setExtendReload}
+                    />
+                  )}
                 </div>
               </div>
             ))
           ) : (
             <div className="bg-gray-100 p-4 rounded-lg shadow-sm">
-              {expandedId === id && (
-                <div>
-                  <input
-                    type="date"
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    min={rentalEndDate.split("T")[0]}
-                  />
-                  <button onClick={() => handleExtendOrder(orderDetail)}>
-                    Xác nhận ngày gia hạn
-                  </button>
+              {orderDetail.extensionStatus === "1" && (
+                <div className="bg-yellow-50 p-1 rounded-lg shadow-sm mb-6">
+                  <p className="flex items-center gap-2">
+                    <FontAwesomeIcon
+                      icon={faBolt}
+                      style={{ color: "#fd7272" }}
+                    />
+                    <span className="font-semibold">
+                      Yêu cầu gia hạn đã được gửi. Vui lòng chờ thông báo từ
+                      nhân viên.
+                    </span>{" "}
+                  </p>
+                </div>
+              )}
+              {orderDetail.extensionStatus === "2" && (
+                <div className="bg-yellow-50 p-1 rounded-lg shadow-sm mb-6">
+                  <p className="flex items-center gap-2">
+                    <FontAwesomeIcon
+                      icon={faBolt}
+                      style={{ color: "#fd7272" }}
+                    />
+                    <span className="font-semibold">
+                      Yêu cầu gia hạn được chấp thuận.
+                    </span>{" "}
+                  </p>
+                </div>
+              )}
+              {orderDetail.extensionStatus === "3" && (
+                <div className="bg-yellow-50 p-1 rounded-lg shadow-sm mb-6">
+                  <p className="flex items-center gap-2">
+                    <FontAwesomeIcon
+                      icon={faBolt}
+                      style={{ color: "#fd7272" }}
+                    />
+                    <span className="font-semibold">
+                      Yêu cầu gia hạn bị từ chối.
+                    </span>{" "}
+                  </p>
                 </div>
               )}
               <div className="flex flex-col md:flex-row gap-4">
@@ -665,6 +708,15 @@ export default function UserRentalDetail() {
                         ).toLocaleDateString()}
                       </i>
                     </p>
+                    {orderDetail.extensionCost != 0 && (
+                      <p>
+                        <span className="font-semibold">Phí gia hạn:</span>{" "}
+                        <i>
+                          {orderDetail.extensionCost.toLocaleString("vi-VN")}₫
+                          (x {orderDetail.extensionDays} ngày)
+                        </i>
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -716,11 +768,11 @@ export default function UserRentalDetail() {
                 </div>
 
                 {/* Button Yêu cầu gia hạn */}
-                <button
-                  className={`rounded text-white p-2 font-semibold ${
+                <Button
+                  className={`p-2 ${
                     orderStatus !== "Đã giao hàng"
-                      ? "bg-orange-200 cursor-not-allowed rounded-full"
-                      : "bg-orange-500 hover:bg-orange-600 rounded-full"
+                      ? "text-yellow-700 bg-white border border-yellow-700 rounded-md hover:bg-yellow-200 cursor-not-allowed"
+                      : "text-yellow-700 bg-white border border-yellow-700 rounded-md hover:bg-yellow-200"
                   }`}
                   onClick={() => {
                     if (orderStatus === "Đã giao hàng") {
@@ -728,10 +780,20 @@ export default function UserRentalDetail() {
                       setExtendedShowModal(true);
                     }
                   }}
-                  disabled={orderStatus !== "Đã giao hàng"}
+                  size="sm"
+                  disabled={
+                    orderStatus !== "Đã giao hàng" ||
+                    orderDetail.extensionStatus === "1"
+                  }
                 >
-                  Yêu cầu gia hạn
-                </button>
+                  {orderDetail.isExtended ? "Đang gia hạn" : "Gia Hạn Sản Phẩm"}
+                </Button>
+
+                {/* <ExtensionRequestButton
+                  selectedChildOrder={orderDetail}
+                  setExtendReload={setExtendReload}
+                />*/}
+                {console.log(orderDetail)}
               </div>
             </div>
           )}

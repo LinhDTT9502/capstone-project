@@ -17,7 +17,7 @@ const statusColors = {
   "Đã xác nhận": "bg-orange-100 text-orange-800",
   "Đang xử lý": "bg-purple-100 text-purple-800",
   "Đã giao hàng": "bg-indigo-100 text-indigo-800",
-  "Đã giao cho đơn vị vận chuyển": "bg-blue-100 text-blue-800",
+  "Đã giao cho ĐVVC": "bg-blue-100 text-blue-800",
   "Đã hủy": "bg-red-200 text-red-900",
   "Đã hoàn thành": "bg-green-100 text-green-800",
 };
@@ -116,7 +116,7 @@ export default function UserOrderStatus() {
     }
   };
   return (
-    <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
+    <div className="container mx-auto pt-2 rounded-lg max-w-5xl">
       <h2 className="text-orange-500 font-bold text-2xl pb-2">
         Danh sách đơn mua{" "}
       </h2>
@@ -129,7 +129,7 @@ export default function UserOrderStatus() {
             "Tất cả",
             "Chờ xử lý",
             "Đã xác nhận",
-            "Đã giao cho đơn vị vận chuyển",
+            "Đã giao cho ĐVVC",
             "Đã giao hàng",
             "Đã hoàn thành",
             "Đã hủy",
@@ -283,15 +283,12 @@ export default function UserOrderStatus() {
                         setReload={setReload}
                       />
                     )}
-                  {order.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
+                  {order.orderStatus === "Đã giao cho ĐVVC" && (
                     <DoneSaleOrderButton
                       saleOrderId={order.id}
                       setConfirmReload={setConfirmReload}
                     />
                   )}
-                  {/* {order.orderStatus === "Đã hoàn thành" && (
-                    <ReviewSaleOrderButton/>
-                  )} */}
                   <Button
                     color="orange"
                     className="w-40 text-white rounded-md hover:bg-orange-700"

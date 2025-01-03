@@ -90,7 +90,7 @@ namespace _2Sport_BE.Controllers
                 }
                 var response = await _saleOrderService.GetSaleOrderDetailsByIdAsync(order.Id);
 
-                if (!response.IsSuccess) return Ok(response);
+                if (response.IsSuccess) return Ok(response);
                 return BadRequest(response);
 
             }

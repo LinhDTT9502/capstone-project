@@ -47,11 +47,21 @@ const SaleOrder = () => {
   };
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // Calculate total price
-  const totalPrice = selectedProducts.reduce(
+  // Calculate subTotal (sum of price * quantity)
+  const subTotal = selectedProducts.reduce(
     (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
     0
   );
+
+  // Calculate totalDiscount (sum of price * discount% * quantity)
+  const totalDiscount = selectedProducts.reduce(
+    (acc, item) =>
+      acc + (item.price || 0) * ((item.discount || 0) / 100) * (item.quantity || 1),
+    0
+  );
+
+  // Calculate totalPrice (subTotal - totalDiscount)
+  const totalPrice = subTotal - totalDiscount;
 
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
@@ -110,9 +120,9 @@ const SaleOrder = () => {
           imgAvatarPath: item.imgAvatarPath,
         })),
         saleCosts: {
-          subTotal: totalPrice,
+          subTotal: subTotal,
           tranSportFee: 0,
-          totalAmount: totalPrice,
+          totalAmount: subTotal,
         },
       };
   
@@ -194,7 +204,7 @@ const SaleOrder = () => {
                           <li>Tình trạng: {item.condition}%</li>
                           <li className="text-rose-700">
                             Đơn giá bán:{" "}
-                            {(item.price / item.quantity || 0).toLocaleString(
+                            {(item.price || 0).toLocaleString(
                               "Vi-vn"
                             )}
                             ₫

@@ -8,13 +8,15 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@material-tailwind/react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import CancelSaleOrderButton from "../components/User/CancelSaleOrderButton";
+import DoneSaleOrderButton from "../components/User/DoneSaleOrderButton";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
   "Đã xác nhận": "bg-orange-100 text-orange-800",
   "Đang xử lý": "bg-purple-100 text-purple-800",
   "Đã giao hàng": "bg-indigo-100 text-indigo-800",
-  "Đã giao cho đơn vị vận chuyển": "bg-blue-100 text-blue-800",
+  "Đã giao cho ĐVVC": "bg-blue-100 text-blue-800",
   "Đã hủy": "bg-red-200 text-red-900",
   "Đã hoàn thành": "bg-green-100 text-green-800",
 };
@@ -35,6 +37,10 @@ const GuestOrder = () => {
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [detailedOrders, setDetailedOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [reload, setReload] = useState(false);
+ const [confirmReload, setConfirmReload] = useState(false);
+
+
   const toggleExpand = (orderId) => {
     setExpandedOrderId((prevOrderId) =>
       prevOrderId === orderId ? null : orderId
@@ -44,22 +50,27 @@ const GuestOrder = () => {
   const fetchAllOrderDetails = async () => {
     const detailedOrderList = []; // Danh sách tạm thời
     for (const order of orders) {
+      console.log(orders)
       const response = await axios.get(
         `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/get-order-by-code?orderCode=${order.saleOrderCode}`,
         { headers: { accept: "*/*" } }
       );
+      const data = response.data.data;
       if (response.data.isSuccess) {
-        detailedOrderList.push(response.data.data);
+
+        detailedOrderList.push(data);
       }
     }
-    setDetailedOrders(detailedOrderList); // Cập nhật danh sách mới
+    setDetailedOrders(detailedOrderList.sort((a, b) => {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        })); // Cập nhật danh sách mới
   };
 
   useEffect(() => {
     if (orders && orders.length > 0) {
       fetchAllOrderDetails();
     }
-  }, [orders]);
+  }, [orders, reload, confirmReload]);
 
   const filteredOrders =
     selectedStatus === "Tất cả"
@@ -121,7 +132,7 @@ const GuestOrder = () => {
     }
   };
   return (
-    <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
+    <div className="container mx-auto pt-2 rounded-lg max-w-5xl">
       <h2 className="text-orange-500 font-bold text-2xl pb-2">
         Danh sách đơn mua{" "}
       </h2>
@@ -134,7 +145,7 @@ const GuestOrder = () => {
             "Tất cả",
             "Chờ xử lý",
             "Đã xác nhận",
-            "Đã giao cho đơn vị vận chuyển",
+            "Đã giao cho ĐVVC",
             "Đã giao hàng",
             "Đã hoàn thành",
             "Đã hủy",
@@ -267,21 +278,33 @@ const GuestOrder = () => {
                   </span>
                 </p>
                 <div className="flex gap-2">
-                  {order.orderStatus === "Chờ xử lý" && (
-                    <CancelSaleOrderButton
-                      saleOrderId={order.id}
-                      setReload={setReload}
-                    />
-                  )}
+                  {order.paymentStatus === "N/A" &&
+                    order.orderStatus === "Chờ xử lý" && (
+                      <Button
+                        size="sm"
+                        className="w-40 text-green-700  bg-white border border-green-700 rounded-md hover:bg-green-200"
+                        onClick={() =>
+                          navigate("/checkout", {
+                            state: { selectedOrder: order },
+                          })
+                        }
+                      >
+                        Thanh toán
+                      </Button>
+                    )}
+                  {order.orderStatus === "Chờ xử lý" &&
+                    order.paymentStatus != "Đã hủy" && (
+                      <CancelSaleOrderButton
+                        saleOrderId={order.id}
+                        setReload={setReload}
+                      />
+                    )}
                   {order.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
                     <DoneSaleOrderButton
                       saleOrderId={order.id}
                       setConfirmReload={setConfirmReload}
                     />
                   )}
-                  {/* {order.orderStatus === "Đã hoàn thành" && (
-                    <ReviewSaleOrderButton/>
-                  )} */}
                   <Button
                     color="orange"
                     className="w-40 text-white rounded-md hover:bg-orange-700"
