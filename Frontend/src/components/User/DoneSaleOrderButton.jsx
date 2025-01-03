@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Button } from "@material-tailwind/react";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
+import ReviewSaleOrderModal from "../Review/ReviewSaleOrderModal";
 
 const DoneSaleOrderButton = ({ saleOrderId, setConfirmReload }) => {
   const [showModal, setShowModal] = useState(false);
+  const [reviewModal, setReviewModal] = useState(false);
 
   const handleDoneOrder = async () => {
     const newStatus = 5;
@@ -23,8 +25,9 @@ const DoneSaleOrderButton = ({ saleOrderId, setConfirmReload }) => {
       
       if (response && response.data.isSuccess) {
         toast.success("Đơn hàng của bạn đã được hoàn tất thành công.");
-              setConfirmReload(true);
+              // setConfirmReload(true);
               setShowModal(false);
+              setReviewModal(true);
       } else {
         alert("Không thể hoàn tất đơn hàng. Vui lòng thử lại sau.");
       }
@@ -33,6 +36,11 @@ const DoneSaleOrderButton = ({ saleOrderId, setConfirmReload }) => {
       alert("Đã xảy ra lỗi khi hoàn tất đơn hàng. Vui lòng thử lại sau.");
     }
   };
+
+  useEffect(() => {
+
+  }, [saleOrderId,reviewModal]);
+
   return (
     <>
       <Button
@@ -72,6 +80,14 @@ const DoneSaleOrderButton = ({ saleOrderId, setConfirmReload }) => {
           </div>
         </div>
       )}
+
+   
+      <ReviewSaleOrderModal 
+      saleOrderId={saleOrderId}
+      setReviewModal={setReviewModal}
+      reviewModal={reviewModal}
+      setConfirmReload={setConfirmReload}
+      />
     </>
   );
 };
