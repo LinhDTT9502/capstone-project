@@ -283,15 +283,12 @@ export default function UserOrderStatus() {
                         setReload={setReload}
                       />
                     )}
-                  {order.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
+                  {order.orderStatus === "Đã giao cho ĐVVC" && (
                     <DoneSaleOrderButton
                       saleOrderId={order.id}
                       setConfirmReload={setConfirmReload}
                     />
                   )}
-                  {/* {order.orderStatus === "Đã hoàn thành" && (
-                    <ReviewSaleOrderButton/>
-                  )} */}
                   <Button
                     color="orange"
                     className="w-40 text-white rounded-md hover:bg-orange-700"

@@ -354,9 +354,6 @@ export default function UserListRental() {
                       setConfirmReload={setConfirmReload}
                     />
                   )} */}
-                  {/* {order.orderStatus === "Đã hoàn thành" && (
-                    <ReviewSaleOrderButton/>
-                  )} */}
                   <Button
                     color="orange"
                     size="sm"

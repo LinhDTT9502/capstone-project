@@ -153,6 +153,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         public string DeliveryMethod { get; set; }
 
+        public int? OrderStatusId {  get; set; }
         public string? OrderStatus { get; set; }
 
         public string? Note { get; set; }

@@ -68,7 +68,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
     {
         public string? FullName { get; set; }
         public string? Gender { get; set; }
-        public string? Phone { get; set; }
+        public string? UserName { get; set; }
         public string? Address { get; set; }
         public DateTime? BirthDate { get; set; }
     }

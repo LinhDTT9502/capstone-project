@@ -633,6 +633,7 @@ namespace _2Sport_BE.Infrastructure.Services
                             : "N/A";
                               
             saleOrderVM.DeliveryMethod = _deliveryMethodService.GetDescription(saleOrder.DeliveryMethod);
+            saleOrderVM.OrderStatusId = saleOrder.OrderStatus;
         }
         #endregion
         public async Task<ResponseDTO<int>> DeleteSaleOrderAsync(int id)
@@ -837,7 +838,7 @@ namespace _2Sport_BE.Infrastructure.Services
                             : "N/A";
 
             result.DeliveryMethod = _deliveryMethodService.GetDescription(order.DeliveryMethod);
-
+            result.OrderStatusId = order.OrderStatus;
             if (order.OrderDetails != null && order.OrderDetails.Count > 0)
             {
                 result.SaleOrderDetailVMs = order.OrderDetails.Select(od => new SaleOrderDetailVM()
@@ -957,7 +958,7 @@ namespace _2Sport_BE.Infrastructure.Services
                             return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
 
                         SaleOrder.OrderStatus = (int)OrderStatus.PENDING;
-                        SaleOrder.UpdatedAt = DateTime.UtcNow;
+                        SaleOrder.UpdatedAt = DateTime.Now;
                         await _unitOfWork.SaleOrderRepository.UpdateAsync(SaleOrder);
                         await transaction.CommitAsync(); 
 

@@ -39,13 +39,13 @@ namespace _2Sport_BE.Repository.Models
         public int CreatedStaffId { get; set; }
 
         [ForeignKey("CreatedStaffId")]
-        public virtual Staff CreatedByStaff { get; set; }
+        public virtual User CreatedByStaff { get; set; }
 
         [Column("EditedByStaffId")]
         public int? EditedByStaffId { get; set; }
 
         [ForeignKey("EditedByStaffId")]
-        public virtual Staff EditedByStaff { get; set; }
+        public virtual User EditedByStaff { get; set; }
 
         public virtual ICollection<Bookmark> Bookmarks { get; set; }
 

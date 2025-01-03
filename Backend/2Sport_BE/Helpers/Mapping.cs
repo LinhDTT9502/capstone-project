@@ -52,10 +52,10 @@ namespace _2Sport_BE.Helpers
                 .ForMember(dest => dest.BlogId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.CreatedByStaffId, opt => opt.MapFrom(src => src.CreatedStaffId))
                 .ForMember(dest => dest.EditedByStaffId, opt => opt.MapFrom(src => src.EditedByStaffId))
-                .ForMember(dest => dest.CreatedByStaffName, opt => opt.MapFrom(src => src.CreatedByStaff.User.UserName))
-                .ForMember(dest => dest.CreatedByStaffFullName, opt => opt.MapFrom(src => src.CreatedByStaff.User.FullName))
-                .ForMember(dest => dest.EditedByStaffName, opt => opt.MapFrom(src => src.EditedByStaff.User.UserName))
-                .ForMember(dest => dest.EditedByStaffFullName, opt => opt.MapFrom(src => src.EditedByStaff.User.FullName))
+                .ForMember(dest => dest.CreatedByStaffName, opt => opt.MapFrom(src => src.CreatedByStaff.UserName))
+                .ForMember(dest => dest.CreatedByStaffFullName, opt => opt.MapFrom(src => src.CreatedByStaff.FullName))
+                .ForMember(dest => dest.EditedByStaffName, opt => opt.MapFrom(src => src.EditedByStaff.UserName))
+                .ForMember(dest => dest.EditedByStaffFullName, opt => opt.MapFrom(src => src.EditedByStaff.FullName))
                 .ReverseMap();
             CreateMap<BlogCM, Blog>();
             CreateMap<BlogUM, Blog>();

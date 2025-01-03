@@ -53,7 +53,7 @@ export default function UserOrderDetail() {
     "Đã xác nhận": "bg-orange-100 text-orange-800",
     "Đang xử lý": "bg-purple-100 text-purple-800",
     "Đã giao hàng": "bg-indigo-100 text-indigo-800",
-    "Đã giao cho đơn vị vận chuyển": "bg-blue-100 text-blue-800",
+    "Đã giao cho ĐVVC": "bg-blue-100 text-blue-800",
     "Đã hủy": "bg-red-200 text-red-900",
     "Đã hoàn thành": "bg-green-100 text-green-800",
     "Đã thanh toán": "bg-green-100 text-green-800",
@@ -431,7 +431,7 @@ export default function UserOrderDetail() {
                   className="w-full"
                 />
               )}
-              {orderStatus === "Đã giao cho đơn vị vận chuyển" && (
+              {orderStatus === "Đã giao cho ĐVVC" && (
                 <DoneSaleOrderButton
                   saleOrderId={id}
                   setConfirmReload={setConfirmReload}
