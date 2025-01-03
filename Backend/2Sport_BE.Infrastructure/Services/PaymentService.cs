@@ -306,21 +306,12 @@ namespace _2Sport_BE.Infrastructure.Services
 
                     var childOrders = await _unitOfWork.RentalOrderRepository
                                        .GetAsync(od => od.ParentOrderCode == rentalOrder.RentalOrderCode);
-                    if (rentalOrder.BranchId != null)
+                    if (rentalOrder.BranchId != null) //Đơn đã thuộc về chi nhánh
                     {
                         if (childOrders.Any())
                         {
                             foreach (var item in childOrders)
                             {
-                                item.PaymentStatus = (int)PaymentStatus.CANCELED;
-                                item.DepositStatus = (int)DepositStatus.NOT_PAID;
-                                item.OrderStatus = (int)RentalOrderStatus.CANCELED;
-                                item.DepositDate = DateTime.Now;
-                                item.PaymentDate = DateTime.Now;
-                                item.UpdatedAt = DateTime.Now;
-
-                                item.TransactionId = item.ParentOrderCode;
-
                                 var productInWarehouse = await _unitOfWork.WarehouseRepository
                                     .GetObjectAsync(wh => wh.ProductId == item.ProductId && wh.BranchId == item.BranchId);
                                 if (productInWarehouse != null)
@@ -328,7 +319,13 @@ namespace _2Sport_BE.Infrastructure.Services
                                     productInWarehouse.AvailableQuantity += item.Quantity;
                                     await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
                                 }
-                                item.UpdatedAt = DateTime.UtcNow;
+
+                                item.PaymentStatus = (int)PaymentStatus.CANCELED;
+                                item.DepositStatus = (int)DepositStatus.NOT_PAID;
+                                item.TransactionId = item.ParentOrderCode;
+                                item.DepositDate = DateTime.Now;
+                                item.PaymentDate = DateTime.Now;
+                                item.UpdatedAt = DateTime.Now;
                                 await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
                             }
                         }
@@ -342,18 +339,16 @@ namespace _2Sport_BE.Infrastructure.Services
                                 await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
                             }
                         }
-
                     }
 
                     rentalOrder.TransactionId = rentalOrder.ParentOrderCode;
                     rentalOrder.PaymentStatus = (int)PaymentStatus.CANCELED;
                     rentalOrder.DepositStatus = (int)PaymentStatus.CANCELED;
-                    rentalOrder.OrderStatus = (int)RentalOrderStatus.CANCELED;
+
                     rentalOrder.DepositDate = DateTime.Now;
                     rentalOrder.PaymentDate = DateTime.Now;
                     rentalOrder.UpdatedAt = DateTime.Now;
                     await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
-
 
                     await _notificationService.NotifyPaymentCancellation(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
                     await transaction.CommitAsync();
@@ -378,6 +373,10 @@ namespace _2Sport_BE.Infrastructure.Services
                 if (rentalOrder.DepositStatus == (int)DepositStatus.PARTIALLY_PENDING) rentalOrder.DepositStatus = (int)DepositStatus.PARTIALLY_PENDING;
                 else rentalOrder.DepositStatus = (int)DepositStatus.FULL_PAID;
 
+                rentalOrder.PaymentStatus = (int)PaymentStatus.DEPOSIT;
+
+
+                rentalOrder.PaymentDate = DateTime.Now;
                 rentalOrder.DepositDate = DateTime.Now;
                 rentalOrder.UpdatedAt = DateTime.Now;
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
@@ -578,7 +577,6 @@ namespace _2Sport_BE.Infrastructure.Services
                 {
                     saleOrder.TransactionId = response.Data.TxnRef;
                     saleOrder.PaymentStatus = (int)PaymentStatus.CANCELED;
-                    saleOrder.OrderStatus = (int)OrderStatus.CANCELLED;
                     saleOrder.PaymentDate = DateTime.Now;
                     saleOrder.UpdatedAt = DateTime.Now;
 
@@ -624,7 +622,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 : DepositStatus.CANCELED;
 
             PaymentStatus paymentStatus = response.Data.TransactionStatus == "00"
-                ? PaymentStatus.PENDING
+                ? PaymentStatus.DEPOSIT
                 : PaymentStatus.CANCELED;
 
             var childOrders = await _unitOfWork.RentalOrderRepository
@@ -637,13 +635,6 @@ namespace _2Sport_BE.Infrastructure.Services
                     {
                         foreach (var item in childOrders)
                         {
-                            item.PaymentStatus = (int)paymentStatus;
-                            item.DepositStatus = (int)newDepositStatus;
-                            item.OrderStatus = (int)RentalOrderStatus.CANCELED;
-                            item.TransactionId = response.Data.TxnRef;
-                            item.DepositDate = DateTime.Now;
-                            item.UpdatedAt = DateTime.Now;
-
                             var productInWarehouse = await _unitOfWork.WarehouseRepository
                                 .GetObjectAsync(wh => wh.ProductId == item.ProductId && wh.BranchId == item.BranchId);
                             if (productInWarehouse != null)
@@ -651,12 +642,18 @@ namespace _2Sport_BE.Infrastructure.Services
                                 productInWarehouse.AvailableQuantity += item.Quantity;
                                 await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
                             }
-                            item.UpdatedAt = DateTime.Now;
+
+                            item.PaymentStatus = (int)paymentStatus;
+                            item.DepositStatus = (int)newDepositStatus;
                             item.TransactionId = response.Data.TxnRef;
+
+                            item.PaymentDate = DateTime.Now;
+                            item.DepositDate = DateTime.Now;
+                            item.UpdatedAt = DateTime.Now;
                             await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
                         }
                     }
-                    else//completed
+                    else
                     {
                         var productInWarehouse = await _unitOfWork.WarehouseRepository
                                .GetObjectAsync(wh => wh.ProductId == rentalOrder.ProductId && wh.BranchId == rentalOrder.BranchId);
@@ -670,11 +667,12 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 rentalOrder.PaymentStatus = (int)paymentStatus;
                 rentalOrder.DepositAmount = (int)newDepositStatus;
-                rentalOrder.OrderStatus = (int)RentalOrderStatus.CANCELED;
+                rentalOrder.TransactionId = response.Data.TxnRef;
+
+                rentalOrder.PaymentDate = DateTime.Now;
                 rentalOrder.DepositDate = DateTime.Now;
                 rentalOrder.UpdatedAt = DateTime.Now;
 
-                rentalOrder.TransactionId = response.Data.TxnRef;
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                 await _notificationService.NotifyPaymentCancellation(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
@@ -687,6 +685,8 @@ namespace _2Sport_BE.Infrastructure.Services
                 rentalOrder.PaymentStatus = (int)paymentStatus;
                 rentalOrder.DepositAmount = response.Data.Amount;
                 rentalOrder.TransactionId = response.Data.TxnRef;
+
+                rentalOrder.PaymentDate= DateTime.Now;
                 rentalOrder.DepositDate = DateTime.Now;
                 rentalOrder.UpdatedAt = DateTime.Now;
 

@@ -578,7 +578,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     parentOrder.DeliveryMethod = rentalOrderUM.DeliveryMethod;
 
                     parentOrder.Note = rentalOrderUM.Note;
-                    parentOrder.UpdatedAt = DateTime.UtcNow;
+                    parentOrder.UpdatedAt = DateTime.Now;
 
                     var childList = new List<RentalOrder>();
                     if (rentalOrderUM.ProductInformations.Count == 1) //cập nhật đơn thuê 1 sản phẩm
@@ -1113,7 +1113,7 @@ namespace _2Sport_BE.Infrastructure.Services
                             return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
 
                         rentalOrder.OrderStatus = (int)RentalOrderStatus.PENDING;
-                        rentalOrder.UpdatedAt = DateTime.UtcNow;
+                        rentalOrder.UpdatedAt = DateTime.Now;
                         await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                         await transaction.CommitAsync();
@@ -1150,7 +1150,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         var childOrder = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode.Equals(rentalOrder.RentalOrderCode));
 
                         rentalOrder.OrderStatus = (int)RentalOrderStatus.PENDING;
-                        rentalOrder.UpdatedAt = DateTime.UtcNow;
+                        rentalOrder.UpdatedAt = DateTime.Now;
 
                         rentalOrder.BranchId = null;
 
@@ -1160,7 +1160,7 @@ namespace _2Sport_BE.Infrastructure.Services
                             {
                                 item.OrderStatus = (int)RentalOrderStatus.PENDING;
                                 item.BranchId = null;
-                                item.UpdatedAt = DateTime.UtcNow;
+                                item.UpdatedAt = DateTime.Now;
                                 await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
                             }
                         }
@@ -1269,25 +1269,35 @@ namespace _2Sport_BE.Infrastructure.Services
                 if (rentalOrder == null)
                     return new ResponseDTO<int>
                     {
-                        IsSuccess = false,
+                        IsSuccess = true,
                         Message = "Order not found."
                     };
 
                 if (rentalOrder.ExtensionStatus != (int)ExtensionRequestStatus.PENDING)
                     return new ResponseDTO<int>
                     {
-                        IsSuccess = false,
+                        IsSuccess = true,
                         Message = "No pending extension request found."
                     };
+                var orderExtensionCost = rentalOrder.RentPrice * rentalOrder.ExtensionDays * rentalOrder.Quantity;
+
+                var parentOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(r => r.RentalOrderCode == rentalOrder.ParentOrderCode);
+                if(parentOrder != null)
+                {
+                    parentOrder.OrderStatus = (int)RentalOrderStatus.EXTENSION_REQUESTED;
+                    parentOrder.ExtensionCost += orderExtensionCost;
+                    parentOrder.UpdatedAt = DateTime.Now;
+                    await _unitOfWork.RentalOrderRepository.UpdateAsync(parentOrder);
+                }
 
                 rentalOrder.ExtensionStatus = (int)ExtensionRequestStatus.APPROVED;
+                rentalOrder.OrderStatus = (int)RentalOrderStatus.EXTENSION_REQUESTED;
                 rentalOrder.IsExtended = true;
-
                 rentalOrder.ExtendedDueDate = rentalOrder.RentalEndDate.Value.AddDays(rentalOrder.ExtensionDays.Value);
-                rentalOrder.ExtensionCost = rentalOrder.RentPrice * rentalOrder.ExtensionDays * rentalOrder.Quantity;
-
+                rentalOrder.ExtensionCost = orderExtensionCost;
+                rentalOrder.UpdatedAt = DateTime.Now;
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
-
+                
                 return new ResponseDTO<int>
                 {
                     IsSuccess = true,
@@ -1375,6 +1385,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 : "N/A";
             result.DeliveryMethod = _deliveryMethodService.GetDescription(order.DeliveryMethod);
             result.Id = order.Id;
+            result.OrderStatusId = order.OrderStatus;
             if (listChild == null || !listChild.Any())
             {
                 listChild = new List<RentalOrder>();
@@ -1524,7 +1535,7 @@ namespace _2Sport_BE.Infrastructure.Services
                ? EnumDisplayHelper.GetEnumDescription<OrderMethods>(rentalOrder.PaymentMethodId.Value)
                 : "N/A";
             rentalOrderVM.DeliveryMethod = _deliveryMethodService.GetDescription(rentalOrder.DeliveryMethod);
-  
+            rentalOrderVM.OrderStatusId = rentalOrder.OrderStatus;
         }
 
         private ValidationResult ValidateStatusTransition(RentalOrder rentalOrder, int newStatus)
