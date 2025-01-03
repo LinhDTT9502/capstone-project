@@ -36,7 +36,8 @@ const DoneSaleOrderButton = ({ saleOrderId, setConfirmReload }) => {
   return (
     <>
       <Button
-        className={`w-40 text-green-700 bg-white border border-green-700 rounded-md hover:bg-green-200`}
+        size="sm"
+        className={`text-green-700 bg-white border border-green-700 rounded-md hover:bg-green-200`}
         onClick={() => setShowModal(true)}
       >
         Đã nhận hàng

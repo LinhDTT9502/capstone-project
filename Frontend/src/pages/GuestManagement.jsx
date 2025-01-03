@@ -42,10 +42,9 @@ function GuestManagement() {
           </nav>
 
           {/* Content Area */}
-          <div className="flex-1 bg-white shadow-lg rounded-lg p-6">
+          <div className="flex-1 bg-white shadow-lg rounded-lg p-6 h-max">
             <Outlet />
           </div>
-
         </div>
       </div>
     </div>

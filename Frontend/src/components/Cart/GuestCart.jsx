@@ -105,12 +105,13 @@ const GuestCart = () => {
   };
 
   const totalItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
+
   const totalPrice = selectedItems.reduce((acc, id) => {
     const item = cartData.find((item) => item.id === id);
-    return acc + item.price;
+    return acc + item.price * item.quantity;
   }, 0);
 
-  const handleCheckout = async () => {
+  const handleSalePlaceOrder = async () => {
     if (selectedItems.length === 0) {
       toast.error("Bạn cần phải chọn ít nhất một sản phẩm");
       return;
@@ -139,7 +140,7 @@ const GuestCart = () => {
     }
   };
 
-  const handleRental = async () => {
+  const handleRentalPlaceOrder = async () => {
     if (selectedItems.length === 0) {
       toast.error("Bạn cần phải chọn ít nhất một sản phẩm");
       return;
@@ -167,6 +168,11 @@ const GuestCart = () => {
       toast.error("Có lỗi xảy ra khi kiểm tra số lượng sản phẩm.");
     }
   };
+
+    const isRentalDisabled = selectedItems.some((cartItemId) => {
+      const item = cartData.find((item) => item.id === cartItemId);
+      return item && item.rentPrice === 0;
+    });
 
   return (
     <div className="container mx-auto px-20 py-10">
@@ -328,14 +334,24 @@ const GuestCart = () => {
             </Link>
             <div className="space-x-5 items-center">
               <button
-                className="bg-orange-500 rounded-md text-white px-4 py-2 "
-                onClick={handleCheckout}
+                className="bg-orange-500 rounded-md text-white px-4 py-2"
+                onClick={handleSalePlaceOrder}
               >
                 Mua ngay
               </button>
               <button
-                className="bg-rose-800 rounded-md text-white px-4 py-2"
-                onClick={handleRental}
+                className={`rounded-md px-4 py-2 ${
+                  isRentalDisabled
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : "bg-rose-700 text-white"
+                }`}
+                onClick={handleRentalPlaceOrder}
+                disabled={isRentalDisabled}
+                title={
+                  isRentalDisabled
+                    ? "Có sản phẩm không thể thuê trong giỏ hàng."
+                    : ""
+                }
               >
                 Thuê ngay
               </button>

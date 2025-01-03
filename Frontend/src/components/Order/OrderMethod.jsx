@@ -80,7 +80,7 @@ const   OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChan
 
     const handleBranchChange = (branchId) => {
         setSelectedBranchId(branchId);
-        console.log("Selected Branch ID:", branchId);
+        // console.log("Selected Branch ID:", branchId);
     };
     const handleAddressChange = (fullAddress) => {
         setUserData((prevData) => ({ ...prevData, address: fullAddress }));

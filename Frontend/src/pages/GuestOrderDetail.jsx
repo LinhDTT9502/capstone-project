@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { Button, Tooltip, Typography } from "@material-tailwind/react";
+import { Button, Step, Stepper, Tooltip, Typography } from "@material-tailwind/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
@@ -15,29 +15,16 @@ import {
   faBolt,
   faDollarSign,
   faVenusMars,
+  faClock,
+  faCheckCircle,
+  faCogs,
+  faArrowsDownToLine,
+  faFlagCheckered,
 } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import CancelSaleOrderButton from "../components/User/CancelSaleOrderButton";
 import DoneSaleOrderButton from "../components/User/DoneSaleOrderButton";
 import StarRating from "../components/Product/StarRating";
-
-const statusColors = {
-  "Chờ xử lý": "bg-yellow-100 text-yellow-800",
-  "Đã xác nhận đơn": "bg-orange-100 text-orange-800",
-  "Đã thanh toán": "bg-green-100 text-green-800",
-  "Đang xử lý": "bg-purple-100 text-purple-800",
-  "Đã giao hàng": "bg-indigo-100 text-indigo-800",
-  "Bị trì hoãn": "bg-red-100 text-red-800",
-  "Đã hủy": "bg-red-200 text-red-900",
-  "Hoàn thành": "bg-teal-100 text-teal-800",
-};
-
-const paymentStatusColors = {
-  "Đang chờ thanh toán": "text-yellow-800",
-  "Đã đặt cọc": "text-orange-800",
-  "Đã thanh toán": "text-green-800",
-  "Đã hủy": "text-red-800",
-};
 
 const GuestOrderDetail = () => {
   const { state } = useLocation();
@@ -51,10 +38,15 @@ const GuestOrderDetail = () => {
   const [loading, setLoading] = useState(false);
   const [orderDetail, setOrderDetail] = useState(null);
   const [error, setError] = useState("");
-  const [confirmReload, setConfirmReload] = useState(false)
+  const [confirmReload, setConfirmReload] = useState(false);
   const [reload, setReload] = useState(false);
   const products = orderDetail?.saleOrderDetailVMs?.$values || [];
-  {console.log(order);}
+
+  const getCurrentStepIndex = (orderStatus) => {
+    const step = ORDER_STEPS.find((step) => step.id === orderStatus);
+    return step ? ORDER_STEPS.indexOf(step) : -1;
+  };
+
   if (!order) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -78,6 +70,31 @@ const GuestOrderDetail = () => {
     );
   }
 
+  const statusColors = {
+    "Chờ xử lý": "text-yellow-800",
+    "Đã xác nhận": "text-orange-800",
+    "Đang xử lý": "text-purple-800",
+    "Đã giao hàng": "text-indigo-800",
+    "Đã giao cho đơn vị vận chuyển": "text-blue-800",
+    "Đã hủy": "text-red-800",
+    "Đã hoàn thành": "text-green-800",
+    "Đã thanh toán": "bg-teal-100 text-teal-800",
+  };
+  const paymentStatusColors = {
+    "Đang chờ thanh toán": "text-yellow-800",
+    "Đã đặt cọc": "text-orange-800",
+    "Đã thanh toán": "text-green-800",
+    "Đã hủy": "text-red-800",
+  };
+
+  const ORDER_STEPS = [
+    { id: 1, label: "Chờ Xác Nhận Đơn Hàng" },
+    { id: 2, label: "Đã Xác Nhận Thông Tin" },
+    { id: 3, label: "Shop Đang Xử Lý Đơn Hàng" },
+    { id: 4, label: "Đã Giao Cho ĐVVC" },
+    { id: 5, label: "Đã Nhận Được Hàng" },
+    { id: 11, label: "Đã Hoàn Thành" },
+  ];
   useEffect(() => {
     const fetchOrderDetail = async () => {
       try {
@@ -99,49 +116,45 @@ const GuestOrderDetail = () => {
 
     if (orderCode) {
       fetchOrderDetail();
+     getCurrentStepIndex();
     }
   }, [orderCode, reload, confirmReload]);
 
-if (error) {
-  return (
-    <div className="text-center text-red-600">
-      <p>{error}</p>
-      <Link to="/guest-order" className="text-blue-600 underline mt-4 block">
-        Back to Orders
-      </Link>
-    </div>
-  );
-}
+  if (error) {
+    return (
+      <div className="text-center text-red-600">
+        <p>{error}</p>
+        <Link to="/guest-order" className="text-blue-600 underline mt-4 block">
+          Back to Orders
+        </Link>
+      </div>
+    );
+  }
 
-if (!orderDetail) {
-  return (
-    <div className="flex justify-center items-center min-h-screen">
-      <p>Loading order details...</p>
-    </div>
-  );
-}
+  if (!orderDetail) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p>Loading order details...</p>
+      </div>
+    );
+  }
   const {
     id,
-    saleOrderCode,
     fullName,
     email,
     contactPhone,
     address,
+    saleOrderCode,
     paymentStatus,
     orderStatus,
+    orderStatusId,
     deliveryMethod,
     saleOrderDetailVMs,
-    createdAt,
-    totalAmount,
     updatedAt,
+    paymentDate,
+    totalAmount,
   } = orderDetail;
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
-  };
   return (
     <div className="container mx-auto p-4 min-h-screen bg-gray-200">
       <div className="max-w-4xl mx-auto">
@@ -154,7 +167,6 @@ if (!orderDetail) {
             Quay lại
           </button>
         </div>
-
         {orderStatus === "Đã hủy" && (
           <div className="bg-yellow-50 p-4 rounded-lg shadow-sm mb-6">
             <p className="text-xl">
@@ -206,61 +218,100 @@ if (!orderDetail) {
         )}
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
           <div className="py-4 bg-white rounded-md shadow-sm">
+            {/* Stepper */}
+            <div className="mb-16 bg-orange-100">
+              <Stepper
+                activeStep={getCurrentStepIndex(orderStatusId)}
+                className=" p-2 rounded-lg"
+              >
+                {ORDER_STEPS.map((status, index) => (
+                  <Step
+                    key={index}
+                    completed={index < getCurrentStepIndex(orderStatusId)}
+                    className={`${
+                      index < getCurrentStepIndex(orderStatusId)
+                        ? "bg-blue-500 text-wrap w-10 text-green-600"
+                        : "bg-green-600 text-green-600"
+                    }`}
+                  >
+                    <div className="relative flex flex-col items-center">
+                      <div
+                        className={`w-10 h-10 flex items-center justify-center rounded-full ${
+                          index <= getCurrentStepIndex(orderStatusId)
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-300 text-gray-600"
+                        }`}
+                      >
+                        <FontAwesomeIcon
+                          icon={
+                            index === 0
+                              ? faClock
+                              : index === 1
+                              ? faCheckCircle
+                              : index === 2
+                              ? faCogs
+                              : index === 3
+                              ? faTruck
+                              : index === 4
+                              ? faArrowsDownToLine
+                              : index === 11
+                              ? faFlagCheckered
+                              : faClock
+                          }
+                          className="text-lg"
+                        />
+                      </div>
+                      <div
+                        className={`absolute top-12 text-xs font-medium text-wrap w-20 text-center ${
+                          index <= getCurrentStepIndex(orderStatusId)
+                            ? "text-green-600"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        {status.label}
+                      </div>
+                    </div>
+                  </Step>
+                ))}
+              </Stepper>
+            </div>
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-800 flex-1">
-                Chi tiết đơn hàng -{" "}
+                MÃ ĐƠN HÀNG MUA-{" "}
                 <span className="text-orange-500">#{saleOrderCode}</span>
               </h2>
-              <div className="flex items-center gap-4">
-                {paymentStatus === "N/A" && orderStatus === "Chờ xử lý" && (
-                  <Button
-                    size="sm"
-                    className="w-40 text-green-700  bg-white border border-green-700 rounded-md hover:bg-green-200"
-                    onClick={() =>
-                      navigate("/checkout", {
-                        state: { selectedOrder: orderDetail },
-                      })
-                    }
-                  >
-                    Thanh toán
-                  </Button>
-                )}
-                {orderDetail.orderStatus === "Chờ xử lý" && (
-                  <CancelSaleOrderButton
-                    saleOrderId={id}
-                    setReload={setReload}
-                  />
-                )}
+              <div className="flex items-center mr-10">
+                <h2 className="text-2xl font-semibold  text-gray-800 flex-1">
+                  {orderStatus.toUpperCase()}
+                </h2>
               </div>
             </div>
           </div>
           <hr className="mb-5" />
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-700">
+          <div className="grid grid-cols-4 gap-6">
+            <div className="col-span-3">
+              <h2 className="text-lg font-bold mb-2 text-gray-700">
                 Thông tin khách hàng
-              </h3>
-
-              {console.log(orderDetail)}
+              </h2>
               <p className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon icon={faUser} className="text-blue-500" />
-                <span className="font-semibold">Tên:</span> <i>{fullName}</i>
+                <span className="font-base">Tên:</span> <i>{fullName}</i>
               </p>
               <p className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon
                   icon={faVenusMars}
                   className="text-blue-500 fa-xs"
                 />
-                <span className="font-semibold">Giới tính:</span>
+                <span className="font-base">Giới tính:</span>
                 <i>{orderDetail.gender}</i>
               </p>
               <p className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon icon={faEnvelope} className="text-blue-500" />
-                <span className="font-semibold">Email:</span> <i>{email}</i>
+                <span className="font-base">Email:</span> <i>{email}</i>
               </p>
               <p className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon icon={faPhone} className="text-blue-500" />
-                <span className="font-semibold">Số điện thoại:</span>
+                <span className="font-base">Số điện thoại:</span>
                 <i> {contactPhone}</i>
               </p>
               <p className="flex items-start gap-2 mb-2">
@@ -268,70 +319,86 @@ if (!orderDetail) {
                   icon={faMapMarkerAlt}
                   className="text-blue-500"
                 />
-                <span className="font-semibold flex-shrink-0">Địa chỉ:</span>
+                <span className="font-base flex-shrink-0">Địa chỉ:</span>
                 <span className="break-words">
                   <i>{address}</i>
                 </span>
               </p>
+              <div className="pt-2">
+                <h2 className="text-lg font-bold mb-2 text-gray-700">
+                  Thông tin đơn hàng
+                </h2>
+                <p className="flex items-start gap-2 mb-2 w-full">
+                  <FontAwesomeIcon icon={faTruck} className="text-blue-500" />
+                  <span className="font-base flex-shrink-0">
+                    Phương thức nhận hàng:
+                  </span>
+                  <span className="break-words">
+                    <i>{deliveryMethod}</i>
+                  </span>
+                </p>
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={faCalendarAlt}
+                    className="text-blue-500"
+                  />
+                  <span className="font-base">Tình trạng đơn hàng:</span>{" "}
+                  <span
+                    className={`px-4 py-1 mr-5 rounded-full text-sm font-bold ${
+                      statusColors[orderStatus] || "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {orderStatus}
+                  </span>
+                </p>
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={faMoneyBillWave}
+                    className="text-blue-500"
+                  />
+                  <span className="font-base">Tình trạng thanh toán:</span>{" "}
+                  <span
+                    className={`py-1 px-1 mr-1.5 rounded-full text-sm font-bold ${
+                      paymentStatusColors[paymentStatus] ||
+                      "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {paymentStatus}
+                  </span>
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-700">
-                Thông tin đơn hàng
-              </h3>
-              <p className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon
-                  icon={faShoppingCart}
-                  className="text-blue-500"
-                />
-                <span className="font-semibold">Mã đơn hàng:</span>{" "}
-                <i>{saleOrderCode}</i>
-              </p>
-              <p className="flex items-start gap-2 mb-2 w-full">
-                <FontAwesomeIcon icon={faTruck} className="text-blue-500" />
-                <span className="font-semibold flex-shrink-0">
-                  Phương thức nhận hàng:
-                </span>
-                <span className="break-words">
-                  <i>{deliveryMethod}</i>
-                </span>
-              </p>
-              <p className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon
-                  icon={faMoneyBillWave}
-                  className="text-blue-500"
-                />
-                <span className="font-semibold">Tình trạng thanh toán:</span>{" "}
-                <span
-                  className={`py-2 px-2.5 mr-1.5 rounded-full text-xs font-bold ${
-                    statusColors[paymentStatus] || "bg-gray-100 text-gray-800"
-                  }`}
+
+            <div className="col-span-1 flex flex-col gap-4">
+              {orderStatus === "Chờ xử lý" && paymentStatus === "N/A" && (
+                <Button
+                  size="sm"
+                  className="w-full text-blue-700 bg-white border border-blue-700 rounded-md hover:bg-blue-200"
+                  onClick={() =>
+                    navigate("/checkout", {
+                      state: { selectedOrder: orderDetail },
+                    })
+                  }
                 >
-                  {paymentStatus}
-                </span>
-              </p>
-              <p className="flex items-center gap-2 mb-2">
-                <FontAwesomeIcon
-                  icon={faCalendarAlt}
-                  className="text-blue-500"
+                  Thanh toán
+                </Button>
+              )}
+              {orderDetail.orderStatus === "Chờ xử lý" && (
+                <CancelSaleOrderButton
+                  saleOrderId={id}
+                  setReload={setReload}
+                  className="w-full"
                 />
-                <span className="font-semibold">Tình trạng đơn hàng:</span>{" "}
-                <span
-                  className={`px-2.5 py-2 mr-5 rounded-full text-xs font-bold ${
-                    statusColors[orderStatus] || "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {orderStatus}
-                </span>
-              </p>
+              )}
+              {orderStatus === "Đã giao cho ĐVVC" && (
+                <DoneSaleOrderButton
+                  saleOrderId={id}
+                  setConfirmReload={setConfirmReload}
+                  className="w-full"
+                />
+              )}
+              {/* {REVIEW BUTTON} */}
             </div>
-          </div>
-          <div className="flex justify-end items-center gap-3 mt-5">
-            {orderStatus === "Đã giao cho đơn vị vận chuyển" && (
-              <DoneSaleOrderButton
-                saleOrderId={id}
-                setConfirmReload={setConfirmReload}
-              />
-            )}
           </div>
         </div>
 
@@ -440,6 +507,57 @@ if (!orderDetail) {
           </p>
         </div>
       </div>
+      {/* Review Modal */}
+      {/* {showReviewModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-96 max-w-full">
+            <h3 className="text-2xl font-semibold mb-4 text-gray-800">
+              Đánh giá sản phẩm
+            </h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Đánh giá của bạn
+              </label>
+              <StarRating
+                rating={reviewData.star}
+                onRatingChange={(newRating) =>
+                  setReviewData({ ...reviewData, star: newRating })
+                }
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="review"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Nhận xét
+              </label>
+              <textarea
+                id="review"
+                rows="4"
+                className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
+                value={reviewData.review}
+                onChange={(e) =>
+                  setReviewData({ ...reviewData, review: e.target.value })
+                }
+                placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
+              ></textarea>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                color="gray"
+                onClick={() => setShowReviewModal(false)}
+                className="px-4 py-2 rounded-lg"
+              >
+                Hủy
+              </Button>
+              <button onClick={handleSubmitReview}>
+                {loading ? "Đang tiến hành..." : "Gửi đánh giá"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )} */}
     </div>
   );
 };

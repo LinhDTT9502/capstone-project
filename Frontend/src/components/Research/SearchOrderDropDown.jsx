@@ -27,7 +27,7 @@ export default function SearchOrderDropDown() {
     if (user) {
       navigate("/manage-account/sale-order");
     } else {
-      navigate("/guest/guest-order");
+      navigate("/guest/guest-sale-order");
     }
   };
 
