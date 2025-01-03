@@ -102,8 +102,8 @@ const RefundForm = () => {
         toast.warning(response.data.message);
       }
     } catch (error) {
-      console.error("Error submitting refund request:", error);
-      alert("Đã xảy ra lỗi. Vui lòng kiểm tra lại thông tin đơn hàng.");
+        // console.log("Lỗi khi tải đơn hàng:", error.response.data.message);
+      toast.error(error.response.data.message ?? "Đã xảy ra lỗi. Vui lòng kiểm tra lại thông tin đơn hàng.");
       setIsSubmitting(false);
     }
   };
@@ -182,7 +182,7 @@ const RefundForm = () => {
         setgroupedOrders(groupOrders);
       }
     } catch (error) {
-      console.error("Lỗi khi tải đơn hàng:", error);
+      console.log("Lỗi khi tải đơn hàng:", error.response.data.message);
       toast.error("Đã xảy ra lỗi khi tải đơn hàng");
     }
   };

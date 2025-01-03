@@ -204,7 +204,7 @@ const SaleOrder = () => {
                           <li>Tình trạng: {item.condition}%</li>
                           <li className="text-rose-700">
                             Đơn giá bán:{" "}
-                            {(item.price / item.quantity || 0).toLocaleString(
+                            {(item.price || 0).toLocaleString(
                               "Vi-vn"
                             )}
                             ₫

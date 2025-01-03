@@ -213,16 +213,16 @@ const DeliveryAddress = ({
           <Radio
             name="gender"
             label="Anh"
-            value="Male"
+            value="Anh"
             onChange={handleGenderChange}
-            checked={userData.gender === "Male"}
+            checked={userData.gender === "Anh"}
           />
           <Radio
             name="gender"
             label="Chị"
-            value="Female"
+            value="Chị"
             onChange={handleGenderChange}
-            checked={userData.gender === "Female"}
+            checked={userData.gender === "Chị"}
             className="border-2"
           />
         </div>

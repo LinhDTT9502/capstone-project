@@ -19,8 +19,9 @@ const statusColors = {
   "Đã xác nhận": "bg-orange-100 text-orange-800",
   "Đang xử lý": "bg-purple-100 text-purple-800",
   "Đã giao hàng": "bg-indigo-100 text-indigo-800",
-  "Đã giao cho đơn vị vận chuyển": "bg-blue-100 text-blue-800",
+  "Đã giao cho ĐVVC": "bg-blue-100 text-blue-800",
   "Đã hủy": "bg-red-200 text-red-900",
+  "Đang gia hạn": "bg-fuchsia-200 text-fuchsia-900",
   "Đã hoàn thành": "bg-green-100 text-green-800",
 };
 
@@ -40,6 +41,7 @@ export default function GuestRentalOrderList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [reload, setReload] = useState(false);
   const [confirmReload, setConfirmReload] = useState(false);
+
   const fetchAllOrderDetails = async () => {
     const detailedOrderList = []; // Danh sách tạm thời
     for (const order of rentalOrdersList) {
@@ -85,7 +87,7 @@ export default function GuestRentalOrderList() {
     setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
   };
 
-  if (filteredOrders.length === 0) {
+  if (rentalOrdersList.length === 0) {
     return (
       <div className="flex flex-col items-center my-10 py-32">
         <img
@@ -131,7 +133,7 @@ export default function GuestRentalOrderList() {
     }
   };
   return (
-    <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
+    <div className="container mx-auto pt-2 rounded-lg max-w-5xl">
       <h2 className="text-orange-500 font-bold text-2xl pb-2">
         Danh sách đơn thuê{" "}
       </h2>
@@ -142,8 +144,9 @@ export default function GuestRentalOrderList() {
             "Tất cả",
             "Chờ xử lý",
             "Đã xác nhận",
-            "Đã giao cho đơn vị vận chuyển",
+            "Đã giao cho ĐVVC",
             "Đã giao hàng",
+            "Đang gia hạn",
             "Đã hoàn thành",
             "Đã hủy",
           ].map((status) => (
@@ -242,14 +245,18 @@ export default function GuestRentalOrderList() {
                     (child) => (
                       <div
                         key={child.id}
-                        className="flex p-2 border-b last:border-none cursor-pointer"
+                        className="flex p-2 border-b last:border-none cursor-pointer gap-4"
                       >
-                        <img
-                          src={child.imgAvatarPath || "default-image.jpg"}
-                          alt=" Order"
-                          className="w-24 h-24 object-contain rounded"
-                        />
-                        <div>
+                        {/* Hình ảnh */}
+                        <div className="flex-none">
+                          <img
+                            src={child.imgAvatarPath || "default-image.jpg"}
+                            alt="Order"
+                            className="w-24 h-24 object-contain rounded"
+                          />
+                        </div>
+                        {/* Nội dung */}
+                        <div className="flex-1">
                           <h5 className="font-medium text-base">
                             {child.productName}
                           </h5>
@@ -264,21 +271,30 @@ export default function GuestRentalOrderList() {
                               currency: "VND",
                             }).format(child.rentPrice)}
                           </p>
-                          <p className="font-medium text-sm">
+                          <p className="font-semibold text-sm">
                             Số lượng: {child.quantity}
+                          </p>
+                          <p className="font-semibold text-sm text-gray-500">
+                            Thời gian thuê:{" "}
+                            {child.rentalStartDate.split("T")[0]} -{" "}
+                            {child.rentalEndDate.split("T")[0]}
                           </p>
                         </div>
                       </div>
                     )
                   )
                 ) : (
-                  <div>
-                    <img
-                      src={parent.imgAvatarPath || "default-image.jpg"}
-                      alt=" Order"
-                      className="w-24 h-24 object-contain rounded"
-                    />
-                    <div>
+                  <div className="flex p-2 gap-4">
+                    {/* Hình ảnh */}
+                    <div className="flex-none">
+                      <img
+                        src={parent.imgAvatarPath || "default-image.jpg"}
+                        alt="Order"
+                        className="w-24 h-24 object-contain rounded"
+                      />
+                    </div>
+                    {/* Nội dung */}
+                    <div className="flex-1">
                       <h3 className="font-medium text-base">
                         {parent.productName}
                       </h3>
@@ -286,15 +302,19 @@ export default function GuestRentalOrderList() {
                         Màu sắc: {parent.color} - Kích thước: {parent.size} -
                         Tình trạng: {parent.condition}%
                       </p>
-                      <p className="font-medium text-base text-rose-700">
+                      <p className="font-medium text-sm text-rose-700">
                         Giá thuê:{" "}
                         {new Intl.NumberFormat("vi-VN", {
                           style: "currency",
                           currency: "VND",
                         }).format(parent.rentPrice)}
                       </p>
-                      <p className="font-medium text-sm">
+                      <p className="font-semibold text-sm">
                         Số lượng: {parent.quantity}
+                      </p>
+                      <p className="font-semibold text-sm text-gray-500">
+                        Thời gian thuê: {parent.rentalStartDate.split("T")[0]} -{" "}
+                        {parent.rentalEndDate.split("T")[0]}
                       </p>
                     </div>
                   </div>
@@ -311,13 +331,28 @@ export default function GuestRentalOrderList() {
                   </span>
                 </p>
                 <div className="flex gap-2">
+                  {parent.paymentStatus === "N/A" &&
+                    parent.orderStatus === "Chờ xử lý" &&
+                    parent.deliveryMethod !== "HOME_DELIVERY" && (
+                      <Button
+                        size="sm"
+                        className="w-40 text-green-700  bg-white border border-green-700 rounded-md hover:bg-green-200"
+                        onClick={() =>
+                          navigate("/rental-checkout", {
+                            state: { selectedOrder: parent },
+                          })
+                        }
+                      >
+                        Thanh toán
+                      </Button>
+                    )}
                   {parent.orderStatus === "Chờ xử lý" && (
                     <CancelRentalOrderButton
                       rentalOrderId={parent.id}
                       setReload={setReload}
                     />
                   )}
-                  {parent.orderStatus === "Chờ xử lý" && (
+                  {parent.orderStatus === "Đã giao cho ĐVVC" && (
                     <DoneRentalOrderButton
                       rentalOrderId={parent.id}
                       setConfirmReload={setConfirmReload}

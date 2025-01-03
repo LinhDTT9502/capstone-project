@@ -98,7 +98,7 @@ const UserCart = () => {
   }, 0);
   // console.log(cartData);
 
-  const handleCheckout = async () => {
+  const handleSalePlaceOrder = async () => {
     if (selectedItems.length === 0) {
       toast.error("Vui lòng chọn ít nhất một sản phẩm để tiếp tục");
       return;
@@ -127,7 +127,7 @@ const UserCart = () => {
     }
   };
 
-  const handleRental = async () => {
+  const handleRentalPlaceOrder = async () => {
     if (selectedItems.length === 0) {
       toast.error("Vui lòng chọn ít nhất một sản phẩm để tiếp tục");
       return;
@@ -367,7 +367,7 @@ const UserCart = () => {
             <div className="flex space-x-5">
               <button
                 className="bg-orange-500 rounded-md text-white px-4 py-2"
-                onClick={handleCheckout}
+                onClick={handleSalePlaceOrder}
               >
                 Mua ngay
               </button>
@@ -377,7 +377,7 @@ const UserCart = () => {
                     ? "bg-gray-400 text-gray-600 cursor-not-allowed"
                     : "bg-rose-700 text-white"
                 }`}
-                onClick={handleRental}
+                onClick={handleRentalPlaceOrder}
                 disabled={isRentalDisabled}
                 title={
                   isRentalDisabled
