@@ -45,6 +45,8 @@ const totalPrice = selectedProducts.reduce(
 );
 
 
+  console.log(selectedProducts);
+  
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
     // if (event.target.value === "STORE_PICKUP") {

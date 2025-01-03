@@ -323,9 +323,6 @@ export default function GuestRentalOrderList() {
                       setConfirmReload={setConfirmReload}
                     />
                   )}
-                  {/* {order.orderStatus === "Đã hoàn thành" && (
-                    <ReviewSaleOrderButton/>
-                  )} */}
                   <Button
                     color="orange"
                     size="sm"

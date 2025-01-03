@@ -289,9 +289,6 @@ export default function UserOrderStatus() {
                       setConfirmReload={setConfirmReload}
                     />
                   )}
-                  {/* {order.orderStatus === "Đã hoàn thành" && (
-                    <ReviewSaleOrderButton/>
-                  )} */}
                   <Button
                     color="orange"
                     className="w-40 text-white rounded-md hover:bg-orange-700"
