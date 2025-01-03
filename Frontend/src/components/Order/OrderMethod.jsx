@@ -32,9 +32,6 @@ const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange
                     const branchProduct = products.find(
                         (p) => Number(p.productId) === Number(selectedProduct.productId)
                     );
-console.log(products);
-console.log(selectedProduct);
-
 
                     if (!branchProduct) {
                         // If branchProduct is null, the product is unavailable
