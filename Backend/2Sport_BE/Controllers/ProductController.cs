@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.X509.Qualified;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
@@ -1672,6 +1673,119 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        #region Upload images of product
+
+
+        [HttpPost]
+        [Route("create-folder")]
+        public async Task<IActionResult> CreateFolder(string folderName)
+        {
+            try
+            {
+                var isSuccess = await _imageService.CreateFolder(folderName);
+                if (isSuccess.Error is not null)
+                {
+                    return BadRequest($"Create folder failed!, {isSuccess.Error.Message}");
+                }
+                return Ok(isSuccess.Success);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("get-all-folders")]
+        public async Task<IActionResult> GetAllFolders()
+        {
+            try
+            {
+                var folderNames = await _imageService.ListAllFoldersAsync();
+                return Ok(folderNames);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("upload-images")]
+        public async Task<IActionResult> UploadImage(IFormFile[]? imageFiles, string folderName)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+
+                if (imageFiles.Length > 0)
+                {
+                    foreach (var imageFile in imageFiles)
+                    {
+                        if (imageFile == null || imageFile.Length == 0)
+                        {
+                            return BadRequest("No file uploaded.");
+                        }
+                        var uploadResult = await _imageService
+                                                .UploadImageToCloudinaryAsync(imageFile, folderName);
+                        if (uploadResult.Error != null)
+                        {
+                            return BadRequest(uploadResult.Error.Message);
+                        }
+                    }
+                }
+
+                return Ok("upload images successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("get-all-images-in-folder")]
+        public async Task<IActionResult> GetAllImagesInFolder(string folderName)
+        {
+            try
+            {
+                var imageUrls = await _imageService.ListImagesAsync(folderName);
+                return Ok(imageUrls);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpDelete]
+        [Route("delete-an-image-in-folder")]
+        public async Task<IActionResult> DeleteAnImageInFolder(string folderName, string imageUrl)
+        {
+            try
+            {
+                // Extract the file name without the extension
+                string fileName = imageUrl.Substring(imageUrl.LastIndexOf('/') + 1); // Get "2sport-cau-giay.jpg"
+                fileName = fileName.Substring(0, fileName.LastIndexOf('.')); // Remove ".jpg"
+
+                var isSucess = await _imageService.DeleteAnImage(fileName, folderName);
+
+                if (!isSucess)
+                {
+                    return BadRequest("Delete failed");
+                }
+                return Ok("Delete successully!");
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+        #endregion
 
 
         protected int GetCurrentUserIdFromToken()

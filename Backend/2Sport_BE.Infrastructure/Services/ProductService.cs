@@ -241,7 +241,7 @@ namespace _2Sport_BE.Service.Services
                 var query = await _unitOfWork.ProductRepository.GetAsync(filter, orderBy, includeProperties, null, null);
                 // Group by ProductCode and ProductName, then select the first item in each group
                 var distinctProducts = query
-                    .GroupBy(p => new { p.ProductCode, p.ProductName })
+                    .GroupBy(p => new { p.ProductCode })
                     .Select(g => g.First())
                     .Skip((int)(pageIndex * pageSize)).Take((int)pageSize);
                 return distinctProducts.AsQueryable();

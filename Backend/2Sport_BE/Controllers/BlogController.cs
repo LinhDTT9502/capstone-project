@@ -368,7 +368,7 @@ namespace _2Sport_BE.Controllers
 
         // List all images in a folder
         [HttpDelete("delete-image")]
-        public async Task<IActionResult> DeleteImage(string imageUrl)
+        public async Task<IActionResult> DeleteImage(string imageUrl, string folderName)
         {
             try
             {
@@ -383,7 +383,7 @@ namespace _2Sport_BE.Controllers
                 string fileName = imageUrl.Substring(imageUrl.LastIndexOf('/') + 1); // Get "2sport-cau-giay.jpg"
                 fileName = fileName.Substring(0, fileName.LastIndexOf('.')); // Remove ".jpg"
 
-                var isSucess = await _imageService.DeleteAnImage(fileName);
+                var isSucess = await _imageService.DeleteAnImage(fileName, folderName);
 
                 if (!isSucess)
                 {
