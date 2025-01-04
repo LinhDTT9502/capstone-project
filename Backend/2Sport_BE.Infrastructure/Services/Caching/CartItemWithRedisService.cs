@@ -57,8 +57,8 @@ namespace _2Sport_BE.Service.Services.Caching
                     cartItem.UserId = userId;
                     cartItem.ProductId = product.Id;
                     var totalPrice = product.Price * cartItem.Quantity;
-                    cartItem.Price = totalPrice;
-                    _redisCacheService.SetData("CartItems", cartItem, TimeSpan.FromDays(30));
+                    cartItem.UnitPrice = product.Price;
+                    _redisCacheService.SetData("CartItems", cartItem);
                     return cartItem;
                 }
                 else
@@ -138,7 +138,6 @@ namespace _2Sport_BE.Service.Services.Caching
             {
                 var product = (await _unitOfWork.ProductRepository.GetAsync(_ => _.Id == reducedCartItem.ProductId)).FirstOrDefault();
                 reducedCartItem.Quantity -= 1;
-                reducedCartItem.Price -= product.Price;
                 await _unitOfWork.CartItemRepository.UpdateAsync(reducedCartItem);
                 if (reducedCartItem.Quantity == 0)
                 {
@@ -161,7 +160,7 @@ namespace _2Sport_BE.Service.Services.Caching
                 else
                 {
                     updatedCartItem.Quantity = quantity;
-                    updatedCartItem.Price = quantity * product.Price;
+                    updatedCartItem.UnitPrice = product.Price;
                     await _unitOfWork.CartItemRepository.UpdateAsync(updatedCartItem);
                 }
             }
