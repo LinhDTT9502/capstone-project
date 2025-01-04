@@ -17,6 +17,7 @@ namespace _2Sport_BE.Services
         Task<ImageUploadResult> UploadImageToCloudinaryAsync(IFormFile file, string folder);
         Task<List<string>> ListImagesAsync(string folderName);
         Task<bool> DeleteAnImage(string fileName, string folderName);
+        Task<bool> DeleteAFolder(string folderName);
     }
     public class ImageService : IImageService
     {
@@ -218,6 +219,35 @@ namespace _2Sport_BE.Services
             }
 
             return folders;
+        }
+
+        public async Task<bool> DeleteAFolder(string folderName)
+        {
+            try
+            {
+                // Step 1: Set up Cloudinary account credentials
+                var imageUrls = new List<string>();
+                DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
+                Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
+
+                // Step 2: Delete the folder
+                var result = cloudinary.DeleteFolder(folderName);
+
+                // Step 3: Output the result
+                if (result.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
         }
     }
 
