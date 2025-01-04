@@ -130,7 +130,7 @@ namespace _2Sport_BE.Controllers
                         return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
                     }
                     existedCartItem.Quantity = addedCartItemQuantity;
-                    existedCartItem.Price = addedProduct.Price * addedCartItemQuantity;
+                    existedCartItem.UnitPrice = addedProduct.Price;
                     addedCartItem = await _cartItemService.AddExistedCartItem(existedCartItem);
 
                 }

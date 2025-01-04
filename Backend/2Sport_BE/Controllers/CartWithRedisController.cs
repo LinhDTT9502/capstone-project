@@ -162,7 +162,7 @@ namespace _2Sport_BE.Controllers
                         return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
                     }
                     existedCartItem.Quantity = addedCartItemQuantity;
-                    existedCartItem.Price = addedProduct.Price * addedCartItemQuantity;
+                    existedCartItem.UnitPrice = addedCartItemQuantity;
                     _redisCacheService.SetData(_cartItemsKey, listCartItemsInCache);
                     return Ok(existedCartItem);
                     //addedCartItem = await _cartItemService.AddExistedCartItem(existedCartItem);
@@ -209,7 +209,6 @@ namespace _2Sport_BE.Controllers
                                                         .GetAsync(_ => _.Id == reducedCartItem.ProductId))
                                                         .FirstOrDefault();
                     reducedCartItem.Quantity -= 1;
-                    reducedCartItem.Price -= product.Price;
                     if (reducedCartItem.Quantity == 0)
                     {
                         listCartItems.Remove(reducedCartItem);
@@ -262,7 +261,7 @@ namespace _2Sport_BE.Controllers
                 else
                 {
                     updatedCartItem.Quantity = quantity;
-                    updatedCartItem.Price = quantity * product.Price;
+                    updatedCartItem.UnitPrice = product.Price;
                 }
                 _redisCacheService.SetData(_cartItemsKey, listCartItems);
                 return Ok($"Update quantity cart item with id: {cartItemId}");
