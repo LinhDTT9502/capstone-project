@@ -8,6 +8,7 @@ using _2Sport_BE.ViewModels;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using NuGet.Configuration;
 using System.Security.Claims;
 
@@ -138,15 +139,24 @@ namespace _2Sport_BE.Controllers
                     return Unauthorized();
                 }
 
+
                 var newCartItem = _mapper.Map<CartItemCM, CartItem>(cartItemCM);
-                var productInWarehouse = (await _warehouseService.GetWarehouseByProductId(cartItemCM.ProductId))
-                                        .FirstOrDefault();
+
+                var query = (await _warehouseService.GetWarehouseByProductId(cartItemCM.ProductId)).ToList();
+                var availableQuantity = 0;
+                var totalQuantity = 0;
+                foreach (var item in query)
+                {
+                    availableQuantity += (int)item.AvailableQuantity;
+                    totalQuantity += (int)item.TotalQuantity;
+                }
+
                 var addedProduct = (await _productService.GetProductById((int)cartItemCM.ProductId));
-                if (productInWarehouse == null)
+                if (query is null)
                 {
                     return BadRequest("That product is not in warehouse!");
                 }
-                var quantityOfProduct = productInWarehouse.AvailableQuantity;
+                var quantityOfProduct = availableQuantity;
                 var addedCartItemQuantity = cartItemCM.Quantity;
                 var listCartItemsInCache = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey) 
                                                                         ?? new List<CartItem>();
@@ -246,11 +256,19 @@ namespace _2Sport_BE.Controllers
                 {
                     return BadRequest("The warehouse is not exist!");
                 }
-                var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(updatedCartItem.ProductId))
-                        .FirstOrDefault().AvailableQuantity;
-                if (quantity > quantityOfProduct)
+
+                var query = (await _warehouseService.GetWarehouseByProductId(updatedCartItem.ProductId)).ToList();
+                var availableQuantity = 0;
+                var totalQuantity = 0;
+                foreach (var item in query)
                 {
-                    return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
+                    availableQuantity += (int)item.AvailableQuantity;
+                    totalQuantity += (int)item.TotalQuantity;
+                }
+
+                if (quantity > availableQuantity)
+                {
+                    return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {availableQuantity} sản phẩm");
                 }
 
                 var product = await _unitOfWork.ProductRepository.FindAsync(updatedCartItem.ProductId);
@@ -297,12 +315,20 @@ namespace _2Sport_BE.Controllers
                     return BadRequest("The warehouse is not exist!");
                 }
 
-                var quantityOfProduct = (await _warehouseService.GetWarehouseByProductId(cartItem.ProductId))
-                        .FirstOrDefault().AvailableQuantity;
-                if (cartItem.Quantity > quantityOfProduct)
+                var query = (await _warehouseService.GetWarehouseByProductId(cartItem.ProductId)).ToList();
+                var availableQuantity = 0;
+                var totalQuantity = 0;
+                foreach (var item in query)
                 {
-                    return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {quantityOfProduct} sản phẩm");
+                    availableQuantity += (int)item.AvailableQuantity;
+                    totalQuantity += (int)item.TotalQuantity;
                 }
+
+                if (cartItem.Quantity > availableQuantity)
+                {
+                    return BadRequest($"Xin lỗi! Chúng tôi chỉ còn {availableQuantity} sản phẩm");
+                }
+
                 var existedProduct = await _productService.GetProductById(productId);
                 if (existedProduct == null)
                 {
