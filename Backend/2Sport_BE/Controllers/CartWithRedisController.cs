@@ -163,7 +163,7 @@ namespace _2Sport_BE.Controllers
                     }
                     existedCartItem.Quantity = addedCartItemQuantity;
                     existedCartItem.UnitPrice = addedCartItemQuantity;
-                    _redisCacheService.SetData(_cartItemsKey, listCartItemsInCache);
+                    _redisCacheService.SetData(_cartItemsKey, listCartItemsInCache, TimeSpan.FromDays(30));
                     return Ok(existedCartItem);
                     //addedCartItem = await _cartItemService.AddExistedCartItem(existedCartItem);
 
