@@ -1710,6 +1710,25 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpDelete]
+        [Route("delete-a-folder")]
+        public async Task<IActionResult> DeleteAFolder(string folderName)
+        {
+            try
+            {
+                var isSuccess = await _imageService.DeleteAFolder(folderName);
+                if (!isSuccess)
+                {
+                    return BadRequest("Delete folder failed");
+                }
+                return Ok("Delete folder successully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpPost]
         [Route("upload-images")]
         public async Task<IActionResult> UploadImage(IFormFile[]? imageFiles, string folderName)
