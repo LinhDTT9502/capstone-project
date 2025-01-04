@@ -19,6 +19,6 @@ public class Like
     public int? UserId { get; set; }
     public virtual User User { get; set; }
 
-    [Column("ProductCode", TypeName = "nvarchar(15)")]
+    [Column("ProductCode", TypeName = "nvarchar(25)")]
     public string ProductCode { get; set; }
 }
