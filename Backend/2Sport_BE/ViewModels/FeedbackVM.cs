@@ -16,7 +16,7 @@ namespace _2Sport_BE.ViewModels
         public string Email { get; set; }
 
         [Required]
-        [StringLength(50, MinimumLength = 1, ErrorMessage = "Content must be between 1 and 50 characters.")]
+        [StringLength(500, MinimumLength = 1, ErrorMessage = "Content must be between 1 and 500 characters.")]
         public string Content { get; set; }
     }
     public class FeedbackVM : FeedbackDTO
