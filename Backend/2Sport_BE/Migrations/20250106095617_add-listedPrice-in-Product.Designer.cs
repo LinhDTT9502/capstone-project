@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using _2Sport_BE.Repository.Data;
 
@@ -11,9 +12,11 @@ using _2Sport_BE.Repository.Data;
 namespace _2Sport_BE.Migrations
 {
     [DbContext(typeof(TwoSportCapstoneDbContext))]
-    partial class TwoSportCapstoneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250106095617_add-listedPrice-in-Product")]
+    partial class addlistedPriceinProduct
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -506,7 +509,7 @@ namespace _2Sport_BE.Migrations
 
                     b.Property<string>("ProductCode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(25)")
+                        .HasColumnType("nvarchar(15)")
                         .HasColumnName("ProductCode");
 
                     b.Property<int?>("ProductId")
@@ -1654,13 +1657,13 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Blog", b =>
                 {
-                    b.HasOne("_2Sport_BE.Repository.Models.User", "CreatedByStaff")
+                    b.HasOne("_2Sport_BE.Repository.Models.Staff", "CreatedByStaff")
                         .WithMany("CreatedBlogs")
                         .HasForeignKey("CreatedStaffId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("_2Sport_BE.Repository.Models.User", "EditedByStaff")
+                    b.HasOne("_2Sport_BE.Repository.Models.Staff", "EditedByStaff")
                         .WithMany("EditedBlogs")
                         .HasForeignKey("EditedByStaffId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -2079,6 +2082,10 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Staff", b =>
                 {
+                    b.Navigation("CreatedBlogs");
+
+                    b.Navigation("EditedBlogs");
+
                     b.Navigation("ImportHistories");
                 });
 
@@ -2088,11 +2095,7 @@ namespace _2Sport_BE.Migrations
 
                     b.Navigation("CartItems");
 
-                    b.Navigation("CreatedBlogs");
-
                     b.Navigation("Customers");
-
-                    b.Navigation("EditedBlogs");
 
                     b.Navigation("Likes");
 
