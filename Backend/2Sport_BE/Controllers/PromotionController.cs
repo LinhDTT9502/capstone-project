@@ -55,7 +55,7 @@ namespace _2Sport_BE.Controllers
                 foreach (var product in query)
                 {
                     product.Discount = percentDiscount;
-                    product.Price = product.ListedPrice * (100 - percentDiscount);
+                    product.Price = product.ListedPrice * ((100 - percentDiscount) / 100);
                 }
                 await _productService.UpdateProducts(query);
                 return Ok("Create/Update discount for product successfully!");
