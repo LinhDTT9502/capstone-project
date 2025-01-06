@@ -450,7 +450,7 @@ namespace _2Sport_BE.Controllers
             product.IsRent = false;
             product.RentPrice = 0;
             if (productCM.Condition >= 80 &&
-               (productCM.CategoryId == (int)CategoryIDs.BasketballBall ||
+               !(productCM.CategoryId == (int)CategoryIDs.BasketballBall ||
                 productCM.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
             {
                 product.IsRent = true;
@@ -1082,7 +1082,7 @@ namespace _2Sport_BE.Controllers
                             }
 
                             if (product.Condition >= 80 &&
-                               (product.CategoryId == (int)CategoryIDs.BasketballBall ||
+                               !(product.CategoryId == (int)CategoryIDs.BasketballBall ||
                                 product.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
                             {
                                 product.IsRent = true;
@@ -1139,11 +1139,14 @@ namespace _2Sport_BE.Controllers
                                     RentPrice = 0,
                                     ListedPrice = decimal.Parse(priceValue),
                                     Price = decimal.Parse(priceValue),
-                                    CreateAt = DateTime.Now
+                                    CreateAt = DateTime.Now,
+                                    IsRent = false,
                                 };
-                                if (newProduct.IsRent)
+                                if (newProduct.Condition >= 80 &&
+                               !(newProduct.CategoryId == (int)CategoryIDs.BasketballBall ||
+                                newProduct.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
                                 {
-                                    newProduct.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100));
+                                    newProduct.RentPrice = Math.Round((decimal)(newProduct.Price * (decimal)0.1 * newProduct.Condition / 100));
                                 }
 
                                 var existedProductWithProductCodeAndColor = (await _productService
