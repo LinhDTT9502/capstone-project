@@ -5,6 +5,7 @@ using _2Sport_BE.ViewModels;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Sprache;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace _2Sport_BE.Controllers
@@ -55,7 +56,7 @@ namespace _2Sport_BE.Controllers
                 foreach (var product in query)
                 {
                     product.Discount = percentDiscount;
-                    product.Price = product.ListedPrice * ((100 - percentDiscount) / 100);
+                    product.Price = product.ListedPrice * ((100m - percentDiscount) / 100m);
                 }
                 await _productService.UpdateProducts(query);
                 return Ok("Create/Update discount for product successfully!");
