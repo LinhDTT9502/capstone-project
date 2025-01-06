@@ -444,6 +444,7 @@ namespace _2Sport_BE.Controllers
 
 
             var product = _mapper.Map<Product>(productCM);
+            product.Price = productCM.ListedPrice;
             product.CreateAt = DateTime.Now;
             product.Status = true;
             product.IsRent = false;
@@ -541,7 +542,8 @@ namespace _2Sport_BE.Controllers
                         newProduct.Size = productCM.Size;
                         newProduct.Color = productCM.Color;
                         newProduct.Condition = productCM.Condition;
-                        newProduct.Price = productCM.Price;
+                        newProduct.ListedPrice = productCM.ListedPrice;
+                        newProduct.Price = productCM.ListedPrice;
                         newProduct.Height = productCM.Height;
                         newProduct.Weight = productCM.Weight;
                         newProduct.Length = productCM.Length;
@@ -777,7 +779,8 @@ namespace _2Sport_BE.Controllers
                                 newProduct.Size = productCM.Size;
                                 newProduct.Color = productCM.Color;
                                 newProduct.Condition = productCM.Condition;
-                                newProduct.Price = productCM.Price;
+                                newProduct.Price = productCM.ListedPrice;
+                                newProduct.ListedPrice = productCM.ListedPrice;
                                 newProduct.Height = productCM.Height;
                                 newProduct.Weight = productCM.Weight;
                                 newProduct.Length = productCM.Length;
@@ -1045,6 +1048,7 @@ namespace _2Sport_BE.Controllers
                             SportId = sport.Id,
                             ProductName = productNameValue,
                             ProductCode = productCodeValue,
+                            ListedPrice = decimal.TryParse(priceValue, out var listedPrice) ? listedPrice : 0,
                             Price = decimal.TryParse(priceValue, out var price) ? price : 0,
                             Size = sizeValue,
                             Color = colorValue,
@@ -1133,6 +1137,7 @@ namespace _2Sport_BE.Controllers
                                     Color = colorValue,
                                     Condition = int.Parse(conditionValue),
                                     RentPrice = 0,
+                                    ListedPrice = decimal.Parse(priceValue),
                                     Price = decimal.Parse(priceValue),
                                     CreateAt = DateTime.Now
                                 };
@@ -1502,7 +1507,8 @@ namespace _2Sport_BE.Controllers
                     updatedProduct.Length = productUM.Length;
                     updatedProduct.Width = productUM.Width;
                     updatedProduct.Weight = productUM.Weight;
-                    updatedProduct.Price = productUM.Price;
+                    updatedProduct.Price = productUM.ListedPrice;
+                    updatedProduct.ListedPrice = productUM.ListedPrice;
                     updatedProduct.ProductName = productUM.ProductName;
                     updatedProduct.ProductCode = productUM.ProductCode;
                     updatedProduct.BrandId = (int)productUM.BrandId;

@@ -55,7 +55,7 @@ namespace _2Sport_BE.Controllers
                 foreach (var product in query)
                 {
                     product.Discount = percentDiscount;
-                    
+                    product.Price = product.ListedPrice - product.ListedPrice * percentDiscount;
                 }
                 await _productService.UpdateProducts(query);
                 return Ok("Create/Update discount for product successfully!");
@@ -78,7 +78,7 @@ namespace _2Sport_BE.Controllers
                 foreach (var product in query)
                 {
                     product.Discount = 0;
-
+                    product.Price = product.ListedPrice;
                 }
                 await _productService.UpdateProducts(query);
                 return Ok("delete promotion successfully!");

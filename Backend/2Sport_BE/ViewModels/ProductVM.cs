@@ -11,7 +11,7 @@ namespace _2Sport_BE.ViewModels
         public string ProductName { get; set; }
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Price must be greater than 0.")]
-        public decimal? Price { get; set; }
+        public decimal? ListedPrice { get; set; }
 
         public bool IsRent { get; set; }
         public decimal? RentPrice { get; set; }
@@ -47,7 +47,9 @@ namespace _2Sport_BE.ViewModels
 		public string SportName { get; set; }
         public int? CategoryID { get; set; }
 		public string CategoryName { get; set; }
-		public List<string> ListImages { get; set; }
+        public decimal? Price { get; set; }
+
+        public List<string> ListImages { get; set; }
         public int Likes { get; set; }
         public ICollection<Review> Reviews { get; set; }
         public string ProductCode { get; set; }

@@ -14,6 +14,8 @@ public class Product
     [Column("ProductName", TypeName = "nvarchar")]
     [MaxLength(255)]
     public string ProductName { get; set; } = null!;
+    [Column("ListedPrice", TypeName = "decimal")]
+    public decimal? ListedPrice { get; set; }
 
     [Column("Price", TypeName = "decimal")]
     public decimal? Price { get; set; }
