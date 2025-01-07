@@ -2025,13 +2025,9 @@ namespace _2Sport_BE.Migrations
                 {
                     b.Navigation("OrderDetails");
 
-<<<<<<< HEAD
-                    b.Navigation("Refunds");
-=======
                     b.Navigation("RefundRequests");
 
                     b.Navigation("Reviews");
->>>>>>> main
                 });
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.ShipmentDetail", b =>
