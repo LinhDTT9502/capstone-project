@@ -23,31 +23,22 @@ import {
   faFlagCheckered,
   faArrowsDownToLine,
   faRecycle,
+  faCreditCard,
 } from "@fortawesome/free-solid-svg-icons";
-import StarRating from "../Product/StarRating";
-import { submitReview } from "../../services/reviewService";
 import { Button, Tooltip, Typography, Input, Stepper, Step } from "@material-tailwind/react";
 import CancelRentalOrderButton from "../User/CancelRentalOrderButton";
 import DoneRentalOrderButton from "../User/DoneRentalOrderButton";
 import ExtensionRequestButton from "../User/ExtensionRequestButton";
+import ExtensionStatusMessage from "./ExtensionStatusMessage";
+import OrderCancellationInfo from "../User/OrderCancellationInfo";
+import OrderDepositInfo from "./OrderDepositInfo";
 
 export default function UserRentalDetail() {
   const { orderCode } = useParams();
   const navigate = useNavigate();
   const [orderDetail, setOrderDetail] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [reviewData, setReviewData] = useState({ star: 5, review: "" });
-  const [currentProduct, setCurrentProduct] = useState(null);
-
   const [error, setError] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
-
-  const [showExtendedModal, setExtendedShowModal] = useState(false);
-  const [reason, setReason] = useState("");
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [selectedChildOrder, setSelectedChildOrder] = useState(null);
-  const [extensionDate, setExtensionDate] = useState("");
   const [reload, setReload] = useState(false);
   const [confirmReload, setConfirmReload] = useState(false);
   const [extendReload, setExtendReload] = useState(false);
@@ -69,7 +60,7 @@ export default function UserRentalDetail() {
     "Đang chờ thanh toán": "text-yellow-800",
     "Đã đặt cọc": "text-blue-800",
     "Đã thanh toán": "text-green-800",
-    "Đã hủy": "btext-red-800",
+    "Đã hủy": "text-red-800",
   };
   const ORDER_STEPS = [
     { id: 1, label: "Chờ Xác Nhận Đơn Hàng" },
@@ -81,9 +72,14 @@ export default function UserRentalDetail() {
     { id: 14, label: "Đã Hoàn Thành" },
   ];
 
-  const getCurrentStepIndex = (orderStatus) => {
-    const step = ORDER_STEPS.find((step) => step.id === orderStatus);
+  const getCurrentStepIndex = (orderStatusId) => {
+      if (orderStatusId === 6) {
+        return ORDER_STEPS.findIndex((step) => step.id === 4);
+      } else {
+    const step = ORDER_STEPS.find((step) => step.id === orderStatusId);
     return step ? ORDER_STEPS.indexOf(step) : -1; 
+      }
+
   };
 
   const fetchOrderDetail = async () => {
@@ -145,84 +141,12 @@ export default function UserRentalDetail() {
     orderStatusId,
     paymentStatus,
     deliveryMethod,
+    paymentMethod,
     imgAvatarPath,
     updatedAt,
   } = orderDetail;
 
   const children = childOrders?.$values || [];
-
-  const handleExtendOrder = async (order) => {
-    // console.log(order);//id la parentId
-
-    if (!extensionDate) {
-      alert("Please select a valid date before extending the order.");
-      return;
-    }
-
-    const selectedDateObj = new Date(extensionDate); // Convert selectedDate to a Date object
-    const rentalEndDateObj = new Date(order.rentalEndDate); // Convert rentalEndDate to a Date object
-    console.log(extensionDate);
-    const extensionDays = Math.ceil(
-      (selectedDateObj - rentalEndDateObj) / (1000 * 60 * 60 * 24)
-    );
-
-    console.log(extensionDays);
-
-    const payload = {
-      parentOrderId: id,
-      childOrderId: order.parentOrderCode === rentalOrderCode ? order.id : null,
-      extensionDays: extensionDays,
-    };
-
-    try {
-      const response = await axios.post(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/request-extension`,
-        payload,
-        {
-          headers: {
-            accept: "*/*",
-          },
-        }
-      );
-      if (!error.response.data.isSuccess) {
-        console.log(error.response.data.message);
-
-      }
-
-      console.log("Request thành công:", response);
-    } catch (error) {
-      console.error("Request thất bại:", error.response || error.message);
-      console.log(error.response.data.message);
-    }
-  };
-
-  const handleSubmitReview = async () => {
-    if (!currentProduct) return;
-
-    try {
-      await submitReview(currentProduct.productCode, {
-        star: reviewData.star,
-        review: reviewData.review,
-        status: true,
-      });
-      alert("Cảm ơn bạn đã đánh giá sản phẩm!");
-      setShowReviewModal(false);
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      alert("Gửi đánh giá thất bại. Vui lòng thử lại.");
-    }
-  };
-  const getTomorrowDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split("T")[0];
-  };
-
-  const handleExtensionDateChange = (e) => {
-    const newStartDate = e.target.value;
-    setExtensionDate(newStartDate);
-    setSelectedDate(null);
-  };
 
   return (
     <div className="container mx-auto p-4 min-h-screen bg-gray-200">
@@ -237,119 +161,93 @@ export default function UserRentalDetail() {
           </button>
         </div>
         {orderStatus === "Đã hủy" && (
-          <div className="bg-yellow-50 p-4 rounded-lg shadow-sm mb-6">
-            {console.log(orderDetail)}
-            <p className="text-xl">
-              <b className="text-red-500">Đã hủy đơn hàng </b>
-              <i className="text-lg">
-                vào lúc{" "}
-                {new Date(orderDetail.updatedAt).toLocaleString("vi-VN", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  second: "2-digit",
-                })}
-              </i>
-            </p>
-            <p className="flex items-center gap-2 mb-2">
-              <FontAwesomeIcon icon={faBolt} style={{ color: "#fd7272" }} />
-              <span className="font-semibold">Lý do:</span> {orderDetail.reason}
-            </p>
-          </div>
+          <OrderCancellationInfo
+            updatedAt={orderDetail.updatedAt}
+            reason={orderDetail.reason}
+          />
         )}
         {depositAmount != null && depositAmount > 0 && (
-          <div className="bg-green-100 p-4 rounded-lg shadow-sm mb-6">
-            <p className="text-xl">
-              <b className="text-yellow-300">Đơn hàng đã được đặt cọc </b>
-              <i className="text-lg">
-                vào lúc{" "}
-                {new Date(orderDetail.depositDate).toLocaleString("vi-VN", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  second: "2-digit",
-                })}{" "}
-                - {orderDetail.paymentMethod}
-              </i>
-            </p>
-            <p className="flex items-center gap-2 mb-2">
-              <FontAwesomeIcon
-                icon={faDollarSign}
-                style={{ color: "#FFD43B" }}
-              />
-              <span className="font-semibold">Số tiền: </span>
-              {depositAmount.toLocaleString("Vi-vn")}₫
-            </p>
-          </div>
+          <OrderDepositInfo
+            depositAmount={depositAmount}
+            depositDate={orderDetail.depositDate}
+            paymentMethod={orderDetail.paymentMethod}
+          />
         )}
-
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
           <div className="py-4 bg-white rounded-md shadow-sm">
             {/* Stepper */}
             <div className="mb-16 bg-orange-100">
               <Stepper
                 activeStep={getCurrentStepIndex(orderStatusId)}
-                className=" p-2 rounded-lg"
+                className="p-2 rounded-lg"
               >
-                {ORDER_STEPS.map((status, index) => (
-                  <Step
-                    key={index}
-                    completed={index < getCurrentStepIndex(orderStatusId)}
-                    className={`${
-                      index < getCurrentStepIndex(orderStatusId)
-                        ? "bg-blue-500 text-wrap w-10 text-green-600"
-                        : "bg-green-600 text-green-600"
-                    }`}
-                  >
-                    <div className="relative flex flex-col items-center">
-                      <div
-                        className={`w-10 h-10 flex items-center justify-center rounded-full ${
-                          index <= getCurrentStepIndex(orderStatusId)
-                            ? "bg-green-500 text-white"
-                            : "bg-gray-300 text-gray-600"
-                        }`}
-                      >
-                        <FontAwesomeIcon
-                          icon={
-                            index === 0
-                              ? faClock
-                              : index === 1
-                              ? faCheckCircle
-                              : index === 2
-                              ? faCogs
-                              : index === 3
-                              ? faTruck
-                              : index === 4
-                              ? faArrowsDownToLine
-                              : index === 5
-                              ? faRecycle
-                              : index === 13
-                              ? faFlagCheckered
-                              : faClock
-                          }
-                          className="text-lg"
-                        />
+                {ORDER_STEPS.map((status, index) => {
+                  const currentIndex = getCurrentStepIndex(orderStatusId);
+
+                  const isRedStep =
+                    orderStatusId === 6 && index >= currentIndex;
+                  const isCompleted = index <= currentIndex;
+                  return (
+                    <Step
+                      key={index}
+                      completed={isCompleted}
+                      className={`${
+                        isCompleted
+                          ? "bg-blue-500 text-wrap w-10 text-green-600"
+                          : isRedStep
+                          ? "bg-red-600 text-red-600"
+                          : "bg-green-600 text-green-600"
+                      }`}
+                    >
+                      <div className="relative flex flex-col items-center">
+                        <div
+                          className={`w-10 h-10 flex items-center justify-center rounded-full ${
+                            isCompleted
+                              ? "bg-green-500 text-white"
+                              : isRedStep
+                              ? "bg-red-600 text-white"
+                              : "bg-gray-300 text-gray-600"
+                          }`}
+                        >
+                          <FontAwesomeIcon
+                            icon={
+                              index === 0
+                                ? faClock
+                                : index === 1
+                                ? faCheckCircle
+                                : index === 2
+                                ? faCogs
+                                : index === 3
+                                ? faTruck
+                                : index === 4
+                                ? faArrowsDownToLine
+                                : index === 5
+                                ? faRecycle
+                                : index === 6
+                                ? faFlagCheckered
+                                : faClock
+                            }
+                            className="text-lg"
+                          />
+                        </div>
+                        <div
+                          className={`absolute top-12 text-xs font-medium text-wrap w-20 text-center ${
+                            isCompleted
+                              ? "text-green-600"
+                              : isRedStep
+                              ? "text-red-600"
+                              : "text-gray-600"
+                          }`}
+                        >
+                          {status.label}
+                        </div>
                       </div>
-                      <div
-                        className={`absolute top-12 text-xs font-medium text-wrap w-20 text-center ${
-                          index <= getCurrentStepIndex(orderStatusId)
-                            ? "text-green-600"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        {status.label}
-                      </div>
-                    </div>
-                  </Step>
-                ))}
+                    </Step>
+                  );
+                })}
               </Stepper>
             </div>
             <div className="flex justify-between items-center">
-              {/* {console.log(orderDetail)} */}
               <h2 className="text-2xl font-bold text-gray-800 flex-1">
                 MÃ ĐƠN HÀNG THUÊ -{" "}
                 <span className="text-orange-500">#{rentalOrderCode}</span>
@@ -418,6 +316,32 @@ export default function UserRentalDetail() {
                 <h2 className="text-lg font-bold mb-2 text-gray-700">
                   Thông tin đơn hàng
                 </h2>
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={faMoneyBillWave}
+                    className="text-blue-500"
+                  />
+                  <span className="font-base">Tình trạng thanh toán:</span>{" "}
+                  <span
+                    className={` mr-1.5 rounded-full text-xs font-bold ${
+                      paymentStatusColors[paymentStatus] ||
+                      "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {paymentStatus}
+                  </span>
+                </p>
+
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={faCreditCard}
+                    className="text-blue-500"
+                  />
+                  <span className="font-base">Phương thức thanh toán:</span>{" "}
+                  <span className="break-words">
+                    <i>{paymentMethod}</i>
+                  </span>
+                </p>
                 <p className="flex items-start gap-2 mb-2">
                   <FontAwesomeIcon icon={faCoins} className="text-blue-500" />
                   <span className="font-base flex-shrink-0">
@@ -430,21 +354,7 @@ export default function UserRentalDetail() {
                     ₫
                   </i>
                 </p>
-                <p className="flex items-center gap-2 mb-2">
-                  <FontAwesomeIcon
-                    icon={faMoneyBillWave}
-                    className="text-blue-500"
-                  />
-                  <span className="font-base">Tình trạng thanh toán:</span>{" "}
-                  <span
-                    className={`py-2 px-2.5 mr-1.5 rounded-full text-xs font-bold ${
-                      paymentStatusColors[paymentStatus] ||
-                      "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {paymentStatus}
-                  </span>
-                </p>
+
                 <p className="flex items-start gap-2 mb-2 w-full">
                   <FontAwesomeIcon
                     icon={faTruck}
@@ -508,6 +418,9 @@ export default function UserRentalDetail() {
                 key={child.id}
                 className="bg-gray-100 p-4 mt-4 rounded-lg shadow-sm "
               >
+                <ExtensionStatusMessage
+                  extensionStatus={child.extensionStatus}
+                />
                 <div className="flex flex-col md:flex-row gap-4">
                   <img
                     src={child.imgAvatarPath}
@@ -596,25 +509,10 @@ export default function UserRentalDetail() {
                       </svg>
                     </Tooltip>
                   </div>
-                  {/* <button
-                    className={`rounded text-white p-2 font-semibold ${
-                      orderStatus !== "Đã giao hàng"
-                        ? "bg-orange-200 cursor-not-allowed rounded-full"
-                        : "bg-orange-500 hover:bg-orange-600 rounded-full"
-                    }`}
-                    onClick={() => {
-                      if (orderStatus === "Đã giao hàng") {
-                        setSelectedChildOrder(child);
-                        setExtendedShowModal(true);
-                      }
-                    }}
-                    disabled={orderStatus !== "Đã giao hàngg"}
-                  >
-                    Yêu cầu gia hạn
-                  </button> */}
                   {orderStatus === "Đã giao hàng" && (
                     <ExtensionRequestButton
-                      selectedChildOrde={child}
+                      parentOrder={orderDetail}
+                      selectedChildOrder={child}
                       setExtendReload={setExtendReload}
                     />
                   )}
@@ -623,46 +521,9 @@ export default function UserRentalDetail() {
             ))
           ) : (
             <div className="bg-gray-100 p-4 rounded-lg shadow-sm">
-              {orderDetail.extensionStatus === "1" && (
-                <div className="bg-yellow-50 p-1 rounded-lg shadow-sm mb-6">
-                  <p className="flex items-center gap-2">
-                    <FontAwesomeIcon
-                      icon={faBolt}
-                      style={{ color: "#fd7272" }}
-                    />
-                    <span className="font-semibold">
-                      Yêu cầu gia hạn đã được gửi. Vui lòng chờ thông báo từ
-                      nhân viên.
-                    </span>{" "}
-                  </p>
-                </div>
-              )}
-              {orderDetail.extensionStatus === "2" && (
-                <div className="bg-yellow-50 p-1 rounded-lg shadow-sm mb-6">
-                  <p className="flex items-center gap-2">
-                    <FontAwesomeIcon
-                      icon={faBolt}
-                      style={{ color: "#fd7272" }}
-                    />
-                    <span className="font-semibold">
-                      Yêu cầu gia hạn được chấp thuận.
-                    </span>{" "}
-                  </p>
-                </div>
-              )}
-              {orderDetail.extensionStatus === "3" && (
-                <div className="bg-yellow-50 p-1 rounded-lg shadow-sm mb-6">
-                  <p className="flex items-center gap-2">
-                    <FontAwesomeIcon
-                      icon={faBolt}
-                      style={{ color: "#fd7272" }}
-                    />
-                    <span className="font-semibold">
-                      Yêu cầu gia hạn bị từ chối.
-                    </span>{" "}
-                  </p>
-                </div>
-              )}
+              <ExtensionStatusMessage
+                extensionStatus={orderDetail.extensionStatus}
+              />
               <div className="flex flex-col md:flex-row gap-4">
                 <img
                   src={imgAvatarPath}
@@ -768,32 +629,13 @@ export default function UserRentalDetail() {
                 </div>
 
                 {/* Button Yêu cầu gia hạn */}
-                <Button
-                  className={`p-2 ${
-                    orderStatus !== "Đã giao hàng"
-                      ? "text-yellow-700 bg-white border border-yellow-700 rounded-md hover:bg-yellow-200 cursor-not-allowed"
-                      : "text-yellow-700 bg-white border border-yellow-700 rounded-md hover:bg-yellow-200"
-                  }`}
-                  onClick={() => {
-                    if (orderStatus === "Đã giao hàng") {
-                      setSelectedChildOrder(orderDetail);
-                      setExtendedShowModal(true);
-                    }
-                  }}
-                  size="sm"
-                  disabled={
-                    orderStatus !== "Đã giao hàng" ||
-                    orderDetail.extensionStatus === "1"
-                  }
-                >
-                  {orderDetail.isExtended ? "Đang gia hạn" : "Gia Hạn Sản Phẩm"}
-                </Button>
-
-                {/* <ExtensionRequestButton
-                  selectedChildOrder={orderDetail}
-                  setExtendReload={setExtendReload}
-                />*/}
-                {console.log(orderDetail)}
+                {orderStatus === "Đã giao hàng" && (
+                  <ExtensionRequestButton
+                    parentOrder={orderDetail}
+                    selectedChildOrder={orderDetail}
+                    setExtendReload={setExtendReload}
+                  />
+                )}
               </div>
             </div>
           )}
@@ -816,102 +658,6 @@ export default function UserRentalDetail() {
             </i>
           </p>
         </div>
-        {showExtendedModal && selectedChildOrder && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded-md shadow-lg w-2/5">
-              <h2 className="text-lg font-semibold">Gửi yêu cầu gia hạn</h2>
-              <p className="mb-4 text-sm">
-                <i>Tóm tắt thông tin sản phẩm</i>
-              </p>
-              <div className="flex items-center space-x-4">
-                <img
-                  src={selectedChildOrder.imgAvatarPath || "default-image.jpg"}
-                  alt="Order"
-                  className="w-24 h-24 object-contain rounded"
-                />
-                <div>
-                  <h3 className="font-medium text-base">
-                    {selectedChildOrder.productName}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Màu sắc: {selectedChildOrder.color} - Kích thước:{" "}
-                    {selectedChildOrder.size} - Tình trạng:{" "}
-                    {selectedChildOrder.condition}%
-                  </p>
-                  <p className="font-medium text-base text-rose-700">
-                    Giá thuê:{" "}
-                    {new Intl.NumberFormat("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
-                    }).format(selectedChildOrder.rentPrice)}
-                  </p>
-                  <p className="font-medium text-sm">
-                    Số lượng: {selectedChildOrder.quantity}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start justify-between space-x-6">
-                {/* Cột 1 */}
-                <div className="flex-1">
-                  <p className="pt-2 mb-2 text-sm">
-                    <i>Tóm tắt thời gian thuê</i>
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Ngày bắt đầu:{" "}
-                    {new Date(
-                      selectedChildOrder.rentalStartDate
-                    ).toLocaleString("vi-VN", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Ngày kết thúc:{" "}
-                    {new Date(selectedChildOrder.rentalEndDate).toLocaleString(
-                      "vi-VN",
-                      {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      }
-                    )}
-                  </p>
-                </div>
-
-                {/* Cột 2 */}
-                <div className="flex-1">
-                  <p className="pt-2 mb-2 text-sm">
-                    <i>Chọn ngày gia hạn</i>
-                  </p>
-                  <Input
-                    label="ngày gia hạn"
-                    type="date"
-                    min={getTomorrowDate()}
-                    value={selectedDate}
-                    onChange={handleExtensionDateChange}
-                    className="border rounded px-4 py-2 w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-4 mt-4">
-                <button
-                  className="bg-gray-500 text-white py-2 px-4 rounded-md"
-                  onClick={() => setExtendedShowModal(false)}
-                >
-                  Đóng
-                </button>
-                <button
-                  className="bg-red-500 text-white py-2 px-4 rounded-md"
-                  onClick={() => handleExtendOrder(selectedChildOrder)}
-                >
-                  Gửi yêu cầu
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

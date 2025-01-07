@@ -10,13 +10,11 @@ const ZaloButton = () => {
         rel="noopener noreferrer"
         className="group"
       >
-        <div className="w-16 h-16 bg-blue-500 rounded-l-full flex items-center justify-center shadow-lg 
-          transform translate-x-8 group-hover:translate-x-0 transition-transform duration-300 ease-in-out overflow-hidden"
-        >
+        <div className="w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center ">
           <img
             src="/assets/images/Zalo.png"
             alt="Zalo"
-            className="w-10 h-10 object-contain opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out"
+            className="w-10 h-10 object-contain"
           />
         </div>
       </Link>

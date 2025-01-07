@@ -6,6 +6,7 @@ import GuestRentOrder from "../pages/GuestRentOrder"
 import GuestOrderDetail from "../pages/GuestOrderDetail";
 import GuestRentOrderDetail from "../pages/GuestRentOrderDetail";
 import GuestManagement from "../pages/GuestManagement";
+
 const GuestRoutes = () => {
   return (
     <Routes>

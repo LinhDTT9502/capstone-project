@@ -70,10 +70,10 @@ const SaleOrder = () => {
     setLoading(true);
     
     try {
-      if (!userData.address.trim()) {
-        toast.error("Vui lòng nhập địa chỉ giao hàng.");
-        return;
-      }
+      // if (!userData.address.trim()) {
+      //   toast.error("Vui lòng nhập địa chỉ giao hàng.");
+      //   return;
+      // }
       
       if (!userData.fullName.trim()) {
         toast.error("Vui lòng nhập họ và tên!");

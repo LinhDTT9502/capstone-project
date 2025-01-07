@@ -62,14 +62,14 @@ function App() {
     <>
       {/* {!isStaffOrAdmin && ( */}
       <div>
-                <ToastContainer />
+        <ToastContainer />
         <Header />
         <ScrollToTop />
-        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 flex flex-col items-end space-y-4 sm:flex-row sm:justify-between sm:items-end sm:space-y-0 sm:space-x-4">
+        <div className="fixed bottom-0 left-0 right-0 z-50 pb-4 pl-4 flex flex-col items-end space-y-4 sm:flex-row sm:justify-between sm:items-end sm:space-y-0 sm:space-x-4 w-fit">
           <div className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full shadow-lg transition-colors duration-200 ease-in-out">
             <BranchSystem />
           </div>
-          <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+          <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
             <ZaloButton />
             <FacebookButton />
           </div>

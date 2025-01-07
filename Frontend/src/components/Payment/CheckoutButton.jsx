@@ -1,21 +1,23 @@
 // CheckoutButton.js
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@material-tailwind/react";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {
     if (!selectedOrder ) {
-      alert("Please select a valid payment method.");
+      toast.error("Chưa chọn phương thức thanh toán!");
       return;
     }
-
+    setLoading(true);
     try {
       const token = localStorage.getItem("token");
 
@@ -48,50 +50,23 @@ const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
         } else (
           navigate('/manage-account/sale-order')
         )
-       
-     
     } catch (error) {
       console.error("Error during checkout:", error);
       alert("An error occurred during checkout. Please try again later.");
+    }finally{
+      setLoading(false)
     }
   };
-//   useEffect(() => {
-//     const params = new URLSearchParams(window.location.search);
-//     const isSuccess = params.get("isSuccess");
-//     const orderCode = params.get("orderCode");
-//     const status = params.get("status");
-// console.log(isSuccess );
-// console.log(orderCode);
-// console.log(status);
-
-
-
-//     if (isSuccess && orderCode) {
-//       // Process the response data (you can save this to state or localStorage)
-//       const orderDetails = {
-//         isSuccess: isSuccess === "true", // Convert to boolean
-//         orderCode,
-//         status,
-//       };
-
-//       // Save order details for future use (localStorage or state)
-//       localStorage.setItem("orderDetails", JSON.stringify(orderDetails));
-
-//       if (isSuccess === "true") {
-//         // Redirect to the desired link
-//         window.location.href = "https://localhost:5173";
-//       } else {
-//         alert("Payment failed. Please try again.");
-//       }
-//     }
-//   }, []);
 
   return (
     <Button
-      className="mt-6 w-full bg-orange-500 text-white py-2 rounded-md"
+      disabled={loading}
+      className={`mt-6 w-full bg-orange-500 text-white py-2 rounded-md ${
+        loading ? "opacity-50 cursor-not-allowed" : ""
+      }`}
       onClick={handleCheckout}
     >
-      Thanh toán
+      {loading ? "Đang xử lý..." : "Thanh toán"}
     </Button>
   );
 };

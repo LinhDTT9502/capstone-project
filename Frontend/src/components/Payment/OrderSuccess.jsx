@@ -5,7 +5,7 @@ import { useLocation, Link } from "react-router-dom";
 
 const OrderSuccess = () => {
    const location = useLocation();
-  const { orderID, orderCode, userId } = location.state || {};
+const { orderID, orderCode, userId } = location.state || {};
   
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -35,7 +35,7 @@ const OrderSuccess = () => {
                 </Link>
               )}
               <Link to={`/guest/guest-sale-order/${orderCode}`}>
-                Xem Xem Chi Tiết Đơn Hàng
+                Xem Chi Tiết Đơn Hàng
               </Link>
             </div>
           ) : null}

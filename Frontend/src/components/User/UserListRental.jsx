@@ -3,14 +3,17 @@ import { Button } from "@material-tailwind/react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { selectUser } from "../../redux/slices/authSlice";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
+  faArrowLeft,
   faCaretDown,
   faCaretUp,
   faShoppingBag,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import CancelRentalOrderButton from "./CancelRentalOrderButton";
+import { toast } from "react-toastify";
+import DoneRentalOrderButton from "./DoneRentalOrderButton";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -41,12 +44,14 @@ export default function UserListRental() {
   const user = useSelector(selectUser);
   const [selectedStatus, setSelectedStatus] = useState("Tất cả");
   const [rentalOrders, setRentalOrders] = useState([]);
+  const [filteredRentalOrders, setFilteredRentalOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [reload, setReload] = useState(false);
+  const [confirmReload, setConfirmReload] = useState(false);
 
   useEffect(() => {
     const fetchRentalOrders = async () => {
@@ -66,6 +71,7 @@ export default function UserListRental() {
             return new Date(b.createdAt) - new Date(a.createdAt);
           });
           setRentalOrders(sortedOrders);
+          setFilteredRentalOrders(sortedOrders);
         } else {
           setError("Không thể lấy danh sách đơn thuê.");
         }
@@ -76,22 +82,53 @@ export default function UserListRental() {
       }
     };
     fetchRentalOrders();
-  }, [user.UserId, reload]);
+  }, [user.UserId, reload, confirmReload]);
 
-  const groupedOrders = rentalOrders.reduce(
-    (acc, order) => {
-      if (!order.parentOrderCode) {
-        acc.parents.push(order);
-      } else {
-        acc.children[order.parentOrderCode] =
-          acc.children[order.parentOrderCode] || [];
-        acc.children[order.parentOrderCode].push(order);
-      }
-      return acc;
-    },
-    { parents: [], children: {} }
-  );
+  const handleSearch = () => {
+    if (!searchQuery) {
+      setFilteredRentalOrders(rentalOrders);
+      return;
+    }
+    toast.info(`Tìm kiếm với từ khóa: ${searchQuery}`);
+    const filtered = rentalOrders.filter((order) => {
+      return (
+        order.rentalOrderCode
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        order.productName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.color?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.size?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.childOrders?.$values?.some((item) => {
+          return (
+            item.productName
+              ?.toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            item.color?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.size?.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        })
+      );
+    });
 
+    if (filtered.length === 0) {
+      toast.info("Không tìm thấy sản phẩm nào khớp với từ khóa");
+    }
+    setFilteredRentalOrders(filtered);
+  };
+
+ const groupedOrders = filteredRentalOrders.reduce(
+   (acc, order) => {
+     if (!order.parentOrderCode) {
+       acc.parents.push(order);
+     } else {
+       acc.children[order.parentOrderCode] =
+         acc.children[order.parentOrderCode] || [];
+       acc.children[order.parentOrderCode].push(order);
+     }
+     return acc;
+   },
+   { parents: [], children: {} }
+ );
   const filteredOrders =
     selectedStatus === "Tất cả"
       ? groupedOrders.parents
@@ -102,46 +139,23 @@ export default function UserListRental() {
   const toggleExpand = (orderId) => {
     setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
   };
-
+  
   if (isLoading)
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-orange-500"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-orange-500">
+        </div>
       </div>
     );
-  if (error)
-    return (
-      <div className="text-center text-gray-500 mt-32 flex flex-col items-center justify-center">
-        <FontAwesomeIcon icon={faShoppingBag} className="text-6xl mb-2" />
-        <p>Bạn chưa có sản phẩm nào</p>
-      </div>
-    );
-
-  const handleSearch = () => {
-    toast.info(`Tìm kiếm với từ khóa: ${searchQuery}`);
-    setSearchQuery(searchQuery);
-    if (searchQuery) {
-      const filtered = orders.filter((order) => {
-        return order.saleOrderDetailVMs.$values.some((item) => {
-          // Kiểm tra nếu tên sản phẩm, màu sắc, hoặc kích thước chứa từ khóa tìm kiếm
-          return (
-            item.productName
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()) ||
-            item.color.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.size.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        });
-      });
-      if (filtered.length === 0) {
-        toast.info("Không tìm thấy sản phẩm nào khớp với từ khóa");
-        return;
-      }
-      setFilteredSaleOrders(filtered);
-    } else {
-      setFilteredSaleOrders(orders);
-    }
-  };
+  // if (error)
+ 
+  //   return (
+  //     <div className="text-center text-gray-500 mt-32 flex flex-col items-center justify-center">
+  //       <FontAwesomeIcon icon={faShoppingBag} className="text-6xl mb-2" />
+  //       { console.log(filteredOrders)}
+  //       <p>Bạn chưa có sản phẩm nào</p>
+  //     </div>
+  //   );
 
   return (
     <div className="container mx-auto pt-2 rounded-lg max-w-5xl">
@@ -201,10 +215,10 @@ export default function UserListRental() {
             className="border border-gray-200 rounded-lg shadow-sm mt-4"
           >
             <div
-              className="flex justify-between items-center p-4 cursor-pointer hover:bg-slate-200 transition-colors duration-150 ease-in-out"
+              className="flex justify-between items-center p-2 cursor-pointer hover:bg-slate-200 transition-colors duration-150 ease-in-out"
               onClick={() => toggleExpand(parent.id)}
             >
-              <div>
+              <div className="flex flex-col w-3/4 pl-4">
                 <h4 className="font-bold text-lg text-gray-800">
                   Mã đơn hàng:{" "}
                   <span className="text-orange-500">
@@ -342,18 +356,35 @@ export default function UserListRental() {
                   </span>
                 </p>
                 <div className="flex gap-2">
+                  {/* Thanh toan button */}
+                  {parent.paymentStatus !== "Đã đặt cọc" &&
+                    (parent.orderStatus === "Đã xác nhận" ||
+                      parent.orderStatus === "Chờ xử lý") && (
+                      <Button
+                        color="white"
+                        size="sm"
+                        className="w-40 text-blue-700 border border-blue-700 rounded-md hover:bg-blue-200"
+                        onClick={() =>
+                          navigate("/rental-checkout", {
+                            state: { selectedOrder: parent },
+                          })
+                        }
+                      >
+                        Thanh toán
+                      </Button>
+                    )}
                   {parent.orderStatus === "Chờ xử lý" && (
                     <CancelRentalOrderButton
                       rentalOrderId={parent.id}
                       setReload={setReload}
                     />
                   )}
-                  {/* {order.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
-                    <DoneSaleOrderButton
-                      saleOrderId={order.id}
+                  {parent.orderStatus === "Đã giao cho ĐVVC" && (
+                    <DoneRentalOrderButton
+                      rentalOrderId={parent.id}
                       setConfirmReload={setConfirmReload}
                     />
-                  )} */}
+                  )}
                   <Button
                     color="orange"
                     size="sm"
@@ -372,6 +403,24 @@ export default function UserListRental() {
             </div>
           </div>
         ))}
+        {filteredOrders.length === 0 && (
+          <div className="flex flex-col items-center my-10">
+            <img
+              src="/assets/images/cart-icon.png"
+              className="w-48 h-auto object-contain"
+            />
+            <p className="pt-4 text-lg font-poppins">
+              Hiện tại chưa có đơn hàng để hiển thị
+            </p>
+            <Link
+              to="/product"
+              className="text-blue-500 flex items-center font-poppins"
+            >
+              <FontAwesomeIcon className="pr-2" icon={faArrowLeft} /> Bấm vào
+              đây để mua sắm bạn nhé
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
