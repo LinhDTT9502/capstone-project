@@ -11,6 +11,7 @@ namespace _2Sport_BE.Services
     public interface IImageService
     {
         Task<CreateFolderResult> CreateFolder(string folderName);
+        Task<bool> UpdateFolderName(string oldFolderName, string newFolderName);
         Task<List<string>> ListAllFoldersAsync();
         Task<ImageUploadResult> UploadImageToCloudinaryAsync(IFormFile file);
         Task<ImageUploadResult> UploadImageToCloudinaryAsync(string filePath);
@@ -164,9 +165,52 @@ namespace _2Sport_BE.Services
             Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
 
             var createFolderResult = await cloudinary.CreateFolderAsync(folderName);
-
+            
             return createFolderResult;
         }
+
+        public async Task<bool> UpdateFolderName(string oldFolderName, string newFolderName)
+        {
+            DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
+            Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
+
+            // List resources in the old folder
+            var listResourcesParams = new ListResourcesByPrefixParams
+            {
+                Prefix = oldFolderName + "/",
+                Type = "upload"
+            };
+
+            var resources = await cloudinary.ListResourcesAsync(listResourcesParams);
+
+            if (resources.Resources == null)
+            {
+                throw new Exception($"The folder '{oldFolderName}' does not exist or is empty.");
+            }
+
+            // Move each resource to the new folder
+            foreach (var resource in resources.Resources)
+            {
+                var publicId = resource.PublicId;
+                var newPublicId = publicId.Replace(oldFolderName + "/", newFolderName + "/");
+
+                var renameResult = await cloudinary.RenameAsync(new RenameParams(publicId, newPublicId));
+                if (renameResult.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new Exception($"Failed to move resource '{publicId}' to '{newPublicId}'.");
+                }
+            }
+
+            // Delete the old folder explicitly
+            var deleteFolderResult = cloudinary.DeleteFolder(oldFolderName);
+            if (deleteFolderResult.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                throw new Exception($"Failed to delete the old folder '{oldFolderName}'.");
+            }
+
+            return true;
+        }
+
 
         public async Task<List<string>> ListAllFoldersAsync()
         {

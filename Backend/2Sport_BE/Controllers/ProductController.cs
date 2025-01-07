@@ -1701,6 +1701,25 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpPut]
+        [Route("update-folder-name")]
+        public async Task<IActionResult> UpdateFolderName(string oldFolderName, string newFolderName)
+        {
+            try
+            {
+                var isSuccess = await _imageService.UpdateFolderName(oldFolderName, newFolderName);
+                if (isSuccess is false)
+                {
+                    return BadRequest($"Update folder name failed!");
+                }
+                return Ok("Update folder name successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpGet]
         [Route("get-all-folders")]
         public async Task<IActionResult> GetAllFolders()
