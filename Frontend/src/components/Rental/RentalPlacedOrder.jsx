@@ -134,7 +134,7 @@ const updatedProducts = selectedProducts.map((product) => {
       branchId: selectedOption === "STORE_PICKUP" ? branchId : null,
       productInformations: updatedProducts.map((product) => ({
         cartItemId: product.cartItemId || null,
-        productId: product.id,
+        productId: product.id || product.productId,
         productCode: product.productCode,
         productName: product.productName,
         quantity: product.quantity,
@@ -168,12 +168,20 @@ const updatedProducts = selectedProducts.map((product) => {
           },
         }
       );
-      console.log(response.data);
+      const orderID = response.data.id;
+      const orderRentalCode = response.data.saleOrderCode
+      console.log(response);
         if (!token) {
           dispatch(addGuestRentalOrder(response.data.data))
         }
         setApiResponse(response.data.data);
-        navigate("/order_success");
+        navigate("/order_success", {
+          state: {
+            orderID: orderID,
+            orderCode: null,
+            rentalOrderCode: orderRentalCode
+          },
+        });
     } catch (error) {
       console.error("Error creating rental order:", error);
     } finally {

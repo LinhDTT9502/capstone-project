@@ -43,7 +43,7 @@ const SaleOrder = () => {
   const [note, setNote] = useState("");
 
   const validateUserData = (userData, selectedOption) => {
-    
+
   };
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -68,13 +68,13 @@ const SaleOrder = () => {
   };
   const handleOrder = async () => {
     setLoading(true);
-    
+
     try {
       // if (!userData.address.trim()) {
       //   toast.error("Vui lòng nhập địa chỉ giao hàng.");
       //   return;
       // }
-      
+
       if (!userData.fullName.trim()) {
         toast.error("Vui lòng nhập họ và tên!");
         return false;
@@ -91,7 +91,7 @@ const SaleOrder = () => {
         toast.error("Vui lòng chọn giới tính!");
         return false;
       }
-  
+
       const token = localStorage.getItem("token");
       const data = {
         customerInformation: {
@@ -125,9 +125,10 @@ const SaleOrder = () => {
           totalAmount: subTotal,
         },
       };
-  
+
       const response = await placedOrder(data);
-  
+      const orderID = response.data.id;
+      const orderCode = response.data.saleOrderCode
       if (response) {
         if (!token) {
           dispatch(addGuestOrder(response.data));
@@ -136,10 +137,12 @@ const SaleOrder = () => {
         setOrderSuccess(true);
         navigate("/order_success", {
           state: {
-            orderID: response.data.saleOrderId,
-            orderCode: response.data.orderCode,
+            orderID: orderID,
+            orderCode: orderCode,
+            rentalOrderCode: null
           },
         });
+
       }
     } catch (error) {
       console.error("Error during checkout:", error);
@@ -148,7 +151,7 @@ const SaleOrder = () => {
       setLoading(false);
     }
   };
-  
+
   return (
     <>
       <ToastContainer position="top-right" autoClose={3000} />
@@ -307,9 +310,8 @@ const SaleOrder = () => {
             <Button
               onClick={handleOrder}
               disabled={loading}
-              className={`bg-orange-500 text-white px-6 py-3 rounded w-2/6 ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`bg-orange-500 text-white px-6 py-3 rounded w-2/6 ${loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
             >
               {loading ? "Đang xử lý..." : "Đặt hàng"}
             </Button>

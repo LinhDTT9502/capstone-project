@@ -36,15 +36,15 @@ const ReviewSaleOrderModal = ({ saleOrderId, reviewModal, setReviewModal, setCon
             }
         } catch (error) {
             console.error(error);
-            alert("Error: Something went wrong. Please try again later.");
+            // alert("Error: Something went wrong. Please try again later.");
         }
     };
     useEffect(() => {
        
 
-        if (saleOrderId) {
-            fetchOrderDetails();
-        }
+            if (saleOrderId) {
+                fetchOrderDetails();
+            }
     }, [saleOrderId, setConfirmReload]);
 
     const handleSubmit = async () => {

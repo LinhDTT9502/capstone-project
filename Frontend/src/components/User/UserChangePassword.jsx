@@ -53,7 +53,7 @@ const UserChangePassword = () => {
 
   return (
     <>
-      <ToastContainer />
+      
       <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-bold text-2xl text-orange-500">Đổi mật khẩu</h2>

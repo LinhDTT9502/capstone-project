@@ -14,7 +14,7 @@ const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange
   const [branchStatus, setBranchStatus] = useState({});
   const user = useSelector(selectUser);
   const [check, setCheck] = useState([]);
-console.log(selectedProducts);
+// console.log(selectedProducts);
 
 
   useEffect(() => {

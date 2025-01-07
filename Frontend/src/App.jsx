@@ -62,7 +62,7 @@ function App() {
     <>
       {/* {!isStaffOrAdmin && ( */}
       <div>
-        <ToastContainer />
+        
         <Header />
         <ScrollToTop />
         <div className="fixed bottom-0 left-0 right-0 z-50 pb-4 pl-4 flex flex-col items-end space-y-4 sm:flex-row sm:justify-between sm:items-end sm:space-y-0 sm:space-x-4 w-fit">

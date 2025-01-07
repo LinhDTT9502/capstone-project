@@ -183,7 +183,7 @@ const UserCart = () => {
 
   return (
     <div className="container mx-auto px-20 py-10">
-      <ToastContainer />
+      
       <div className="flex justify-between items-center">
         <h1 className="font-alfa text-orange-500 text-2xl">
           {t("user_cart.shopping_cart")}

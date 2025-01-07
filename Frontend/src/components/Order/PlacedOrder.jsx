@@ -113,7 +113,10 @@ const PlacedOrder = () => {
       // console.log(data.productInformations);
 
       const response = await placedOrder(data);
-
+      console.log(response);
+      
+      const orderID = response.data.id;
+      const orderCode = response.data.saleOrderCode
       if (response) {
         if (!token) {
           dispatch(addGuestOrder(response.data));
@@ -122,9 +125,9 @@ const PlacedOrder = () => {
         console.log(response);
         navigate("/order_success", {
           state: {
-            orderID: response.data.saleOrderId,
-            orderCode: response.data.orderCode,
-            userId: response.data.userId,
+            orderID: orderID,
+            orderCode: orderCode,
+            rentalOrderCode: null
           },
         });
       }
