@@ -1876,7 +1876,7 @@ namespace _2Sport_BE.Migrations
 
             modelBuilder.Entity("_2Sport_BE.Repository.Models.Review", b =>
                 {
-                    b.HasOne("_2Sport_BE.Repository.Models.Product", null)
+                    b.HasOne("_2Sport_BE.Repository.Models.Product", "Product")
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId");
 

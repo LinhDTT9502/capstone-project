@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Twilio.Rest.Numbers.V2.RegulatoryCompliance;
 
 namespace _2Sport_BE.Service.Services
 {
@@ -50,16 +51,26 @@ namespace _2Sport_BE.Service.Services
 
         public async Task<IQueryable<Review>> GetAllReviews()
 		{
-			return (await _unitOfWork.ReviewRepository.GetAllAsync()).AsQueryable();
-		}
+			//return (await _unitOfWork.ReviewRepository.GetAndIncludeAsync(_ => _.Id > 0, 
+			//								new string[] { "Product", "User" })).AsQueryable();
+			try
+			{
+				var result = (await _unitOfWork.ReviewRepository.GetAllAsync()).AsQueryable();
+				return result;
+			} catch (Exception ex)
+            {
+                return null;
+            }
+        }
 
 		public async Task<IQueryable<Review>> GetReviewsOfProduct(string productCode)
 		{
 			try
 			{
 				var reviews = (await _unitOfWork.ReviewRepository
-								.GetAsync(_ => _.ProductCode.ToLower().Equals(productCode.ToLower()))).AsQueryable();
-				return reviews;
+								.GetAsync(_ => _.ProductCode.ToLower()
+								.Equals(productCode.ToLower())));
+				return reviews.AsQueryable();
 			}
 			catch (Exception ex)
 			{
