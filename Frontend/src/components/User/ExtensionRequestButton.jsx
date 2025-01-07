@@ -5,36 +5,41 @@ import axios from "axios";
 
 
 const ExtensionRequestButton = ({
+  parentOrder,
   selectedChildOrder,
   setExtendReload,
 }) => {
   const [showExtendedModal, setExtendedShowModal] = useState(false);
   const [extensionDate, setExtensionDate] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
+  const isDisabled =
+    parentOrder.orderStatus !== "Đã giao hàng" ||
+    selectedChildOrder.extensionStatus === "1";
+  const [loading, setLoading] = useState(false);
 
   const handleExtendOrder = async (order) => {
     // console.log(order);//id la parentId
 
     if (!extensionDate) {
-      alert("Please select a valid date before extending the order.");
+      alert("Ngày gia hạn chưa được chọn!");
       return;
     }
-
+    setLoading(true);
     const selectedDateObj = new Date(extensionDate); // Convert selectedDate to a Date object
     const rentalEndDateObj = new Date(order.rentalEndDate); // Convert rentalEndDate to a Date object
-    console.log(extensionDate);
     const extensionDays = Math.ceil(
       (selectedDateObj - rentalEndDateObj) / (1000 * 60 * 60 * 24)
-    );
-
-    console.log(extensionDays);
-
+    ) - 1;
+   console.log(extensionDays);
     const payload = {
-      parentOrderId: id,
-      childOrderId: order.parentOrderCode === rentalOrderCode ? order.id : null,
+      parentOrderId: parentOrder.id,
+      childOrderId:
+        selectedChildOrder.parentOrderCode === parentOrder.rentalOrderCode
+          ? selectedChildOrder.id
+          : null,
       extensionDays: extensionDays,
     };
-
+   console.log(payload)
     try {
       const response = await axios.post(
         `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/request-extension`,
@@ -45,23 +50,27 @@ const ExtensionRequestButton = ({
           },
         }
       );
-      if (!error.response.data.isSuccess) {
-        console.log(error.response.data.message);
-        toast.success("Đơn hàng của bạn đã được hoàn tất thành công.");
+      console.log(response)
+
+      if (response.data.isSuccess) {
+        toast.success("Đã gửi yêu cầu gia hạn.");
         setExtendReload(true);
         setExtendedShowModal(false);
       }
-
-      console.log("Request thành công:", response);
+      // console.log("Request thành công:", response);
     } catch (error) {
       console.error("Request thất bại:", error.response || error.message);
       console.log(error.response.data.message);
+    } finally {
+      setLoading(false);
     }
   };
   const getTomorrowDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split("T")[0];
+    const date = selectedChildOrder.rentalEndDate
+      ? new Date(selectedChildOrder.rentalEndDate)
+      : new Date();
+    date.setDate(date.getDate() + 2);
+    return date.toISOString().split("T")[0];
   };
 
   const handleExtensionDateChange = (e) => {
@@ -72,11 +81,20 @@ const ExtensionRequestButton = ({
   return (
     <>
       <Button
+        className={`p-2 ${
+          isDisabled
+            ? "text-yellow-700 bg-white border border-yellow-700 rounded-md hover:bg-yellow-200 cursor-not-allowed"
+            : "text-yellow-700 bg-white border border-yellow-700 rounded-md hover:bg-yellow-200"
+        }`}
+        onClick={() => {
+          if (!isDisabled) {
+            setExtendedShowModal(true);
+          }
+        }}
         size="sm"
-        className={`text-yellow-700 bg-white border border-yellow-700 rounded-md hover:bg-yellow-200`}
-        onClick={() => setExtendedShowModal(true)}
+        disabled={isDisabled}
       >
-        Gia Hạn Sản Phẩm
+        {selectedChildOrder.isExtended ? "Đang gia hạn" : "Gia Hạn Sản Phẩm"}
       </Button>
 
       {showExtendedModal && selectedChildOrder && (
@@ -103,7 +121,7 @@ const ExtensionRequestButton = ({
                 </p>
                 <p className="font-medium text-base text-rose-700">
                   Giá thuê:{" "}
-                  {selectedChildOrder.rentPrice.toLocaleString("Vn-vi")}
+                  {selectedChildOrder.rentPrice.toLocaleString("Vn-vi")}₫
                 </p>
                 <p className="font-medium text-sm">
                   Số lượng: {selectedChildOrder.quantity}
@@ -157,18 +175,21 @@ const ExtensionRequestButton = ({
             </div>
 
             <div className="flex justify-end space-x-4 mt-4">
-              <button
+              <Button
                 className="bg-gray-500 text-white py-2 px-4 rounded-md"
                 onClick={() => setExtendedShowModal(false)}
               >
                 Đóng
-              </button>
-              <button
-                className="bg-red-500 text-white py-2 px-4 rounded-md"
+              </Button>
+              <Button
+                disabled={loading}
+                className={`bg-red-500 text-white py-2 px-4 hover:bg-red-700 rounded-md  ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
                 onClick={() => handleExtendOrder(selectedChildOrder)}
               >
-                Gửi yêu cầu
-              </button>
+                {loading ? "Đang xử lý..." : "Gửi yêu cầu"}
+              </Button>
             </div>
           </div>
         </div>

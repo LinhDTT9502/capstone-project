@@ -12,6 +12,7 @@ import {
   faVenusMars,
   faMapMarkerAlt,
   faBirthdayCake,
+  faCrown,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AuthInfo from "./AuthInfo";
@@ -33,6 +34,7 @@ const UserProfile = () => {
   const [email, setEmail] = useState("");
   const [emailConfirmed, setEmailConfirmed] = useState(false);
   const [fullName, setFullName] = useState("");
+  const [userData, setUserData] = useState(null);
 
   const [formData, setFormData] = useState({
     UserName: user.UserName,
@@ -50,7 +52,9 @@ const UserProfile = () => {
         { headers: { accept: "*/*" } }
       );
       if (response.data.user.isSuccess) {
-        const userData = response.data.user.data;
+        const data = response.data.user.data;
+        setUserData(data);
+
          const {
            phoneNumber,
            phoneNumberConfirmed,
@@ -61,14 +65,13 @@ const UserProfile = () => {
            dob,
            email,
            emailConfirmed,
-         } = userData;
-
+         } = data;
          setPhone(phoneNumber || "");
          setPhoneNumberConfirmed(phoneNumberConfirmed || false);
          setAvatar(imgAvatarPath || "/assets/images/default-avatar.jpg");
          setEmail(email)
          setEmailConfirmed(emailConfirmed);
-        setFullName(fullName); 
+         setFullName(fullName); 
          setFormData((prev) => ({
            ...prev,
            FullName: fullName || prev.FullName,
@@ -92,7 +95,6 @@ const UserProfile = () => {
   const handleEditClick = () => setIsEditing(true);
 
   const handleSaveClick = () => {
-    console.log(formData);
     if (
       JSON.stringify(formData) ===
       JSON.stringify({
@@ -153,9 +155,14 @@ const UserProfile = () => {
 const convertToISODate = (date) => {
   if (!date) return "";
   const d = new Date(date);
-  return d.toISOString().split("T")[0]; // Trả về 'YYYY-MM-DD'
-};
 
+  // Lấy ngày/tháng/năm theo múi giờ local mà không bị ảnh hưởng bởi UTC
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`; // Trả về 'YYYY-MM-DD'
+};
 // Hàm chuyển đổi ngược lại 'YYYY-MM-DD' thành 'YYYY-MM-DDTHH:MM:SS.MMM'
 const convertToFullISODate = (date) => {
   if (!date) return "";
@@ -163,13 +170,44 @@ const convertToFullISODate = (date) => {
   return d.toISOString(); // Trả về 'YYYY-MM-DDTHH:MM:SS.MMM'
 };
 
+
+const getMembershipStyles = (membershipLevel) => {
+  switch (membershipLevel) {
+    case "Gold_Member":
+      return {
+        label: "Thành viên vàng",
+        textColor: "#FFD700", // Vàng
+        bgColor: "#FFF8DC", // Màu nền nhạt
+      };
+    case "Silver_Member":
+      return {
+        label: "Thành viên bạc",
+        textColor: "#C0C0C0", // Bạc
+        bgColor: "#F5F5F5", // Màu nền nhạt
+      };
+    case "Diamond_Member":
+      return {
+        label: "Thành viên kim cương",
+        textColor: "#1E90FF", // Xanh ngọc
+        bgColor: "#E6F7FF", // Màu nền nhạt
+      };
+    default:
+      return {
+        label: "Thành viên đồng",
+        textColor: "#CD7F32", // Đồng
+        bgColor: "#FDF5E6", // Màu nền nhạt
+      };
+  }
+};
+
+
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
     <>
-      <ToastContainer />
       <div className="container mx-auto pt-2 rounded-lg max-w-4xl">
         <h2 className="text-orange-500 font-bold text-2xl mb-6">
           {t("user_profile.user_profile")}
@@ -195,9 +233,37 @@ const convertToFullISODate = (date) => {
                 />
               </div>
             </div>
-            <div>
-              <h3 className="text-xl font-semibold">{fullName}</h3>
-            </div>
+            <h3 className="text-xl font-semibold text-gray-500">
+              {userData.fullName}
+            </h3>
+            {userData.customerDetail && (
+              <div className="text-gray-500">
+                <div>
+                  <span>
+                    Điểm tích lũy: {userData.customerDetail.loyaltyPoints} -{" "}
+                    <span
+                      style={{
+                        backgroundColor: getMembershipStyles(
+                          userData.customerDetail.membershipLevel
+                        ).bgColor,
+                        color: getMembershipStyles(
+                          userData.customerDetail.membershipLevel
+                        ).textColor,
+                        padding: "5px 10px",
+                        borderRadius: "5px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {
+                        getMembershipStyles(
+                          userData.customerDetail.membershipLevel
+                        ).label
+                      }
+                    </span>
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
             <div className="relative">
@@ -256,13 +322,11 @@ const convertToFullISODate = (date) => {
                     value={formData.Gender}
                     onChange={handleChange}
                   >
-                    <option value="Male">
-                      {t("user_profile.gender_male")}
-                    </option>
-                    <option value="Female">
+                    <option value="Nam">{t("user_profile.gender_male")}</option>
+                    <option value="Nữ">
                       {t("user_profile.gender_female")}
                     </option>
-                    <option value="Other">
+                    <option value="Khác">
                       {t("user_profile.gender_other")}
                     </option>
                   </select>

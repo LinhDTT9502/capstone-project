@@ -7,12 +7,14 @@ import axios from "axios";
 const CancelSaleOrderButton = ({ saleOrderId, setReload }) => {
   const [showModal, setShowModal] = useState(false);
   const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleCancelOrder = async () => {
     if (!reason.trim()) {
       alert("Vui lòng nhập lý do hủy đơn hàng.");
       return;
     }
+    setLoading(true);
     try {
       const response = await axios.post(
         `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/request-cancel/${saleOrderId}?reason=${encodeURIComponent(
@@ -30,6 +32,8 @@ const CancelSaleOrderButton = ({ saleOrderId, setReload }) => {
     } catch (error) {
       console.error("Error cancel order:", error);
       alert("Failed to cancel the order. Please try again.");
+    }finally{
+      setLoading(false);
     }
   };
   return (
@@ -42,7 +46,7 @@ const CancelSaleOrderButton = ({ saleOrderId, setReload }) => {
           setShowModal(true);
         }}
       >
-        Hủy đơn hàng
+        {loading ? "Đang xử lý..." : "Hủy đơn hàng"}
       </Button>
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -85,10 +89,13 @@ const CancelSaleOrderButton = ({ saleOrderId, setReload }) => {
                 Đóng
               </button>
               <button
-                className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-700"
+                disabled={loading}
+                className={`bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-700 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
                 onClick={handleCancelOrder}
               >
-                Hủy đơn hàng
+                {loading ? "Đang xử lý..." : " Hủy đơn hàng"}
               </button>
             </div>
           </div>

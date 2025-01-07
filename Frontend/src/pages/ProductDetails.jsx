@@ -19,6 +19,8 @@ import {
   faPlus,
   faShoppingCart,
   faMoneyBillWave,
+  faTicketSimple,
+  faTicket,
 } from "@fortawesome/free-solid-svg-icons";
 import ProductReviews from "../components/Product/ProductReview";
 
@@ -159,6 +161,7 @@ const ProductDetails = () => {
     <div className="container mx-auto px-4 md:px-20 py-10 bg-white rounded-lg shadow-lg">
       {product && (
         <>
+          {console.log(product)}
           <div className="flex flex-col md:flex-row gap-8 justify-between">
             <div className="md:w-2/5 relative">
               <img
@@ -223,12 +226,63 @@ const ProductDetails = () => {
                   selectedCondition={selectedCondition}
                   setSelectedCondition={setSelectedCondition}
                 />
-                <p>
-                  <strong>Giá:</strong>{" "}
-                  {product.price
-                    ? `${product.price.toLocaleString("VI-vn")} ₫`
-                    : "N/A"}
-                </p>
+                <div className="bg-gray-100 py-3">
+                  <p className="text-xl">
+                    <strong>Giá:</strong>{" "}
+                    {product.price !== product.listedPrice ? (
+                      <>
+                        <span className="text-red-500 font-bold relative group">
+                          {product.price.toLocaleString("VI-vn")}₫{" "}
+                          <FontAwesomeIcon
+                            icon={faTicket}
+                            style={{ color: "#e67f0a" }}
+                            className="cursor-pointer"
+                          />
+                          {/* Tooltip */}
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-max bg-gray-500 text-white text-sm px-3 py-2 rounded hidden group-hover:block z-10 shadow-lg">
+                            <p className="mb-1">
+                              💰 <strong>Chi tiết giảm giá:</strong>
+                            </p>
+                            <ul className="list-disc list-inside">
+                              <li>
+                                Giá gốc:{" "}
+                                {product.listedPrice.toLocaleString("VI-vn")}₫
+                              </li>
+                              <li>
+                                Giảm giá:{" "}
+                                {(
+                                  product.listedPrice - product.price
+                                ).toLocaleString("VI-vn")}
+                                ₫
+                              </li>
+                              <li>
+                                Giá sau giảm:{" "}
+                                {product.price.toLocaleString("VI-vn")}₫
+                              </li>
+                              <li>
+                                Phần trăm giảm:{" "}
+                                {(
+                                  ((product.listedPrice - product.price) /
+                                    product.listedPrice) *
+                                  100
+                                ).toFixed(0)}
+                                %
+                              </li>
+                            </ul>
+                          </div>
+                        </span>{" "}
+                        -{" "}
+                        <span className="line-through text-gray-500 text-lg">
+                          {product.listedPrice.toLocaleString("VI-vn")}₫
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-red-500 font-bold">
+                        {product.listedPrice.toLocaleString("VI-vn")}₫
+                      </span>
+                    )}
+                  </p>
+                </div>
                 <p>
                   <strong>Giá thuê:</strong>{" "}
                   {product.rentPrice
@@ -263,7 +317,7 @@ const ProductDetails = () => {
                   </div>
                   <LikeButton
                     productId={product.id}
-                    productCode= {product.productCode}
+                    productCode={product.productCode}
                     initialLikes={product.likes}
                     isLikedInitially={product.isLiked}
                   />

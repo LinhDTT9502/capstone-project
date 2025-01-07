@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from "@material-tailwind/react";
 import { fetchCheckReview } from '../../services/reviewService';
+import ReviewSaleOrderModal from './ReviewSaleOrderModal';
 
-const ReviewButton = ({ orderStatus, saleOrderId, setReviewModal }) => {
+const ReviewButton = ({ orderStatus, saleOrderId, setConfirmReload }) => {
     const [showButton, setShowButton] = useState(false);
+    const [reviewModal, setReviewModal] = useState(false);
 
     const checkReview = async () => {
         try {
             const response = await fetchCheckReview(saleOrderId);
-            setShowButton(response === false);
+            console.log(response);
+
+            setShowButton(response);
         } catch (err) {
             console.error("Error in checkReview:", err);
         }
@@ -20,9 +24,9 @@ const ReviewButton = ({ orderStatus, saleOrderId, setReviewModal }) => {
 
     return (
         <>
-            {showButton && (
+            {!showButton && (
                 <Button
-                onClick={() => setReviewModal(true)}
+                    onClick={() => setReviewModal(true)}
                     color="white"
                     size="sm"
                     className="text-yellow-500 bg-white border border-yellow-500 rounded-md hover:bg-yellow-200"
@@ -30,6 +34,12 @@ const ReviewButton = ({ orderStatus, saleOrderId, setReviewModal }) => {
                     Đánh giá
                 </Button>
             )}
+            <ReviewSaleOrderModal
+                saleOrderId={saleOrderId}
+                setReviewModal={setReviewModal}
+                reviewModal={reviewModal}
+                setConfirmReload={setConfirmReload}
+            />
         </>
     );
 };

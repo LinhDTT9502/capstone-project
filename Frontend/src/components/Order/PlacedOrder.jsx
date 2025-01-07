@@ -43,9 +43,6 @@ const PlacedOrder = () => {
     (acc, item) => acc + (item.price * item.quantity || 0),
     0
   );
-
-  console.log(selectedProducts);
-  
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
     // if (event.target.value === "STORE_PICKUP") {
@@ -77,7 +74,7 @@ const PlacedOrder = () => {
         toast.error("Vui lòng chọn giới tính!");
         return false;
       }
-      console.log(selectedProducts)
+      // console.log(selectedProducts)
       const token = localStorage.getItem("token");
       const data = {
         customerInformation: {
@@ -113,6 +110,8 @@ const PlacedOrder = () => {
           totalAmount: totalPrice,
         },
       };
+      // console.log(data.productInformations);
+
       const response = await placedOrder(data);
 
       if (response) {
@@ -121,7 +120,6 @@ const PlacedOrder = () => {
           // console.log(response.data, "")
         }
         console.log(response);
-        setOrderSuccess(true);
         navigate("/order_success", {
           state: {
             orderID: response.data.saleOrderId,

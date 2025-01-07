@@ -70,16 +70,16 @@ namespace _2Sport_BE.Service.Services
                                                                                       .Include(_ => _.EditedByStaff);
             foreach (var blog in blogs)
             {
-                var createdStaff = await _unitOfWork.UserRepository.GetAsync(_ => _.Id == blog.CreatedStaffId);
+                var createdStaff = await _unitOfWork.UserRepository.FindAsync(blog.CreatedStaffId);
                 if (createdStaff != null)
                 {
-                    blog.CreatedByStaff = createdStaff.FirstOrDefault();
+                    blog.CreatedByStaff = createdStaff;
                 }
 
-                var editedStaff = await _unitOfWork.UserRepository.GetAsync(_ => _.Id == blog.EditedByStaffId);
+                var editedStaff = await _unitOfWork.UserRepository.FindAsync(blog.EditedByStaffId);
                 if (editedStaff != null)
                 {
-                    blog.EditedByStaff = editedStaff.FirstOrDefault();
+                    blog.EditedByStaff = editedStaff;
                 }
             }
             return blogs;
@@ -89,13 +89,13 @@ namespace _2Sport_BE.Service.Services
         {
             try
             {
-                var editedByStaff = (await _unitOfWork.StaffRepository.GetAsync(_ => _.UserId == userId)).FirstOrDefault();
+                var editedByStaff = await _unitOfWork.UserRepository.FindAsync(userId);
                 if (editedByStaff == null)
                 {
                     return null;
                 }
                 blog.UpdatedAt = DateTime.Now;
-                blog.EditedByStaffId = editedByStaff.StaffId;
+                blog.EditedByStaffId = editedByStaff.Id;
                 await _unitOfWork.BlogRepository.UpdateAsync(blog);
                 return blog;
             } catch (Exception ex)
@@ -107,17 +107,17 @@ namespace _2Sport_BE.Service.Services
 
         public async Task<Blog> GetBlogById(int blogId)
         {
-            var blog = (await _unitOfWork.BlogRepository.GetAsync(_ => _.Id == blogId)).FirstOrDefault();
-            var createdStaff = await _unitOfWork.UserRepository.GetAsync(_ => _.Id == blog.CreatedStaffId);
+            var blog = await _unitOfWork.BlogRepository.FindAsync(blogId);
+            var createdStaff = await _unitOfWork.UserRepository.FindAsync(blog.CreatedStaffId);
             if (createdStaff != null)
             {
-                blog.CreatedByStaff = createdStaff.FirstOrDefault();
+                blog.CreatedByStaff = createdStaff;
             }
 
-            var editedStaff = await _unitOfWork.UserRepository.GetAsync(_ => _.Id == blog.EditedByStaffId);
+            var editedStaff = await _unitOfWork.UserRepository.FindAsync(blog.EditedByStaffId);
             if (editedStaff != null)
             {
-                blog.EditedByStaff = editedStaff.FirstOrDefault();
+                blog.EditedByStaff = editedStaff;
             }
             return blog;
         }

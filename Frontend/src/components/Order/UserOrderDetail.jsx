@@ -20,6 +20,7 @@ import {
   faCogs,
   faFlagCheckered,
   faArrowsDownToLine,
+  faCreditCard,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   Button,
@@ -48,7 +49,7 @@ export default function UserOrderDetail() {
   const [confirmReload, setConfirmReload] = useState(false);
   const [reload, setReload] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [reviewModal, setReviewModal] = useState(false);
+
 
   const statusColors = {
     "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -77,10 +78,14 @@ export default function UserOrderDetail() {
     { id: 11, label: "Đã Hoàn Thành" },
   ];
 
-  const getCurrentStepIndex = (orderStatus) => {
-    const step = ORDER_STEPS.find((step) => step.id === orderStatus);
-    return step ? ORDER_STEPS.indexOf(step) : -1;
-  };
+const getCurrentStepIndex = (orderStatusId) => {
+    if (orderStatusId === 6) {
+      // Always return index of step with id 5
+      return ORDER_STEPS.findIndex((step) => step.id === 5);
+    }
+  const step = ORDER_STEPS.find((step) => step.id === orderStatusId);
+  return step ? ORDER_STEPS.indexOf(step) : -1;
+};
 
   const fetchOrderDetail = async () => {
     try {
@@ -112,7 +117,6 @@ export default function UserOrderDetail() {
     getCurrentStepIndex();
   }, [orderCode, reload, confirmReload]);
 
-
   if (isLoading)
     return (
       <div className="flex justify-center items-center h-screen">
@@ -137,66 +141,27 @@ export default function UserOrderDetail() {
     updatedAt,
     paymentDate,
     totalAmount,
+    paymentMethod,
   } = orderDetail;
 
   const products = orderDetail?.saleOrderDetailVMs?.$values || [];
 
-  // const handleDoneOrder = async () => {
-  //   if (!orderDetail || !orderDetail.id) {
-  //     alert("Không tìm thấy thông tin đơn hàng để hoàn tất.");
-  //     return;
-  //   }
+  const handleSubmitReview = async () => {
+    if (!currentProduct) return;
 
-  //   const confirmDone = window.confirm(
-  //     "Bạn có chắc chắn muốn hoàn tất đơn hàng này không?"
-  //   );
-
-  //   if (!confirmDone) {
-  //     return;
-  //   }
-
-  //   const newStatus = 5;
-
-  //   try {
-  //     const response = await axios.put(
-  //       `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/update-order-status/${orderDetail.id}?status=${newStatus}`,
-  //       {},
-  //       {
-  //         headers: {
-  //           accept: "*/*",
-  //         },
-  //       }
-  //     );
-
-  //     if (response && response.data.isSuccess) {
-  //       alert("Đơn hàng của bạn đã được hoàn tất thành công.");
-  //       // setShowReviewModal(true);
-  //       fetchOrderDetail();
-  //     } else {
-  //       alert("Không thể hoàn tất đơn hàng. Vui lòng thử lại sau.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error updating order status:", error);
-  //     alert("Đã xảy ra lỗi khi hoàn tất đơn hàng. Vui lòng thử lại sau.");
-  //   }
-  // };
-
-  // const handleSubmitReview = async () => {
-  //   if (!currentProduct) return;
-
-  //   try {
-  //     await submitReview(currentProduct.productCode, {
-  //       star: reviewData.star,
-  //       review: reviewData.review,
-  //       status: true,
-  //     });
-  //     alert("Cảm ơn bạn đã đánh giá sản phẩm!");
-  //     setShowReviewModal(false);
-  //   } catch (error) {
-  //     console.error("Error submitting review:", error);
-  //     alert("Gửi đánh giá thất bại. Vui lòng thử lại.");
-  //   }
-  // };
+    try {
+      await submitReview(currentProduct.productCode, {
+        star: reviewData.star,
+        review: reviewData.review,
+        status: true,
+      });
+      alert("Cảm ơn bạn đã đánh giá sản phẩm!");
+      // setShowReviewModal(false);
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      alert("Gửi đánh giá thất bại. Vui lòng thử lại.");
+    }
+  };
 
   return (
     <div className="container mx-auto p-4 min-h-screen bg-gray-200">
@@ -263,57 +228,73 @@ export default function UserOrderDetail() {
           <div className="py-4 bg-white rounded-md shadow-sm">
             {/* Stepper */}
             <div className="mb-16 bg-orange-100">
-              {console.log(orderDetail)}
+              {/* {console.log(orderDetail)} */}
               <Stepper
                 activeStep={getCurrentStepIndex(orderStatusId)}
-                className=" p-2 rounded-lg"
+                className="p-2 rounded-lg"
               >
-                {ORDER_STEPS.map((status, index) => (
-                  <Step
-                    key={index}
-                    completed={index < getCurrentStepIndex(orderStatusId)}
-                    className={`${index < getCurrentStepIndex(orderStatusId)
-                      ? "bg-blue-500 text-wrap w-10 text-green-600"
-                      : "bg-green-600 text-green-600"
+                {ORDER_STEPS.map((status, index) => {
+                  const currentIndex = getCurrentStepIndex(orderStatusId);
+                  const isRedStep =
+                    orderStatusId === 6 && index >= currentIndex;
+                  const isCompleted = index <= currentIndex;
+
+                  return (
+                    <Step
+                      key={index}
+                      completed={isCompleted}
+                      className={`${
+                        isCompleted
+                          ? "bg-blue-500 text-wrap w-10 text-green-600"
+                          : isRedStep
+                          ? "bg-red-600 text-red-600"
+                          : "bg-green-600 text-green-600"
                       }`}
-                  >
-                    <div className="relative flex flex-col items-center">
-                      <div
-                        className={`w-10 h-10 flex items-center justify-center rounded-full ${index <= getCurrentStepIndex(orderStatusId)
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-300 text-gray-600"
+                    >
+                      <div className="relative flex flex-col items-center">
+                        <div
+                          className={`w-10 h-10 flex items-center justify-center rounded-full ${
+                            isCompleted
+                              ? "bg-green-500 text-white"
+                              : isRedStep
+                              ? "bg-red-600 text-white"
+                              : "bg-gray-300 text-gray-600"
                           }`}
-                      >
-                        <FontAwesomeIcon
-                          icon={
-                            index === 0
-                              ? faClock
-                              : index === 1
+                        >
+                          <FontAwesomeIcon
+                            icon={
+                              index === 0
+                                ? faClock
+                                : index === 1
                                 ? faCheckCircle
                                 : index === 2
-                                  ? faCogs
-                                  : index === 3
-                                    ? faTruck
-                                    : index === 4
-                                      ? faArrowsDownToLine
-                                      : index === 11
-                                        ? faFlagCheckered
-                                        : faClock
-                          }
-                          className="text-lg"
-                        />
-                      </div>
-                      <div
-                        className={`absolute top-12 text-xs font-medium text-wrap w-20 text-center ${index <= getCurrentStepIndex(orderStatusId)
-                          ? "text-green-600"
-                          : "text-gray-600"
+                                ? faCogs
+                                : index === 3
+                                ? faTruck
+                                : index === 4
+                                ? faArrowsDownToLine
+                                : index === 11
+                                ? faFlagCheckered
+                                : faClock
+                            }
+                            className="text-lg"
+                          />
+                        </div>
+                        <div
+                          className={`absolute top-12 text-xs font-medium text-wrap w-20 text-center ${
+                            isCompleted
+                              ? "text-green-600"
+                              : isRedStep
+                              ? "text-red-600"
+                              : "text-gray-600"
                           }`}
-                      >
-                        {status.label}
+                        >
+                          {status.label}
+                        </div>
                       </div>
-                    </div>
-                  </Step>
-                ))}
+                    </Step>
+                  );
+                })}
               </Stepper>
             </div>
             <div className="flex justify-between items-center">
@@ -322,7 +303,7 @@ export default function UserOrderDetail() {
                 <span className="text-orange-500">#{saleOrderCode}</span>
               </h2>
               <div className="flex items-center mr-10">
-                <h2 className="text-2xl font-semibold  text-gray-800 flex-1">
+                <h2 className="text-2xl font-semibold text-gray-800 flex-1">
                   {orderStatus.toUpperCase()}
                 </h2>
               </div>
@@ -369,6 +350,31 @@ export default function UserOrderDetail() {
                 <h2 className="text-lg font-bold mb-2 text-gray-700">
                   Thông tin đơn hàng
                 </h2>
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={faMoneyBillWave}
+                    className="text-blue-500"
+                  />
+                  <span className="font-base">Tình trạng thanh toán:</span>{" "}
+                  <span
+                    className={`mr-1.5 rounded-full text-xs font-bold ${
+                      paymentStatusColors[paymentStatus.trim()] ||
+                      "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {paymentStatus == "N/A"? "Chưa thanh toán" : paymentStatus }
+                  </span>
+                </p>
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon
+                    icon={faCreditCard}
+                    className="text-blue-500"
+                  />
+                  <span className="font-base">Phương thức thanh toán:</span>{" "}
+                  <span className="break-words">
+                    <i>{paymentMethod}</i>
+                  </span>
+                </p>
                 <p className="flex items-start gap-2 mb-2 w-full">
                   <FontAwesomeIcon icon={faTruck} className="text-blue-500" />
                   <span className="font-base flex-shrink-0">
@@ -378,49 +384,26 @@ export default function UserOrderDetail() {
                     <i>{deliveryMethod}</i>
                   </span>
                 </p>
-                <p className="flex items-center gap-2 mb-2">
-                  <FontAwesomeIcon
-                    icon={faCalendarAlt}
-                    className="text-blue-500"
-                  />
-                  <span className="font-base">Tình trạng đơn hàng:</span>{" "}
-                  <span
-                    className={`px-4 py-2 mr-5 rounded-full text-xs font-bold ${statusColors[orderStatus] || "bg-gray-100 text-gray-800"
-                      }`}
-                  >
-                    {orderStatus}
-                  </span>
-                </p>
-                <p className="flex items-center gap-2 mb-2">
-                  <FontAwesomeIcon
-                    icon={faMoneyBillWave}
-                    className="text-blue-500"
-                  />
-                  <span className="font-base">Tình trạng thanh toán:</span>{" "}
-                  <span
-                    className={`py-2 px-4 mr-1.5 rounded-full text-xs font-bold ${statusColors[paymentStatus] || "bg-gray-100 text-gray-800"
-                      }`}
-                  >
-                    {paymentStatus}
-                  </span>
-                </p>
               </div>
             </div>
-
+            {/* Buttons */}
             <div className="col-span-1 flex flex-col gap-4">
-              {orderStatus === "Chờ xử lý" && paymentStatus === "N/A" && (
-                <Button
-                  size="sm"
-                  className="w-full text-blue-700 bg-white border border-blue-700 rounded-md hover:bg-blue-200"
-                  onClick={() =>
-                    navigate("/checkout", {
-                      state: { selectedOrder: orderDetail },
-                    })
-                  }
-                >
-                  Thanh toán
-                </Button>
-              )}
+              {/* {console.log(orderDetail)} */}
+              {paymentStatus !== "Đã thanh toán" &&
+                (orderStatus === "Đã xác nhận" ||
+                  orderStatus === "Chờ xử lý") && (
+                  <Button
+                    size="sm"
+                    className="w-full text-blue-700 bg-white border border-blue-700 rounded-md hover:bg-blue-200"
+                    onClick={() =>
+                      navigate("/checkout", {
+                        state: { selectedOrder: orderDetail },
+                      })
+                    }
+                  >
+                    Thanh toán
+                  </Button>
+                )}
               {orderDetail.orderStatus === "Chờ xử lý" && (
                 <CancelSaleOrderButton
                   saleOrderId={id}
@@ -439,15 +422,10 @@ export default function UserOrderDetail() {
                 <ReviewButton
                   orderStatus={orderStatus}
                   saleOrderId={id}
-                  setReviewModal={setReviewModal}
+                  setConfirmReload={setConfirmReload}
                 />
               )}
-              <ReviewSaleOrderModal
-                saleOrderId={id}
-                setReviewModal={setReviewModal}
-                reviewModal={reviewModal}
-                setConfirmReload={setConfirmReload}
-              />
+             
             </div>
           </div>
         </div>

@@ -51,7 +51,7 @@ const OrderSuccess = () => {
                 </Link>
               )}
               <Link to={`/guest/guest-sale-order/${orderCode}`}>
-                Xem Xem Chi Tiết Đơn Hàng
+                Xem Chi Tiết Đơn Hàng
               </Link>
             </div>
           ) : null} */}
