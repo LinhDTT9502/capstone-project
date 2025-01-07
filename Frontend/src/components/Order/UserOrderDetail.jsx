@@ -33,6 +33,8 @@ import StarRating from "../Product/StarRating";
 import { toast } from "react-toastify";
 import DoneSaleOrderButton from "../User/DoneSaleOrderButton";
 import CancelSaleOrderButton from "../User/CancelSaleOrderButton";
+import ReviewButton from "../Review/ReviewButton";
+import ReviewSaleOrderModal from "../Review/ReviewSaleOrderModal";
 
 export default function UserOrderDetail() {
   const { orderCode } = useParams();
@@ -42,11 +44,11 @@ export default function UserOrderDetail() {
   const [error, setError] = useState(null);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewData, setReviewData] = useState({ star: 5, review: "" });
   const [currentProduct, setCurrentProduct] = useState(null);
   const [confirmReload, setConfirmReload] = useState(false);
   const [reload, setReload] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [reviewModal, setReviewModal] = useState(false);
 
   const statusColors = {
     "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -179,22 +181,22 @@ export default function UserOrderDetail() {
   //   }
   // };
 
-  const handleSubmitReview = async () => {
-    if (!currentProduct) return;
+  // const handleSubmitReview = async () => {
+  //   if (!currentProduct) return;
 
-    try {
-      await submitReview(currentProduct.productCode, {
-        star: reviewData.star,
-        review: reviewData.review,
-        status: true,
-      });
-      alert("Cảm ơn bạn đã đánh giá sản phẩm!");
-      setShowReviewModal(false);
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      alert("Gửi đánh giá thất bại. Vui lòng thử lại.");
-    }
-  };
+  //   try {
+  //     await submitReview(currentProduct.productCode, {
+  //       star: reviewData.star,
+  //       review: reviewData.review,
+  //       status: true,
+  //     });
+  //     alert("Cảm ơn bạn đã đánh giá sản phẩm!");
+  //     setShowReviewModal(false);
+  //   } catch (error) {
+  //     console.error("Error submitting review:", error);
+  //     alert("Gửi đánh giá thất bại. Vui lòng thử lại.");
+  //   }
+  // };
 
   return (
     <div className="container mx-auto p-4 min-h-screen bg-gray-200">
@@ -270,45 +272,42 @@ export default function UserOrderDetail() {
                   <Step
                     key={index}
                     completed={index < getCurrentStepIndex(orderStatusId)}
-                    className={`${
-                      index < getCurrentStepIndex(orderStatusId)
-                        ? "bg-blue-500 text-wrap w-10 text-green-600"
-                        : "bg-green-600 text-green-600"
-                    }`}
+                    className={`${index < getCurrentStepIndex(orderStatusId)
+                      ? "bg-blue-500 text-wrap w-10 text-green-600"
+                      : "bg-green-600 text-green-600"
+                      }`}
                   >
                     <div className="relative flex flex-col items-center">
                       <div
-                        className={`w-10 h-10 flex items-center justify-center rounded-full ${
-                          index <= getCurrentStepIndex(orderStatusId)
-                            ? "bg-green-500 text-white"
-                            : "bg-gray-300 text-gray-600"
-                        }`}
+                        className={`w-10 h-10 flex items-center justify-center rounded-full ${index <= getCurrentStepIndex(orderStatusId)
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-300 text-gray-600"
+                          }`}
                       >
                         <FontAwesomeIcon
                           icon={
                             index === 0
                               ? faClock
                               : index === 1
-                              ? faCheckCircle
-                              : index === 2
-                              ? faCogs
-                              : index === 3
-                              ? faTruck
-                              : index === 4
-                              ? faArrowsDownToLine
-                              : index === 11
-                              ? faFlagCheckered
-                              : faClock
+                                ? faCheckCircle
+                                : index === 2
+                                  ? faCogs
+                                  : index === 3
+                                    ? faTruck
+                                    : index === 4
+                                      ? faArrowsDownToLine
+                                      : index === 11
+                                        ? faFlagCheckered
+                                        : faClock
                           }
                           className="text-lg"
                         />
                       </div>
                       <div
-                        className={`absolute top-12 text-xs font-medium text-wrap w-20 text-center ${
-                          index <= getCurrentStepIndex(orderStatusId)
-                            ? "text-green-600"
-                            : "text-gray-600"
-                        }`}
+                        className={`absolute top-12 text-xs font-medium text-wrap w-20 text-center ${index <= getCurrentStepIndex(orderStatusId)
+                          ? "text-green-600"
+                          : "text-gray-600"
+                          }`}
                       >
                         {status.label}
                       </div>
@@ -386,9 +385,8 @@ export default function UserOrderDetail() {
                   />
                   <span className="font-base">Tình trạng đơn hàng:</span>{" "}
                   <span
-                    className={`px-4 py-2 mr-5 rounded-full text-xs font-bold ${
-                      statusColors[orderStatus] || "bg-gray-100 text-gray-800"
-                    }`}
+                    className={`px-4 py-2 mr-5 rounded-full text-xs font-bold ${statusColors[orderStatus] || "bg-gray-100 text-gray-800"
+                      }`}
                   >
                     {orderStatus}
                   </span>
@@ -400,9 +398,8 @@ export default function UserOrderDetail() {
                   />
                   <span className="font-base">Tình trạng thanh toán:</span>{" "}
                   <span
-                    className={`py-2 px-4 mr-1.5 rounded-full text-xs font-bold ${
-                      statusColors[paymentStatus] || "bg-gray-100 text-gray-800"
-                    }`}
+                    className={`py-2 px-4 mr-1.5 rounded-full text-xs font-bold ${statusColors[paymentStatus] || "bg-gray-100 text-gray-800"
+                      }`}
                   >
                     {paymentStatus}
                   </span>
@@ -438,7 +435,19 @@ export default function UserOrderDetail() {
                   className="w-full"
                 />
               )}
-              {/* {REVIEW BUTTON} */}
+              {(orderStatus === "Đã giao hàng") && (
+                <ReviewButton
+                  orderStatus={orderStatus}
+                  saleOrderId={id}
+                  setReviewModal={setReviewModal}
+                />
+              )}
+              <ReviewSaleOrderModal
+                saleOrderId={id}
+                setReviewModal={setReviewModal}
+                reviewModal={reviewModal}
+                setConfirmReload={setConfirmReload}
+              />
             </div>
           </div>
         </div>
@@ -549,7 +558,7 @@ export default function UserOrderDetail() {
         </div>
       </div>
       {/* Review Modal */}
-      {showReviewModal && (
+      {/* {showReviewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl w-96 max-w-full">
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">
@@ -598,7 +607,7 @@ export default function UserOrderDetail() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

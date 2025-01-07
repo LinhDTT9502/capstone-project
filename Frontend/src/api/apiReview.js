@@ -31,3 +31,11 @@ export const addReview = (productCode, reviewData) => {
     }
   });
 };
+
+export const checkIsReview = (saleOrderId) => {
+  return axios.get(`${API_BASE_URL}/check-is-review/${saleOrderId}`, {
+    headers: {
+      'accept': '*/*'
+    }
+  });
+};

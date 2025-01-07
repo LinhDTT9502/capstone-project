@@ -1,5 +1,5 @@
 // CheckoutButton.js
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@material-tailwind/react";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
@@ -38,15 +38,16 @@ const CheckoutButton = ({ paymentMethodID, selectedOrder }) => {
           },
         }
       );
+      const orderData = response.data.data;
+      console.log(orderData);
       console.log(response);
-      
         const paymentLink = response.data.data.paymentLink;
         // console.log(paymentLink);
         if (paymentMethodID ==2 || paymentMethodID ==3) {
           window.location.href = paymentLink;
           return;
         } else (
-          navigate('/manage-account/sale-order')
+          navigate('/payment-success', { state: { orderData } })
         )
        
      

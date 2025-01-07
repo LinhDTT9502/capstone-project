@@ -36,6 +36,15 @@ import {
     };
 
     const handleCheckout = async () => {
+      if (!selectedOption) {
+        alert("Vui lòng chọn phương thức thanh toán!");
+        return;
+      }
+      if (!selectedDeposit) {
+        alert("Vui lòng chọn giá trị đặt cọc cho đơn hàng!");
+        return;
+      }
+      
       try {
         const token = localStorage.getItem("token");
         const payload = {
@@ -56,19 +65,22 @@ import {
             },
           }
         );
+        const orderData = response.data.data;
         const paymentLink = response.data.data.paymentLink;
         if (selectedOption == 2 || selectedOption == 3) {
           window.location.href = paymentLink;
           return;
-        } else navigate("/manage-account/rental-order/");
+        } else (
+          navigate('/payment-success', { state: { orderData } })
+        )
 
-        if (response.data.isSuccess) {
-          const paymentLink = response.data.data.paymentLink;
-          newTabRef.current = window.open(paymentLink, "_blank");
+        // if (response.data.isSuccess) {
+        //   const paymentLink = response.data.data.paymentLink;
+        //   newTabRef.current = window.open(paymentLink, "_blank");
 
-        } else {
-          alert("Checkout failed: " + response.data.message);
-        }
+        // } else {
+        //   alert("Checkout failed: " + response.data.message);
+        // }
       } catch (err) {
         alert("An error occurred: " + err.message);
       }

@@ -28,7 +28,6 @@ import ContactUs from './pages/ContactUs';
 import AboutUs from './pages/AboutUs';
 import OrderSuccess from './components/Payment/OrderSuccess';
 import OrderCancel from './components/Payment/OrderCancel';
-import PrivateRoute from './components/PrivateRoute';
 import PlacedOrder from './components/Order/PlacedOrder';
 import Cart from './pages/Cart';
 import GuestOrder from './pages/GuestOrder';
@@ -52,6 +51,7 @@ import RefundForm from './components/Refund/RefundForm';
 import PaymentFail from './pages/AfterPayment/PaymentFail';
 import GuestRoutes from './routes/GuestRoutes';
 import { ToastContainer } from 'react-toastify';
+import PrivateRoute from './routes/PrivateRoute';
 
 
 function App() {
@@ -77,7 +77,15 @@ function App() {
         {/* <BreadcrumbsDefault/> */}
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/manage-account/*" element={<UserRoutes />} />
+          <Route
+                path="/manage-account/*"
+                element={
+                  <PrivateRoute allowedRoles={["Customer"]}>
+                   <UserRoutes />
+                  </PrivateRoute>
+                }
+              />
+          {/* <Route path="/manage-account/*" element={<UserRoutes />} /> */}
           <Route path="/guest/*" element={<GuestRoutes />} />
           <Route path="/refund-request" element={<RefundForm />} />
 

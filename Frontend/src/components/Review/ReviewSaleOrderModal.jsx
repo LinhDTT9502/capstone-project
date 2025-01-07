@@ -5,18 +5,8 @@ import { Button, Rating } from "@material-tailwind/react";
 const ReviewSaleOrderModal = ({ saleOrderId, reviewModal, setReviewModal, setConfirmReload }) => {
     const [products, setProducts] = useState([]);
     const [selectedProductCode, setSelectedProductCode] = useState("");
-    const [star, setStar] = useState(0);
     const [review, setReview] = useState("");
-    console.log(saleOrderId);
-    console.log(products);
-    console.log(selectedProductCode);
-    console.log(star);
-    console.log(review);
-
-
-
-
-
+    const [rated, setRated] = useState(0);
 
     useEffect(() => {
         const fetchOrderDetails = async () => {
@@ -45,6 +35,8 @@ const ReviewSaleOrderModal = ({ saleOrderId, reviewModal, setReviewModal, setCon
                             ])
                         ).values()
                     );
+
+                    
                     setProducts(uniqueProducts);
                 } else {
                     alert(response.data.message || "Failed to fetch order details.");
@@ -77,8 +69,8 @@ const ReviewSaleOrderModal = ({ saleOrderId, reviewModal, setReviewModal, setCon
                 `https://capstone-project-703387227873.asia-southeast1.run.app/api/Review/add-review/${saleOrderId}`,
                 {
                     productCode: selectedProductCode,
-                    star,
-                    review,
+                    star: rated,
+                    review: review,
                 },
                 {
                     headers: {
@@ -93,9 +85,9 @@ const ReviewSaleOrderModal = ({ saleOrderId, reviewModal, setReviewModal, setCon
                     prev.filter((product) => product.productCode !== selectedProductCode)
                 );
                 setSelectedProductCode("");
-                setStar(0);
+                setRated(0);
                 setReview("");
-                setReviewModal(false)
+                // setReviewModal(false)
                 setConfirmReload(true)
             } else {
                 alert(response.data.message || "Failed to submit review.");
@@ -129,31 +121,28 @@ const ReviewSaleOrderModal = ({ saleOrderId, reviewModal, setReviewModal, setCon
                             ))}
                         </select>
 
-                            <>
-                                <label className="block font-medium mb-2">
-                                    Đánh giá chất lượng sản phẩm:
-                                </label>
-                                <Rating
-                                unratedColor="amber" ratedColor="amber"
-                                    value={star}
-                                    onChange={(e, newValue) => setStar(newValue)}
-                                />
+                        <>
+                            <label className="block font-medium mb-2">
+                                Đánh giá chất lượng sản phẩm:
+                            </label>
+                           
+                            <Rating unratedColor="amber"
+                                ratedColor="amber" value={0} onChange={(value) => setRated(value)} />
+                            <textarea
+                                className="w-full p-2 border border-gray-300 rounded-md mt-4 mb-4"
+                                placeholder="Hãy chia sẻ nhận xét của bạn nhé!"
+                                rows="4"
+                                value={review}
+                                onChange={(e) => setReview(e.target.value)}
+                            />
 
-                                <textarea
-                                    className="w-full p-2 border border-gray-300 rounded-md mt-4 mb-4"
-                                    placeholder="Hãy chia sẻ nhận xét của bạn nhé!"
-                                    rows="4"
-                                    value={review}
-                                    onChange={(e) => setReview(e.target.value)}
-                                />
-
-                                <Button
-                                    className="bg-green-500 text-white w-full"
-                                    onClick={handleSubmit}
-                                >
-                                    Gửi đánh giá
-                                </Button>
-                            </>
+                            <Button
+                                className="bg-green-500 text-white w-full"
+                                onClick={handleSubmit}
+                            >
+                                Gửi đánh giá
+                            </Button>
+                        </>
                         <Button
                             className="mt-4 bg-gray-500 text-white w-full"
                             onClick={() => {

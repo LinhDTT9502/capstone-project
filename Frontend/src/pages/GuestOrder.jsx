@@ -311,10 +311,7 @@ const GuestOrder = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(
-                        `/guest/guest-sale-order/${order.saleOrderCode}`,
-                        {
-                          state: { order }, // Truyền order qua state
-                        }
+                        `/guest/guest-sale-order/${order.saleOrderCode}`
                       );
                     }}
                   >

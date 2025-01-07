@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import CancelSaleOrderButton from "./CancelSaleOrderButton";
 import DoneSaleOrderButton from "./DoneSaleOrderButton";
+import ReviewButton from "../Review/ReviewButton";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -74,8 +75,8 @@ export default function UserOrderStatus() {
     selectedStatus === "Tất cả"
       ? filteredSaleOrder
       : filteredSaleOrder.filter(
-          (order) => order.orderStatus === selectedStatus
-        );
+        (order) => order.orderStatus === selectedStatus
+      );
 
   if (isLoading)
     return (
@@ -136,11 +137,10 @@ export default function UserOrderStatus() {
           ].map((status) => (
             <button
               key={status}
-              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
-                selectedStatus === status
+              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${selectedStatus === status
                   ? "bg-orange-500 text-white" // Màu khi được chọn
                   : statusColors[status] || "bg-gray-200 text-gray-700" // Áp dụng màu từ statusColors
-              }`}
+                }`}
               onClick={() => setSelectedStatus(status)}
             >
               {status}
@@ -182,10 +182,9 @@ export default function UserOrderStatus() {
                   Mã đơn hàng:{" "}
                   <span className="text-orange-500">{order.saleOrderCode}</span>
                   <span
-                    className={`px-3 ml-2.5 py-1 mr-5 rounded-full text-xs font-medium ${
-                      statusColors[order.orderStatus] ||
+                    className={`px-3 ml-2.5 py-1 mr-5 rounded-full text-xs font-medium ${statusColors[order.orderStatus] ||
                       "bg-gray-100 text-gray-800"
-                    }`}
+                      }`}
                   >
                     {order.orderStatus}
                   </span>
@@ -193,10 +192,9 @@ export default function UserOrderStatus() {
                 <p className=" text-gray-600">
                   Trạng thái thanh toán:
                   <span
-                    className={`ml-2 font-medium ${
-                      paymentStatusColors[order.paymentStatus] ||
+                    className={`ml-2 font-medium ${paymentStatusColors[order.paymentStatus] ||
                       "text-gray-800"
-                    }`}
+                      }`}
                   >
                     <i> {order.paymentStatus}</i>
                   </span>
@@ -287,6 +285,12 @@ export default function UserOrderStatus() {
                     <DoneSaleOrderButton
                       saleOrderId={order.id}
                       setConfirmReload={setConfirmReload}
+                    />
+                  )}
+                  {(order.orderStatus === "Đã giao hàng") && (
+                    <ReviewButton
+                      orderStatus={order.orderStatus}
+                      saleOrderId={order.id}
                     />
                   )}
                   <Button
