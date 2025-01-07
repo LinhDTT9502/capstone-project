@@ -10,7 +10,7 @@ const PaymentSuccess = () => {
   const location = useLocation();
   const user = useSelector(selectUser)
   const { orderData } = location.state || {};
-  console.log(orderData);
+  // console.log(orderData);
 
   return (
     <div className="min-h-screen container mx-auto px-4 md:px-20 py-10 bg-white rounded-lg shadow-lg mt-10">
@@ -25,7 +25,7 @@ const PaymentSuccess = () => {
             2sport xin chân thành cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của chúng tôi.
             Chúng tôi rất trân trọng sự ủng hộ của quý khách!
           </p>
-          <button
+          {orderData && <button
             onClick={() => {
               if (!user && orderData.saleOrderCode) {
                 navigate(`/guest/guest-sale-order/${orderData.saleOrderCode}`);
@@ -41,6 +41,8 @@ const PaymentSuccess = () => {
           >
             Xem chi tiết đơn hàng
           </button>
+          }
+          
 
 
         </div>
