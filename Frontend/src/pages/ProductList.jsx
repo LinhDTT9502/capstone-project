@@ -98,41 +98,40 @@ const ProductList = ({
   return (
     <div className="container mx-auto">
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {currentProducts.length > 0 ? (
-        currentProducts.map((product) => (
-          <div
-            key={product.id}
-            className="bg-white border hover:drop-shadow-lg p-4 relative flex flex-col justify-between text-left h-full hover:cursor-pointer"
-          >
-            {/* Discount Badge */}
-            {product.discount > 0 && (
-              <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">
-                -{product.discount}%
+        {currentProducts.length > 0
+          ? currentProducts.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white border border-gray-200 hover:border-red-500 hover:drop-shadow-lg p-4 relative flex flex-col justify-between text-left h-full hover:cursor-pointer"
+              >
+                <div>
+                  {/* Discount Badge */}
+                  {product.discount > 0 && (
+                    <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      -{product.discount}%
+                    </div>
+                  )}
+
+                  {/* Product Image */}
+                  <Link to={`/product/${product.productCode}`}>
+                    <img
+                      src={product.imgAvatarPath}
+                      alt={product.productName}
+                      className="object-contain w-full h-48 mx-auto"
+                    />
+                  </Link>
+
+                  {/* Product Name */}
+                  <h3 className="font-semibold mt-4">{product.productName}</h3>
+
+                  {/* Product Price */}
+                  <p className="text-red-700 text-lg font-bold mt-auto">
+                    {product.price.toLocaleString("vi-VN")}₫
+                  </p>
+                </div>
               </div>
-            )}
-
-            {/* Product Image */}
-            <Link to={`/product/${product.productCode}`}>
-              <img
-                src={product.imgAvatarPath}
-                alt={product.productName}
-                className="object-contain w-full h-48 mx-auto"
-              />
-            </Link>
-
-            {/* Product Name */}
-            <h3 className="font-semibold mt-4">{product.productName}</h3>
-
-            {/* Product Price */}
-            <p className="text-red-700 text-lg font-bold mt-auto">
-              {product.price.toLocaleString("vi-VN")}₫
-            </p>
-          </div>
-
-        ))):("Không có sản phẩm được tìm thấy")
-      
-      }
-
+            ))
+          : "Không có sản phẩm được tìm thấy"}
       </div>
       {/* Pagination */}
       <Paginationv3

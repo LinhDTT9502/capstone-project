@@ -38,8 +38,8 @@ const GuestOrder = () => {
   const [detailedOrders, setDetailedOrders] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [reload, setReload] = useState(false);
- const [confirmReload, setConfirmReload] = useState(false);
-
+  const [confirmReload, setConfirmReload] = useState(false);
+  const [filteredSaleOrders, setFilteredSaleOrders] = useState([]);
 
   const toggleExpand = (orderId) => {
     setExpandedOrderId((prevOrderId) =>
@@ -50,20 +50,25 @@ const GuestOrder = () => {
   const fetchAllOrderDetails = async () => {
     const detailedOrderList = []; // Danh sách tạm thời
     for (const order of orders) {
-      console.log(orders)
       const response = await axios.get(
         `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/get-order-by-code?orderCode=${order.saleOrderCode}`,
         { headers: { accept: "*/*" } }
       );
       const data = response.data.data;
       if (response.data.isSuccess) {
-
         detailedOrderList.push(data);
       }
     }
-    setDetailedOrders(detailedOrderList.sort((a, b) => {
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        })); // Cập nhật danh sách mới
+    setDetailedOrders(
+      detailedOrderList.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      })
+    ); // Cập nhật danh sách mới
+    setFilteredSaleOrders(
+      detailedOrderList.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      })
+    );
   };
 
   useEffect(() => {
@@ -71,11 +76,6 @@ const GuestOrder = () => {
       fetchAllOrderDetails();
     }
   }, [orders, reload, confirmReload]);
-
-  const filteredOrders =
-    selectedStatus === "Tất cả"
-      ? detailedOrders
-      : detailedOrders.filter((order) => order.orderStatus === selectedStatus);
 
   if (!orders || orders.length === 0) {
     return (
@@ -108,29 +108,47 @@ const GuestOrder = () => {
   const handleSearch = () => {
     toast.info(`Tìm kiếm với từ khóa: ${searchQuery}`);
     setSearchQuery(searchQuery);
+    if (!searchQuery) {
+      setFilteredSaleOrders(detailedOrders);
+      return;
+    }
+
     if (searchQuery) {
-      console.log(detailedOrders)
       const filtered = detailedOrders.filter((order) => {
-        return order.saleOrderDetailVMs.$values.some((item) => {
-          // Kiểm tra nếu tên sản phẩm, màu sắc, hoặc kích thước chứa từ khóa tìm kiếm
-          return (
-            item.productName
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()) ||
-            item.color.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.size.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        });
+        return (
+          order.saleOrderCode
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          order.saleOrderDetailVMs.$values.some((item) => {
+            return (
+              item.productName
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+              item.color.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              item.size.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+          })
+        );
       });
+
       if (filtered.length === 0) {
-        toast.info("Không tìm thấy sản phẩm nào khớp với từ khóa");
+        toast.info(
+          "Không tìm thấy sản phẩm hoặc đơn hàng nào khớp với từ khóa"
+        );
+        setFilteredSaleOrders([]);
         return;
       }
-      setDetailedOrders(filtered);
-    } else {
-      setDetailedOrders(orders);
+      setFilteredSaleOrders(filtered);
     }
   };
+
+  const filteredOrders =
+    selectedStatus === "Tất cả"
+      ? filteredSaleOrders
+      : filteredSaleOrders.filter(
+          (order) => order.orderStatus === selectedStatus
+        );
+
   return (
     <div className="container mx-auto pt-2 rounded-lg max-w-5xl">
       <h2 className="text-orange-500 font-bold text-2xl pb-2">
@@ -182,149 +200,171 @@ const GuestOrder = () => {
           </div>
         )}
       </div>
+
       <div className="max-h-[60vh] overflow-y-auto">
-        {/* Order List */}
-        {filteredOrders.map((order) => (
-          <div
-            key={order.saleOrderCode}
-            className="border border-gray-200 rounded-lg shadow-sm mt-4 relative flex flex-col"
-          >
-            <div
-              className="flex justify-between items-center p-2 cursor-pointer hover:bg-slate-200 transition-colors duration-150 ease-in-out"
-              onClick={() => toggleExpand(order.saleOrderCode)}
+        {filteredOrders.length === 0 && (
+          <div className="flex flex-col items-center my-10">
+            <img
+              src="/assets/images/cart-icon.png"
+              className="w-48 h-auto object-contain"
+            />
+            <p className="pt-4 text-lg font-poppins">
+              Hiện tại chưa có đơn hàng để hiển thị
+            </p>
+            <Link
+              to="/product"
+              className="text-blue-500 flex items-center font-poppins"
             >
-              <div className="flex flex-col w-3/4 pl-4">
-                <h4 className="font-bold text-lg text-gray-800">
-                  Mã đơn hàng:{" "}
-                  <span className="text-orange-500">{order.saleOrderCode}</span>
-                  <span
-                    className={`px-3 ml-2.5 py-1 mr-5 rounded-full text-xs font-medium ${
-                      statusColors[order.orderStatus] ||
-                      "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {order.orderStatus}
-                  </span>
-                </h4>
-                <p className=" text-gray-600">
-                  Trạng thái thanh toán:
-                  <span
-                    className={`ml-2 font-medium ${
-                      paymentStatusColors[order.paymentStatus] ||
-                      "text-gray-800"
-                    }`}
-                  >
-                    <i> {order.paymentStatus}</i>
-                  </span>
-                </p>
-                <p className="text-gray-600">
-                  Hình thức nhận hàng: <i> {order.deliveryMethod}</i>
-                </p>
-                <p className="text-gray-600">
-                  Ngày đặt:{" "}
-                  <i>{new Date(order.createdAt).toLocaleDateString()}</i>
-                </p>
-              </div>
+              <FontAwesomeIcon className="pr-2" icon={faArrowLeft} /> Bấm vào
+              đây để mua sắm bạn nhé
+            </Link>
+          </div>
+        )}
+        {/* Order List */}
+        {filteredOrders &&
+          filteredOrders.map((order) => (
+            <div
+              key={order.saleOrderCode}
+              className="border border-gray-200 rounded-lg shadow-sm mt-4 relative flex flex-col"
+            >
+              <div
+                className="flex justify-between items-center p-2 cursor-pointer hover:bg-slate-200 transition-colors duration-150 ease-in-out"
+                onClick={() => toggleExpand(order.saleOrderCode)}
+              >
+                <div className="flex flex-col w-3/4 pl-4">
+                  <h4 className="font-bold text-lg text-gray-800">
+                    Mã đơn hàng:{" "}
+                    <span className="text-orange-500">
+                      {order.saleOrderCode}
+                    </span>
+                    <span
+                      className={`px-3 ml-2.5 py-1 mr-5 rounded-full text-xs font-medium ${
+                        statusColors[order.orderStatus] ||
+                        "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {order.orderStatus}
+                    </span>
+                  </h4>
+                  <p className=" text-gray-600">
+                    Trạng thái thanh toán:
+                    <span
+                      className={`ml-2 font-medium ${
+                        paymentStatusColors[order.paymentStatus] ||
+                        "text-gray-800"
+                      }`}
+                    >
+                      <i> {order.paymentStatus}</i>
+                    </span>
+                  </p>
+                  <p className="text-gray-600">
+                    Hình thức nhận hàng: <i> {order.deliveryMethod}</i>
+                  </p>
+                  <p className="text-gray-600">
+                    Ngày đặt:{" "}
+                    <i>{new Date(order.createdAt).toLocaleDateString()}</i>
+                  </p>
+                </div>
 
-              <div className="flex flex-col w-1/4 h-auto items-end">
-                <img
-                  src={order.orderImage || "/assets/images/default_package.png"}
-                  alt={order.orderImage}
-                  className="w-32 h-32 object-contain rounded"
-                />
+                <div className="flex flex-col w-1/4 h-auto items-end">
+                  <img
+                    src={
+                      order.orderImage || "/assets/images/default_package.png"
+                    }
+                    alt={order.orderImage}
+                    className="w-32 h-32 object-contain rounded"
+                  />
+                </div>
               </div>
-            </div>
-            {/* Product Details */}
-            {expandedOrderId === order.saleOrderCode && (
-              <div className="my-2 pl-8 border-l bg-orange-50">
-                {order.saleOrderDetailVMs.$values.map((item) => (
-                  <div
-                    key={item.productId}
-                    className="flex p-2 border-b last:border-none cursor-pointer"
-                  >
-                    <img
-                      src={item.imgAvatarPath || "default-image.jpg"}
-                      alt={item.productName}
-                      className="w-24 h-24 object-contain rounded"
-                    />
-                    <div className="ml-4">
-                      <h5 className="font-medium text-base">
-                        {item.productName}
-                      </h5>
-                      <p className="text-sm text-gray-500">
-                        Màu sắc: {item.color} - Kích thước: {item.size} - Tình
-                        trạng: {item.condition}%
-                      </p>
-                      <p className="font-medium text-base text-rose-700">
-                        Giá bán: {item.unitPrice.toLocaleString("Vi-vn")} ₫
-                      </p>
-                      <p className="font-medium text-sm">
-                        Số lượng: {item.quantity}
-                      </p>
+              {/* Product Details */}
+              {expandedOrderId === order.saleOrderCode && (
+                <div className="my-2 pl-8 border-l bg-orange-50">
+                  {order.saleOrderDetailVMs.$values.map((item) => (
+                    <div
+                      key={item.productId}
+                      className="flex p-2 border-b last:border-none cursor-pointer"
+                    >
+                      <img
+                        src={item.imgAvatarPath || "default-image.jpg"}
+                        alt={item.productName}
+                        className="w-24 h-24 object-contain rounded"
+                      />
+                      <div className="ml-4">
+                        <h5 className="font-medium text-base">
+                          {item.productName}
+                        </h5>
+                        <p className="text-sm text-gray-500">
+                          Màu sắc: {item.color} - Kích thước: {item.size} - Tình
+                          trạng: {item.condition}%
+                        </p>
+                        <p className="font-medium text-base text-rose-700">
+                          Giá bán: {item.unitPrice.toLocaleString("Vi-vn")} ₫
+                        </p>
+                        <p className="font-medium text-sm">
+                          Số lượng: {item.quantity}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            <div>
-              <div className="h-px bg-gray-300 my-2 sm:my-2"></div>
-              {/* Container for Thành tiền and buttons */}
-              <div className="flex items-center justify-between my-4 px-2">
-                <p className="text-gray-600 font-semibold text-lg pl-2  ">
-                  Thành tiền:{" "}
-                  <span className="text-orange-500">
-                    {order.totalAmount.toLocaleString("Vi-vn")}₫
-                  </span>
-                </p>
-                <div className="flex gap-2">
-                  {order.paymentStatus === "N/A" &&
-                    order.orderStatus === "Chờ xử lý" && (
-                      <Button
-                        size="sm"
-                        className="w-40 text-green-700  bg-white border border-green-700 rounded-md hover:bg-green-200"
-                        onClick={() =>
-                          navigate("/checkout", {
-                            state: { selectedOrder: order },
-                          })
-                        }
-                      >
-                        Thanh toán
-                      </Button>
-                    )}
-                  {order.orderStatus === "Chờ xử lý" &&
-                    order.paymentStatus != "Đã hủy" && (
-                      <CancelSaleOrderButton
+              <div>
+                <div className="h-px bg-gray-300 my-2 sm:my-2"></div>
+                {/* Container for Thành tiền and buttons */}
+                <div className="flex items-center justify-between my-4 px-2">
+                  <p className="text-gray-600 font-semibold text-lg pl-2  ">
+                    Thành tiền:{" "}
+                    <span className="text-orange-500">
+                      {order.totalAmount.toLocaleString("Vi-vn")}₫
+                    </span>
+                  </p>
+                  <div className="flex gap-2">
+                    {order.paymentStatus === "N/A" &&
+                      order.orderStatus === "Chờ xử lý" && (
+                        <Button
+                          color="white"
+                          size="sm"
+                          className="w-40 text-blue-700 border border-blue-700 rounded-md hover:bg-blue-200"
+                          onClick={() =>
+                            navigate("/checkout", {
+                              state: { selectedOrder: order },
+                            })
+                          }
+                        >
+                          Thanh toán
+                        </Button>
+                      )}
+                    {order.orderStatus === "Chờ xử lý" &&
+                      order.paymentStatus != "Đã hủy" && (
+                        <CancelSaleOrderButton
+                          saleOrderId={order.id}
+                          setReload={setReload}
+                        />
+                      )}
+                    {order.orderStatus === "Đã giao cho ĐVVC" && (
+                      <DoneSaleOrderButton
                         saleOrderId={order.id}
-                        setReload={setReload}
+                        setConfirmReload={setConfirmReload}
                       />
                     )}
-                  {order.orderStatus === "Đã giao cho đơn vị vận chuyển" && (
-                    <DoneSaleOrderButton
-                      saleOrderId={order.id}
-                      setConfirmReload={setConfirmReload}
-                    />
-                  )}
-                  <Button
-                    color="orange"
-                    className="w-40 text-white rounded-md hover:bg-orange-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(
-                        `/guest/guest-sale-order/${order.saleOrderCode}`,
-                        {
-                          state: { order }, // Truyền order qua state
-                        }
-                      );
-                    }}
-                  >
-                    Xem chi tiết
-                  </Button>
+                    <Button
+                      color="orange"
+                      className="w-40 text-white rounded-md hover:bg-orange-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(
+                          `/manage-account/sale-order/${order.saleOrderCode}`
+                        );
+                      }}
+                    >
+                      Xem chi tiết
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );
