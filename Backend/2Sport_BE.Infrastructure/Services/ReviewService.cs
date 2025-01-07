@@ -51,13 +51,11 @@ namespace _2Sport_BE.Service.Services
 
         public async Task<IQueryable<Review>> GetAllReviews()
 		{
-			//return (await _unitOfWork.ReviewRepository.GetAndIncludeAsync(_ => _.Id > 0, 
-			//								new string[] { "Product", "User" })).AsQueryable();
 			try
 			{
-				var result = (await _unitOfWork.ReviewRepository.GetAllAsync()).AsQueryable();
-				return result;
-			} catch (Exception ex)
+                return (await _unitOfWork.ReviewRepository.GetAndIncludeAsync(_ => _.Id > 0,
+                                                new string[] { "Product", "User" })).AsQueryable();
+            } catch (Exception ex)
             {
                 return null;
             }
@@ -68,8 +66,9 @@ namespace _2Sport_BE.Service.Services
 			try
 			{
 				var reviews = (await _unitOfWork.ReviewRepository
-								.GetAsync(_ => _.ProductCode.ToLower()
-								.Equals(productCode.ToLower())));
+								.GetAndIncludeAsync(_ => _.ProductCode.ToLower()
+								.Equals(productCode.ToLower()),
+                                                new string[] { "Product", "User" }));
 				return reviews.AsQueryable();
 			}
 			catch (Exception ex)

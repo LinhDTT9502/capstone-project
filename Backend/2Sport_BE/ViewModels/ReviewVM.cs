@@ -10,7 +10,7 @@ namespace _2Sport_BE.ViewModels
 		[Required]
         [Range(1, 5, ErrorMessage = "Star must be between 1 and 5.")]
         public decimal Star { get; set; }
-        public string Review { get; set; }
+        public string ReviewContent { get; set; }
 
     }
     public class ReviewVM : ReviewDTO

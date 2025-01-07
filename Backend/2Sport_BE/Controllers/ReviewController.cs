@@ -114,7 +114,7 @@ namespace _2Sport_BE.Controllers
 				var addedReview = new Review
 				{
 					Star = reviewCM.Star,
-					ReviewContent = reviewCM.Review,
+					ReviewContent = reviewCM.ReviewContent,
 					Status = true,
 					UserId = userId,
 					SaleOrderId = saleOrderId,
