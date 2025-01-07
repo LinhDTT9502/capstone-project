@@ -71,18 +71,24 @@ namespace _2Sport_BE.Infrastructure.Services
                             return response;
                         }
 
-                        if (!saleOrder.BranchId.HasValue)
+                        //if (!saleOrder.BranchId.HasValue)
+                        //{
+                        //    response.IsSuccess = false;
+                        //    response.Message = "The Sale Order does not belong to any branch.";
+                        //    return response;
+                        //}
+                        var checkExist = await _unitOfwork.RefundRequestRepository.GetObjectAsync(_ => _.SaleOrderCode == refundRequestCM.OrderCode);
+                        if (checkExist != null)
                         {
                             response.IsSuccess = false;
-                            response.Message = "The Sale Order does not belong to any branch.";
+                            response.Message = "This sale order is existed in refund request.";
                             return response;
                         }
-
                         refundRequest = new RefundRequest
                         {
                             SaleOrderCode = saleOrder.SaleOrderCode,
                             SaleOrderID = saleOrder.Id,
-                            BranchId = saleOrder.BranchId.Value,
+                            BranchId = saleOrder.BranchId != null ? saleOrder.BranchId.Value : 0,
                             IsAgreementAccepted = refundRequestCM.IsAgreementAccepted,
                             Reason = refundRequestCM.Reason,
                             Status = RefundStatus.Pending.ToString(),
@@ -100,18 +106,24 @@ namespace _2Sport_BE.Infrastructure.Services
                             return response;
                         }
 
-                        if (!rentalOrder.BranchId.HasValue)
+                        //if (!rentalOrder.BranchId.HasValue)
+                        //{
+                        //    response.IsSuccess = false;
+                        //    response.Message = "The Rental Order does not belong to any branch.";
+                        //    return response;
+                        //}
+                        var checkExist = await _unitOfwork.RefundRequestRepository.GetObjectAsync(_ => _.RentalOrderCode == refundRequestCM.OrderCode);
+                        if (checkExist != null)
                         {
                             response.IsSuccess = false;
-                            response.Message = "The Rental Order does not belong to any branch.";
+                            response.Message = "This rental order is existed in refund request.";
                             return response;
                         }
-
                         refundRequest = new RefundRequest
                         {
                             RentalOrderCode = rentalOrder.RentalOrderCode,
                             RentalOrderID = rentalOrder.Id,
-                            BranchId = rentalOrder.BranchId.Value,
+                            BranchId = rentalOrder.BranchId != null ? rentalOrder.BranchId.Value : 0,
                             IsAgreementAccepted = refundRequestCM.IsAgreementAccepted,
                             Reason = refundRequestCM.Reason,
                             Notes = refundRequestCM.Notes,

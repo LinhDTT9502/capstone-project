@@ -1,47 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Input } from '@material-tailwind/react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import { fetchBranchs } from '../services/branchService';
+import MapComponent from '../components/MapComponent';
 
-const ListBranchs = () => {
+const ListBranches = () => {
   const [branches, setBranches] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredBranches, setFilteredBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState(null);
-  const [map, setMap] = useState(null);
+  // const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null); // To track the active marker
   const geocodeCache = new Map(); // Cache for geocoded results
 
   // Initialize Mapbox
-  useEffect(() => {
-    const token = "pk.eyJ1IjoiYWlvbmlhYWEiLCJhIjoiY20zc2l4OTNqMDk5dTJqc2U2aXF2cWZvaSJ9.dM3Z4hHnaD-tTioBrl6_Dg";
+  // useEffect(() => {
+  //   const token = "pk.eyJ1IjoiYWlvbmlhYWEiLCJhIjoiY20zc2l4OTNqMDk5dTJqc2U2aXF2cWZvaSJ9.dM3Z4hHnaD-tTioBrl6_Dg";
 
-    mapboxgl.accessToken = token;
+  //   mapboxgl.accessToken = token;
 
-    const mapInstance = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [106.6297, 10.8231], // Default center (Ho Chi Minh City)
-      zoom: 12,
-    });
+  //   const mapInstance = new mapboxgl.Map({
+  //     container: 'map', // Map container ID
+  //     style: 'mapbox://styles/mapbox/streets-v11',
+  //     center: [106.6297, 10.8231], // Default center (Ho Chi Minh City)
+  //     zoom: 12,
+  //   });
 
-    setMap(mapInstance);
-  }, []);
+  //   setMap(mapInstance);
 
-  // map.addControl(
-  //   new MapboxGeocoder({
-  //     accessToken: mapboxgl.accessToken,
-  //     mapboxgl: mapboxgl
-  //   })
-  // );
+  //   return () => {
+  //     mapInstance.remove(); // Cleanup on component unmount
+  //   };
+  // }, []);
 
   // Fetch all branches
   useEffect(() => {
     const loadBranches = async () => {
       try {
-        const data = await fetchBranchs();
+        const data = await fetchBranchs(); // Replace this with your API call
         setBranches(data);
         setFilteredBranches(data);
       } catch (error) {
@@ -67,86 +63,71 @@ const ListBranchs = () => {
   };
 
   // Geocode the branch location
-  const geocodeLocation = async (location) => {
-    if (geocodeCache.has(location)) {
-      return geocodeCache.get(location); // Return cached result
-    }
+  // const geocodeLocation = async (location) => {
+  //   if (geocodeCache.has(location)) {
+  //     return geocodeCache.get(location); // Return cached result
+  //   }
 
-    try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${mapboxgl.accessToken}`
-      );
-      const data = await response.json();
+  //   try {
+  //     const response = await fetch(
+  //       `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${mapboxgl.accessToken}`
+  //     );
+  //     const data = await response.json();
 
-      if (data.features.length > 0) {
-        const coordinates = data.features[0].geometry.coordinates;
-        geocodeCache.set(location, coordinates); // Cache the result
-        return coordinates;
-      } else {
-        console.warn(`No coordinates found for location: ${location}`);
-        return null;
-      }
-    } catch (error) {
-      console.error('Error geocoding location:', error);
-      return null;
-    }
-  };
+  //     if (data.features.length > 0) {
+  //       const coordinates = data.features[0].geometry.coordinates;
+  //       geocodeCache.set(location, coordinates); // Cache the result
+  //       return coordinates;
+  //     } else {
+  //       console.warn(`No coordinates found for location: ${location}`);
+  //       return null;
+  //     }
+  //   } catch (error) {
+  //     console.error('Error geocoding location:', error);
+  //     return null;
+  //   }
+  // };
 
   // Handle branch selection
   const handleBranchClick = async (branch) => {
     setSelectedBranch(branch);
+    // if (map) {
+    //   const coordinates = await geocodeLocation(branch.location);
 
-    if (map) {
-      const coordinates = await geocodeLocation(branch.location);
+    //   if (coordinates) {
+    //     // Center map and add marker
+    //     map.flyTo({ center: coordinates, zoom: 15 });
 
-      if (coordinates) {
-        console.log(`Branch: ${branch.branchName}, Coordinates: ${coordinates}`); // Debugging
+    //     // Remove existing marker
+    //     if (marker) {
+    //       marker.remove();
+    //     }
 
-        // Center map and add marker
-        map.flyTo({ center: coordinates, zoom: 15 });
+    //     // Add a new marker
+    //     const newMarker = new mapboxgl.Marker()
+    //       .setLngLat(coordinates)
+    //       .setPopup(
+    //         new mapboxgl.Popup().setHTML(
+    //           `<h3>${branch.branchName}</h3><p>${branch.location}</p>`
+    //         )
+    //       )
+    //       .addTo(map);
 
-        // Remove existing marker
-        if (marker) {
-          marker.remove();
-        }
-
-        // Create a custom marker element
-        const markerElement = document.createElement('div');
-        markerElement.innerHTML = `<div style="color: red; font-size: 24px;">
-          <i class="fa-solid fa-location-dot"></i>
-        </div>`;
-        markerElement.style.cursor = 'pointer';
-
-        // Add the custom marker
-        const newMarker = new mapboxgl.Marker({ element: markerElement })
-          .setLngLat(coordinates)
-          .setPopup(
-            new mapboxgl.Popup().setHTML(
-              `<h3>${branch.branchName}</h3><p>${branch.location}</p>`
-            )
-          )
-          .addTo(map);
-
-        setMarker(newMarker); // Update the marker state
-
-        console.log('Marker added successfully.');
-      } else {
-        console.error('No coordinates found for this branch location.');
-      }
-    } else {
-      console.error('Map instance is not ready.');
-    }
+    //     setMarker(newMarker); // Update the marker state
+    //   }
+    // }
   };
+
 
   return (
     <div className="flex h-screen">
       {/* Left Column: Branch List */}
       <div className="w-1/3 p-4 overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-4">Branch List</h1>
+        <h1 className="text-2xl font-bold mb-4">Danh sách hệ thống cửa hàng</h1>
 
         {/* Search Bar */}
         <Input
-          label="Search by branch name or location"
+          label="Tìm kiếm tên hệ thống hoặc vị trí..."
           value={searchQuery}
           onChange={handleSearch}
           className="mb-4"
@@ -168,17 +149,27 @@ const ListBranchs = () => {
               </div>
             ))
           ) : (
-            <p>No branches found.</p>
+            <p>Không có hệ thống nào.</p>
           )}
         </div>
       </div>
 
-      {/* Right Column: Map */}
-      <div className="w-2/3 h-fit">
-        <div id="map" className=""></div>
-      </div>
+      {/* Right Column: Branch Image */}
+      {/* <div className="w-2/3 p-4 flex items-center justify-center">
+      {selectedBranch?.imgAvatarPath ? (
+        <img
+          src={selectedBranch.imgAvatarPath}
+          alt={selectedBranch.branchName}
+          className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+        />
+      ) : (
+        <p className="text-gray-500">Chọn một cửa hàng để xem hình ảnh.</p>
+      )}
+    </div> */}
+      <MapComponent branch={selectedBranch} />
     </div>
+
   );
 };
 
-export default ListBranchs;
+export default ListBranches;

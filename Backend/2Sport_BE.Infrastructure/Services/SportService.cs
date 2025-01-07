@@ -1,5 +1,6 @@
 ﻿using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
+using Microsoft.Extensions.Hosting;
 using System.Linq.Expressions;
 
 namespace _2Sport_BE.Service.Services
@@ -25,10 +26,15 @@ namespace _2Sport_BE.Service.Services
     public class SportService : ISportService
     {
         private readonly IUnitOfWork _unitOfWork;
-
-        public SportService(IUnitOfWork unitOfWork)
+        private readonly ICategoryService _categoryService;
+        private readonly IProductService _productService;
+        public SportService(IUnitOfWork unitOfWork, 
+                            ICategoryService categoryService,
+                            IProductService productService)
         {
             _unitOfWork = unitOfWork;
+            _categoryService = categoryService;
+            _productService = productService;
         }
 
         public async Task AddSport(Sport newSport)
@@ -43,7 +49,26 @@ namespace _2Sport_BE.Service.Services
 
         public async Task DeleteSportById(int id)
         {
+            try
+            {
+                var products = await _unitOfWork.ProductRepository.GetAsync(_ => _.SportId == id);
+                foreach (var product in products)
+                {
+                    await _productService.DeleteProductById(product.Id);
+                }
+
+                var categories = await _unitOfWork.CategoryRepository.GetAsync(_ => _.SportId == id);
+                foreach(var category in categories)
+                {
+                    await _categoryService.DeleteCategoryById(category.Id);
+                }
+
+
             await _unitOfWork.SportRepository.DeleteAsync(id);
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public async Task<IQueryable<Sport>> GetAllSports()

@@ -11,7 +11,7 @@ import PriceRangeSlider from "../components/Product/PriceRangeSlider ";
 import ProductList from "./ProductList";
 import { fetchBrands } from "../services/brandService";
 import { fetchCategories } from "../services/categoryService";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectProducts } from "../redux/slices/productSlice";
 import { useTranslation } from "react-i18next";
@@ -25,14 +25,15 @@ function ProductPage() {
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(10000000);
+  const [maxPrice, setMaxPrice] = useState(100000000);
   const products = useSelector(selectProducts);
+  const location = useLocation();
 
   useEffect(() => {
     const getBrands = async () => {
       try {
         const brandsData = await fetchBrands();
-        const filteredBrands = brandsData.filter((brand) => brand.quantity > 0);
+        const filteredBrands = brandsData.filter((brand) => brand.status === true);
         setBrands(filteredBrands);
       } catch (error) {
         console.error("Error fetching brand data:", error);
@@ -46,8 +47,9 @@ function ProductPage() {
     const getCategories = async () => {
       try {
         const categoriesData = await fetchCategories();
+        
         const filteredCategories = categoriesData.filter(
-          (category) => category.quantity > 0
+          (category) => category.status === true
         );
         setCategories(filteredCategories);
       } catch (error) {
@@ -57,6 +59,18 @@ function ProductPage() {
 
     getCategories();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryID = params.get("categoryID");
+    const brandID = params.get("brandID");
+
+    if (categoryID) {
+      setSelectedCategories([categoryID]); 
+    } else   if (brandID) {
+      setSelectedBrands([brandID]); 
+    }
+  }, [location.search]);
 
   const handleSortChange = (e) => {
     setSortBy(e.target.value);
@@ -188,11 +202,6 @@ function ProductPage() {
                     {t("productv2.best_gear")}
                   </span>
                   <br />
-                </div>
-                <div className="absolute top-[85%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-orange-500 p-2">
-                  <span className="text-black font-bold">
-                    {t("productv2.shop_now")}
-                  </span>
                 </div>
               </div>
             </div>

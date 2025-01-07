@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using _2Sport_BE.Repository.Models;
+using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace _2Sport_BE.Infrastructure.DTOs
@@ -75,14 +77,15 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public decimal? TranSportFee { get; set; }
         public decimal TotalAmount { get; set; }
         public string DeliveryMethod { get; set; }
+        public int? OrderStatusId { get; set; }
         public string? OrderStatus { get; set; }
         public string? Note { get; set; }
         #endregion
 
         #region PaymentInformation
-        public int? PaymentMethodId { get; set; }
+        public string? PaymentMethod { get; set; }
         public string? PaymentStatus { get; set; }
-
+        public DateTime? PaymentDate {  get; set; }
         #endregion
 
         #region AuditInformation
@@ -90,10 +93,12 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public DateTime? UpdatedAt { get; set; }
         public string? Reason { get; set; }
         public string? TransactionId {  get; set; }
+        public string? OrderImage { get; set; }
         #endregion  
-        public string? PaymentMethod { get; set; }
         public string? PaymentLink { get; set; }
+       
         public List<SaleOrderDetailVM> SaleOrderDetailVMs { get; set; }
+        public List<Review> Reviews { get; set; }
     }
     public class RevenueVM
     {
@@ -113,5 +118,10 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public int OrderID { get; set; }
         public string OrderCode { get; set; }
         public string? TransactionType { get; set; }
+    }
+    public class SaleOrderImageModel
+    {
+        public int SaleOrderId { get; set; }
+        public IFormFile OrderImage { get; set; }
     }
 }

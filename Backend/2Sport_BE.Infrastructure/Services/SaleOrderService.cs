@@ -16,6 +16,7 @@ namespace _2Sport_BE.Infrastructure.Services
         #region IRead
         Task<ResponseDTO<List<SaleOrderVM>>> GetAllSaleOrdersAsync();
         Task<ResponseDTO<SaleOrderVM>> GetSaleOrderDetailsByIdAsync(int saleOrderId);
+        Task<ResponseDTO<List<OrderDetail>>> GetSaleOrderDetailsBySaleOrderIdAsync(int saleOrderId);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByStatus(int? orderStatus, int? paymentStatus);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersOfUserAsync(int userId);
         Task<ResponseDTO<List<SaleOrderVM>>> GetSaleOrdersByBranchAsync(int branchId);
@@ -29,8 +30,9 @@ namespace _2Sport_BE.Infrastructure.Services
         #region ICreate_IUpdate_IDelete
         Task<ResponseDTO<SaleOrderVM>> CreateSaleOrderAsync(SaleOrderCM SaleOrderCM);
         Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderAsync(int SaleOrderId, SaleOrderUM SaleOrderUM);
-        Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderStatusAsync(int id, int status);
+        Task<ResponseDTO<int>> UpdateSaleOrderStatusAsync(int id, int status);
         Task<ResponseDTO<int>> UpdateBranchForSaleOrder(int orderId, int branchId);
+        Task<ResponseDTO<int>> UpdateSalePaymentStatus(int orderId, int paymentStatus);
         Task<ResponseDTO<int>> DeleteSaleOrderAsync(int id);
         Task<ResponseDTO<SaleOrderVM>> ApproveSaleOrderAsync(int orderId);
         Task<ResponseDTO<SaleOrderVM>> RejectSaleOrderAsync(int orderId);
@@ -47,6 +49,7 @@ namespace _2Sport_BE.Infrastructure.Services
         #endregion
 
         Task<ResponseDTO<int>> CancelSaleOrderAsync(int orderId, string reason);
+        Task CheckPendingOrderForget();
     }
     public class SaleOrderService : ISaleOrderService
     {
@@ -80,6 +83,15 @@ namespace _2Sport_BE.Infrastructure.Services
             _mailService = mailService;
             _orderDetailService = orderDetailService;
         }
+        public async Task CheckPendingOrderForget()
+        {
+            var pendingOrders = await _unitOfWork.SaleOrderRepository.GetAsync(o => o.CreatedAt.Value.AddHours(1) == DateTime.Now.Date);
+            foreach (var order in pendingOrders)
+            {
+                await _notificationService.NotifyForPendingOrderAsync(order.SaleOrderCode, false, order.CreatedAt.Value, order.BranchId);
+            }
+        }
+
         private void AssignSaleProduct(ProductInfor productInformation, OrderDetail orderDetail)
         {
             orderDetail.ProductId = productInformation.ProductId;
@@ -148,8 +160,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 var query = await _unitOfWork.SaleOrderRepository.GetAllAsync(new string[] { "User", "OrderDetails" });
                 if (query == null || !query.Any())
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = "SaleOrders are not found";
+                    response.Data = new List<SaleOrderVM>();
                     return response;
                 }
                 var resultList = query.Select(saleOrder =>
@@ -177,15 +190,45 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<SaleOrderVM>();
             try
             {
-                var saleOrder = (await _unitOfWork.SaleOrderRepository.GetObjectAsync(_ => _.Id == id, new string[] { "User", "OrderDetails" }));
+                var saleOrder = (await _unitOfWork.SaleOrderRepository.GetObjectAsync(_ => _.Id == id, new string[] { "User", "OrderDetails", "Reviews" }));
                 if (saleOrder == null)
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = $"SaleOrder with id = {id} is not found";
+                    response.Data = null;
                     return response;
                 }
 
                 response = GenerateSuccessResponse(saleOrder, "Query Successfully");
+                return response;
+
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return response;
+            }
+        }
+
+
+        public async Task<ResponseDTO<List<OrderDetail>>> GetSaleOrderDetailsBySaleOrderIdAsync(int saleOrderId)
+        {
+            var response = new ResponseDTO<List<OrderDetail>>();
+            try
+            {
+                var saleOrderDetail = (await _unitOfWork.OrderDetailRepository
+                                                .GetAsync(_ => _.SaleOrderId == saleOrderId))
+                                                .ToList();
+                if (saleOrderDetail != null)
+                {
+                    response.IsSuccess = true;
+                    response.Message = $"SaleOrderDetail with saleOrderId = {saleOrderId} is not found";
+                    response.Data = saleOrderDetail;
+
+                    return response;
+                }
+
                 return response;
 
             }
@@ -204,8 +247,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 var query = await _unitOfWork.SaleOrderRepository.GetAndIncludeAsync(o => o.UserId == userId, new string[] { "User", "OrderDetails" });
                 if (query == null || !query.Any())
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = "SaleOrders are not found";
+                    response.Data = new List<SaleOrderVM>();
                     return response;
                 }
                 var resultList = query.Select(saleOrder =>
@@ -237,15 +281,16 @@ namespace _2Sport_BE.Infrastructure.Services
                 var query = await _unitOfWork.SaleOrderRepository.GetAllAsync(new string[] { "User", "OrderDetails" });
                 if (query == null || !query.Any())
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = "SaleOrders are not found";
+                    response.Data = new List<SaleOrderVM>();
                     return response;
                 }
-                if (orderStatus > 0 && orderStatus.ToString() != string.Empty)
+                if (orderStatus != null && orderStatus.ToString() != string.Empty)
                 {
                     query = query.Where(o => o.OrderStatus == orderStatus);
                 }
-                if (paymentStatus > 0 && paymentStatus.ToString() != string.Empty)
+                if (paymentStatus != null && paymentStatus.ToString() != string.Empty)
                 {
                     query = query.Where(o => o.PaymentStatus == paymentStatus);
                 }
@@ -426,8 +471,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     AssignSaleOrderInfomation(saleOrder, saleOrderCM);
 
                     saleOrder.OrderStatus = (int?)OrderStatus.PENDING;
-                    saleOrder.PaymentStatus = (int)PaymentStatus.IsWating;
-                   
+
                     await _unitOfWork.SaleOrderRepository.InsertAsync(saleOrder);
 
                     string saleOrderCode = saleOrder.SaleOrderCode;
@@ -582,12 +626,14 @@ namespace _2Sport_BE.Infrastructure.Services
                 ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(saleOrder.PaymentStatus.Value)
                 : "N/A";
             saleOrderVM.OrderStatus = saleOrder.OrderStatus != null
-              ? EnumDisplayHelper.GetEnumDescription<RentalOrderStatus>(saleOrder.OrderStatus.Value)
+              ? EnumDisplayHelper.GetEnumDescription<OrderStatus>(saleOrder.OrderStatus.Value)
               : "N/A";
-            saleOrderVM.PaymentMethod = saleOrder.PaymentMethodId.HasValue
-                                ? Enum.GetName(typeof(OrderMethods), saleOrder.PaymentMethodId.Value)
-                                : "Unknown PaymentMethod";
+            saleOrderVM.PaymentMethod = saleOrder.PaymentMethodId != null
+                            ? EnumDisplayHelper.GetEnumDescription<OrderMethods>(saleOrder.PaymentMethodId.Value)
+                            : "N/A";
+                              
             saleOrderVM.DeliveryMethod = _deliveryMethodService.GetDescription(saleOrder.DeliveryMethod);
+            saleOrderVM.OrderStatusId = saleOrder.OrderStatus;
         }
         #endregion
         public async Task<ResponseDTO<int>> DeleteSaleOrderAsync(int id)
@@ -664,39 +710,93 @@ namespace _2Sport_BE.Infrastructure.Services
             await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
             return 1;
         }
-        public async Task<ResponseDTO<SaleOrderVM>> UpdateSaleOrderStatusAsync(int id, int orderStatus)
+        public async Task<ResponseDTO<int>> UpdateSaleOrderStatusAsync(int id, int orderStatus)
         {
             try
             {
                 var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == id, new string[] { "OrderDetails" });
                 if (saleOrder == null)
-                    return GenerateErrorResponse($"SaleOrder with id = {id} is not found!");
+                {
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = true,
+                        Message = "Đơn hàng không tồn tại.",
+                        Data = 1
+                    };
+                }
+                  
 
-                if (!IsValidStatusTransition((OrderStatus)saleOrder.OrderStatus, (OrderStatus)orderStatus))
-                    return GenerateErrorResponse($"Invalid status transition from {saleOrder.OrderStatus} to {orderStatus}.");
+                var validationResult = ValidateSaleOrderStatusTransition(saleOrder, orderStatus);
+                if (!validationResult.IsValid)
+                {
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = validationResult.ErrorMessage,
+                        Data = 0
+                    };
+                }
 
                 saleOrder.OrderStatus = orderStatus;
                 await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
-                string message = "Order status updated successfully.";
-
                 if (saleOrder.OrderStatus == (int)OrderStatus.COMPLETED)
                 {
                     var loyaltyUpdateResponse = await _customerDetailService.UpdateLoyaltyPoints(saleOrder.Id);
-                    if (loyaltyUpdateResponse.IsSuccess)
-                        message = "Order status updated and loyalty points awarded successfully.";
-                    else
-                        message = "Order status updated, but there was an error updating loyalty points.";
                 }
 
-                return GenerateSuccessResponse(saleOrder, message);
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = true,
+                    Message = "Cập nhật trạng thái đơn hàng thành công.",
+                    Data = 1
+                };
             }
             catch (Exception ex)
             {
-                return GenerateErrorResponse(ex.Message);
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = false,
+                    Message = $"Lỗi hệ thống: {ex.Message}",
+                    Data = 0
+                };
             }
         }
+        public async Task<ResponseDTO<int>> UpdateSalePaymentStatus(int orderId, int paymentStatus)
+        {
+            try
+            {
+                var saleOrder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId);
+                if (saleOrder is null)
+                {
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "Đơn hàng không tồn tại.",
+                        Data = 0
+                    };
+                }
 
+                saleOrder.PaymentStatus = paymentStatus;
+                await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
+
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = true,
+                    Message = "Cập nhật trạng thái thanh toán thành công.",
+                    Data = 1
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = false,
+                    Message = $"Lỗi hệ thống: {ex.Message}",
+                    Data = 0
+                };
+            }
+        }
         public async Task<bool> UpdatePaymentStatusOfSaleOrder(string orderCode, int paymentStatus)
         {
             bool response = false;
@@ -733,10 +833,12 @@ namespace _2Sport_BE.Infrastructure.Services
             result.PaymentStatus = order.PaymentStatus != null
                 ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(order.PaymentStatus.Value)
                 : "N/A";
-            
+            result.PaymentMethod = order.PaymentMethodId != null
+                            ? EnumDisplayHelper.GetEnumDescription<OrderMethods>(order.PaymentMethodId.Value)
+                            : "N/A";
 
             result.DeliveryMethod = _deliveryMethodService.GetDescription(order.DeliveryMethod);
-
+            result.OrderStatusId = order.OrderStatus;
             if (order.OrderDetails != null && order.OrderDetails.Count > 0)
             {
                 result.SaleOrderDetailVMs = order.OrderDetails.Select(od => new SaleOrderDetailVM()
@@ -817,7 +919,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 var query = await _unitOfWork.SaleOrderRepository.GetAndIncludeAsync(o => o.BranchId == branchId, new string[] { "User", "OrderDetails" });
                 if (query == null || !query.Any())
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = "SaleOrders are not found";
                     return response;
                 }
@@ -855,20 +957,8 @@ namespace _2Sport_BE.Infrastructure.Services
                         if (SaleOrder.OrderStatus == (int)OrderStatus.CONFIRMED)
                             return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
 
-                        SaleOrder.OrderStatus = (int)OrderStatus.CONFIRMED;
-
-                        foreach (var item in SaleOrder.OrderDetails)
-                        {
-                            var productInWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(item.ProductId.Value, SaleOrder.BranchId)).FirstOrDefault();
-                            if (productInWarehouse == null)
-                            {
-                                await transaction.RollbackAsync();
-                                return GenerateErrorResponse($"Failed to update stock for product {item.ProductName}");
-                            }
-                            productInWarehouse.AvailableQuantity -= item.Quantity;
-                            await _warehouseService.UpdateWarehouseAsync(productInWarehouse);
-                        }
-
+                        SaleOrder.OrderStatus = (int)OrderStatus.PENDING;
+                        SaleOrder.UpdatedAt = DateTime.Now;
                         await _unitOfWork.SaleOrderRepository.UpdateAsync(SaleOrder);
                         await transaction.CommitAsync(); 
 
@@ -939,8 +1029,10 @@ namespace _2Sport_BE.Infrastructure.Services
                         response.Data = 0;
                         return response;
                     }
-                    order.Reason = reason;
+
                     order.OrderStatus = (int)OrderStatus.CANCELLED;
+                    order.Reason = reason;
+                    order.UpdatedAt = DateTime.Now;
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(order);
 
                     await _notificationService.NotifyToGroupAsync(
@@ -966,37 +1058,100 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
 
-        private bool IsValidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus)
+        private ValidationResult ValidateSaleOrderStatusTransition(SaleOrder saleOrder, int newStatus)
         {
-            switch (currentStatus)
-            {
-                case OrderStatus.PENDING:
-                    return newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.CONFIRMED;
-                case OrderStatus.CONFIRMED:
-                    return newStatus == OrderStatus.PROCESSING || newStatus == OrderStatus.CANCELLED;
-                case OrderStatus.PROCESSING:
-                    return newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.CANCELLED;
-                case OrderStatus.SHIPPED:
-                    return newStatus == OrderStatus.DELIVERED || newStatus == OrderStatus.RETURN_PROCESSING;
-                case OrderStatus.DELIVERED:
-                    return newStatus == OrderStatus.COMPLETED || newStatus == OrderStatus.RETURN_PROCESSING;
-                case OrderStatus.RETURN_PROCESSING:
-                    return newStatus == OrderStatus.RETURNED;
-                case OrderStatus.RETURNED:
-                    return newStatus == OrderStatus.REFUND_PROCESSING || newStatus == OrderStatus.COMPLETED;
-                case OrderStatus.REFUND_PROCESSING:
-                    return newStatus == OrderStatus.REFUNDED;
-                case OrderStatus.REFUNDED:
-                    return newStatus == OrderStatus.COMPLETED;
-                case OrderStatus.CANCELLED:
-                case OrderStatus.DECLINED:
-                case OrderStatus.COMPLETED:
-                    return false; // Không cho phép chuyển từ các trạng thái này
-                default:
-                    return false;
-            }
-        }
+            var currentOrderStatus = saleOrder.OrderStatus;
+            var paymentStatus = saleOrder.PaymentStatus;
+            var paymentMethod = saleOrder.PaymentMethodId;
 
+            switch (newStatus)
+            {
+                case (int)OrderStatus.CANCELLED:
+                    /*if (currentOrderStatus == (int)OrderStatus.COMPLETED || currentOrderStatus == (int)OrderStatus.SHIPPED || currentOrderStatus == OrderStatus.DELIVERED)
+                    {
+                        return ValidationResult.Invalid("Không thể hủy đơn hàng đã giao hoặc đã hoàn thành.");
+                    }*/
+                    break;
+
+                case (int)OrderStatus.CONFIRMED:
+                    if (currentOrderStatus != (int)OrderStatus.PENDING)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể xác nhận khi đang ở trạng thái chờ xử lý.");
+                    }
+                    break;
+
+                case (int)OrderStatus.PROCESSING:
+                    if (currentOrderStatus != (int)OrderStatus.CONFIRMED)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể xử lý khi đã được xác nhận.");
+                    }
+
+                    if (paymentMethod != (int)OrderMethods.COD && paymentStatus != (int)PaymentStatus.PAID)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể xử lý khi thanh toán đã hoàn tất (trừ khi sử dụng COD).");
+                    }
+                    break;
+
+                case (int)OrderStatus.SHIPPED:
+                    if (currentOrderStatus != (int)OrderStatus.PROCESSING)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể giao khi đang được xử lý.");
+                    }
+
+                    if (paymentMethod != (int)OrderMethods.COD && paymentStatus != (int)PaymentStatus.PAID)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể giao khi thanh toán đã hoàn tất (trừ khi sử dụng COD).");
+                    }
+                    break;
+
+                case (int)OrderStatus.DELIVERED:
+                    if (currentOrderStatus != (int)OrderStatus.SHIPPED)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể đánh dấu là đã giao khi đang ở trạng thái đã vận chuyển.");
+                    }
+                    break;
+
+                case (int)OrderStatus.RETURN_PROCESSING:
+                    if (currentOrderStatus != (int)OrderStatus.DELIVERED)
+                    {
+                        return ValidationResult.Invalid("Chỉ có thể xử lý trả hàng khi đơn hàng đã được giao.");
+                    }
+                    break;
+
+                case (int)OrderStatus.RETURNED:
+                    if (currentOrderStatus != (int)OrderStatus.RETURN_PROCESSING)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể trả khi đang trong trạng thái xử lý trả hàng.");
+                    }
+                    break;
+
+                case (int)OrderStatus.REFUND_PROCESSING:
+                    if (currentOrderStatus != (int)OrderStatus.RETURNED)
+                    {
+                        return ValidationResult.Invalid("Hoàn tiền chỉ có thể xử lý sau khi đơn hàng đã được trả.");
+                    }
+                    break;
+
+                case (int)OrderStatus.REFUNDED:
+                    if (currentOrderStatus != (int)OrderStatus.REFUND_PROCESSING)
+                    {
+                        return ValidationResult.Invalid("Hoàn tiền chỉ có thể hoàn tất khi đang trong trạng thái xử lý hoàn tiền.");
+                    }
+                    break;
+
+                case (int)OrderStatus.COMPLETED:
+                    if (currentOrderStatus != (int)OrderStatus.DELIVERED && currentOrderStatus != (int)OrderStatus.REFUNDED)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể hoàn thành khi đã giao hàng hoặc hoàn tiền.");
+                    }
+                    break;
+
+                default:
+                    return ValidationResult.Valid();
+            }
+
+            return ValidationResult.Valid();
+        }
 
     }
 }

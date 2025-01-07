@@ -17,7 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <PersistGate persistor={persistor} loading={null}>
         <BrowserRouter>
         <CartProvider>
-        <ToastContainer />
+
           <App />
           </CartProvider>
         </BrowserRouter>

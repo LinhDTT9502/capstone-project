@@ -27,7 +27,7 @@ export default function SearchOrderDropDown() {
     if (user) {
       navigate("/manage-account/sale-order");
     } else {
-      navigate("/guest-order");
+      navigate("/guest/guest-sale-order");
     }
   };
 
@@ -35,7 +35,7 @@ export default function SearchOrderDropDown() {
     if (user) {
       navigate("/manage-account/user-rental");
     } else {
-      navigate("/guest-order");
+      navigate("/guest/guest-rent-order");
     }
   };
 
@@ -50,7 +50,7 @@ export default function SearchOrderDropDown() {
   const handleMouseLeave = () => {
     timeoutRef.current = setTimeout(() => {
       setIsOpen(false);
-    }, 500); 
+    }, 500);
   };
 
   return (

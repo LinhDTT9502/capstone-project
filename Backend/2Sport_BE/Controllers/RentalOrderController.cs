@@ -3,7 +3,10 @@ using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Infrastructure.Hubs;
 using _2Sport_BE.Infrastructure.Services;
+using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
+using _2Sport_BE.Services;
+using _2Sport_BE.Services.Caching;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -17,13 +20,22 @@ namespace _2Sport_BE.Controllers
     {
         private readonly IRentalOrderService _rentalOrderServices;
         private readonly ICartItemService _cartItemService;
+        private readonly IImageService _imageService;
+        private readonly IRedisCacheService _redisCacheService;
+        private readonly string _cartItemsKey;
+
         public RentalOrderController(IRentalOrderService rentalOrderServices,
-            IPaymentService paymentService,
-            ICartItemService cartItemService
+            ICartItemService cartItemService,
+            IImageService imageService,
+            IRedisCacheService redisCacheService,
+                                IConfiguration configuration
             )
         {
             _rentalOrderServices = rentalOrderServices;
             _cartItemService = cartItemService;
+            _imageService = imageService;
+            _redisCacheService = redisCacheService;
+            _cartItemsKey = configuration.GetValue<string>("RedisKeys:CartItems");
         }
 
         [HttpGet("get-all-rental-orders")]
@@ -63,7 +75,7 @@ namespace _2Sport_BE.Controllers
         {
             var response = await _rentalOrderServices.GetRentalOrdersByStatusAsync(orderStatus, paymentStatus);
             if (response.IsSuccess) return Ok(response);
-            return BadRequest(response);
+            return StatusCode(404,response);
         }
 
         [HttpGet("get-rental-order-by-orderCode")]
@@ -105,9 +117,17 @@ namespace _2Sport_BE.Controllers
             foreach (var item in rentalOrderCM.ProductInformations)
             {
                 if (item.CartItemId.HasValue && item.CartItemId.Value != Guid.Empty)
-                { 
-                
-                    await _cartItemService.DeleteCartItem(item.CartItemId.Value);
+                {
+                    var listCartItems = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey)
+                                                           ?? new List<CartItem>();
+                    var deletedCartItem = listCartItems.Find(_ => _.CartItemId.Equals(item.CartItemId.Value));
+                    if (deletedCartItem == null)
+                    {
+                        return NotFound("There is not cart item!");
+                    }
+                    listCartItems.Remove(deletedCartItem);
+                    _redisCacheService.SetData(_cartItemsKey, listCartItems, TimeSpan.FromDays(30));
+                    //await _cartItemService.DeleteCartItem(item.CartItemId.Value);
                 }
             }
             return Ok(response);
@@ -128,6 +148,36 @@ namespace _2Sport_BE.Controllers
             return Ok(response);
         }
 
+        [HttpPut("update-rental-order-status/{orderId}")]
+        public async Task<IActionResult> EditRentalOrderStatus(int orderId, [FromQuery]int orderStatus)
+        {
+            var response = await _rentalOrderServices.UpdateRentalOrderStatusAsync(orderId, orderStatus);
+
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
+        [HttpPut("update-rental-payment-status/{orderId}")]
+        public async Task<IActionResult> EditRentalPaymentStatus(int orderId, [FromQuery]int paymentStatus)
+        {
+            var response = await _rentalOrderServices.UpdateRentalPaymentStatus(orderId, paymentStatus);
+             
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpPut("update-rental-deposit-status/{orderId}")]
+        public async Task<IActionResult> EditRentalDepositStatus(int orderId, [FromQuery] int depositStatus)
+        {
+            var response = await _rentalOrderServices.UpdateRentalDepositStatus(orderId, depositStatus);
+
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
         [HttpPut("return")]
         public async Task<IActionResult> ProcessReturn([FromBody] ParentOrderReturnModel returnData)
         {
@@ -137,26 +187,6 @@ namespace _2Sport_BE.Controllers
             return Ok(response);
         }
 
-        [HttpPost("request-cancel/{rentalOrderId}")]
-        public async Task<IActionResult> RequestCancelOrder(int rentalOrderId, [FromQuery] string reason)
-        {
-            var response = await _rentalOrderServices.CancelRentalOrderAsync(rentalOrderId, reason);
-            if (response.IsSuccess) return Ok(response);
-            return BadRequest(response);
-        }
-
-        [HttpPut("update-rental-order-status")]
-        public async Task<IActionResult> EditRentalOrderStatus(int orderId, int status)
-        {
-            var response = await _rentalOrderServices.UpdateRentalOrderStatusAsync(orderId, status);
-
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
-            return BadRequest(response);
-        }
-  
         [HttpPut("assign-branch")]
         public async Task<IActionResult> AssignBranch(int orderId, int branchId)
         {
@@ -164,6 +194,14 @@ namespace _2Sport_BE.Controllers
             if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
 
+        }
+
+        [HttpPost("request-cancel/{rentalOrderId}")]
+        public async Task<IActionResult> RequestCancelOrder(int rentalOrderId, [FromQuery] string reason)
+        {
+            var response = await _rentalOrderServices.CancelRentalOrderAsync(rentalOrderId, reason);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
         }
 
         [HttpPost("{orderId}/approve")]
@@ -213,6 +251,38 @@ namespace _2Sport_BE.Controllers
             var response = await _rentalOrderServices.RejectExtensionAsync(rentalOrderCode, rejectionReason);
             if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
+        }
+
+        [HttpPost("upload-rental-order-image")]
+        public async Task<IActionResult> UploadOrderImage(RentalOrderImageModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var order = await _rentalOrderServices.FindRentalOrderById(model.parentOrderId);
+            if (order == null) return NotFound();
+            else
+            {
+                if (model.OrderImage != null)
+                {
+                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(model.OrderImage);
+                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        order.OrderImage = uploadResult.SecureUrl.AbsoluteUri;
+                        await _rentalOrderServices.UpdaterRentalOrder(order);
+                        return Ok("Upload avatar successfully");
+                    }
+                    else
+                    {
+                        return BadRequest("Something wrong!");
+                    }
+                }
+                else
+                {
+                    return Ok("No updated");
+                }
+            }
         }
 
     }

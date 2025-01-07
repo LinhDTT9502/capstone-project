@@ -42,6 +42,7 @@ namespace _2Sport_BE.Service.Services
         Task UpdateProducts(IQueryable<Product> products);
         Task<IQueryable<Product>> GetProductsByProductName(string productName);
         Task<IQueryable<Product>> GetProductsByCategoryId(int categoryId);
+        Task<IQueryable<Product>> SearchProducts(Expression<Func<Product, bool>> filter = null);
     }
     public class ProductService : IProductService
     {
@@ -76,31 +77,16 @@ namespace _2Sport_BE.Service.Services
             try
             {
                 var deletedProduct = await _unitOfWork.ProductRepository.FindAsync(id);
-                deletedProduct.Status = false;
-                await _unitOfWork.ProductRepository.UpdateAsync(deletedProduct);
 
                 //delete warehouses include deleted products
                 var warehouses = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
-                foreach (var item in warehouses)
-                {
-                    item.AvailableQuantity = 0;
-                    item.TotalQuantity = 0;
-                    await _unitOfWork.WarehouseRepository.UpdateAsync(item);
-                }
-
-                //delete likes include deleted products
-                var likes = await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductCode.ToLower()
-                                                        .Equals(deletedProduct.ProductCode.ToLower()));
-                await _unitOfWork.LikeRepository.DeleteRangeAsync(likes);
-
-                //delete reviews include deleted products
-                var reviews = await _unitOfWork.ReviewRepository.GetAsync(_ => _.ProductCode.ToLower()
-                                                        .Equals(deletedProduct.ProductCode.ToLower()));
-                await _unitOfWork.ReviewRepository.DeleteRangeAsync(reviews);
+                await _unitOfWork.WarehouseRepository.DeleteRangeAsync(warehouses);
 
                 //delete imagesVideos include deleted products
                 var imagesVideos = await _unitOfWork.ImagesVideoRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
                 await _unitOfWork.ImagesVideoRepository.DeleteRangeAsync(imagesVideos);
+
+                await _unitOfWork.ProductRepository.DeleteAsync(id);
 
             } catch(Exception ex) {
                 Console.WriteLine(ex.Message);
@@ -255,7 +241,7 @@ namespace _2Sport_BE.Service.Services
                 var query = await _unitOfWork.ProductRepository.GetAsync(filter, orderBy, includeProperties, null, null);
                 // Group by ProductCode and ProductName, then select the first item in each group
                 var distinctProducts = query
-                    .GroupBy(p => new { p.ProductCode, p.ProductName })
+                    .GroupBy(p => new { p.ProductCode })
                     .Select(g => g.First())
                     .Skip((int)(pageIndex * pageSize)).Take((int)pageSize);
                 return distinctProducts.AsQueryable();
@@ -319,6 +305,15 @@ namespace _2Sport_BE.Service.Services
         {
             var query = await _unitOfWork.ProductRepository.GetAsync(_ => _.CategoryId == categoryId, "ImagesVideos");
             return query.AsQueryable();
+        }
+
+        public async Task<IQueryable<Product>> SearchProducts(Expression<Func<Product, bool>> filter = null)
+        {
+            var query = await _unitOfWork.ProductRepository.GetAsync(filter);
+            var distinctProducts = query
+                    .GroupBy(p => new { p.ProductCode, p.ProductName })
+                    .Select(g => g.First());
+            return distinctProducts.AsQueryable();
         }
     }
 }

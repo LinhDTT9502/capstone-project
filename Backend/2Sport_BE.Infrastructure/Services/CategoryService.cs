@@ -31,10 +31,12 @@ namespace _2Sport_BE.Service.Services
     public class CategoryService : ICategoryService
     {
         private readonly IUnitOfWork _unitOfWork;
-
-        public CategoryService(IUnitOfWork unitOfWork)
+        private readonly IProductService _productService;
+        public CategoryService(IUnitOfWork unitOfWork,
+                               IProductService productService)
         {
             _unitOfWork = unitOfWork;
+            _productService = productService;
         }
 
         public async Task AddCategories(IEnumerable<Category> categories)
@@ -49,7 +51,20 @@ namespace _2Sport_BE.Service.Services
 
         public async Task DeleteCategoryById(int id)
         {
-            await _unitOfWork.CategoryRepository.DeleteAsync(id);
+            try
+            {
+                var deletedProducts = await _unitOfWork.ProductRepository.GetAsync(_ => _.CategoryId == id);
+                foreach (var product in deletedProducts)
+                {
+                    await _productService.DeleteProductById(product.Id);
+                }
+
+                await _unitOfWork.CategoryRepository.DeleteAsync(id);
+
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public async Task<IQueryable<Category>> GetAllCategories()
@@ -93,6 +108,7 @@ namespace _2Sport_BE.Service.Services
 
         public async Task AddCategory(Category category)
         {
+            category.CreatedAt = DateTime.Now;
             category.Status = true;
             category.Quantity = 0;
             await _unitOfWork.CategoryRepository.InsertAsync(category);

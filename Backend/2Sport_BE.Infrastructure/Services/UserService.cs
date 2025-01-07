@@ -13,6 +13,9 @@ using System.ComponentModel.Design;
 using _2Sport_BE.Infrastructure.Helpers;
 using Newtonsoft.Json.Linq;
 using System.Security.Claims;
+using System.Linq;
+using StackExchange.Redis;
+using _2Sport_BE.Infrastructure.Enums;
 namespace _2Sport_BE.Infrastructure.Services
 {
     public interface IUserService
@@ -33,6 +36,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<int>> UpdateEmailAsync(int userId, ResetEmailRequesrt resetEmailModel);
         Task<User> FindUserByPhoneNumber(string phoneNumber);
         Task<ResponseDTO<List<UserVM>>> GetUserByRoleIdAndBranchId(int roleId, int branchId);
+        Task<ResponseDTO<List<UserVM>>> GetByRoleUsersWithoutBranch(int roleId);
     }
     public class UserService : IUserService
     {
@@ -63,6 +67,42 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 return builder.ToString();
             }
+        }
+        public async Task<ResponseDTO<List<UserVM>>> GetByRoleUsersWithoutBranch(int roleId)
+        {
+            IQueryable<User> query = _unitOfWork.UserRepository.GetQueryable();
+
+            if (roleId == 2) // RoleId = 2 => Manager
+            {
+                var managerUserIds = _unitOfWork.ManagerRepository
+                                        .GetQueryable()
+                                        .Select(m => m.UserId);
+
+                query = query.Where(u => u.RoleId == (int)UserRole.Manager && !managerUserIds.Contains(u.Id));
+            }
+            else if (roleId == 3) // RoleId = 3 => Staff
+            {
+                var staffUserIds = _unitOfWork.StaffRepository
+                                        .GetQueryable()
+                                        .Select(s => s.UserId);
+
+                query = query.Where(u => u.RoleId == (int)UserRole.Staff && !staffUserIds.Contains(u.Id));
+            }
+            else
+            {
+                throw new ArgumentException("Invalid roleId. Supported values: 2 (Manager) or 3 (Staff).");
+            }
+
+
+            var result = _mapper.Map<List<User>, List<UserVM>>(query.ToList());
+
+            var response = new ResponseDTO<List<UserVM>>
+            {
+                IsSuccess = true,
+                Message = "Query Succesfully",
+                Data = result
+            };
+            return response;
         }
         public async Task<ResponseDTO<List<UserVM>>> GetAllUsers()
         {
@@ -266,9 +306,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 existingUser.FullName = profile.FullName;
                 existingUser.Gender = profile.Gender;
-                existingUser.PhoneNumber = profile.Phone;
+                existingUser.DOB = profile.BirthDate;
                 existingUser.Address = profile.Address;
-                existingUser.UpdatedAt = DateTime.UtcNow;
+                existingUser.UpdatedAt = DateTime.Now;
 
                 await _unitOfWork.UserRepository.UpdateAsync(existingUser);
                 response.IsSuccess = true;
@@ -519,7 +559,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                         return response;
                     }
-                    existingUser.UpdatedAt = DateTime.UtcNow;
+                    existingUser.UpdatedAt = DateTime.Now;
                     existingUser.Email = resetEmailModel.Email;
                     await _unitOfWork.UserRepository.UpdateAsync(existingUser);
 

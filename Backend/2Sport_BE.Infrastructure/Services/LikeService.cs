@@ -17,6 +17,8 @@ namespace _2Sport_BE.Service.Services
         Task<IQueryable<Like>> GetLikesOfProduct();
 		Task DeleteLikes(IEnumerable<Like> likes);
         Task<IQueryable<Like>> GetLikesOfProduct(string productCode);
+        Task<Like> GetLikeByProductCodeAndUserId(string productCode, int userId);
+        Task DeleteLike(Like unlikeObject);
     }
 
     public class LikeService : ILikeService
@@ -88,6 +90,20 @@ namespace _2Sport_BE.Service.Services
             var likes = (await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductCode.ToLower()
                                                                         .Equals(productCode.ToLower()))).AsQueryable();
             return likes;
+        }
+
+        public async Task<Like> GetLikeByProductCodeAndUserId(string productCode, int userId)
+        {
+            var likes = (await _unitOfWork.LikeRepository.GetAsync(_ => _.ProductCode.ToLower()
+                                                                        .Equals(productCode.ToLower()) &&
+                                                                        _.UserId == userId))
+                                                                        .FirstOrDefault();
+            return likes;
+        }
+
+        public async Task DeleteLike(Like unlikeObject)
+        {
+            await _unitOfWork.LikeRepository.DeleteAsync(unlikeObject);
         }
     }
 

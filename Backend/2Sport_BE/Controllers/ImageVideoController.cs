@@ -3,7 +3,6 @@ using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
-using Google.Cloud.Storage.V1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -157,50 +156,50 @@ namespace _2Sport_BE.Controllers
         //    }
         //}
 
-        [HttpPost]
-        [Route("upload-image-in-text-editor")]
-        public async Task<IActionResult> UploadImageInTextEditor(IFormFile file, [FromQuery] string subfolderPath = "")
-        {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("No file uploaded.");
-            }
-            string filter = "*.png,*.gif,*.jpg,*.jpeg";
-            if (filter.Contains(Path.GetExtension(file.FileName)))
-            {
-                var fileName = Path.GetFileName(file.FileName);
+        //[HttpPost]
+        //[Route("upload-image-in-text-editor")]
+        //public async Task<IActionResult> UploadImageInTextEditor(IFormFile file, [FromQuery] string subfolderPath = "")
+        //{
+        //    if (file == null || file.Length == 0)
+        //    {
+        //        return BadRequest("No file uploaded.");
+        //    }
+        //    string filter = "*.png,*.gif,*.jpg,*.jpeg";
+        //    if (filter.Contains(Path.GetExtension(file.FileName)))
+        //    {
+        //        var fileName = Path.GetFileName(file.FileName);
 
-                string bucketName = "YOUR_BUCKET_NAME"; // Replace with your GCP bucket name
-                var storageClient = StorageClient.Create();
-                var objectName = string.IsNullOrEmpty(subfolderPath)
-                    ? fileName
-                    : $"{subfolderPath}/{fileName}";
+        //        string bucketName = "YOUR_BUCKET_NAME"; // Replace with your GCP bucket name
+        //        var storageClient = StorageClient.Create();
+        //        var objectName = string.IsNullOrEmpty(subfolderPath)
+        //            ? fileName
+        //            : $"{subfolderPath}/{fileName}";
 
-                // Upload the file to Google Cloud Storage
-                using (var stream = file.OpenReadStream())
-                {
-                    await storageClient.UploadObjectAsync(bucketName, objectName, file.ContentType, stream);
-                }
+        //        // Upload the file to Google Cloud Storage
+        //        using (var stream = file.OpenReadStream())
+        //        {
+        //            await storageClient.UploadObjectAsync(bucketName, objectName, file.ContentType, stream);
+        //        }
 
-                // Construct the file URL
-                var fileUrlStorage = $"https://storage.googleapis.com/{bucketName}/{objectName}";
-                var fileUrl = "";
-                if (subfolderPath != "")
-                {
-                    fileUrl = $"{Request.Scheme}://{Request.Host}/api/ImageVideo/view-image?fileName={fileName}" +
-                        $"&subFolderPath={subfolderPath}";
-                }
-                else
-                {
-                    fileUrl = $"{Request.Scheme}://{Request.Host}/api/ImageVideo/view-image?fileName={fileName}";
-                }
-                return Ok(new { FileUrl = fileUrl });
-            }
-            else
-            {
-                return null;
-            }
-        }
+        //        // Construct the file URL
+        //        var fileUrlStorage = $"https://storage.googleapis.com/{bucketName}/{objectName}";
+        //        var fileUrl = "";
+        //        if (subfolderPath != "")
+        //        {
+        //            fileUrl = $"{Request.Scheme}://{Request.Host}/api/ImageVideo/view-image?fileName={fileName}" +
+        //                $"&subFolderPath={subfolderPath}";
+        //        }
+        //        else
+        //        {
+        //            fileUrl = $"{Request.Scheme}://{Request.Host}/api/ImageVideo/view-image?fileName={fileName}";
+        //        }
+        //        return Ok(new { FileUrl = fileUrl });
+        //    }
+        //    else
+        //    {
+        //        return null;
+        //    }
+        //}
 
         //[HttpPost]
         //[Route("create-folder-in-text-editor")]
@@ -271,6 +270,23 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("list-all-image-of-a-product/{productId}")]
+        public async Task<IActionResult> GetAllImagesOfAProductByProductId(int productId)
+        {
+            try
+            {
+                var imageList = (await _imageVideoService.GetAsyncs(_ => _.ProductId == productId))
+                                                         .Include(_ => _.Product).ToList();
+                var result = _mapper.Map<List<ImagesVideoVM>>(imageList);
+                return Ok(new { total = result.Count(), data = result });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
         [HttpDelete]
         [Route("delete-image-video/{productId}")]
         public async Task<IActionResult> DeleteImageVideo(int productId)
@@ -283,6 +299,22 @@ namespace _2Sport_BE.Controllers
                     return BadRequest($"Cannot find image video with product id: {productId}");
                 }
                 await _imageVideoService.DeleteImagesVideos(deletedImageVideos);
+                return Ok("Delete image video successfully!");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+
+        }
+
+        [HttpDelete]
+        [Route("delete-image-video-by-id/{id}")]
+        public async Task<IActionResult> DeleteImageVideoById(int id)
+        {
+            try
+            {
+                await _imageVideoService.DeleteImagesVideoById(id);
                 return Ok("Delete image video successfully!");
             }
             catch (Exception e)

@@ -17,19 +17,47 @@ namespace _2Sport_BE.Controllers
         private readonly ICommentService _commentService;
         private readonly IUserService _userService;
         private readonly INotificationService _notificationService;
+        private readonly IProductService _productService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CommentController(ICommentService commentService,
-                                 IUserService userService,
-                                 INotificationService notificationService,
-                                 IUnitOfWork unitOfWork, IMapper mapper)
+        public CommentController(ICommentService commentService, 
+                                 IUserService userService, 
+                                 INotificationService notificationService, 
+                                 IProductService productService, 
+                                 IUnitOfWork unitOfWork, 
+                                 IMapper mapper)
         {
-            _userService = userService;
             _commentService = commentService;
+            _userService = userService;
             _notificationService = notificationService;
+            _productService = productService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+        }
+
+        [HttpGet]
+        [Route("get-all-comments")]
+        public async Task<IActionResult> GetAllComments()
+        {
+            try
+            {
+                var allCommentInProduct = (await _commentService.GetAllComments()).ToList();
+                var result = _mapper.Map<List<CommentVM>>(allCommentInProduct);
+                foreach (var item in result)
+                {
+                    var product = await _productService.GetProductByProductCode(item.ProductCode);
+                    var user = await _userService.GetUserById(item.UserId);
+                    item.ProductName = product.ProductName ?? "";
+                    item.FullName = user.FullName ?? "";
+                    item.Email = user.Email ?? "";
+                }
+                return Ok(new { total = allCommentInProduct.Count, data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet]
@@ -42,11 +70,62 @@ namespace _2Sport_BE.Controllers
                 var result = _mapper.Map<List<CommentVM>>(allCommentInProduct);
                 foreach (var item in result)
                 {
+                    var product = await _productService.GetProductByProductCode(item.ProductCode);
                     var user = await _userService.GetUserById(item.UserId);
-                    item.Username = user.UserName;
+                    item.ProductName = product.ProductName ?? "";
+                    item.FullName = user.FullName ?? "";
+                    item.Email = user.Email ?? "";
                 }
                 return Ok(new { total = allCommentInProduct.Count, data = result });
             } catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("get-comment-by-id/{commentId}")]
+        public async Task<IActionResult> GetCommentById(int commentId)
+        {
+            try
+            {
+                var allCommentInProduct = (await _commentService.GetCommentById(commentId));
+                var result = _mapper.Map<CommentVM>(allCommentInProduct);
+
+                var product = await _productService.GetProductByProductCode(result.ProductCode);
+                var user = await _userService.GetUserById(result.UserId);
+                result.ProductName = product.ProductName ?? "";
+                result.FullName = user.FullName ?? "";
+                result.Email = user.Email ?? "";
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("get-child-comments/{parentCommentId}")]
+        public async Task<IActionResult> GetChildComments(int parentCommentId)
+        {
+            try
+            {
+                var allChildComments= (await _commentService.GetChildComments(parentCommentId));
+                var result = _mapper.Map<List<CommentVM>>(allChildComments.ToList());
+
+                foreach (var item in result)
+                {
+                    var product = await _productService.GetProductByProductCode(item.ProductCode);
+                    //var user = await _userService.GetUserById(result.UserId);
+                    item.ProductName = product.ProductName ?? "";
+                    //result.FullName = user.FullName ?? "";
+                    //result.Email = user.Email ?? "";
+                }
+
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -115,7 +194,7 @@ namespace _2Sport_BE.Controllers
                                             .NotifyForReplyComment(currUserId.ToString(), product);
                     if (!isSuccessNotify)
                     {
-                        return StatusCode(500, "Notify to admin failed!");
+                        return StatusCode(500, "Notify to customer failed!");
                     }
                     return Ok("Add comment successfully!");
                 }

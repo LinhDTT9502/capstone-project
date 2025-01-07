@@ -5,6 +5,7 @@ using _2Sport_BE.ViewModels;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Sprache;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace _2Sport_BE.Controllers
@@ -55,10 +56,34 @@ namespace _2Sport_BE.Controllers
                 foreach (var product in query)
                 {
                     product.Discount = percentDiscount;
-                    
+                    product.Price = Math.Round((decimal)(product.ListedPrice * ((100m - percentDiscount) / 100m)) / 1000m) * 1000m;
+
                 }
                 await _productService.UpdateProducts(query);
                 return Ok("Create/Update discount for product successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
+
+        [HttpDelete]
+        [Route("delete-promotion")]
+        public async Task<IActionResult> DeletePromotion(string productName)
+        {
+            try
+            {
+                var query = await _productService.GetProductsByProductName(productName);
+
+                foreach (var product in query)
+                {
+                    product.Discount = 0;
+                    product.Price = product.ListedPrice;
+                }
+                await _productService.UpdateProducts(query);
+                return Ok("delete promotion successfully!");
             }
             catch (Exception ex)
             {

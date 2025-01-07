@@ -19,6 +19,13 @@ export default function ShipmentList() {
   const [isShipmentListOpen, setIsShipmentListOpen] = useState(true);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [currentShipment, setCurrentShipment] = useState(null);
+  const [reload, setReload] = useState(false);
+
+  const reloadFunction = () => {
+    setReload(!reload);
+  };
+
+  // console.log(currentShipment, "check")
   // const [shipments, setShipments] = useState([])
   const shipments = useSelector(selectShipment);
 
@@ -84,13 +91,12 @@ export default function ShipmentList() {
       <button
         type="button"
         onClick={openModal}
-        className="pt-2 pl-2 text-orange-500"
+        className="text-blue-500 text-base"
       >
-        Thay đổi thông tin
+        | Thay đổi
       </button>
       {isShipmentListOpen && (
         <div className="mb-4">
-
           <Transition appear show={isShipmentListOpen} as={Fragment}>
             <Dialog as="div" className="" onClose={closeModal}>
               <Transition.Child
@@ -105,7 +111,7 @@ export default function ShipmentList() {
                 <Dialog.Overlay className="fixed inset-0 bg-black opacity-50" />
               </Transition.Child>
 
-              <div className="fixed inset-0 max-h-[100vh] overflow-y-auto pt-20">
+              <div className="fixed inset-0 max-h-[100vh]  z-[999999999999]">
                 <div className="flex items-center justify-center min-h-screen">
                   <Transition.Child
                     as={Fragment}
@@ -149,7 +155,9 @@ export default function ShipmentList() {
                                     {shipment.phoneNumber}
                                   </p>
                                 </div>
-                                <p className="text-gray-600">{shipment.address}</p>
+                                <p className="text-gray-600">
+                                  {shipment.address}
+                                </p>
                               </div>
                               <button
                                 className="rounded-lg p-2 text-orange-500 hover:bg-orange-500 hover:text-white"
@@ -160,9 +168,12 @@ export default function ShipmentList() {
                               </button>
                             </div>
                           ))}
-                          <AddShipment
-                            refreshShipments={refreshShipments}
-                          />
+                          <div className="pt-4">
+                            <AddShipment
+                              refreshShipments={refreshShipments}
+                              setReload={reloadFunction}
+                            />
+                          </div>
                         </div>
                       )}
                     </Dialog.Panel>
@@ -174,7 +185,12 @@ export default function ShipmentList() {
         </div>
       )}
       {isUpdateModalOpen && (
-        <UpdateShipment shipment={currentShipment} onClose={closeUpdateModal} />
+        <UpdateShipment
+          refreshShipments={refreshShipments}
+          shipment={currentShipment}
+          onClose={closeUpdateModal}
+          setReload={reloadFunction}
+        />
       )}
     </>
   );

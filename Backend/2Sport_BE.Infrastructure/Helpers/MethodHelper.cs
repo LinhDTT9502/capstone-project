@@ -10,6 +10,27 @@ using System.Text;
 
 namespace _2Sport_BE.Infrastructure.Helpers
 {
+    public class ValidationResult
+    {
+        public bool IsValid { get; private set; }
+        public string ErrorMessage { get; private set; }
+
+        private ValidationResult(bool isValid, string errorMessage)
+        {
+            IsValid = isValid;
+            ErrorMessage = errorMessage;
+        }
+
+        public static ValidationResult Valid()
+        {
+            return new ValidationResult(true, string.Empty);
+        }
+
+        public static ValidationResult Invalid(string errorMessage)
+        {
+            return new ValidationResult(false, errorMessage);
+        }
+    }
     public interface IMethodHelper
     {
         string GenerateOrderCode();

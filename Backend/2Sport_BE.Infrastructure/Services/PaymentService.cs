@@ -24,6 +24,7 @@ namespace _2Sport_BE.Infrastructure.Services
         public string BankName { get; set; }
         public string PaymentDate { get; set; }
         public string PaymentStatus { get; set; }
+        public string PaymentMethod { get; set; }
     }
     public class PayOSSettings
     {
@@ -231,7 +232,10 @@ namespace _2Sport_BE.Infrastructure.Services
                     if (saleOrder == null)
                         return _saleOrderService.GenerateErrorResponse($"SaleOrder with code {paymentResponse.OrderCode} is not found!");
 
-                    saleOrder.PaymentStatus = (int)PaymentStatus.IsCanceled;
+                    saleOrder.PaymentStatus = (int)PaymentStatus.CANCELED;
+                    saleOrder.PaymentDate = DateTime.Now;
+                    saleOrder.UpdatedAt = DateTime.Now;
+
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
                     //Cập nhật lại số luọng sản phẩm của chi nhánh đó thông qua update lại warehouse
@@ -274,7 +278,10 @@ namespace _2Sport_BE.Infrastructure.Services
                 {
                     return _saleOrderService.GenerateErrorResponse($"SaleOrder with code {paymentResponse.OrderCode} is not found!");
                 }
-                saleOrder.PaymentStatus = (int)PaymentStatus.IsPaid;
+                saleOrder.PaymentStatus = (int)PaymentStatus.PAID;
+                saleOrder.PaymentDate = DateTime.Now;
+                saleOrder.UpdatedAt = DateTime.Now;
+
                 await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
                 await _notificationService.NotifyPaymentPaid(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
@@ -297,21 +304,14 @@ namespace _2Sport_BE.Infrastructure.Services
                     if (rentalOrder == null)
                         return _rentalOrderService.GenerateErrorResponse($"Rental Order with code {paymentResponse.OrderCode} is not found!");
 
-                    rentalOrder.PaymentStatus = (int)PaymentStatus.IsCanceled;
-                    rentalOrder.DepositStatus = (int)PaymentStatus.IsCanceled;
-
                     var childOrders = await _unitOfWork.RentalOrderRepository
                                        .GetAsync(od => od.ParentOrderCode == rentalOrder.RentalOrderCode);
-                    if (rentalOrder.BranchId != null)
+                    if (rentalOrder.BranchId != null) //Đơn đã thuộc về chi nhánh
                     {
                         if (childOrders.Any())
                         {
                             foreach (var item in childOrders)
                             {
-                                item.PaymentStatus = (int)PaymentStatus.IsCanceled;
-                                item.DepositStatus = (int)DepositStatus.Not_Paid;
-                                item.TransactionId = item.ParentOrderCode;
-
                                 var productInWarehouse = await _unitOfWork.WarehouseRepository
                                     .GetObjectAsync(wh => wh.ProductId == item.ProductId && wh.BranchId == item.BranchId);
                                 if (productInWarehouse != null)
@@ -319,7 +319,13 @@ namespace _2Sport_BE.Infrastructure.Services
                                     productInWarehouse.AvailableQuantity += item.Quantity;
                                     await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
                                 }
-                                item.UpdatedAt = DateTime.UtcNow;
+
+                                item.PaymentStatus = (int)PaymentStatus.CANCELED;
+                                item.DepositStatus = (int)DepositStatus.NOT_PAID;
+                                item.TransactionId = item.ParentOrderCode;
+                                item.DepositDate = DateTime.Now;
+                                item.PaymentDate = DateTime.Now;
+                                item.UpdatedAt = DateTime.Now;
                                 await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
                             }
                         }
@@ -333,12 +339,16 @@ namespace _2Sport_BE.Infrastructure.Services
                                 await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
                             }
                         }
-
                     }
-                    rentalOrder.TransactionId = rentalOrder.ParentOrderCode;
-                    rentalOrder.UpdatedAt = DateTime.UtcNow;
-                    await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
+                    rentalOrder.TransactionId = rentalOrder.ParentOrderCode;
+                    rentalOrder.PaymentStatus = (int)PaymentStatus.CANCELED;
+                    rentalOrder.DepositStatus = (int)PaymentStatus.CANCELED;
+
+                    rentalOrder.DepositDate = DateTime.Now;
+                    rentalOrder.PaymentDate = DateTime.Now;
+                    rentalOrder.UpdatedAt = DateTime.Now;
+                    await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                     await _notificationService.NotifyPaymentCancellation(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
                     await transaction.CommitAsync();
@@ -360,13 +370,15 @@ namespace _2Sport_BE.Infrastructure.Services
                 if (rentalOrder == null)
                     return _rentalOrderService.GenerateErrorResponse($"Rental Order with code {paymentResponse.OrderCode} is not found!");
 
-                // Cập nhật trạng thái SaleOrder thành "Completed"
-                rentalOrder.PaymentStatus = (int)PaymentStatus.IsDeposited;
+                if (rentalOrder.DepositStatus == (int)DepositStatus.PARTIALLY_PENDING) rentalOrder.DepositStatus = (int)DepositStatus.PARTIALLY_PENDING;
+                else rentalOrder.DepositStatus = (int)DepositStatus.FULL_PAID;
 
-                if (rentalOrder.DepositStatus == (int)DepositStatus.Partially_Pending) rentalOrder.DepositStatus = (int)DepositStatus.Partially_Paid;
-                else rentalOrder.DepositStatus = (int)DepositStatus.Paid;
+                rentalOrder.PaymentStatus = (int)PaymentStatus.DEPOSIT;
 
-                rentalOrder.UpdatedAt = DateTime.UtcNow;
+
+                rentalOrder.PaymentDate = DateTime.Now;
+                rentalOrder.DepositDate = DateTime.Now;
+                rentalOrder.UpdatedAt = DateTime.Now;
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                 await _notificationService.NotifyPaymentPaid(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
@@ -429,7 +441,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<RentalOrderVM>> PaymentRentalOrderExecute(IQueryCollection collections);
         Task<ResponseDTO<SaleOrderVM>> PaymentSaleOrderExecute(IQueryCollection collections);
 
-        public PaymentInfor QueryTransaction(string orderCode, string transactionId, DateTime payDate, HttpContext context);
+        public PaymentInfor QueryTransaction(string orderCode, string transactionId,string paymentMethod, DateTime payDate, HttpContext context);
     }
     public class VnPayPaymentService : IPaymentService, IVnPayService
     {
@@ -553,8 +565,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 if (response.Data.TransactionStatus == "00")//Success
                 {
                     saleOrder.TransactionId = response.Data.TxnRef;
-                    saleOrder.PaymentStatus = (int)PaymentStatus.IsPaid;
-                    saleOrder.UpdatedAt = DateTime.UtcNow;
+                    saleOrder.PaymentStatus = (int)PaymentStatus.PAID;
+                    saleOrder.PaymentDate = DateTime.Now;
+                    saleOrder.UpdatedAt = DateTime.Now;
 
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
                     await _notificationService.NotifyPaymentPaid(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
@@ -563,9 +576,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 else
                 {
                     saleOrder.TransactionId = response.Data.TxnRef;
-                    saleOrder.PaymentStatus = (int)PaymentStatus.IsCanceled;
-                    saleOrder.OrderStatus = (int)OrderStatus.CANCELLED;
-                    saleOrder.UpdatedAt = DateTime.UtcNow;
+                    saleOrder.PaymentStatus = (int)PaymentStatus.CANCELED;
+                    saleOrder.PaymentDate = DateTime.Now;
+                    saleOrder.UpdatedAt = DateTime.Now;
 
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
@@ -604,15 +617,13 @@ namespace _2Sport_BE.Infrastructure.Services
             var rentalOrder = _unitOfWork.RentalOrderRepository.FindObject(o => o.RentalOrderCode == response.Data.OrderCode);
             if (rentalOrder == null) return _rentalOrderService.GenerateErrorResponse("Order not found!");
 
-
-            // Determine deposit status based on the response code
             DepositStatus newDepositStatus = response.Data.TransactionStatus == "00"
-                ? (rentalOrder.DepositStatus == (int)DepositStatus.Partially_Pending ? DepositStatus.Partially_Paid : DepositStatus.Paid)
-                : DepositStatus.Not_Paid;
+                ? (rentalOrder.DepositStatus == (int)DepositStatus.PARTIALLY_PENDING ? DepositStatus.PARTIALLY_PAID : DepositStatus.FULL_PAID)
+                : DepositStatus.CANCELED;
 
             PaymentStatus paymentStatus = response.Data.TransactionStatus == "00"
-                ? PaymentStatus.IsDeposited
-                : PaymentStatus.IsCanceled;
+                ? PaymentStatus.DEPOSIT
+                : PaymentStatus.CANCELED;
 
             var childOrders = await _unitOfWork.RentalOrderRepository
                                      .GetAsync(od => od.ParentOrderCode == rentalOrder.RentalOrderCode);
@@ -624,13 +635,6 @@ namespace _2Sport_BE.Infrastructure.Services
                     {
                         foreach (var item in childOrders)
                         {
-                            item.PaymentStatus = (int)paymentStatus;
-                            item.DepositStatus = (int)newDepositStatus;
-                            item.OrderStatus = (int)OrderStatus.CANCELLED;
-
-                            item.TransactionId = response.Data.TxnRef;
-                            item.UpdatedAt = DateTime.UtcNow;
-
                             var productInWarehouse = await _unitOfWork.WarehouseRepository
                                 .GetObjectAsync(wh => wh.ProductId == item.ProductId && wh.BranchId == item.BranchId);
                             if (productInWarehouse != null)
@@ -638,12 +642,18 @@ namespace _2Sport_BE.Infrastructure.Services
                                 productInWarehouse.AvailableQuantity += item.Quantity;
                                 await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
                             }
-                            item.UpdatedAt = DateTime.UtcNow;
+
+                            item.PaymentStatus = (int)paymentStatus;
+                            item.DepositStatus = (int)newDepositStatus;
                             item.TransactionId = response.Data.TxnRef;
+
+                            item.PaymentDate = DateTime.Now;
+                            item.DepositDate = DateTime.Now;
+                            item.UpdatedAt = DateTime.Now;
                             await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
                         }
                     }
-                    else//completed
+                    else
                     {
                         var productInWarehouse = await _unitOfWork.WarehouseRepository
                                .GetObjectAsync(wh => wh.ProductId == rentalOrder.ProductId && wh.BranchId == rentalOrder.BranchId);
@@ -657,118 +667,151 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 rentalOrder.PaymentStatus = (int)paymentStatus;
                 rentalOrder.DepositAmount = (int)newDepositStatus;
-                rentalOrder.OrderStatus = (int)OrderStatus.CANCELLED; 
-                rentalOrder.UpdatedAt = DateTime.UtcNow;
                 rentalOrder.TransactionId = response.Data.TxnRef;
+
+                rentalOrder.PaymentDate = DateTime.Now;
+                rentalOrder.DepositDate = DateTime.Now;
+                rentalOrder.UpdatedAt = DateTime.Now;
+
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                 await _notificationService.NotifyPaymentCancellation(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
-                return _rentalOrderService.GenerateSuccessResponse(rentalOrder, null, "Canceled.");
+                return _rentalOrderService.GenerateSuccessResponse(rentalOrder, null, "Canceled");
             }
             else
             {
-                rentalOrder.UpdatedAt = DateTime.Now;
+                
                 rentalOrder.DepositStatus = (int)newDepositStatus;
                 rentalOrder.PaymentStatus = (int)paymentStatus;
                 rentalOrder.DepositAmount = response.Data.Amount;
                 rentalOrder.TransactionId = response.Data.TxnRef;
 
+                rentalOrder.PaymentDate= DateTime.Now;
+                rentalOrder.DepositDate = DateTime.Now;
+                rentalOrder.UpdatedAt = DateTime.Now;
+
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                 await _notificationService.NotifyPaymentPaid(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
-                return _rentalOrderService.GenerateSuccessResponse(rentalOrder, null, "Completed.");
+                return _rentalOrderService.GenerateSuccessResponse(rentalOrder, null, "Completed");
             }
         }
 
-        public PaymentInfor QueryTransaction(string orderCode, string transactionId, DateTime payDate, HttpContext context)
+        public PaymentInfor QueryTransaction(string orderCode, string transactionId,string paymentMethod, DateTime payDate, HttpContext context)
         {
-
-            var pay = new VnPayLibrary();
-            var vnp_Api = _configuration["Vnpay:vnp_Api"];
-
-            var vnp_HashSecret = _configuration["Vnpay:HashSecret"];
-
-            var vnp_RequestId = DateTime.Now.Ticks.ToString();
-            var vnp_Version = _configuration["Vnpay:Version"];
-            var vnp_Command = "querydr";
-            var vnp_TmnCode = _configuration["Vnpay:TmnCode"];
-            var vnp_TxnRef = transactionId;
-            var vnp_OrderInfo = $"Thanh toan don hang mua: {orderCode}";
-            var vnp_TransactionDate = _methodHelper.GetFormattedDateInGMT7(payDate);
-            var vnp_CreateDate = DateTime.Now.ToString("yyyyMMddHHmmss");
-            var vnp_IpAddr = pay.GetIpAddress(context);
-
-            var signData = $"{vnp_RequestId}|{vnp_Version}|{vnp_Command}|{vnp_TmnCode}|{vnp_TxnRef}|{vnp_TransactionDate}|{vnp_CreateDate}|{vnp_IpAddr}|{vnp_OrderInfo}";
-            var vnp_SecureHash = pay.HmacSha512(vnp_HashSecret, signData);
-
-            var qdrData = new
+            try
             {
-                vnp_RequestId,
-                vnp_Version,
-                vnp_Command,
-                vnp_TmnCode,
-                vnp_TxnRef,
-                vnp_OrderInfo,
-                vnp_TransactionDate,
-                vnp_CreateDate,
-                vnp_IpAddr,
-                vnp_SecureHash
-            };
+                var pay = new VnPayLibrary();
+                var vnp_Api = _configuration["Vnpay:vnp_Api"];
+                var vnp_HashSecret = _configuration["Vnpay:HashSecret"];
+                var vnp_RequestId = DateTime.Now.Ticks.ToString();
+                var vnp_Version = _configuration["Vnpay:Version"];
+                var vnp_Command = "querydr";
+                var vnp_TmnCode = _configuration["Vnpay:TmnCode"];
+                var vnp_TxnRef = transactionId;
+                var vnp_OrderInfo = $"Thanh toan don hang mua: {orderCode}";
+                var vnp_TransactionDate = _methodHelper.GetFormattedDateInGMT7(payDate);
+                var vnp_CreateDate = DateTime.Now.ToString("yyyyMMddHHmmss");
+                var vnp_IpAddr = pay.GetIpAddress(context);
 
-            var jsonData = JsonConvert.SerializeObject(qdrData);
+                var signData = $"{vnp_RequestId}|{vnp_Version}|{vnp_Command}|{vnp_TmnCode}|{vnp_TxnRef}|{vnp_TransactionDate}|{vnp_CreateDate}|{vnp_IpAddr}|{vnp_OrderInfo}";
+                var vnp_SecureHash = pay.HmacSha512(vnp_HashSecret, signData);
 
-            var httpWebRequest = (HttpWebRequest)WebRequest.Create(vnp_Api);
-            httpWebRequest.ContentType = "application/json";
-            httpWebRequest.Method = "POST";
-
-            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
-            {
-                streamWriter.Write(jsonData);
-            }
-
-            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-            {
-                string response = streamReader.ReadToEnd();
-                var tempDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
-
-                var dictionary = new Dictionary<string, StringValues>();
-                foreach (var item in tempDictionary)
+                var qdrData = new
                 {
-                    dictionary.Add(item.Key, new StringValues(item.Value ?? string.Empty));
-                }
-
-                var queryCollection = new QueryCollection(dictionary);
-
-     
-                DateTime parsedDateTime = DateTime.MinValue;
-                if (queryCollection.TryGetValue("vnp_PayDate", out var payDateValue) && !StringValues.IsNullOrEmpty(payDateValue))
-                {
-                    if (!DateTime.TryParseExact(payDateValue.ToString(), "yyyyMMddHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDateTime))
-                    {
-                        parsedDateTime = DateTime.MinValue;
-                    }
-                }
-
-                var paymentInfor = new PaymentInfor()
-                {
-                    AmountPaid = queryCollection.TryGetValue("vnp_Amount", out var amountValue) && !StringValues.IsNullOrEmpty(amountValue)
-                        ? amountValue.ToString()
-                        : "0",
-                    BankName = queryCollection.TryGetValue("vnp_BankCode", out var bankCodeValue) && !StringValues.IsNullOrEmpty(bankCodeValue)
-                        ? bankCodeValue.ToString()
-                        : "UNKNOWN",
-                    OrderCode = orderCode,
-                    PaymentStatus = queryCollection.TryGetValue("vnp_TransactionStatus", out var transactionStatusValue) && transactionStatusValue == "00"
-                        ? "PAID"
-                        : "CANCELED",
-                    PaymentDate = parsedDateTime == DateTime.MinValue
-                        ? "N/A"
-                        : parsedDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
+                    vnp_RequestId,
+                    vnp_Version,
+                    vnp_Command,
+                    vnp_TmnCode,
+                    vnp_TxnRef,
+                    vnp_OrderInfo,
+                    vnp_TransactionDate,
+                    vnp_CreateDate,
+                    vnp_IpAddr,
+                    vnp_SecureHash
                 };
 
-                return paymentInfor;
+                var jsonData = JsonConvert.SerializeObject(qdrData);
+
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create(vnp_Api);
+                httpWebRequest.ContentType = "application/json";
+                httpWebRequest.Method = "POST";
+
+                using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+                {
+                    streamWriter.Write(jsonData);
+                }
+
+                var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                {
+                    string response = streamReader.ReadToEnd();
+
+                    var tempDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+                    if (tempDictionary == null || tempDictionary.Count == 0)
+                        throw new Exception("Response dictionary is null or empty.");
+
+                    var dictionary = new Dictionary<string, StringValues>();
+                    foreach (var item in tempDictionary)
+                    {
+                        dictionary.Add(item.Key, new StringValues(item.Value ?? string.Empty));
+                    }
+
+                    var queryCollection = new QueryCollection(dictionary);
+
+                    DateTime parsedDateTime = DateTime.MinValue;
+                    if (queryCollection.TryGetValue("vnp_PayDate", out var payDateValue) && !StringValues.IsNullOrEmpty(payDateValue))
+                    {
+                        if (!DateTime.TryParseExact(payDateValue.ToString(), "yyyyMMddHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDateTime))
+                        {
+                            parsedDateTime = DateTime.MinValue;
+                        }
+                    }
+
+                    var paymentInfor = new PaymentInfor()
+                    {
+                        AmountPaid = queryCollection.TryGetValue("vnp_Amount", out var amountValue) && !StringValues.IsNullOrEmpty(amountValue)
+                            ? amountValue.ToString()
+                            : "0",
+                        BankName = queryCollection.TryGetValue("vnp_BankCode", out var bankCodeValue) && !StringValues.IsNullOrEmpty(bankCodeValue)
+                            ? bankCodeValue.ToString()
+                            : "UNKNOWN",
+                        OrderCode = orderCode,
+                        PaymentStatus = queryCollection.TryGetValue("vnp_TransactionStatus", out var transactionStatusValue) && transactionStatusValue == "00"
+                            ? "PAID"
+                            : "CANCELED",
+                        PaymentDate = parsedDateTime == DateTime.MinValue
+                            ? "N/A"
+                            : parsedDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
+                    };
+
+                    return paymentInfor;
+                }
+            }
+            catch (WebException ex)
+            {
+                using (var responseStream = ex.Response?.GetResponseStream())
+                {
+                    if (responseStream != null)
+                    {
+                        using (var reader = new StreamReader(responseStream))
+                        {
+                            var errorResponse = reader.ReadToEnd();
+                            throw new Exception($"HTTP request failed with error: {errorResponse}", ex);
+                        }
+                    }
+                }
+                throw new Exception("HTTP request failed and no response was received.", ex);
+            }
+            catch (JsonException ex)
+            {
+                throw new Exception("Failed to parse JSON response.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"An error occurred while querying the transaction: {ex.Message}", ex);
             }
         }
+
     }
 }

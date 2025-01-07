@@ -19,6 +19,7 @@ public class Sport
     [MaxLength(50)]
     public string Name { get; set; }
     public bool Status { get; set; }
-
+    public DateTime CreatedAt { get; set; }
     public virtual ICollection<Product> Products { get; set; }
+    public virtual ICollection<Category> Categories { get; set; }
 }

@@ -97,6 +97,16 @@ namespace _2Sport_BE.Repository.Models
         [DataType(DataType.DateTime)]
         public DateTime? RentalEndDate { get; set; }
 
+        [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.DateTime)]
+
+        public DateTime? DepositDate { get; set; }
+
+        [DisplayFormat(DataFormatString = "{0:HH-mm-ss:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.DateTime)]
+        [Column("PaymentDate")]
+        public DateTime? PaymentDate { get; set; }
+
         [Column("RentalDays")]
         public int RentalDays { get; set; }
 
@@ -125,6 +135,9 @@ namespace _2Sport_BE.Repository.Models
         [Column("TransactionId", TypeName = "nvarchar")]
         [MaxLength(100)]
         public string? TransactionId { get; set; }
+        [Column("OrderImage", TypeName = "nvarchar")]
+        [MaxLength(500)]
+        public string? OrderImage { get; set; }
         #endregion
 
         #region PaymentInformation

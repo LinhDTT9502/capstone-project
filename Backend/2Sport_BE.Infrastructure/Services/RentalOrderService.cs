@@ -8,6 +8,9 @@ using _2Sport_BE.Service.Enums;
 using _2Sport_BE.Services;
 using _2Sport_BE.Service.Helpers;
 using Pipelines.Sockets.Unofficial.Arenas;
+using System.ComponentModel.DataAnnotations;
+using ValidationResult = _2Sport_BE.Infrastructure.Helpers.ValidationResult;
+using StackExchange.Redis;
 
 
 namespace _2Sport_BE.Infrastructure.Services
@@ -15,6 +18,7 @@ namespace _2Sport_BE.Infrastructure.Services
     public interface IRentalOrderService
     {
         Task CheckRentalOrdersForExpiration();//Background Jobs
+        Task CheckPendingOrderForget();
 
         Task<ResponseDTO<List<RentalOrderVM>>> GetAllRentalOrderAsync();
         Task<ResponseDTO<List<RentalOrderVM>>> GetOrdersByUserIdAsync(int userId);
@@ -31,7 +35,8 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<int>> UpdateRentalOrderStatusAsync(int orderId, int status);
         Task<ResponseDTO<int>> UpdateBranchForRentalOrder(int orderId, int branchId);
         Task<int> UpdaterRentalOrder(RentalOrder rentalOrder);
-        Task<bool> UpdatePaymentStatus(string orderCode, int paymentStatus);
+        Task<ResponseDTO<int>> UpdateRentalPaymentStatus(int orderId, int paymentStatus);
+        Task<ResponseDTO<int>> UpdateRentalDepositStatus(int orderId, int depositStatus);
         Task<ResponseDTO<int>> DeleteRentalOrderAsync(int rentalOrderId);
 
         Task<ResponseDTO<int>> CancelRentalOrderAsync(int orderId, string reason);
@@ -46,7 +51,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<ResponseDTO<int>> ApproveExtensionAsync(string rentalOrderCode);
         Task<ResponseDTO<int>> RejectExtensionAsync(string rentalOrderCode, string rejectionReason);
     }
-
+   
     public class RentalOrderService : IRentalOrderService
     {
         #region ServiceInjection
@@ -58,6 +63,7 @@ namespace _2Sport_BE.Infrastructure.Services
         private readonly INotificationService _notificationService;
         private readonly IDeliveryMethodService _deliveryMethodService;
         private readonly IMailService _mailService;
+
         #endregion
         public RentalOrderService(
             IUnitOfWork unitOfWork,
@@ -87,6 +93,14 @@ namespace _2Sport_BE.Infrastructure.Services
             {
                 await _notificationService.SendRentalOrderExpirationNotificationAsync(order.UserId.ToString(), order.RentalOrderCode, (DateTime)order.RentalEndDate);
                 await _mailService.SendRentalOrderReminder(order, order.Email);
+            }
+        }
+        public async Task CheckPendingOrderForget()
+        {
+            var pendingOrders = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.CreatedAt.Value.AddHours(1) == DateTime.Now.Date && o.ParentOrderCode == null);
+            foreach (var order in pendingOrders)
+            {
+                await _notificationService.NotifyForPendingOrderAsync(order.RentalOrderCode, true, order.CreatedAt.Value, order.BranchId);
             }
         }
         #endregion
@@ -138,20 +152,28 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 if (orders != null && orders.Any())
                 {
-                    var resultList = orders.Select(rentalOrder =>
+                    var resultList = new List<RentalOrderVM>();
+
+                    foreach (var rentalOrder in orders)
                     {
                         var result = _mapper.Map<RentalOrderVM>(rentalOrder);
                         MapToRentalOrderVM(rentalOrder, result);
-                        return result;
-                    }).ToList();
+
+                        // Truy vấn child orders
+                        var listChild = await _unitOfWork.RentalOrderRepository.GetAsync(r => r.ParentOrderCode == rentalOrder.RentalOrderCode);
+
+                        result.childOrders = _mapper.Map<List<RentalOrderVM>>(listChild);
+
+                        resultList.Add(result);
+                    }
 
                     response.IsSuccess = true;
                     response.Message = "Orders retrieved successfully";
-                    response.Data = resultList;
+                    response.Data = resultList.ToList();
                 }
                 else
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = $"No orders found for user with ID = {userId}";
                 }
             }
@@ -189,8 +211,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 else
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = "Rental orders are not found";
+                    response.Data = new List<RentalOrderVM>();
                 }
             }
             catch (Exception ex)
@@ -303,8 +326,9 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
                 else
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = $"No orders found";
+                    response.Data = new List<RentalOrderVM>();
                 }
             }
             catch (Exception ex)
@@ -408,8 +432,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     rentalOrder.Note = rentalOrderCM.Note;
                     rentalOrder.CreatedAt = DateTime.Now;
                     rentalOrder.DeliveryMethod = DeliveryMethod;
-                    rentalOrder.OrderStatus = (int)OrderStatus.PENDING;
-                    rentalOrder.PaymentStatus = (int)PaymentStatus.IsWating;
+                    rentalOrder.OrderStatus = (int)RentalOrderStatus.PENDING;
                     //ParentCode For Child Orders
                     string parentOrderCode = rentalOrder.RentalOrderCode;
 
@@ -471,7 +494,7 @@ namespace _2Sport_BE.Infrastructure.Services
                             childRentalOrder.ParentOrderCode = parentOrderCode;
                             childRentalOrder.RentalOrderCode = _methodHelper.GenerateOrderCode();
                             childRentalOrder.CreatedAt = DateTime.Now;
-                            childRentalOrder.OrderStatus = (int)OrderStatus.PENDING;
+                            childRentalOrder.OrderStatus = (int)RentalOrderStatus.PENDING;
                             childRentalOrder.DeliveryMethod = rentalOrderCM.DeliveryMethod;
                             var product = await _unitOfWork.ProductRepository.GetObjectAsync(p => p.Id == itemCM.ProductId);
                             if (product == null) return GenerateErrorResponse($"The product with id {itemCM.ProductId} are not found");
@@ -555,7 +578,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     parentOrder.DeliveryMethod = rentalOrderUM.DeliveryMethod;
 
                     parentOrder.Note = rentalOrderUM.Note;
-                    parentOrder.UpdatedAt = DateTime.UtcNow;
+                    parentOrder.UpdatedAt = DateTime.Now;
 
                     var childList = new List<RentalOrder>();
                     if (rentalOrderUM.ProductInformations.Count == 1) //cập nhật đơn thuê 1 sản phẩm
@@ -805,35 +828,67 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
 
-        public async Task<ResponseDTO<int>> UpdateRentalOrderStatusAsync(int orderId, int status)
+        public async Task<ResponseDTO<int>> UpdateRentalOrderStatusAsync(int orderId, int newStatus)
         {
-            var response = new ResponseDTO<int>();
             try
             {
-                var isExisted = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
-                if (isExisted is null)
+                var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
+                if (rentalOrder is null)
                 {
-                    response.IsSuccess = false;
-                    response.Message = "Updated Error";
-                    response.Data = 0;
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "Đơn hàng không tồn tại.",
+                        Data = 0
+                    };
                 }
-                else
-                {
-                    isExisted.OrderStatus = status;
-                    await _unitOfWork.RentalOrderRepository.UpdateAsync(isExisted);
 
-                    response.IsSuccess = true;
-                    response.Message = "Update Successfully";
-                    response.Data = 1;
+                var validationResult = ValidateStatusTransition(rentalOrder, newStatus);
+                if (!validationResult.IsValid)
+                {
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = validationResult.ErrorMessage,
+                        Data = 0
+                    };
                 }
+
+                rentalOrder.OrderStatus = newStatus;
+                await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
+
+                if (rentalOrder.OrderStatus == (int)OrderStatus.COMPLETED)
+                {
+                    var loyaltyUpdateResponse = await _customerService.UpdateLoyaltyPointsRental(rentalOrder.Id);
+                }
+
+                var childs = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode == rentalOrder.RentalOrderCode);
+
+                if (childs != null && childs.Any())
+                {
+                    foreach (var child in childs)
+                    {
+                        child.OrderStatus = newStatus;
+                        await _unitOfWork.RentalOrderRepository.UpdateAsync(child);
+                    }
+                }
+
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = true,
+                    Message = "Cập nhật trạng thái đơn hàng thành công.",
+                    Data = 1
+                };
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-                response.Data = 0;
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = false,
+                    Message = $"Lỗi hệ thống: {ex.Message}",
+                    Data = 0
+                };
             }
-            return response;
         }
 
         public async Task<ResponseDTO<int>> CancelRentalOrderAsync(int orderId, string reason)
@@ -853,7 +908,7 @@ namespace _2Sport_BE.Infrastructure.Services
                         return response;
                     }
 
-                    if (order.OrderStatus != (int)OrderStatus.PENDING)
+                    if (order.OrderStatus != (int)RentalOrderStatus.PENDING)
                     {
                         response.IsSuccess = false;
                         response.Message = "Đơn hàng không thể hủy ở trạng thái hiện tại!";
@@ -861,8 +916,10 @@ namespace _2Sport_BE.Infrastructure.Services
                         return response;
                     }
 
-                    order.OrderStatus = (int)OrderStatus.CANCELLED;
+                    order.OrderStatus = (int)RentalOrderStatus.CANCELED;
                     order.Reason = reason;
+                    order.UpdatedAt = DateTime.Now;
+
                     await _unitOfWork.RentalOrderRepository.UpdateAsync(order);
 
                     var childs = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode == order.RentalOrderCode);
@@ -871,8 +928,10 @@ namespace _2Sport_BE.Infrastructure.Services
                     {
                         foreach (var child in childs)
                         {
-                            child.OrderStatus = (int)OrderStatus.CANCELLED;
+                            child.OrderStatus = (int)RentalOrderStatus.CANCELED;
                             child.Reason = reason;
+                            order.UpdatedAt = DateTime.Now;
+
                             await _unitOfWork.RentalOrderRepository.UpdateAsync(child);
                         }
                     }
@@ -939,35 +998,82 @@ namespace _2Sport_BE.Infrastructure.Services
             return response;
         }
 
+        public async Task<ResponseDTO<int>> UpdateRentalPaymentStatus(int orderId, int paymentStatus)
+        {
+            try
+            {
+                var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
+                if (rentalOrder is null)
+                {
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "Đơn hàng không tồn tại.",
+                        Data = 0
+                    };
+                }
+
+                rentalOrder.PaymentStatus = paymentStatus;
+                await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
+
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = true,
+                    Message = "Cập nhật trạng thái thanh toán thành công.",
+                    Data = 1
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = false,
+                    Message = $"Lỗi hệ thống: {ex.Message}",
+                    Data = 0
+                };
+            }
+        }
+
+        public async Task<ResponseDTO<int>> UpdateRentalDepositStatus(int orderId, int depositStatus)
+        {
+            try
+            {
+                var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
+                if (rentalOrder is null)
+                {
+                    return new ResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "Đơn hàng không tồn tại.",
+                        Data = 0
+                    };
+                }
+
+                rentalOrder.DepositStatus = depositStatus;
+                await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
+
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = true,
+                    Message = "Cập nhật trạng thái đặt cọc thành công.",
+                    Data = 1
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDTO<int>
+                {
+                    IsSuccess = false,
+                    Message = $"Lỗi hệ thống: {ex.Message}",
+                    Data = 0
+                };
+            }
+        }
+
         public async Task<int> UpdaterRentalOrder(RentalOrder rentalOrder)
         {
             await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
             return 1;
-        }
-
-        public async Task<bool> UpdatePaymentStatus(string orderCode, int paymentStatus)
-        {
-            bool response = false;
-
-            try
-            {
-                var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.RentalOrderCode.Equals(orderCode));
-                if (rentalOrder == null)
-                    response = false;
-                else
-                {
-                    rentalOrder.PaymentStatus = paymentStatus;
-
-                    await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
-
-                    response = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                response = false;
-            }
-            return response;
         }
 
 
@@ -1003,39 +1109,11 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
                     else
                     {
-                        if (rentalOrder.OrderStatus == (int)OrderStatus.CONFIRMED)
+                        if (rentalOrder.OrderStatus >= (int)RentalOrderStatus.CONFIRMED)
                             return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
 
-                        rentalOrder.OrderStatus = (int)OrderStatus.CONFIRMED;
-                        if (childOrder.Any())
-                        {
-                            foreach (var item in childOrder.ToList())
-                            {
-                                item.OrderStatus = (int)OrderStatus.CONFIRMED;
-                                var productInWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(item.ProductId.Value, item.BranchId)).FirstOrDefault();
-                                if (productInWarehouse == null)
-                                {
-                                    await transaction.RollbackAsync();
-                                    return GenerateErrorResponse($"Failed to update stock for product {item.ProductName}");
-                                }
-                                productInWarehouse.AvailableQuantity -= item.Quantity;
-                                await _warehouseService.UpdateWarehouseAsync(productInWarehouse);
-                                await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
-                            }
-                        }
-                        else
-                        {
-                            var productInWarehouse = (await _warehouseService.GetWarehouseByProductIdAndBranchId(rentalOrder.ProductId.Value, rentalOrder.BranchId)).FirstOrDefault();
-                            if (productInWarehouse == null)
-                            {
-                                await transaction.RollbackAsync();
-                                return GenerateErrorResponse($"Failed to update stock for product {rentalOrder.ProductName}");
-                            }
-                            productInWarehouse.AvailableQuantity -= rentalOrder.Quantity;
-                            await _warehouseService.UpdateWarehouseAsync(productInWarehouse);
-                        }
-
-
+                        rentalOrder.OrderStatus = (int)RentalOrderStatus.PENDING;
+                        rentalOrder.UpdatedAt = DateTime.Now;
                         await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                         await transaction.CommitAsync();
@@ -1066,17 +1144,23 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
                     else
                     {
+                        if (rentalOrder.OrderStatus >= (int)RentalOrderStatus.CONFIRMED)
+                            return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
+
                         var childOrder = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode.Equals(rentalOrder.RentalOrderCode));
 
-                        rentalOrder.OrderStatus = (int)OrderStatus.PENDING;
+                        rentalOrder.OrderStatus = (int)RentalOrderStatus.PENDING;
+                        rentalOrder.UpdatedAt = DateTime.Now;
+
                         rentalOrder.BranchId = null;
 
                         if (childOrder.Any())
                         {
                             foreach (var item in childOrder.ToList())
                             {
-                                item.OrderStatus = (int)OrderStatus.PENDING;
+                                item.OrderStatus = (int)RentalOrderStatus.PENDING;
                                 item.BranchId = null;
+                                item.UpdatedAt = DateTime.Now;
                                 await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
                             }
                         }
@@ -1109,7 +1193,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     Message = "Order not found."
                 };
 
-            if (parent.OrderStatus < (int)OrderStatus.SHIPPED)
+            if (parent.OrderStatus < (int)RentalOrderStatus.DELIVERED)
                 return new ResponseDTO<int>
                 {
                     IsSuccess = false,
@@ -1127,13 +1211,12 @@ namespace _2Sport_BE.Infrastructure.Services
                         Message = "An extension request is already pending."
                     };
 
-                if (child.OrderStatus < (int)OrderStatus.DELIVERED)
+                if (child.OrderStatus < (int)RentalOrderStatus.DELIVERED)
                     return new ResponseDTO<int>
                     {
                         IsSuccess = false,
                         Message = "Order's status does not meet extension requirements."
                     };
-
 
                 child.ExtensionStatus = (int)ExtensionRequestStatus.PENDING;
                 child.ExtensionDays = extensionDays;
@@ -1186,25 +1269,35 @@ namespace _2Sport_BE.Infrastructure.Services
                 if (rentalOrder == null)
                     return new ResponseDTO<int>
                     {
-                        IsSuccess = false,
+                        IsSuccess = true,
                         Message = "Order not found."
                     };
 
                 if (rentalOrder.ExtensionStatus != (int)ExtensionRequestStatus.PENDING)
                     return new ResponseDTO<int>
                     {
-                        IsSuccess = false,
+                        IsSuccess = true,
                         Message = "No pending extension request found."
                     };
+                var orderExtensionCost = rentalOrder.RentPrice * rentalOrder.ExtensionDays * rentalOrder.Quantity;
+
+                var parentOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(r => r.RentalOrderCode == rentalOrder.ParentOrderCode);
+                if(parentOrder != null)
+                {
+                    parentOrder.OrderStatus = (int)RentalOrderStatus.EXTENSION_REQUESTED;
+                    parentOrder.ExtensionCost += orderExtensionCost;
+                    parentOrder.UpdatedAt = DateTime.Now;
+                    await _unitOfWork.RentalOrderRepository.UpdateAsync(parentOrder);
+                }
 
                 rentalOrder.ExtensionStatus = (int)ExtensionRequestStatus.APPROVED;
+                rentalOrder.OrderStatus = (int)RentalOrderStatus.EXTENSION_REQUESTED;
                 rentalOrder.IsExtended = true;
-
                 rentalOrder.ExtendedDueDate = rentalOrder.RentalEndDate.Value.AddDays(rentalOrder.ExtensionDays.Value);
-                rentalOrder.ExtensionCost = rentalOrder.RentPrice * rentalOrder.ExtensionDays * rentalOrder.Quantity;
-
+                rentalOrder.ExtensionCost = orderExtensionCost;
+                rentalOrder.UpdatedAt = DateTime.Now;
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
-
+                
                 return new ResponseDTO<int>
                 {
                     IsSuccess = true,
@@ -1272,7 +1365,6 @@ namespace _2Sport_BE.Infrastructure.Services
             }
         }
 
-        
 
         public ResponseDTO<RentalOrderVM> GenerateSuccessResponse(RentalOrder order, List<RentalOrder>? listChild, string messagge)
         {
@@ -1288,8 +1380,12 @@ namespace _2Sport_BE.Infrastructure.Services
             result.PaymentStatus = order.PaymentStatus != null
                 ? EnumDisplayHelper.GetEnumDescription<PaymentStatus>(order.PaymentStatus.Value)
                 : "N/A";
+            result.PaymentMethod = order.PaymentMethodId != null
+                ? EnumDisplayHelper.GetEnumDescription<OrderMethods>(order.PaymentMethodId.Value)
+                : "N/A";
             result.DeliveryMethod = _deliveryMethodService.GetDescription(order.DeliveryMethod);
             result.Id = order.Id;
+            result.OrderStatusId = order.OrderStatus;
             if (listChild == null || !listChild.Any())
             {
                 listChild = new List<RentalOrder>();
@@ -1326,7 +1422,7 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             return order.RentalDays;
         }
-        private decimal CalculateTotalAmount(decimal? subTotal = 0, decimal? transportFee = 0, decimal? lateFee = 0, decimal? damageFee = 0,decimal? depositAmount = 0)
+        private decimal CalculateTotalAmount(decimal? subTotal = 0, decimal? transportFee = 0, decimal? lateFee = 0, decimal? damageFee = 0, decimal? depositAmount = 0)
         {
             return (decimal)(subTotal + transportFee + lateFee + damageFee - depositAmount);
         }
@@ -1435,7 +1531,111 @@ namespace _2Sport_BE.Infrastructure.Services
             rentalOrderVM.ExtensionStatus = rentalOrder.ExtensionStatus != null
                ? EnumDisplayHelper.GetEnumDescription<ExtensionRequestStatus>(rentalOrder.ExtensionStatus.Value)
                : "N/A";
+            rentalOrderVM.PaymentMethod = rentalOrder.PaymentMethodId != null
+               ? EnumDisplayHelper.GetEnumDescription<OrderMethods>(rentalOrder.PaymentMethodId.Value)
+                : "N/A";
             rentalOrderVM.DeliveryMethod = _deliveryMethodService.GetDescription(rentalOrder.DeliveryMethod);
+            rentalOrderVM.OrderStatusId = rentalOrder.OrderStatus;
+        }
+
+        private ValidationResult ValidateStatusTransition(RentalOrder rentalOrder, int newStatus)
+        {
+            var currentOrderStatus = rentalOrder.OrderStatus;
+            var paymentStatus = rentalOrder.PaymentStatus;
+            var depositStatus = rentalOrder.DepositStatus;
+            var paymentMethod = rentalOrder.PaymentMethodId;
+            switch (newStatus)
+            {
+                case (int)RentalOrderStatus.PENDING:
+                    return ValidationResult.Valid();
+
+                case (int)RentalOrderStatus.CANCELED:
+                    /*if (paymentStatus != (int)PaymentStatus.CANCELED && depositStatus != (int)DepositStatus.CANCELED)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể hủy khi thanh toán hoặc đặt cọc đã bị hủy.");
+                    }*/
+                    return ValidationResult.Valid();
+
+                case (int)RentalOrderStatus.CONFIRMED:
+                    if (currentOrderStatus != (int)RentalOrderStatus.PENDING)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể xác nhận khi đang ở trạng thái chờ xử lý.");
+                    }
+                    break;
+
+                case (int)RentalOrderStatus.PROCESSING:
+                    if (currentOrderStatus != (int)RentalOrderStatus.CONFIRMED ||
+                        (paymentMethod != (int)OrderMethods.COD && (depositStatus != (int)DepositStatus.PARTIALLY_PAID && depositStatus != (int)DepositStatus.FULL_PAID)))
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể xử lý khi đã được xác nhận và có đặt cọc (một phần hoặc đầy đủ).");
+                    }
+
+                    break;
+
+                case (int)RentalOrderStatus.SHIPPED:
+                    if (currentOrderStatus != (int)RentalOrderStatus.PROCESSING)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể giao khi đang được xử lý.");
+                    }
+                    break;
+
+                case (int)RentalOrderStatus.DELIVERED:
+                    if (currentOrderStatus != (int)RentalOrderStatus.SHIPPED)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể đánh dấu là đã giao khi đang ở trạng thái đã vận chuyển.");
+                    }
+                    break;
+
+                case (int)RentalOrderStatus.DECLINED:
+                    if (currentOrderStatus != (int)OrderStatus.SHIPPED)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể đánh dấu là đã giao khi đang ở trạng thái đã vận chuyển.");
+                    }
+                    break;
+
+                case (int)RentalOrderStatus.FAILED:
+                    return ValidationResult.Valid();
+
+                case (int)RentalOrderStatus.AWAITING_PICKUP:
+                    if (currentOrderStatus != (int)RentalOrderStatus.PROCESSING)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể chuyển sang trạng thái chờ khách nhận khi đang được xử lý.");
+                    }
+                    break;
+
+                case (int)RentalOrderStatus.EXTENSION_REQUESTED:
+                    if (currentOrderStatus != (int)RentalOrderStatus.RENTED)
+                    {
+                        return ValidationResult.Invalid("Gia hạn chỉ có thể yêu cầu khi đơn hàng đang trong trạng thái thuê.");
+                    }
+                    break;
+
+                case (int)RentalOrderStatus.RETURN_REQUESTED:
+                    if (currentOrderStatus != (int)RentalOrderStatus.RENTED)
+                    {
+                        return ValidationResult.Invalid("Chỉ có thể yêu cầu trả khi đơn hàng đang trong trạng thái thuê.");
+                    }
+                    break;
+
+                case (int)RentalOrderStatus.RETURNED:
+                    if (currentOrderStatus != (int)RentalOrderStatus.RETURN_REQUESTED)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể trả sau khi đã yêu cầu trả.");
+                    }
+                    break;
+
+                case (int)RentalOrderStatus.COMPLETED:
+                    if (currentOrderStatus != (int)RentalOrderStatus.RETURNED && currentOrderStatus != (int)RentalOrderStatus.INSPECTING)
+                    {
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể hoàn tất sau khi đã trả hoặc kiểm tra sản phẩm.");
+                    }
+                    break;
+
+                default:
+                    return ValidationResult.Valid();
+            }
+
+            return ValidationResult.Valid();
         }
     }
 }

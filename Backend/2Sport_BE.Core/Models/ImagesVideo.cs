@@ -12,11 +12,11 @@ public class ImagesVideo
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
-    [Column("ImageUrl", TypeName = "varchar")]
+    [Column("ImageUrl", TypeName = "varchar(MAX)")]
     [MaxLength(500)]
     public string? ImageUrl { get; set; }
 
-    [Column("VideoUrl", TypeName = "varchar")]
+    [Column("VideoUrl", TypeName = "varchar(MAX)")]
     [MaxLength(500)]
     public string? VideoUrl { get; set; }
 

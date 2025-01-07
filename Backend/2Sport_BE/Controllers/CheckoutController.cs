@@ -67,7 +67,7 @@ namespace _2Sport_BE.Controllers
                 if (order.PaymentMethodId != checkoutModel.PaymentMethodID)
                 {
                     order.PaymentMethodId = checkoutModel.PaymentMethodID;
-                    order.PaymentStatus = (int)PaymentStatus.IsWating;
+                    order.PaymentStatus = (int)PaymentStatus.PENDING;
                     await _saleOrderService.UpdateSaleOrder(order);
                 }
 
@@ -85,12 +85,12 @@ namespace _2Sport_BE.Controllers
                 if (order.PaymentMethodId != checkoutModel.PaymentMethodID)
                 {
                     order.PaymentMethodId = checkoutModel.PaymentMethodID;
-                    order.PaymentStatus = (int)PaymentStatus.IsWating;
+                    order.PaymentStatus = (int)PaymentStatus.PENDING;
                     await _saleOrderService.UpdateSaleOrder(order);
                 }
                 var response = await _saleOrderService.GetSaleOrderDetailsByIdAsync(order.Id);
 
-                if (!response.IsSuccess) return Ok(response);
+                if (response.IsSuccess) return Ok(response);
                 return BadRequest(response);
 
             }
@@ -147,10 +147,6 @@ namespace _2Sport_BE.Controllers
             {
                 return BadRequest("Rental Order not found.");
             }
-            /*if (order.PaymentStatus != (int)PaymentStatus.IsWating || (order.PaymentStatus == (int)PaymentStatus.IsCanceled && order.OrderStatus == (int)OrderStatus.CANCELLED))
-            {
-                return BadRequest("PaymentStatus is not allowed to checkout.");
-            }*/
 
             if (checkoutModel.PaymentMethodID == (int)OrderMethods.PayOS || checkoutModel.PaymentMethodID == (int)OrderMethods.VnPay)
             {
@@ -163,14 +159,20 @@ namespace _2Sport_BE.Controllers
                 var createdLink = new ResponseDTO<string>();
                 if (!string.IsNullOrEmpty(checkoutModel.TransactionType) && checkoutModel.TransactionType == "DEPOSIT_50")
                 {
-                    order.DepositStatus = (int)DepositStatus.Partially_Pending;
+                    order.DepositStatus = (int)DepositStatus.PARTIALLY_PENDING;
                     createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext, true);
                 }
-                else if(checkoutModel.TransactionType == "DEPOSIT_100")
+                else if (checkoutModel.TransactionType == "DEPOSIT_100")
                 {
+                    order.DepositStatus = (int)DepositStatus.PENDING;
                     createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext, false);
-                    order.DepositStatus = (int)DepositStatus.Pending;
                 }
+                //else if (checkoutModel.TransactionType == "DEPOSIT")
+                //{
+                //    order.DepositStatus = (int)DepositStatus.PENDING;
+                //    order.PaymentStatus = (int)PaymentStatus.PENDING;
+                //    createdLink = await paymentService.ProcessRentalOrderPayment(order.Id, HttpContext, false);
+                //}
                 else
                 {
                     return BadRequest("Loại giao dịch không hợp lệ.");
@@ -182,7 +184,7 @@ namespace _2Sport_BE.Controllers
                 if (order.PaymentMethodId != checkoutModel.PaymentMethodID)
                 {
                     order.PaymentMethodId = checkoutModel.PaymentMethodID;
-                    order.PaymentStatus = (int)PaymentStatus.IsWating;
+                    order.PaymentStatus = (int)PaymentStatus.PENDING;
                     await _rentalOrderService.UpdaterRentalOrder(order);
                 }
 
@@ -200,8 +202,9 @@ namespace _2Sport_BE.Controllers
 
                 if (order.PaymentMethodId != checkoutModel.PaymentMethodID)
                 {
+                    order.DepositStatus = (int)DepositStatus.NOT_PAID;
+                    order.PaymentStatus = (int)PaymentStatus.PENDING;
                     order.PaymentMethodId = checkoutModel.PaymentMethodID;
-                    order.PaymentStatus = (int)PaymentStatus.IsWating;
                     await _rentalOrderService.UpdaterRentalOrder(order);
                 }
 

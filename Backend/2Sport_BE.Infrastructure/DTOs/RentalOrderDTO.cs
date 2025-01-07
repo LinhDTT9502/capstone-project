@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
 
@@ -152,19 +153,24 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         public string DeliveryMethod { get; set; }
 
+        public int? OrderStatusId {  get; set; }
         public string? OrderStatus { get; set; }
 
         public string? Note { get; set; }
         #endregion
 
         #region PaymentInformation
-        public int? PaymentMethodId { get; set; }
+        public string? PaymentMethod { get; set; }
 
         public string? PaymentStatus { get; set; }
 
         public string? DepositStatus { get; set; }
 
         public decimal? DepositAmount { get; set; }
+
+        public DateTime? DepositDate { get; set; }
+
+        public DateTime? PaymentDate { get; set; }
         #endregion
 
         #region ReturnInformation
@@ -188,12 +194,12 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         public string? Reason { get; set; }
         public string? TransactionId { get; set; }
+        public string? OrderImage { get; set; }
 
         #region AuditInformation
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         #endregion
-        public string? PaymentMethod { get; set; }
         public string? PaymentLink { get; set; }
         public List<RentalOrderVM>? childOrders { get; set; }
     }
@@ -203,5 +209,10 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public int? ChildOrderId { get; set; }
         public int ExtensionDays { get; set; }
 
+    }
+    public class RentalOrderImageModel
+    {
+        public int parentOrderId { get; set; }
+        public IFormFile OrderImage { get; set; }
     }
 }

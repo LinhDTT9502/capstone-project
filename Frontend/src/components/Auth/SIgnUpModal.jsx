@@ -84,18 +84,18 @@ export default function SignUpModal({ isOpen, closeModal, openSignInModal }) {
   };
 
   const handleOtpChange = (index, value) => {
-    if (!/^\d$/.test(value) && value !== "") return; 
+    if (!/^\d$/.test(value) && value !== "") return;
     const newOtpCode = [...otpCode];
     newOtpCode[index] = value;
     setOtpCode(newOtpCode);
-  
+
     if (value && index < 5) {
-      otpInputs.current[index + 1]?.focus(); 
+      otpInputs.current[index + 1]?.focus();
     }
   };
-  
+
   const handleOtpInputFocus = (e) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
   };
 
   const handleSignInClick = () => {
@@ -185,7 +185,7 @@ export default function SignUpModal({ isOpen, closeModal, openSignInModal }) {
                 </div>
 
                 <div className="bg-white w-1/2 px-20 text-black flex-col flex font-poppins justify-center py-10">
-                <button
+                  <button
                     onClick={closeModal}
                     className="absolute top-5 right-5 text-gray-500 hover:text-gray-700"
                   >
@@ -313,8 +313,12 @@ export default function SignUpModal({ isOpen, closeModal, openSignInModal }) {
                         className="mr-2"
                       />
                       <label htmlFor="acceptTerms" className="text-sm flex">
-                        Đồng ý với các <Link to="/complaints-handling" onClick={closeModal} className=""> chính sách của 2Sport</Link>
+                        Đồng ý với các{' '}
+                        <Link to="/complaints-handling" onClick={closeModal} className="font-bold text-blue-500 ml-1">
+                          chính sách của 2Sport
+                        </Link>
                       </label>
+
                     </div>
                     {errors.acceptTerms && (
                       <p className="text-red-400 text-sm italic">
@@ -327,7 +331,7 @@ export default function SignUpModal({ isOpen, closeModal, openSignInModal }) {
                       type="submit"
                       className="text-white w-full bg-gradient-to-r from-orange-500 to-orange-600 p-3 rounded-md mt-4"
                     >
-                      Đăng ký tài khoản
+                      Đăng ký
                     </button>
                   </form>
                 </div>
@@ -367,7 +371,7 @@ export default function SignUpModal({ isOpen, closeModal, openSignInModal }) {
                 leaveTo="opacity-0 scale-95"
               >
                 <Dialog.Panel className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative"
-                onClick={(e) => e.stopPropagation()}>
+                  onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={closeModal}
                     className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"

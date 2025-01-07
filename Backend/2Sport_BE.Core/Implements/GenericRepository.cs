@@ -244,6 +244,12 @@ namespace _2Sport_BE.Repository.Implements
             return await query.AsNoTracking().Where(filter).FirstOrDefaultAsync();
         }
 
+        public IQueryable<T> GetQueryable()
+        {
+            IQueryable<T> query = _dbSet;
+            return query.AsNoTracking();
+        }
+
         public async Task InsertAsync(T entity)
         {
             try
@@ -265,12 +271,19 @@ namespace _2Sport_BE.Repository.Implements
 
         public async Task UpdateAsync(T entityToUpdate)
         {
-            if (_dbContext.Entry(entityToUpdate).State == EntityState.Detached)
+            try
             {
-                _dbSet.Attach(entityToUpdate);
+                if (_dbContext.Entry(entityToUpdate).State == EntityState.Detached)
+                {
+                    _dbSet.Attach(entityToUpdate);
+                }
+                _dbContext.Entry(entityToUpdate).State = EntityState.Modified;
+                await _dbContext.SaveChangesAsync();
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
-            _dbContext.Entry(entityToUpdate).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
+            
         }
 
         public async Task UpdateRangeAsync(List<T> values)

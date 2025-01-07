@@ -44,7 +44,7 @@ export default function FeatureProductSlide() {
     // console.log('Updated images state:', images);
   }, [images]);
 
- const handlePrev = () => {
+  const handlePrev = () => {
     setCurrentIndex((prevIndex) => Math.max(prevIndex - itemsPerPage, 0));
   };
 
@@ -54,10 +54,10 @@ export default function FeatureProductSlide() {
     );
   };
 
-  return (
-    <div className="container mx-auto py-8">
-      <div className="flex justify-between  px-20">
-        <h2 className="font-alfa text-2xl mb-5">Sản phẩm mới</h2>
+  return ( 
+    <div className="container mx-auto py-8 px-20">
+      <div className="flex justify-between">
+        <h2 className="font-alfa text-2xl mb-10">Sản Phẩm Mới</h2>
         <Link
           to="/product"
           className="flex items-center text-orange-500 hover:text-orange-600 transition-colors duration-200"
@@ -68,7 +68,8 @@ export default function FeatureProductSlide() {
           <FontAwesomeIcon icon={faArrowRight} />
         </Link>
       </div>
-      <div className="relative px-20">
+
+      <div className="relative">
         <div className="overflow-hidden">
           <div
             className="flex transition-transform duration-500 ease-in-out"
@@ -78,10 +79,10 @@ export default function FeatureProductSlide() {
           >
             {images.map((product, index) => (
               <div
-              key={index}
-              className="min-w-64 px-2 flex flex-col relative group"
-              style={{ flex: `0 0 ${100 / itemsPerPage}%` }} 
-            >
+                key={index}
+                className="min-w-64 px-2 flex flex-col relative group"
+                style={{ flex: `0 0 ${100 / itemsPerPage}%` }}
+              >
                 <Link
                   className="flex flex-col"
                   to={`/product/${product.productCode}`}
@@ -98,11 +99,11 @@ export default function FeatureProductSlide() {
                         {product.brandName}
                       </p>
                       <h3 className="font-poppins font-bold text-lg mb-2 line-clamp-2 "
-                      style={{width: "200px",}}>
+                        style={{ width: "200px", }}>
                         {product.productName}
                       </h3>
-                      <p className="font-poppins text-zinc-500 ">
-                        {product.price.toLocaleString("vi-VN")} ₫
+                      <p className="font-poppins text-red-700 ">
+                        {product.price.toLocaleString("vi-VN")}₫
                       </p>
                     </div>
                   </div>
@@ -113,9 +114,8 @@ export default function FeatureProductSlide() {
         </div>
         <button
           onClick={handlePrev}
-          className={`absolute w-1/12 left-20 top-1/3 transform -translate-y-1/3 ${
-            currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className={`absolute w-1/12 left-0 top-1/3 transform -translate-y-1/3 ${currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           disabled={currentIndex === 0}
         >
           <FontAwesomeIcon
@@ -125,11 +125,10 @@ export default function FeatureProductSlide() {
         </button>
         <button
           onClick={handleNext}
-          className={`absolute w-1/12 right-20 top-1/3 transform -translate-y-1/3 ${
-            currentIndex >= images.length - itemsPerPage
-              ? "opacity-50 cursor-not-allowed"
-              : ""
-          }`}
+          className={`absolute w-1/12 right-0 top-1/3 transform -translate-y-1/3 ${currentIndex >= images.length - itemsPerPage
+            ? "opacity-50 cursor-not-allowed"
+            : ""
+            }`}
           disabled={currentIndex >= images.length - itemsPerPage}
         >
           <FontAwesomeIcon

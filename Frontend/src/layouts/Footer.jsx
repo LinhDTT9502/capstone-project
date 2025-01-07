@@ -20,7 +20,7 @@ function Footer() {
           {t("footer.text-img")}
           <Link
             to="https://fb.com/profile.php?id=61560697567321"
-            className="underline underline-offset-2 pl-8"
+            className="underline underline-offset-2 pl-4"
           >
             Facebook
           </Link>
@@ -51,7 +51,7 @@ function Footer() {
                 href="https://www.facebook.com/profile.php?id=61560697567321&mibextid=LQQJ4d"
                 className="flex items-center hover:text-blue-400 transition duration-300"
               >
-                <FontAwesomeIcon icon={faFacebook} className="mr-2" size={20} />
+                <FontAwesomeIcon icon={faFacebook} className="mr-2" />
                 Facebook
               </a>
             </Typography>
@@ -63,35 +63,27 @@ function Footer() {
                 href="https://www.instagram.com/2sport_tt/"
                 className="flex items-center hover:text-pink-400 transition duration-300"
               >
-                <FontAwesomeIcon
-                  icon={faInstagram}
-                  className="mr-2"
-                  size={20}
-                />
+                <FontAwesomeIcon icon={faInstagram} className="mr-2" />
                 Instagram
               </a>
             </Typography>
           </div>
-          <div lassName="flex items-center">
+          <div className="flex items-center">
             <Typography>
-              <FontAwesomeIcon
-                icon={faLocationDot}
-                className="mr-2"
-                size={20}
-              />
+              <FontAwesomeIcon icon={faLocationDot} className="mr-2" />
               {t("footer.address")}
             </Typography>
           </div>
 
-          <div lassName="flex items-center">
+          <div className="flex items-center">
             <Typography>
-              <FontAwesomeIcon icon={faPhone} className="mr-2" size={20} />
+              <FontAwesomeIcon icon={faPhone} className="mr-2" />
               +84 338-581-571
             </Typography>
           </div>
-          <div lassName="flex items-center">
+          <div className="flex items-center">
             <Typography>
-              <FontAwesomeIcon icon={faEnvelope} className="mr-2" size={20} />
+              <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
               2sportteam@gmail.com
             </Typography>
           </div>

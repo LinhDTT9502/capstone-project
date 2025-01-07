@@ -39,7 +39,6 @@ export default function SignInModal() {
   const onSubmit = async (data) => {
     try {
       const decoded = await authenticateUser(dispatch, data);
-      console.log(decoded);
       // const currentTime = Date.now() / 1000;
       // console.log(currentTime);
       setIsSignInOpen(false);
@@ -90,7 +89,11 @@ export default function SignInModal() {
       </div>
 
       <Transition appear show={isSignInOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10 max-h-[70vh] overflow-y-auto" onClose={closeSignInModal}>
+        <Dialog
+          as="div"
+          className="relative z-10 max-h-[70vh] overflow-y-auto"
+          onClose={closeSignInModal}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -114,9 +117,9 @@ export default function SignInModal() {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="flex flex-col md:flex-row justify-between w-full md:w-1/2 transform overflow-hidden rounded-md shadow-xl transition-all">
+                <Dialog.Panel className="flex justify-between w-full max-w-5xl transform overflow-hidden rounded-md shadow-xl transition-all">
                   {/* Left part */}
-                  <div className="flex-col flex py-10 px-5 md:py-20 md:px-10 space-y-5 bg-zinc-700 text-white items-center w-full md:w-1/2">
+                  <div className="flex-col flex px-14 space-y-5 bg-zinc-700 text-white items-center justify-center w-1/2">
                     <h1 className="font-alfa text-lg text-orange-500">
                       {t("signin.welcome_back")}
                     </h1>
@@ -138,7 +141,7 @@ export default function SignInModal() {
                   </div>
 
                   {/* Right part */}
-                  <div className="bg-white w-full md:w-2/3 px-5 md:px-20 text-black flex-col flex font-poppins justify-center">
+                  <div className="bg-white w-1/2 px-20 text-black flex-col flex font-poppins justify-center py-10">
                     <form
                       onSubmit={handleSubmit(onSubmit)}
                       className="text-black flex-col flex font-poppins justify-center pb-5"
@@ -194,8 +197,9 @@ export default function SignInModal() {
                           {t("signin.password_required")}
                         </p>
                       )}
+
                       <label
-                        className="text-left pb-3 text-blue-500 underline"
+                        className="text-left py-2 text-blue-500 underline cursor-pointer"
                         onClick={() => {
                           closeSignInModal();
                           openForgotPasswordModal();
@@ -203,6 +207,7 @@ export default function SignInModal() {
                       >
                         {t("signin.forgot_password")}
                       </label>
+
                       <button
                         type="submit"
                         className="bg-orange-500 font-alfa text-white rounded-lg px-10 py-2 w-full"
@@ -214,7 +219,6 @@ export default function SignInModal() {
                     <LoginGoogle setIsSignInOpen={setIsSignInOpen} />
                   </div>
                 </Dialog.Panel>
-
               </Transition.Child>
             </div>
           </div>
