@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.X509.Qualified;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
@@ -287,7 +288,7 @@ namespace _2Sport_BE.Controllers
         {
             try
             {
-                var query = await _productService.GetProducts(_ => _.Status == true, "", defaultSearch.currentPage, defaultSearch.perPage);
+                var query = await _productService.GetProducts(_ => _.Id > 0);
 
                 query = query.GroupBy(_ => _.ProductCode).Select(_ => _.FirstOrDefault());
                 if (sportId != 0)
@@ -443,12 +444,13 @@ namespace _2Sport_BE.Controllers
 
 
             var product = _mapper.Map<Product>(productCM);
+            product.Price = productCM.ListedPrice;
             product.CreateAt = DateTime.Now;
             product.Status = true;
             product.IsRent = false;
             product.RentPrice = 0;
             if (productCM.Condition >= 80 &&
-               (productCM.CategoryId == (int)CategoryIDs.BasketballBall ||
+               !(productCM.CategoryId == (int)CategoryIDs.BasketballBall ||
                 productCM.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
             {
                 product.IsRent = true;
@@ -540,7 +542,8 @@ namespace _2Sport_BE.Controllers
                         newProduct.Size = productCM.Size;
                         newProduct.Color = productCM.Color;
                         newProduct.Condition = productCM.Condition;
-                        newProduct.Price = productCM.Price;
+                        newProduct.ListedPrice = productCM.ListedPrice;
+                        newProduct.Price = productCM.ListedPrice;
                         newProduct.Height = productCM.Height;
                         newProduct.Weight = productCM.Weight;
                         newProduct.Length = productCM.Length;
@@ -776,7 +779,8 @@ namespace _2Sport_BE.Controllers
                                 newProduct.Size = productCM.Size;
                                 newProduct.Color = productCM.Color;
                                 newProduct.Condition = productCM.Condition;
-                                newProduct.Price = productCM.Price;
+                                newProduct.Price = productCM.ListedPrice;
+                                newProduct.ListedPrice = productCM.ListedPrice;
                                 newProduct.Height = productCM.Height;
                                 newProduct.Weight = productCM.Weight;
                                 newProduct.Length = productCM.Length;
@@ -1044,6 +1048,7 @@ namespace _2Sport_BE.Controllers
                             SportId = sport.Id,
                             ProductName = productNameValue,
                             ProductCode = productCodeValue,
+                            ListedPrice = decimal.TryParse(priceValue, out var listedPrice) ? listedPrice : 0,
                             Price = decimal.TryParse(priceValue, out var price) ? price : 0,
                             Size = sizeValue,
                             Color = colorValue,
@@ -1077,7 +1082,7 @@ namespace _2Sport_BE.Controllers
                             }
 
                             if (product.Condition >= 80 &&
-                               (product.CategoryId == (int)CategoryIDs.BasketballBall ||
+                               !(product.CategoryId == (int)CategoryIDs.BasketballBall ||
                                 product.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
                             {
                                 product.IsRent = true;
@@ -1132,12 +1137,16 @@ namespace _2Sport_BE.Controllers
                                     Color = colorValue,
                                     Condition = int.Parse(conditionValue),
                                     RentPrice = 0,
+                                    ListedPrice = decimal.Parse(priceValue),
                                     Price = decimal.Parse(priceValue),
-                                    CreateAt = DateTime.Now
+                                    CreateAt = DateTime.Now,
+                                    IsRent = false,
                                 };
-                                if (newProduct.IsRent)
+                                if (newProduct.Condition >= 80 &&
+                               !(newProduct.CategoryId == (int)CategoryIDs.BasketballBall ||
+                                newProduct.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
                                 {
-                                    newProduct.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100));
+                                    newProduct.RentPrice = Math.Round((decimal)(newProduct.Price * (decimal)0.1 * newProduct.Condition / 100));
                                 }
 
                                 var existedProductWithProductCodeAndColor = (await _productService
@@ -1501,7 +1510,8 @@ namespace _2Sport_BE.Controllers
                     updatedProduct.Length = productUM.Length;
                     updatedProduct.Width = productUM.Width;
                     updatedProduct.Weight = productUM.Weight;
-                    updatedProduct.Price = productUM.Price;
+                    updatedProduct.Price = productUM.ListedPrice;
+                    updatedProduct.ListedPrice = productUM.ListedPrice;
                     updatedProduct.ProductName = productUM.ProductName;
                     updatedProduct.ProductCode = productUM.ProductCode;
                     updatedProduct.BrandId = (int)productUM.BrandId;
@@ -1672,6 +1682,157 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        #region Upload images of product
+
+
+        [HttpPost]
+        [Route("create-folder")]
+        public async Task<IActionResult> CreateFolder(string folderName)
+        {
+            try
+            {
+                var isSuccess = await _imageService.CreateFolder(folderName);
+                if (isSuccess.Error is not null)
+                {
+                    return BadRequest($"Create folder failed!, {isSuccess.Error.Message}");
+                }
+                return Ok(isSuccess.Success);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPut]
+        [Route("update-folder-name")]
+        public async Task<IActionResult> UpdateFolderName(string oldFolderName, string newFolderName)
+        {
+            try
+            {
+                var isSuccess = await _imageService.UpdateFolderName(oldFolderName, newFolderName);
+                if (isSuccess is false)
+                {
+                    return BadRequest($"Update folder name failed!");
+                }
+                return Ok("Update folder name successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("get-all-folders")]
+        public async Task<IActionResult> GetAllFolders()
+        {
+            try
+            {
+                var folderNames = await _imageService.ListAllFoldersAsync();
+                return Ok(folderNames);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpDelete]
+        [Route("delete-a-folder")]
+        public async Task<IActionResult> DeleteAFolder(string folderName)
+        {
+            try
+            {
+                var isSuccess = await _imageService.DeleteAFolder(folderName);
+                if (!isSuccess)
+                {
+                    return BadRequest("Delete folder failed");
+                }
+                return Ok("Delete folder successully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("upload-images")]
+        public async Task<IActionResult> UploadImage(IFormFile[]? imageFiles, string folderName)
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == null)
+                {
+                    return Unauthorized();
+                }
+
+                if (imageFiles.Length > 0)
+                {
+                    foreach (var imageFile in imageFiles)
+                    {
+                        if (imageFile == null || imageFile.Length == 0)
+                        {
+                            return BadRequest("No file uploaded.");
+                        }
+                        var uploadResult = await _imageService
+                                                .UploadImageToCloudinaryAsync(imageFile, folderName);
+                        if (uploadResult.Error != null)
+                        {
+                            return BadRequest(uploadResult.Error.Message);
+                        }
+                    }
+                }
+
+                return Ok("upload images successfully!");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("get-all-images-in-folder")]
+        public async Task<IActionResult> GetAllImagesInFolder(string folderName)
+        {
+            try
+            {
+                var imageUrls = await _imageService.ListImagesAsync(folderName);
+                return Ok(imageUrls);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpDelete]
+        [Route("delete-an-image-in-folder")]
+        public async Task<IActionResult> DeleteAnImageInFolder(string folderName, string imageUrl)
+        {
+            try
+            {
+                // Extract the file name without the extension
+                string fileName = imageUrl.Substring(imageUrl.LastIndexOf('/') + 1); // Get "2sport-cau-giay.jpg"
+                fileName = fileName.Substring(0, fileName.LastIndexOf('.')); // Remove ".jpg"
+
+                var isSucess = await _imageService.DeleteAnImage(fileName, folderName);
+
+                if (!isSucess)
+                {
+                    return BadRequest("Delete failed");
+                }
+                return Ok("Delete successully!");
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+        #endregion
 
 
         protected int GetCurrentUserIdFromToken()

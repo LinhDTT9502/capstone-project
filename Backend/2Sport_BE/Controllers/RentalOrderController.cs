@@ -3,8 +3,10 @@ using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Infrastructure.Hubs;
 using _2Sport_BE.Infrastructure.Services;
+using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
+using _2Sport_BE.Services.Caching;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -19,14 +21,21 @@ namespace _2Sport_BE.Controllers
         private readonly IRentalOrderService _rentalOrderServices;
         private readonly ICartItemService _cartItemService;
         private readonly IImageService _imageService;
+        private readonly IRedisCacheService _redisCacheService;
+        private readonly string _cartItemsKey;
+
         public RentalOrderController(IRentalOrderService rentalOrderServices,
             ICartItemService cartItemService,
-            IImageService imageService
+            IImageService imageService,
+            IRedisCacheService redisCacheService,
+                                IConfiguration configuration
             )
         {
             _rentalOrderServices = rentalOrderServices;
             _cartItemService = cartItemService;
             _imageService = imageService;
+            _redisCacheService = redisCacheService;
+            _cartItemsKey = configuration.GetValue<string>("RedisKeys:CartItems");
         }
 
         [HttpGet("get-all-rental-orders")]
@@ -108,9 +117,17 @@ namespace _2Sport_BE.Controllers
             foreach (var item in rentalOrderCM.ProductInformations)
             {
                 if (item.CartItemId.HasValue && item.CartItemId.Value != Guid.Empty)
-                { 
-                
-                    await _cartItemService.DeleteCartItem(item.CartItemId.Value);
+                {
+                    var listCartItems = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey)
+                                                           ?? new List<CartItem>();
+                    var deletedCartItem = listCartItems.Find(_ => _.CartItemId.Equals(item.CartItemId.Value));
+                    if (deletedCartItem == null)
+                    {
+                        return NotFound("There is not cart item!");
+                    }
+                    listCartItems.Remove(deletedCartItem);
+                    _redisCacheService.SetData(_cartItemsKey, listCartItems, TimeSpan.FromDays(30));
+                    //await _cartItemService.DeleteCartItem(item.CartItemId.Value);
                 }
             }
             return Ok(response);

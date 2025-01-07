@@ -130,6 +130,15 @@ namespace _2Sport_BE.Helpers
             CreateMap<Product, ProductCM>().ReverseMap();
             CreateMap<Product, ProductUM>().ReverseMap();
             #endregion
+            #region Review
+            CreateMap<Review, ReviewVM>()
+                .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Product.Color))
+                .ForMember(dest => dest.Size, opt => opt.MapFrom(src => src.Product.Size))
+                .ForMember(dest => dest.Condition, opt => opt.MapFrom(src => src.Product.Condition))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
+            CreateMap<Review, ReviewCM>().ReverseMap();
+            CreateMap<Review, ReviewUM>().ReverseMap();
+            #endregion
             #region Import
             CreateMap<ImportHistory, ImportVM>()
                 .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.Manager.User.FullName))

@@ -86,6 +86,10 @@ namespace _2Sport_BE.Service.Services
                 var imagesVideos = await _unitOfWork.ImagesVideoRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
                 await _unitOfWork.ImagesVideoRepository.DeleteRangeAsync(imagesVideos);
 
+                //delete reviews include deleted products
+                var reviews = await _unitOfWork.ReviewRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                await _unitOfWork.ReviewRepository.DeleteRangeAsync(reviews);
+
                 await _unitOfWork.ProductRepository.DeleteAsync(id);
 
             } catch(Exception ex) {
@@ -241,7 +245,7 @@ namespace _2Sport_BE.Service.Services
                 var query = await _unitOfWork.ProductRepository.GetAsync(filter, orderBy, includeProperties, null, null);
                 // Group by ProductCode and ProductName, then select the first item in each group
                 var distinctProducts = query
-                    .GroupBy(p => new { p.ProductCode, p.ProductName })
+                    .GroupBy(p => new { p.ProductCode })
                     .Select(g => g.First())
                     .Skip((int)(pageIndex * pageSize)).Take((int)pageSize);
                 return distinctProducts.AsQueryable();

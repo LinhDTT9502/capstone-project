@@ -28,9 +28,10 @@ public class Review
     [Column("UserId")]
     public int? UserId { get; set; }
 
-
     [Column("ProductCode", TypeName = "nvarchar(25)")]
     public string ProductCode { get; set; }
+    public int ProductId { get; set; }
     public virtual User User { get; set; }
+    public virtual Product Product { get; set; }
     public virtual SaleOrder SaleOrder { get; set; }
 }

@@ -30,6 +30,7 @@ namespace _2Sport_BE.Controllers
 			_reviewService = reviewService;
 			_saleOrderService = saleOrderService;
 			_saleOrderService = saleOrderService;
+			_mapper = mapper;
         }
 
         [HttpGet]
@@ -39,7 +40,8 @@ namespace _2Sport_BE.Controllers
 			try
 			{
 				var allReviews = await _reviewService.GetAllReviews();
-				return Ok(allReviews.ToList());
+				var result = _mapper.Map<List<ReviewVM>>(allReviews.ToList());
+				return Ok(result);
 			} catch (Exception ex)
 			{
 				return BadRequest(ex);
@@ -53,7 +55,8 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var allReviews = await _reviewService.GetReviewsOfProduct(productCode);
-                return Ok(allReviews.ToList());
+                var result = _mapper.Map<List<ReviewVM>>(allReviews.ToList());
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -108,14 +111,15 @@ namespace _2Sport_BE.Controllers
 					return Unauthorized("You are not allow to review other sale order!");
 				}
 
-                var addedReview = new Review
-                {
-                    Star = reviewCM.Star,
-                    ReviewContent = reviewCM.Review,
-                    Status = true,
-                    UserId = userId,
+				var addedReview = new Review
+				{
+					Star = reviewCM.Star,
+					ReviewContent = reviewCM.ReviewContent,
+					Status = true,
+					UserId = userId,
 					SaleOrderId = saleOrderId,
-                    ProductCode = reviewCM.ProductCode,
+					ProductCode = (await _unitOfWork.ProductRepository.FindAsync(reviewCM.ProductId)).ProductCode,
+                    ProductId = reviewCM.ProductId,
                     CreatedAt = DateTime.Now,
                 };
 				
