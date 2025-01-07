@@ -86,6 +86,10 @@ namespace _2Sport_BE.Service.Services
                 var imagesVideos = await _unitOfWork.ImagesVideoRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
                 await _unitOfWork.ImagesVideoRepository.DeleteRangeAsync(imagesVideos);
 
+                //delete reviews include deleted products
+                var reviews = await _unitOfWork.ReviewRepository.GetAsync(_ => _.ProductId == deletedProduct.Id);
+                await _unitOfWork.ReviewRepository.DeleteRangeAsync(reviews);
+
                 await _unitOfWork.ProductRepository.DeleteAsync(id);
 
             } catch(Exception ex) {
