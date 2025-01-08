@@ -293,6 +293,41 @@ namespace _2Sport_BE.Services
                 return false;
             }
         }
+
+        public async Task<VideoUploadResult> UploadVideoToCloudinaryAsync(IFormFile file, string folder)
+        {
+            // Load environment variables
+            DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
+
+            // Initialize Cloudinary
+            Cloudinary cloudinary = new Cloudinary(Environment.GetEnvironmentVariable("CLOUDINARY_URL"));
+            cloudinary.Api.Secure = true;
+
+            var uploadResult = new VideoUploadResult();
+
+            // Check if the file is not empty
+            if (file.Length > 0)
+            {
+                using (var stream = file.OpenReadStream())
+                {
+                    // Set video upload parameters
+                    var uploadParams = new VideoUploadParams()
+                    {
+                        File = new FileDescription(file.FileName, stream),
+                        Folder = folder,
+                        UseFilename = true,
+                        UniqueFilename = false,
+                        Overwrite = true
+                    };
+
+                    // Upload the video
+                    uploadResult = await cloudinary.UploadAsync(uploadParams);
+                }
+            }
+
+            return uploadResult;
+        }
+
     }
 
     public class CloudinaryFolderResponse
