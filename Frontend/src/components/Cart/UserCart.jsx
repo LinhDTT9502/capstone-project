@@ -55,8 +55,12 @@ const UserCart = () => {
 
   const handleIncreaseQuantity = async (item) => {
     const response = await checkQuantityProduct(item.productId);
+    console.log(item.quantity);
+     console.log(response);
     if (item.quantity < response.availableQuantity) {
       const data = await addToCart(token, item.productId, 1);
+      console.error(data)
+
       setCartCount((prevCount) => prevCount + 1);
       getCart();
     } else {
@@ -68,10 +72,12 @@ const UserCart = () => {
 
   const handleQuantityChange = async (item, quantity) => {
     try {
-      await updateCartItemQuantity(item.cartItemId, quantity, token);
+      var response = await updateCartItemQuantity(item.cartItemId, quantity, token);
+      console.log(response)
       getCart();
     } catch (error) {
-      console.error("Failed to update quantity", error);
+      console.log(error.response.data);
+      toast.error("Failed to update quantity", error.response.data);
     }
   };
 
@@ -92,10 +98,13 @@ const UserCart = () => {
   };
 
   const totalItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
+  
   const totalPrice = selectedItems.reduce((acc, cartItemId) => {
     const item = cartData.find((item) => item.cartItemId === cartItemId);
-    return acc + item.price;
+//  console.log(item);
+    return acc + item.price * item.quantity;
   }, 0);
+
   // console.log(cartData);
 
   const handleSalePlaceOrder = async () => {
@@ -119,7 +128,6 @@ const UserCart = () => {
           return;
         }
       }
-
       navigate("/placed-order", { state: { selectedProducts } });
     } catch (error) {
       console.error("Error checking product quantities:", error);
@@ -175,7 +183,7 @@ const UserCart = () => {
 
   return (
     <div className="container mx-auto px-20 py-10">
-      <ToastContainer />
+      
       <div className="flex justify-between items-center">
         <h1 className="font-alfa text-orange-500 text-2xl">
           {t("user_cart.shopping_cart")}
@@ -326,10 +334,10 @@ const UserCart = () => {
                   </button>
                 </div>
                 <div className="w-2/12 text-center">
-                  {(item.price / item.quantity).toLocaleString()}
+                  {(item.price).toLocaleString()}
                 </div>
                 <div className="w-2/12 text-center">
-                  {item.price.toLocaleString()}
+                  {(item.price * item.quantity).toLocaleString()}
                 </div>
                 <div className="w-2/12 text-center">
                   {item.rentPrice !== 0

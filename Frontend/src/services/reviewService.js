@@ -1,4 +1,4 @@
-import { getAllReviews, getReviewsByProductCode, addReview } from '../api/apiReview';
+import { getAllReviews, getReviewsByProductCode, addReview, checkIsReview } from '../api/apiReview';
 
 // Lấy tất cả reviews
 export const fetchAllReviews = async () => {
@@ -29,6 +29,16 @@ export const submitReview = async (productCode, reviewData) => {
     return response.data;
   } catch (error) {
     console.error(`Error submitting review for product ${productCode}:`, error.message);
+    throw error;
+  }
+};
+
+export const fetchCheckReview = async (saleOrderId) => {
+  try {
+    const response = await checkIsReview(saleOrderId);
+    return response.data
+  } catch (error) {
+    console.error("Error fetching all reviews:", error.message);
     throw error;
   }
 };

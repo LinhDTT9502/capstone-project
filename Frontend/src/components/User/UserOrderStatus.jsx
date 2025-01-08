@@ -4,13 +4,15 @@ import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import { fetchUserOrders } from "../../services/userOrderService";
-import { useNavigate } from "react-router-dom";
-import { faShoppingBag } from "@fortawesome/free-solid-svg-icons";
+import { Link, useNavigate } from "react-router-dom";
+import { faArrowLeft, faShoppingBag } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { toast } from "react-toastify";
 import axios from "axios";
 import CancelSaleOrderButton from "./CancelSaleOrderButton";
 import DoneSaleOrderButton from "./DoneSaleOrderButton";
+import ReviewButton from "../Review/ReviewButton";
+import ReviewSaleOrderModal from "../Review/ReviewSaleOrderModal";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -34,13 +36,14 @@ export default function UserOrderStatus() {
   const user = useSelector(selectUser);
   const [selectedStatus, setSelectedStatus] = useState("Tất cả");
   const [orders, setOrders] = useState([]);
-  const [filteredSaleOrder, setFilteredSaleOrders] = useState([]);
+  const [filteredSaleOrders, setFilteredSaleOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [reload, setReload] = useState(false);
   const [confirmReload, setConfirmReload] = useState(false);
+
 
   const navigate = useNavigate();
 
@@ -69,13 +72,49 @@ export default function UserOrderStatus() {
       prevOrderId === orderId ? null : orderId
     );
   };
+  const handleSearch = () => {
+    toast.info(`Tìm kiếm với từ khóa: ${searchQuery}`);
+    setSearchQuery(searchQuery);
+    if (!searchQuery) {
+      setFilteredSaleOrders(orders);
+      return;
+    }
+
+    if (searchQuery) {
+      const filtered = filteredSaleOrders.filter((order) => {
+        return (
+          order.saleOrderCode
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          order.saleOrderDetailVMs.$values.some((item) => {
+            return (
+              item.productName
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+              item.color.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              item.size.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+          })
+        );
+      });
+      if (filtered.length === 0) {
+             toast.info(
+               "Không tìm thấy sản phẩm hoặc đơn hàng nào khớp với từ khóa"
+             );
+             setFilteredSaleOrders([]);
+             return;
+           }
+
+      setFilteredSaleOrders(filtered);
+    }
+  };
 
   const filteredOrders =
     selectedStatus === "Tất cả"
-      ? filteredSaleOrder
-      : filteredSaleOrder.filter(
-          (order) => order.orderStatus === selectedStatus
-        );
+      ? filteredSaleOrders
+      : orders.filter(
+        (order) => order.orderStatus === selectedStatus
+      );
 
   if (isLoading)
     return (
@@ -90,31 +129,7 @@ export default function UserOrderStatus() {
         <p>Bạn chưa có sản phẩm nào</p>
       </div>
     );
-  const handleSearch = () => {
-    toast.info(`Tìm kiếm với từ khóa: ${searchQuery}`);
-    setSearchQuery(searchQuery);
-    if (searchQuery) {
-      const filtered = orders.filter((order) => {
-        return order.saleOrderDetailVMs.$values.some((item) => {
-          // Kiểm tra nếu tên sản phẩm, màu sắc, hoặc kích thước chứa từ khóa tìm kiếm
-          return (
-            item.productName
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()) ||
-            item.color.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.size.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        });
-      });
-      if (filtered.length === 0) {
-        toast.info("Không tìm thấy sản phẩm nào khớp với từ khóa");
-        return;
-      }
-      setFilteredSaleOrders(filtered);
-    } else {
-      setFilteredSaleOrders(orders);
-    }
-  };
+
   return (
     <div className="container mx-auto pt-2 rounded-lg max-w-5xl">
       <h2 className="text-orange-500 font-bold text-2xl pb-2">
@@ -136,11 +151,10 @@ export default function UserOrderStatus() {
           ].map((status) => (
             <button
               key={status}
-              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
-                selectedStatus === status
+              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${selectedStatus === status
                   ? "bg-orange-500 text-white" // Màu khi được chọn
                   : statusColors[status] || "bg-gray-200 text-gray-700" // Áp dụng màu từ statusColors
-              }`}
+                }`}
               onClick={() => setSelectedStatus(status)}
             >
               {status}
@@ -182,10 +196,9 @@ export default function UserOrderStatus() {
                   Mã đơn hàng:{" "}
                   <span className="text-orange-500">{order.saleOrderCode}</span>
                   <span
-                    className={`px-3 ml-2.5 py-1 mr-5 rounded-full text-xs font-medium ${
-                      statusColors[order.orderStatus] ||
+                    className={`px-3 ml-2.5 py-1 mr-5 rounded-full text-xs font-medium ${statusColors[order.orderStatus] ||
                       "bg-gray-100 text-gray-800"
-                    }`}
+                      }`}
                   >
                     {order.orderStatus}
                   </span>
@@ -193,10 +206,9 @@ export default function UserOrderStatus() {
                 <p className=" text-gray-600">
                   Trạng thái thanh toán:
                   <span
-                    className={`ml-2 font-medium ${
-                      paymentStatusColors[order.paymentStatus] ||
+                    className={`ml-2 font-medium ${paymentStatusColors[order.paymentStatus] ||
                       "text-gray-800"
-                    }`}
+                      }`}
                   >
                     <i> {order.paymentStatus}</i>
                   </span>
@@ -265,8 +277,9 @@ export default function UserOrderStatus() {
                   {order.paymentStatus === "N/A" &&
                     order.orderStatus === "Chờ xử lý" && (
                       <Button
+                        color="white"
                         size="sm"
-                        className="w-40 text-green-700  bg-white border border-green-700 rounded-md hover:bg-green-200"
+                        className="w-40 text-blue-700 border border-blue-700 rounded-md hover:bg-blue-200"
                         onClick={() =>
                           navigate("/checkout", {
                             state: { selectedOrder: order },
@@ -289,6 +302,16 @@ export default function UserOrderStatus() {
                       setConfirmReload={setConfirmReload}
                     />
                   )}
+                  {(order.orderStatus === "Đã giao hàng") && (
+                   
+                    <ReviewButton
+                  orderStatus={order.orderStatus}
+                  saleOrderId={order.id}
+                  setConfirmReload={setConfirmReload}
+                />
+                
+                  )}
+                   
                   <Button
                     color="orange"
                     className="w-40 text-white rounded-md hover:bg-orange-700"
@@ -306,6 +329,25 @@ export default function UserOrderStatus() {
             </div>
           </div>
         ))}
+
+        {filteredOrders && filteredOrders.length === 0 && (
+          <div className="flex flex-col items-center my-10">
+            <img
+              src="/assets/images/cart-icon.png"
+              className="w-48 h-auto object-contain"
+            />
+            <p className="pt-4 text-lg font-poppins">
+              Hiện tại chưa có đơn hàng để hiển thị
+            </p>
+            <Link
+              to="/product"
+              className="text-blue-500 flex items-center font-poppins"
+            >
+              <FontAwesomeIcon className="pr-2" icon={faArrowLeft} /> Bấm vào
+              đây để mua sắm bạn nhé
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

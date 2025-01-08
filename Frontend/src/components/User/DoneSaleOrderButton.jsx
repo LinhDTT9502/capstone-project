@@ -3,15 +3,17 @@ import { toast } from "react-toastify";
 import { Button } from "@material-tailwind/react";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
+import { faCircleCheck, faL } from "@fortawesome/free-solid-svg-icons";
 import ReviewSaleOrderModal from "../Review/ReviewSaleOrderModal";
 
 const DoneSaleOrderButton = ({ saleOrderId, setConfirmReload }) => {
   const [showModal, setShowModal] = useState(false);
   const [reviewModal, setReviewModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleDoneOrder = async () => {
     const newStatus = 5;
+    setLoading(true);
     try {
       const response = await axios.put(
         `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/update-order-status/${saleOrderId}?status=${newStatus}`,
@@ -34,6 +36,8 @@ const DoneSaleOrderButton = ({ saleOrderId, setConfirmReload }) => {
     } catch (error) {
       console.error("Error updating order status:", error);
       alert("Đã xảy ra lỗi khi hoàn tất đơn hàng. Vui lòng thử lại sau.");
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -72,22 +76,24 @@ const DoneSaleOrderButton = ({ saleOrderId, setConfirmReload }) => {
                 Đóng
               </button>
               <button
-                className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-all"
+                disabled={loading}
+                className={`bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-all ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
                 onClick={handleDoneOrder}
               >
-                Hoàn thành
+                {loading ? "Đang xử lý..." : "Đã nhận hàng"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-   
-      <ReviewSaleOrderModal 
-      saleOrderId={saleOrderId}
-      setReviewModal={setReviewModal}
-      reviewModal={reviewModal}
-      setConfirmReload={setConfirmReload}
+      <ReviewSaleOrderModal
+        saleOrderId={saleOrderId}
+        setReviewModal={setReviewModal}
+        reviewModal={reviewModal}
+        setConfirmReload={setConfirmReload}
       />
     </>
   );

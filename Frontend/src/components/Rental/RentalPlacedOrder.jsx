@@ -33,10 +33,6 @@ const RentalPlacedOrder = () => {
   const [apiResponse, setApiResponse] = useState(null);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // console.log(selectedProducts);
-  // console.log(branchId);
-
-  // console.log(selectedOption);
 
   const token = localStorage.getItem("token");
 
@@ -71,11 +67,13 @@ const updatedProducts = selectedProducts.map((product) => {
     rentStartDate && rentEndDate
       ? Math.floor((rentEndDate - rentStartDate) / (1000 * 60 * 60 * 24)) + 1
       : 0;
+  const subTotal = product.quantity * product.rentPrice * rentDays;
   const totalPrice = product.quantity * product.rentPrice * rentDays;
 
   return {
     ...product,
     rentDays,
+    subTotal,
     totalPrice, 
   };
 });
@@ -85,7 +83,7 @@ const updatedProducts = selectedProducts.map((product) => {
     (acc, product) => acc + product.totalPrice,
     0
   );
-
+ 
   // console.log(updatedProducts, subTotal);
 
   const handleCreateRentalOrder = async () => {
@@ -101,10 +99,10 @@ const updatedProducts = selectedProducts.map((product) => {
       toast.error("Số điện thoại phải có 10 chữ số.");
       return;
     }
-    if (selectedOption === "HOME_DELIVERY" && !userData.address.trim()) {
-      toast.error("Vui lòng nhập địa chỉ giao hàng.");
-      return;
-    }
+    // if (!userData.address.trim()) {
+    //   toast.error("Vui lòng nhập địa chỉ giao hàng.");
+    //   return;
+    // }
 
     for (const product of updatedProducts) {
       if (!product.rentalStartDate || !product.rentalEndDate) {
@@ -122,7 +120,6 @@ const updatedProducts = selectedProducts.map((product) => {
       toast.error("Vui lòng chọn phương thức giao hàng.");
       return;
     }
-
     const payload = {
       customerInformation: {
         userId: token ? user.UserId : null,
@@ -137,7 +134,7 @@ const updatedProducts = selectedProducts.map((product) => {
       branchId: selectedOption === "STORE_PICKUP" ? branchId : null,
       productInformations: updatedProducts.map((product) => ({
         cartItemId: product.cartItemId || null,
-        productId: product.productId,
+        productId: product.id || product.productId,
         productCode: product.productCode,
         productName: product.productName,
         quantity: product.quantity,
@@ -153,13 +150,12 @@ const updatedProducts = selectedProducts.map((product) => {
           rentalDays: product.rentDays,
         },
         rentalCosts: {
-          subTotal: subTotal,
+          subTotal: product.subTotal,
           tranSportFee: 0,
           totalAmount: product.totalPrice,
         },
       })),
     };
-
     try {
       setLoading(true);
       const response = await axios.post(
@@ -172,12 +168,20 @@ const updatedProducts = selectedProducts.map((product) => {
           },
         }
       );
-      console.log(response.data);
+      const orderID = response.data.id;
+      const orderRentalCode = response.data.saleOrderCode
+      console.log(response);
         if (!token) {
           dispatch(addGuestRentalOrder(response.data.data))
         }
         setApiResponse(response.data.data);
-        navigate("/order_success");
+        navigate("/order_success", {
+          state: {
+            orderID: orderID,
+            orderCode: null,
+            rentalOrderCode: orderRentalCode
+          },
+        });
     } catch (error) {
       console.error("Error creating rental order:", error);
     } finally {
@@ -399,20 +403,6 @@ const updatedProducts = selectedProducts.map((product) => {
                 {loading ? "Đang xử lý..." : "Đặt hàng"}
               </Button>
             </div>
-            {/* Nút tạo đơn hàng */}
-            {/* <div className="flex justify-center mt-6">
-              <button
-                onClick={handleCreateRentalOrder}
-                disabled={loading}
-                className={`bg-orange-500 text-white w-full py-3 rounded ${
-                  loading
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-orange-600"
-                }`}
-              >
-                {loading ? "Đang tiến hành..." : "Tạo đơn hàng"}
-              </button>
-            </div> */}
           </div>
         </div>
         <div></div>

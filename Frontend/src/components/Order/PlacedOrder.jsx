@@ -43,9 +43,6 @@ const PlacedOrder = () => {
     (acc, item) => acc + (item.price * item.quantity || 0),
     0
   );
-
-  console.log(selectedProducts);
-  
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
     // if (event.target.value === "STORE_PICKUP") {
@@ -77,7 +74,7 @@ const PlacedOrder = () => {
         toast.error("Vui lòng chọn giới tính!");
         return false;
       }
-      console.log(selectedProducts)
+      // console.log(selectedProducts)
       const token = localStorage.getItem("token");
       const data = {
         customerInformation: {
@@ -97,7 +94,7 @@ const PlacedOrder = () => {
 
         productInformations: selectedProducts.map((item) => ({
           cartItemId: item.cartItemId || null,
-          productId: item.id,
+          productId: item.id || item.productId,
           productName: item.productName,
           productCode: item.productCode,
           quantity: item.quantity,
@@ -113,20 +110,24 @@ const PlacedOrder = () => {
           totalAmount: totalPrice,
         },
       };
-      const response = await placedOrder(data);
+      // console.log(data.productInformations);
 
+      const response = await placedOrder(data);
+      console.log(response);
+      
+      const orderID = response.data.id;
+      const orderCode = response.data.saleOrderCode
       if (response) {
         if (!token) {
           dispatch(addGuestOrder(response.data));
           // console.log(response.data, "")
         }
         console.log(response);
-        setOrderSuccess(true);
         navigate("/order_success", {
           state: {
-            orderID: response.data.saleOrderId,
-            orderCode: response.data.orderCode,
-            userId: response.data.userId,
+            orderID: orderID,
+            orderCode: orderCode,
+            rentalOrderCode: null
           },
         });
       }

@@ -6,12 +6,14 @@ import axios from "axios";
 const CancelRentalOrderButton = ({ rentalOrderId, setReload }) => {
   const [showModal, setShowModal] = useState(false);
   const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleCancelOrder = async () => {
     if (!reason.trim()) {
       alert("Vui lòng nhập lý do hủy đơn hàng.");
       return;
     }
+    setLoading(true);
     try {
       const response = await axios.post(
         `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/request-cancel/${rentalOrderId}?reason=${encodeURIComponent(
@@ -29,14 +31,19 @@ const CancelRentalOrderButton = ({ rentalOrderId, setReload }) => {
     } catch (error) {
       console.error("Error cancel order:", error);
       alert("Failed to cancel the order. Please try again.");
+    }finally{
+      setLoading(false)
     }
   };
   return (
     <>
       <Button
+        disabled={loading}
         color="white"
         size="sm"
-        className="text-red-700 border border-red-700 rounded-md hover:bg-red-200"
+        className={`text-red-700 bg-white border border-red-700 rounded-md hover:bg-red-200"  ${
+          loading ? "opacity-50 cursor-not-allowed" : ""
+        }`}
         onClick={() => {
           setShowModal(true);
         }}

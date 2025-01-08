@@ -14,6 +14,7 @@ const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange
   const [branchStatus, setBranchStatus] = useState({});
   const user = useSelector(selectUser);
   const [check, setCheck] = useState([]);
+// console.log(selectedProducts);
 
 
   useEffect(() => {
@@ -25,13 +26,16 @@ const OrderMethod = ({ userData, setUserData, selectedOption, handleOptionChange
           
             const statusPromises = branchData.map(async (branch) => {
                 const products = await fetchProductsbyBranch(branch.id);
+                console.log(products);
+                
 
                 // Track unavailable products for each branch
                 const unavailableProducts = selectedProducts.map((selectedProduct) => {
                     // Find the branch product by matching selected product id
                     const branchProduct = products.find(
-                        (p) => Number(p.productId) === Number(selectedProduct.productId)
+                        (p) => Number(p.productId) === Number(selectedProduct.productId || selectedProduct.id)
                     );
+console.log(branchProduct);
 
                     if (!branchProduct) {
                         // If branchProduct is null, the product is unavailable

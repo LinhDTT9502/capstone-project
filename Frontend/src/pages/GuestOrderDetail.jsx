@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, Link, useNavigate } from "react-router-dom";
+import { useLocation, Link, useNavigate, useParams } from "react-router-dom";
 import { Button, Step, Stepper, Tooltip, Typography } from "@material-tailwind/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -27,12 +27,8 @@ import DoneSaleOrderButton from "../components/User/DoneSaleOrderButton";
 import StarRating from "../components/Product/StarRating";
 
 const GuestOrderDetail = () => {
-  const { state } = useLocation();
-  const order = state?.order;
   const navigate = useNavigate();
-  const [orderCode, setOrderCode] = useState(
-    state?.order?.saleOrderCode || null
-  );
+  const { orderCode } = useParams();
   const [showModal, setShowModal] = useState(false);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,29 +42,6 @@ const GuestOrderDetail = () => {
     const step = ORDER_STEPS.find((step) => step.id === orderStatus);
     return step ? ORDER_STEPS.indexOf(step) : -1;
   };
-
-  if (!order) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <div className="bg-white p-8 rounded-lg shadow-md text-center">
-          <FontAwesomeIcon
-            icon={faShoppingCart}
-            className="text-6xl text-red-500 mb-4"
-          />
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            Order not found
-          </h2>
-          <Link
-            to="/guest-order"
-            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 transition duration-150 ease-in-out"
-          >
-            <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
-            Back to Orders
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   const statusColors = {
     "Chờ xử lý": "text-yellow-800",

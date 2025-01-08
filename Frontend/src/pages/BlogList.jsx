@@ -25,7 +25,7 @@ const BlogCard = ({ blog, onClick }) => {
         <div className={`absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-300 ${
           isHovered ? 'opacity-100' : 'opacity-0'
         }`}>
-          <span className="text-white text-lg font-semibold">Read More</span>
+          <span className="text-white text-lg font-semibold">Đọc thêm</span>
         </div>
       </div>
       <div className="p-6">
@@ -36,8 +36,11 @@ const BlogCard = ({ blog, onClick }) => {
           {blog.subTitle}
         </p>
         <div className="flex items-center">
-          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white mr-4 transition-transform duration-300 hover:rotate-12">
-            <i className="fas fa-user"></i>
+          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white mr-4">
+          <img
+            src={"/assets/images/staff-avatar.png"}
+            alt="Blog Cover"
+          />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-700">
@@ -112,7 +115,7 @@ const BlogList = () => {
   return (
     <div className="bg-gray-100 min-h-screen">
       <div
-        className="relative flex flex-col justify-center items-center h-80"
+        className="relative flex flex-col justify-center items-center h-[400px]"
         style={{ 
           backgroundImage: "url('/assets/images/blog/cover_image.jpg')", 
           backgroundSize: "cover", 
@@ -120,7 +123,7 @@ const BlogList = () => {
         }}
       >
         <div className="absolute inset-0 bg-black opacity-60"></div>
-        <h1 className="text-5xl font-bold text-white relative z-10 mb-6 animate-fade-in-down">Blog Feed</h1>
+        <h1 className="text-[40px] text-white font-alfa relative z-10 mb-6 animate-fade-in-down">Blog Feed</h1>
         <div className="relative z-10 w-full max-w-md px-4">
           <input
             type="text"

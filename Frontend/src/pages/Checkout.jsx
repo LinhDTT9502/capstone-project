@@ -18,8 +18,6 @@ import {
   faBan,
   faVenusMars,
 } from "@fortawesome/free-solid-svg-icons";
-import { Tooltip,Typography } from "@material-tailwind/react";
-
 
 const Checkout = () => {
   const location = useLocation();
@@ -30,14 +28,7 @@ const Checkout = () => {
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
   };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
-  };
-
+  
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">

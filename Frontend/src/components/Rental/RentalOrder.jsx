@@ -152,7 +152,9 @@ const RentalOrder = () => {
           },
         }
       );
-
+      const orderID = response.data.data.id;
+      const orderRentalCode = response.data.data.rentalOrderCode
+      console.log(response);
       
       if (!token) {
         dispatch(addGuestRentalOrder(response.data.data));
@@ -160,8 +162,9 @@ const RentalOrder = () => {
       setApiResponse(response.data.data);
       navigate("/order_success", {
         state: {
-          orderID: response.data.data.id,
-          orderCode: response.data.data.rentalOrderCode,
+          orderID: orderID,
+          orderCode: null,
+          rentalOrderCode: orderRentalCode
         },
       });
       toast.success("Đơn hàng đã được tạo thành công!");

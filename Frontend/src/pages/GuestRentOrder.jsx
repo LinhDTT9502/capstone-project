@@ -13,6 +13,7 @@ import { selectGuestRentalOrders } from "../redux/slices/guestOrderSlice";
 import axios from "axios";
 import CancelRentalOrderButton from "../components/User/CancelRentalOrderButton";
 import DoneRentalOrderButton from "../components/User/DoneRentalOrderButton";
+import { toast } from "react-toastify";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -41,51 +42,100 @@ export default function GuestRentalOrderList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [reload, setReload] = useState(false);
   const [confirmReload, setConfirmReload] = useState(false);
+  const [filteredRentalOrders, setFilteredRentalOrders] = useState([]);
 
   const fetchAllOrderDetails = async () => {
-    const detailedOrderList = []; // Danh sách tạm thời
-    for (const order of rentalOrdersList) {
-      const response = await axios.get(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${order.rentalOrderCode}`,
-        { headers: { accept: "*/*" } }
+    try {
+      const detailedOrderList = await Promise.all(
+        rentalOrdersList.map(async (order) => {
+          const response = await axios.get(
+            `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${order.rentalOrderCode}`,
+            { headers: { accept: "*/*" } }
+          );
+          if (response.data.isSuccess) {
+            return response.data.data;
+          }
+          return null; // Nếu không thành công, trả về null
+        })
       );
-      if (response.data.isSuccess) {
-        detailedOrderList.push(response.data.data);
-      }
+      setRentalOrders(detailedOrderList.filter((order) => order !== null));
+      setFilteredRentalOrders(
+        detailedOrderList.filter((order) => order !== null)
+      );
+    } catch (error) {
+      console.error("Error fetching order details:", error);
     }
-    setRentalOrders(detailedOrderList); // Cập nhật danh sách mới
   };
 
   useEffect(() => {
     if (rentalOrdersList && rentalOrdersList.length > 0) {
       fetchAllOrderDetails();
     }
-  }, [rentalOrders, reload, confirmReload]);
+  }, [rentalOrdersList, reload, confirmReload]);
 
-  const groupedOrders = rentalOrders.reduce(
+  const handleSearch = () => {
+    if (!searchQuery) {
+      setFilteredRentalOrders(rentalOrders);
+      return;
+    }
+
+    toast.info(`Tìm kiếm với từ khóa: ${searchQuery}`);
+    const filtered = rentalOrders.filter((order) => {
+      return (
+        order.rentalOrderCode
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        order.productName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.color?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.size?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.childOrders?.$values?.some((item) => {
+          return (
+            item.productName
+              ?.toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            item.color?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.size?.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        })
+      );
+    });
+
+    if (filtered.length === 0) {
+      toast.info("Không tìm thấy sản phẩm nào khớp với từ khóa");
+    }
+    setFilteredRentalOrders(filtered);
+  };
+
+  const groupedOrders = filteredRentalOrders.reduce(
     (acc, order) => {
+      if (order.childOrders) {
+        acc.children[order.rentalOrderCode] =
+          acc.children[order.rentalOrderCode] || [];
+        order.childOrders.$values.forEach((childOrder) => {
+          if (childOrder) {
+            acc.children[order.rentalOrderCode].push(childOrder);
+          }
+        });
+      }
       if (!order.parentOrderCode) {
         acc.parents.push(order);
-      } else {
-        acc.children[order.parentOrderCode] =
-          acc.children[order.parentOrderCode] || [];
-        acc.children[order.parentOrderCode].push(order);
       }
+
       return acc;
     },
     { parents: [], children: {} }
   );
 
+  const toggleExpand = (orderId) => {
+    setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
+  };
+
   const filteredOrders =
     selectedStatus === "Tất cả"
       ? groupedOrders.parents
       : groupedOrders.parents.filter(
-          (order) => order.orderStatus === selectedStatus
-        );
-
-  const toggleExpand = (orderId) => {
-    setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
-  };
+        (order) => order.orderStatus === selectedStatus
+      );
 
   if (rentalOrdersList.length === 0) {
     return (
@@ -107,31 +157,7 @@ export default function GuestRentalOrderList() {
       </div>
     );
   }
-  const handleSearch = () => {
-    toast.info(`Tìm kiếm với từ khóa: ${searchQuery}`);
-    setSearchQuery(searchQuery);
-    if (searchQuery) {
-      const filtered = orders.filter((order) => {
-        return order.saleOrderDetailVMs.$values.some((item) => {
-          // Kiểm tra nếu tên sản phẩm, màu sắc, hoặc kích thước chứa từ khóa tìm kiếm
-          return (
-            item.productName
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()) ||
-            item.color.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.size.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        });
-      });
-      if (filtered.length === 0) {
-        toast.info("Không tìm thấy sản phẩm nào khớp với từ khóa");
-        return;
-      }
-      setFilteredSaleOrders(filtered);
-    } else {
-      setFilteredSaleOrders(orders);
-    }
-  };
+
   return (
     <div className="container mx-auto pt-2 rounded-lg max-w-5xl">
       <h2 className="text-orange-500 font-bold text-2xl pb-2">
@@ -152,11 +178,10 @@ export default function GuestRentalOrderList() {
           ].map((status) => (
             <button
               key={status}
-              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
-                selectedStatus === status
+              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${selectedStatus === status
                   ? "bg-orange-500 text-white" // Màu khi được chọn
                   : statusColors[status] || "bg-gray-200 text-gray-700" // Áp dụng màu từ statusColors
-              }`}
+                }`}
               onClick={() => setSelectedStatus(status)}
             >
               {status}
@@ -190,20 +215,19 @@ export default function GuestRentalOrderList() {
             className="border border-gray-200 rounded-lg shadow-sm mt-4"
           >
             <div
-              className="flex justify-between items-center p-4 cursor-pointer hover:bg-slate-200 transition-colors duration-150 ease-in-out"
+              className="flex justify-between items-center p-2 cursor-pointer hover:bg-slate-200 transition-colors duration-150 ease-in-out"
               onClick={() => toggleExpand(parent.id)}
             >
-              <div>
+              <div className="flex flex-col w-3/4 pl-4">
                 <h4 className="font-bold text-lg text-gray-800">
                   Mã đơn hàng:{" "}
                   <span className="text-orange-500">
                     {parent.rentalOrderCode}
                   </span>
                   <span
-                    className={`px-3 py-1 ml-2.5 rounded-full text-xs font-medium ${
-                      statusColors[parent.orderStatus] ||
+                    className={`px-3 py-1 ml-2.5 rounded-full text-xs font-medium ${statusColors[parent.orderStatus] ||
                       "bg-gray-100 text-gray-800"
-                    }`}
+                      }`}
                   >
                     {parent.orderStatus}
                   </span>
@@ -211,10 +235,9 @@ export default function GuestRentalOrderList() {
                 <p className=" text-gray-600">
                   Trạng thái thanh toán:
                   <span
-                    className={`ml-2 font-medium ${
-                      paymentStatusColors[parent.paymentStatus] ||
+                    className={`ml-2 font-medium ${paymentStatusColors[parent.paymentStatus] ||
                       "text-gray-800"
-                    }`}
+                      }`}
                   >
                     {parent.paymentStatus}
                   </span>
@@ -240,6 +263,7 @@ export default function GuestRentalOrderList() {
 
             {expandedOrderId === parent.id && (
               <div className="mt-4 pl-8 border-l">
+                {/* {console.log(groupedOrders)} */}
                 {groupedOrders.children[parent.rentalOrderCode]?.length > 0 ? (
                   groupedOrders.children[parent.rentalOrderCode].map(
                     (child) => (
@@ -331,12 +355,14 @@ export default function GuestRentalOrderList() {
                   </span>
                 </p>
                 <div className="flex gap-2">
-                  {parent.paymentStatus === "N/A" &&
-                    parent.orderStatus === "Chờ xử lý" &&
-                    parent.deliveryMethod !== "HOME_DELIVERY" && (
+                  {/* Thanh toan button */}
+                  {parent.paymentStatus !== "Đã đặt cọc" &&
+                    (parent.orderStatus === "Đã xác nhận" ||
+                      parent.orderStatus === "Chờ xử lý") && (
                       <Button
+                        color="white"
                         size="sm"
-                        className="w-40 text-green-700  bg-white border border-green-700 rounded-md hover:bg-green-200"
+                        className="w-40 text-blue-700 border border-blue-700 rounded-md hover:bg-blue-200"
                         onClick={() =>
                           navigate("/rental-checkout", {
                             state: { selectedOrder: parent },
@@ -376,6 +402,24 @@ export default function GuestRentalOrderList() {
             </div>
           </div>
         ))}
+        {filteredOrders.length === 0 && (
+          <div className="flex flex-col items-center my-10">
+            <img
+              src="/assets/images/cart-icon.png"
+              className="w-48 h-auto object-contain"
+            />
+            <p className="pt-4 text-lg font-poppins">
+              Hiện tại chưa có đơn hàng để hiển thị
+            </p>
+            <Link
+              to="/product"
+              className="text-blue-500 flex items-center font-poppins"
+            >
+              <FontAwesomeIcon className="pr-2" icon={faArrowLeft} /> Bấm vào
+              đây để mua sắm bạn nhé
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
