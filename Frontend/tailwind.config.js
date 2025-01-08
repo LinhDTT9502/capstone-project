@@ -18,7 +18,7 @@ module.exports = {
         alfa: ['Alfa Slab One', 'serif'],
       },
       backgroundImage: {
-        'banner': "url('/assets/images/banner.png')",
+        'banner': "url('/assets/images/banner-bg-3.jpg')",
         'footer': "url('/assets/images/footer.png')"
       },
     },

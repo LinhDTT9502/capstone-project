@@ -56,47 +56,21 @@ const AboutUs = () => {
 
   return (
     <div className="relative mb-[4%]">
-      <div className="flex justify-center items-center relative">
+
+<div className="relative h-[400px] overflow-hidden">
         <img
           src="/assets/images/aboutus/AboutUs.png"
-          alt="contactUs"
-          className="mx-auto h-[550px] w-[90%]"
+          alt="About Us"
+          className="w-full h-full object-cover"
         />
-        <h1 className="text-[40px] py-10 text-white font-alfa absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-wrap text-center transition duration-300 ease-in-out hover:scale-110">
-          {t("aboutus.textimg")}
-        </h1>
-        {/* <div className="flex w-3/4 justify-around bg-white border-zinc-600 border-2 absolute mt-[30%] drop-shadow-lg py-10">
-      <div className="text-center">
-        <h3 className="mt-4 text-[50px] font-bold">
-          {startCounting && <CountUp end={50} duration={7} />}+
-        </h3>
-        <p className="mt-2 text-gray-400 text-xl">Year of Experience</p>
-      </div>
-      <div className="w-px bg-gray-300"></div>
-      <div className="text-center">
-        <h3 className="mt-4 text-[50px] font-bold">
-          {startCounting && <CountUp end={633} duration={5} />}+
-        </h3>
-        <p className="mt-2 text-gray-400 text-xl">Happy Clients</p>
-      </div>
-      <div className="w-px bg-gray-300"></div>
-      <div className="text-center">
-        <h3 className="mt-4 text-[50px] font-bold">
-          {startCounting && <CountUp end={150} duration={6} />}+
-        </h3>
-        <p className="mt-2 text-gray-400 text-xl">Expert Trainers</p>
-      </div>
-      <div className="w-px bg-gray-300"></div>
-      <div className="text-center">
-        <h3 className="mt-4 text-[50px] font-bold">
-          {startCounting && <CountUp end={500} duration={5} />}k
-        </h3>
-        <p className="mt-2 text-gray-400 text-xl">Instagram followers</p>
-      </div>
-    </div> */}
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <h1 className="text-[40px] py-10 text-white font-alfa absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-wrap text-center transition duration-300 ease-in-out hover:scale-110">
+            {t("aboutus.textimg")}
+          </h1>
+        </div>
       </div>
 
-      <div className="mt-28 mx-[20%] flex">
+      <div className="mt-28 px-[15%] flex">
         <div className="w-1/2 justify-center flex flex-col ml-10 mr-10">
           <div className="mb-10">
             <h2 className="text-[15px]  text-[#524FF5]">
