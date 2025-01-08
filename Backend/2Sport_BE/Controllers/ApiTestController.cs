@@ -137,7 +137,7 @@ namespace _2Sport_BE.Controllers
                     OrderCode = response.Data.orderCode.ToString(),
                     PaymentStatus = response.Data.status,
                     PaymentDate = DateTime.SpecifyKind(DateTime.Parse(response.Data.createdAt), DateTimeKind.Utc).ToString(),
-                    BankName = response.Data.transactions.FirstOrDefault().counterAccountBankName ?? "UNKNOWN"
+                    BankName = response.Data.transactions.Count > 0 ? response.Data.transactions.FirstOrDefault().counterAccountBankName : "UNKNOWN"
                 };
                 return Ok(paymentInfo);
             }

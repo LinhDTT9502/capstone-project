@@ -44,23 +44,6 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public decimal? TranSportFee { get; set; }
         public decimal? TotalAmount { get; set; }
     }
-    public class ChildOrderReturnModel
-    {
-        public int OrderId { get; set; }           // ID của child order
-        public DateTime ReturnDate { get; set; }   // Ngày trả hàng
-        public decimal LateFee { get; set; }       // Phí trễ hạn
-        public decimal DamageFee { get; set; }     // Phí hư hỏng
-        public bool IsRestocked { get; set; }      // Đã nhập kho lại chưa
-        public bool IsInspected { get; set; }      // Đã kiểm tra chưa
-    }
-    public class ParentOrderReturnModel
-    {
-        public int ParentOrderId { get; set; }            // ID của parent order
-        public List<ChildOrderReturnModel> ChildOrders { get; set; }  // Danh sách child orders
-
-        public decimal TotalLateFee { get; set; }         // Tổng phí trễ hạn
-        public decimal TotalDamageFee { get; set; }       // Tổng phí hư hỏng
-    }
     public class RentalOrderCM
     {
         public CustomerInformation CustomerInformation { get; set; }
@@ -210,6 +193,24 @@ namespace _2Sport_BE.Infrastructure.DTOs
         public int ExtensionDays { get; set; }
 
     }
+    public class ReturnRequestModel
+    {
+        public int SelectedReturnOrderId { get; set; }
+        public int ParentOrderId { get; set; }
+        public string Reason { get; set; }
+
+    }
+
+    public class ReturnRequestModelUM
+    {
+        public int SelectedReturnOrderId { get; set; }
+        public int ParentOrderId { get; set; }            // ID của parent order
+        public bool IsRestocked { get; set; }      // Đã nhập kho lại chưa
+        public bool IsInspected { get; set; }      // Đã kiểm tra chưa
+        public decimal? LateFee { get; set; }       // Phí trễ hạn
+        public decimal? DamageFee { get; set; }     // Phí hư hỏng
+    }
+
     public class RentalOrderImageModel
     {
         public int parentOrderId { get; set; }

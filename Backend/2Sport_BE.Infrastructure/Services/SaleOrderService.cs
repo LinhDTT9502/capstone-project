@@ -738,6 +738,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 }
 
                 saleOrder.OrderStatus = orderStatus;
+                saleOrder.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
                 await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
                 if (saleOrder.OrderStatus == (int)OrderStatus.COMPLETED)
@@ -1016,13 +1017,13 @@ namespace _2Sport_BE.Infrastructure.Services
 
                     if (order is null)
                     {
-                        response.IsSuccess = false;
+                        response.IsSuccess = true;
                         response.Message = "Không tìm thấy đơn hàng!";
                         response.Data = 0;
                         return response;
                     }
 
-                    if (order.OrderStatus != (int)OrderStatus.PENDING)
+                    if (order.OrderStatus > (int)OrderStatus.PENDING)
                     {
                         response.IsSuccess = false;
                         response.Message = "Đơn hàng không thể hủy ở trạng thái hiện tại!";
@@ -1030,9 +1031,21 @@ namespace _2Sport_BE.Infrastructure.Services
                         return response;
                     }
 
+                    if(order.BranchId != null)
+                    {
+                        var isRestocked = await _warehouseService.UpdateSaleAvailableStock(order.Id);
+                        if (!isRestocked)
+                        {
+                            response.IsSuccess = false;
+                            response.Message = "Có lỗi trong quá trình cập nhật số lượng!";
+                            response.Data = 0;
+                            return response;
+                        }
+                    }
+                    
                     order.OrderStatus = (int)OrderStatus.CANCELLED;
                     order.Reason = reason;
-                    order.UpdatedAt = DateTime.Now;
+                    order.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(order);
 
                     await _notificationService.NotifyToGroupAsync(

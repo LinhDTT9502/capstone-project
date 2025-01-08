@@ -44,7 +44,19 @@ namespace _2Sport_BE.Repository.Implements
         private IGenericRepository<RentalOrder> _rentalOrderRepository;
         private IGenericRepository<RefundRequest> _refundRequestRepository;
         private IGenericRepository<Notification> _notificationRepository;
+        private IGenericRepository<ReturnRequest> _returnRequestRepository;
 
+        public IGenericRepository<ReturnRequest> ReturnRequestRepository
+        {
+            get
+            {
+                if (_returnRequestRepository == null)
+                {
+                    _returnRequestRepository = new GenericRepository<ReturnRequest>(_dbContext);
+                }
+                return _returnRequestRepository;
+            }
+        }
         public IGenericRepository<RentalOrder> RentalOrderRepository
         {
             get

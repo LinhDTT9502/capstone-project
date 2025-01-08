@@ -161,15 +161,6 @@ namespace _2Sport_BE.Controllers
             return BadRequest(response);
         }
 
-        [HttpPut("return")]
-        public async Task<IActionResult> ProcessReturn([FromBody] ParentOrderReturnModel returnData)
-        {
-            if (!ModelState.IsValid) return BadRequest("Invalid request data.");
-            var response = await _rentalOrderServices.ReturnOrder(returnData);
-            if (!response.IsSuccess) return StatusCode(500, response);
-            return Ok(response);
-        }
-
         [HttpPut("assign-branch")]
         public async Task<IActionResult> AssignBranch(int orderId, int branchId)
         {
@@ -267,6 +258,25 @@ namespace _2Sport_BE.Controllers
                 }
             }
         }
+
+
+        [HttpPost("request-return")]
+        public async Task<IActionResult> RequestReturn(ReturnRequestModel model)
+        {
+            var response = await _rentalOrderServices.RequestReturnAsync(model);
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
+
+        [HttpPut("return")]
+        public async Task<IActionResult> ProcessReturn([FromBody] ReturnRequestModelUM returnData)
+        {
+            if (!ModelState.IsValid) return BadRequest("Invalid request data.");
+            var response = await _rentalOrderServices.ProcessReturnOrder(returnData);
+            if (!response.IsSuccess) return StatusCode(500, response);
+            return Ok(response);
+        }
+
 
     }
 }

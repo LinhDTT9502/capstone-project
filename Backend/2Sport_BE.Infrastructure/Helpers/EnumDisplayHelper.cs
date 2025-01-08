@@ -31,6 +31,7 @@ namespace _2Sport_BE.Service.Helpers
         { OrderStatus.REFUND_PROCESSING, "Đang xử lý hoàn tiền" },
         { OrderStatus.REFUNDED, "Đã hoàn tiền" },
         { OrderStatus.COMPLETED, "Đã hoàn thành" },
+        { OrderStatus.AWAITING_PICKUP, "Chờ khách nhận hàng" },
 
         { RentalOrderStatus.CANCELED, "Đã hủy" },
         { RentalOrderStatus.PENDING, "Chờ xử lý" },

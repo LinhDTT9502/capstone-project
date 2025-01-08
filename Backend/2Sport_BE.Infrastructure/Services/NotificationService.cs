@@ -31,6 +31,8 @@ namespace _2Sport_BE.Infrastructure.Services
 
         Task<bool> NotifyForComment(int currUserId, List<User> coordinators, Product product);
         Task<bool> NotifyForReplyComment(string currUserId, Product product);
+
+        Task<bool> NotifyForRentalReturnRequest(int branchId, string parentOrderCode, string productName);
     }
     public class NotificationService : INotificationService
     {
@@ -750,6 +752,62 @@ namespace _2Sport_BE.Infrastructure.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
+            }
+        }
+
+        public async Task<bool> NotifyForRentalReturnRequest(int branchId, string parentOrderCode, string productName)
+        {
+            List<int> userIdList = new List<int>();
+            try
+            {
+                string message = $"Đơn hàng T-{parentOrderCode} yêu cầu hoàn trả sản phẩm {productName}";
+                if (branchId != 0)
+                {
+                    var staffs = await _unitOfWork.StaffRepository.GetAsync(s => s.BranchId == branchId);
+                    var managers = await _unitOfWork.ManagerRepository.GetAsync(m => m.BranchId == branchId);
+
+                    if (staffs != null && staffs.Any())
+                    {
+                        userIdList.AddRange(staffs.Select(s => s.UserId.Value));
+                    }
+
+                    if (managers != null && managers.Any())
+                    {
+                        userIdList.AddRange(managers.Select(m => m.UserId.Value));
+                    }
+
+                    await _notificationHub.SendMessageToGroup($"Branch_{branchId}", message);
+                }
+
+                if (userIdList.Any())
+                {
+                    var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                                    ?? new List<Notification>();
+
+                    var notificationId = listNotificationsInCache.Count;
+
+                    var notifications = userIdList.Select(userId => new Notification
+                    {
+                        Id = notificationId + 1,
+                        UserId = userId,
+                        Message = message,
+                        Type = "Return rental request",
+                        CreatedAt = DateTime.UtcNow,
+                        IsRead = false
+                    }).ToList();
+
+                    //save notifications to redis
+                    listNotificationsInCache.AddRange(notifications);
+                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+
+                    //await _unitOfWork.NotificationRepository.InsertRangeAsync(notifications);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
             }
         }
     }

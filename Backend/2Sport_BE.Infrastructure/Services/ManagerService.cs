@@ -110,9 +110,10 @@ namespace _2Sport_BE.Infrastructure.Services
                     .GetObjectAsync(m => m.Id == managerId);
                 if (manager != null)
                 {
+                    
                     manager = _mapper.Map<Manager>(managerUM);
+                    manager.Id = managerId;
                     await _unitOfWork.ManagerRepository.UpdateAsync(manager);
-                    await _unitOfWork.SaveChanges();
                     //Return
                     var result = _mapper.Map<ManagerVM>(manager);
                     response.IsSuccess = true;

@@ -13,7 +13,6 @@ using Newtonsoft.Json;
 using System.Globalization;
 using System.Net;
 using System.Web;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -58,11 +57,13 @@ namespace _2Sport_BE.Infrastructure.Services
         private readonly SaleOrderService _saleOrderService;
         private readonly RentalOrderService _rentalOrderService;
         private readonly INotificationService _notificationService;
+        private readonly IMethodHelper _methodHelper;
         public PayOsPaymentService(IUnitOfWork unitOfWork,
                                     IConfiguration configuration,
                                     SaleOrderService saleOrderService,
                                     RentalOrderService rentalOrderService,
-                                    INotificationService notificationService)
+                                    INotificationService notificationService,
+                                    IMethodHelper methodHelper)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
@@ -76,6 +77,7 @@ namespace _2Sport_BE.Infrastructure.Services
             _saleOrderService = saleOrderService;
             _rentalOrderService = rentalOrderService;
             _notificationService = notificationService;
+            _methodHelper = methodHelper;
         }
         public async Task<ResponseDTO<string>> ProcessSaleOrderPayment(int orderId, HttpContext context)
         {
@@ -233,29 +235,9 @@ namespace _2Sport_BE.Infrastructure.Services
                         return _saleOrderService.GenerateErrorResponse($"SaleOrder with code {paymentResponse.OrderCode} is not found!");
 
                     saleOrder.PaymentStatus = (int)PaymentStatus.CANCELED;
-                    saleOrder.PaymentDate = DateTime.Now;
-                    saleOrder.UpdatedAt = DateTime.Now;
-
+                    saleOrder.PaymentDate = _methodHelper.GetTimeInUtcPlus7();
+                    saleOrder.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
-
-                    //Cập nhật lại số luọng sản phẩm của chi nhánh đó thông qua update lại warehouse
-                    if (saleOrder.BranchId != null)
-                    {
-                        var saleOrderDetails = await _unitOfWork.OrderDetailRepository
-                                        .GetAsync(od => od.SaleOrderId == saleOrder.Id);
-
-                        foreach (var item in saleOrderDetails)
-                        {
-                            var productInWarehouse = await _unitOfWork.WarehouseRepository
-                                .GetObjectAsync(wh => wh.ProductId == item.ProductId && wh.BranchId == item.BranchId);
-                            if (productInWarehouse != null)
-                            {
-                                productInWarehouse.AvailableQuantity += item.Quantity;
-                                await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
-                            }
-                        }
-                    }
-
                     await _notificationService.NotifyPaymentCancellation(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
 
                     await transaction.CommitAsync();
@@ -279,8 +261,8 @@ namespace _2Sport_BE.Infrastructure.Services
                     return _saleOrderService.GenerateErrorResponse($"SaleOrder with code {paymentResponse.OrderCode} is not found!");
                 }
                 saleOrder.PaymentStatus = (int)PaymentStatus.PAID;
-                saleOrder.PaymentDate = DateTime.Now;
-                saleOrder.UpdatedAt = DateTime.Now;
+                saleOrder.PaymentDate = _methodHelper.GetTimeInUtcPlus7();
+                saleOrder.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
 
                 await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
 
@@ -306,48 +288,28 @@ namespace _2Sport_BE.Infrastructure.Services
 
                     var childOrders = await _unitOfWork.RentalOrderRepository
                                        .GetAsync(od => od.ParentOrderCode == rentalOrder.RentalOrderCode);
-                    if (rentalOrder.BranchId != null) //Đơn đã thuộc về chi nhánh
-                    {
-                        if (childOrders.Any())
-                        {
-                            foreach (var item in childOrders)
-                            {
-                                var productInWarehouse = await _unitOfWork.WarehouseRepository
-                                    .GetObjectAsync(wh => wh.ProductId == item.ProductId && wh.BranchId == item.BranchId);
-                                if (productInWarehouse != null)
-                                {
-                                    productInWarehouse.AvailableQuantity += item.Quantity;
-                                    await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
-                                }
 
-                                item.PaymentStatus = (int)PaymentStatus.CANCELED;
-                                item.DepositStatus = (int)DepositStatus.NOT_PAID;
-                                item.TransactionId = item.ParentOrderCode;
-                                item.DepositDate = DateTime.Now;
-                                item.PaymentDate = DateTime.Now;
-                                item.UpdatedAt = DateTime.Now;
-                                await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
-                            }
-                        }
-                        else
+                    if (childOrders.Any())
+                    {
+                        foreach (var item in childOrders)
                         {
-                            var productInWarehouse = await _unitOfWork.WarehouseRepository
-                                   .GetObjectAsync(wh => wh.ProductId == rentalOrder.ProductId && wh.BranchId == rentalOrder.BranchId);
-                            if (productInWarehouse != null)
-                            {
-                                productInWarehouse.AvailableQuantity += rentalOrder.Quantity;
-                                await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
-                            }
+                            item.TransactionId = item.ParentOrderCode;
+                            item.PaymentStatus = (int)PaymentStatus.CANCELED;
+                            item.DepositStatus = (int)DepositStatus.NOT_PAID;
+                            item.DepositDate = _methodHelper.GetTimeInUtcPlus7();
+                            item.PaymentDate = _methodHelper.GetTimeInUtcPlus7();
+                            item.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
+                            await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
                         }
                     }
-
                     rentalOrder.TransactionId = rentalOrder.ParentOrderCode;
                     rentalOrder.PaymentStatus = (int)PaymentStatus.CANCELED;
                     rentalOrder.DepositStatus = (int)PaymentStatus.CANCELED;
 
-                    rentalOrder.DepositDate = DateTime.Now;
-                    rentalOrder.PaymentDate = DateTime.Now;
-                    rentalOrder.UpdatedAt = DateTime.Now;
+                    rentalOrder.DepositDate = _methodHelper.GetTimeInUtcPlus7();
+                    rentalOrder.PaymentDate = _methodHelper.GetTimeInUtcPlus7();
+                    rentalOrder.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
+
                     await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                     await _notificationService.NotifyPaymentCancellation(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
@@ -376,9 +338,10 @@ namespace _2Sport_BE.Infrastructure.Services
                 rentalOrder.PaymentStatus = (int)PaymentStatus.DEPOSIT;
 
 
-                rentalOrder.PaymentDate = DateTime.Now;
-                rentalOrder.DepositDate = DateTime.Now;
-                rentalOrder.UpdatedAt = DateTime.Now;
+                rentalOrder.PaymentDate = _methodHelper.GetTimeInUtcPlus7();
+                rentalOrder.DepositDate = _methodHelper.GetTimeInUtcPlus7();
+                rentalOrder.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
+
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                 await _notificationService.NotifyPaymentPaid(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
@@ -552,60 +515,29 @@ namespace _2Sport_BE.Infrastructure.Services
         }
         public async Task<ResponseDTO<SaleOrderVM>> PaymentSaleOrderExecute(IQueryCollection collections)
         {
-            var pay = new VnPayLibrary();
-            var response = pay.GetFullResponseData(collections, _configuration["Vnpay:HashSecret"]);
-            var isUpdated = false;
+            var vnPayLib = new VnPayLibrary();
+            var response = vnPayLib.GetFullResponseData(collections, _configuration["Vnpay:HashSecret"]);
 
-            SaleOrder saleOrder = new SaleOrder();
-            if (response.IsSuccess)
+            if (!response.IsSuccess)
+                return _saleOrderService.GenerateErrorResponse("Có lỗi trong quá trình thanh toán, vui lòng thử lại sau.");
+
+            var saleOrder = _unitOfWork.SaleOrderRepository.FindObject(o => o.SaleOrderCode == response.Data.OrderCode);
+            if (saleOrder == null)
+                return _saleOrderService.GenerateErrorResponse($"Không tìm thấy đơn mua - {response.Data.OrderCode}!");
+
+            var paymentStatus = response.Data.TransactionStatus == "00" ? PaymentStatus.PAID : PaymentStatus.CANCELED;
+
+            UpdateSaleOrder(saleOrder, paymentStatus, response.Data.TxnRef);
+            await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
+
+            if (paymentStatus == PaymentStatus.PAID)
             {
-                saleOrder = _unitOfWork.SaleOrderRepository.FindObject(o => o.SaleOrderCode == response.Data.OrderCode);
-                if (saleOrder == null) return _saleOrderService.GenerateErrorResponse($"The Sale Order {response.Data.OrderCode} not found!");
-
-                if (response.Data.TransactionStatus == "00")//Success
-                {
-                    saleOrder.TransactionId = response.Data.TxnRef;
-                    saleOrder.PaymentStatus = (int)PaymentStatus.PAID;
-                    saleOrder.PaymentDate = DateTime.Now;
-                    saleOrder.UpdatedAt = DateTime.Now;
-
-                    await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
-                    await _notificationService.NotifyPaymentPaid(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
-                    return _saleOrderService.GenerateSuccessResponse(saleOrder, "Completed");
-                }
-                else
-                {
-                    saleOrder.TransactionId = response.Data.TxnRef;
-                    saleOrder.PaymentStatus = (int)PaymentStatus.CANCELED;
-                    saleOrder.PaymentDate = DateTime.Now;
-                    saleOrder.UpdatedAt = DateTime.Now;
-
-                    await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
-
-                    if (saleOrder.BranchId != null)
-                    {
-                        var saleOrderDetails = await _unitOfWork.OrderDetailRepository
-                                        .GetAsync(od => od.SaleOrderId == saleOrder.Id);
-
-                        foreach (var item in saleOrderDetails)
-                        {
-                            var productInWarehouse = await _unitOfWork.WarehouseRepository
-                                .GetObjectAsync(wh => wh.ProductId == item.ProductId && wh.BranchId == item.BranchId);
-                            if (productInWarehouse != null)
-                            {
-                                productInWarehouse.AvailableQuantity += item.Quantity;
-                                await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
-                            }
-                        }
-                    }
-                    await _notificationService.NotifyPaymentCancellation(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
-                    return _saleOrderService.GenerateSuccessResponse(saleOrder, "Canceled");
-                }
+                await _notificationService.NotifyPaymentPaid(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
+                return _saleOrderService.GenerateSuccessResponse(saleOrder, "Completed");
             }
-            else
-            {
-                return _saleOrderService.GenerateErrorResponse("Failed in payment process.");
-            }
+
+            await _notificationService.NotifyPaymentCancellation(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
+            return _saleOrderService.GenerateSuccessResponse(saleOrder, "Canceled");
         }
         public async Task<ResponseDTO<RentalOrderVM>> PaymentRentalOrderExecute(IQueryCollection collections)
         {
@@ -629,66 +561,33 @@ namespace _2Sport_BE.Infrastructure.Services
                                      .GetAsync(od => od.ParentOrderCode == rentalOrder.RentalOrderCode);
             if (response.Data.TransactionStatus != "00") // Huy
             {
-                if (rentalOrder.BranchId != null)
+                if (childOrders.Any())
                 {
-                    if (childOrders.Any())
+                    foreach (var item in childOrders)
                     {
-                        foreach (var item in childOrders)
-                        {
-                            var productInWarehouse = await _unitOfWork.WarehouseRepository
-                                .GetObjectAsync(wh => wh.ProductId == item.ProductId && wh.BranchId == item.BranchId);
-                            if (productInWarehouse != null)
-                            {
-                                productInWarehouse.AvailableQuantity += item.Quantity;
-                                await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
-                            }
-
-                            item.PaymentStatus = (int)paymentStatus;
-                            item.DepositStatus = (int)newDepositStatus;
-                            item.TransactionId = response.Data.TxnRef;
-
-                            item.PaymentDate = DateTime.Now;
-                            item.DepositDate = DateTime.Now;
-                            item.UpdatedAt = DateTime.Now;
-                            await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
-                        }
+                        UpdateOrderPaymentDetails(item, (int)paymentStatus, (int)newDepositStatus, response.Data.TxnRef);
                     }
-                    else
-                    {
-                        var productInWarehouse = await _unitOfWork.WarehouseRepository
-                               .GetObjectAsync(wh => wh.ProductId == rentalOrder.ProductId && wh.BranchId == rentalOrder.BranchId);
-                        if (productInWarehouse != null)
-                        {
-                            productInWarehouse.AvailableQuantity += rentalOrder.Quantity;
-                            await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
-                        }
-                    }
+                    await _unitOfWork.RentalOrderRepository.UpdateRangeAsync(childOrders.ToList());
                 }
 
-                rentalOrder.PaymentStatus = (int)paymentStatus;
-                rentalOrder.DepositAmount = (int)newDepositStatus;
-                rentalOrder.TransactionId = response.Data.TxnRef;
-
-                rentalOrder.PaymentDate = DateTime.Now;
-                rentalOrder.DepositDate = DateTime.Now;
-                rentalOrder.UpdatedAt = DateTime.Now;
+                UpdateOrderPaymentDetails(rentalOrder, (int)paymentStatus, (int)newDepositStatus, response.Data.TxnRef);
 
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
-
                 await _notificationService.NotifyPaymentCancellation(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
+
                 return _rentalOrderService.GenerateSuccessResponse(rentalOrder, null, "Canceled");
             }
             else
             {
                 
+                rentalOrder.TransactionId = response.Data.TxnRef;
                 rentalOrder.DepositStatus = (int)newDepositStatus;
                 rentalOrder.PaymentStatus = (int)paymentStatus;
                 rentalOrder.DepositAmount = response.Data.Amount;
-                rentalOrder.TransactionId = response.Data.TxnRef;
 
-                rentalOrder.PaymentDate= DateTime.Now;
-                rentalOrder.DepositDate = DateTime.Now;
-                rentalOrder.UpdatedAt = DateTime.Now;
+                rentalOrder.PaymentDate= _methodHelper.GetTimeInUtcPlus7();
+                rentalOrder.DepositDate = _methodHelper.GetTimeInUtcPlus7();
+                rentalOrder.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
 
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
@@ -813,5 +712,21 @@ namespace _2Sport_BE.Infrastructure.Services
             }
         }
 
+        private void UpdateOrderPaymentDetails(RentalOrder order, int paymentStatus, int depositStatus, string txnRef)
+        {
+            order.PaymentStatus = paymentStatus;
+            order.DepositStatus = depositStatus;
+            order.TransactionId = txnRef;
+            order.PaymentDate = _methodHelper.GetTimeInUtcPlus7();
+            order.DepositDate = _methodHelper.GetTimeInUtcPlus7();
+            order.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
+        }
+        private void UpdateSaleOrder(SaleOrder order, PaymentStatus paymentStatus, string txnRef)
+        {
+            order.TransactionId = txnRef;
+            order.PaymentStatus = (int)paymentStatus;
+            order.PaymentDate = _methodHelper.GetTimeInUtcPlus7();
+            order.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
+        }
     }
 }

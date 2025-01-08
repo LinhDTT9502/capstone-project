@@ -1,9 +1,13 @@
+﻿using _2Sport_BE.Infrastructure.DTOs;
+using _2Sport_BE.Infrastructure.Enums;
 using _2Sport_BE.Repository.Data;
 using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.DTOs;
+using _2Sport_BE.Service.Enums;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +29,8 @@ namespace _2Sport_BE.Infrastructure.Services
         Task DeleteWarehouseAsync(int id);
         Task DeleteWarehouseAsync(List<Warehouse> warehouses);
         Task<IQueryable<Warehouse>> GetWarehouseByProductIdAndBranchId(int productId, int? branchId);
-        Task UpdateWarehouseStock(Warehouse productInWarehouse, int quantity);
+        Task<bool> UpdateSaleAvailableStock(int saleOrderId);
+        Task<bool> UpdateRentalStock(RentalOrder rentalOrder, bool isDelivered, bool isCanceled);
         Task AdjustStockLevel(Warehouse productInWarehouse, int? quantity, bool isRestock);
 
         bool IsStockAvailable(Warehouse productInWarehouse, int quantity);
@@ -127,11 +132,11 @@ namespace _2Sport_BE.Infrastructure.Services
             await _unitOfWork.WarehouseRepository.UpdateAsync(warehouse);
         }
 
-        public async Task UpdateWarehouseStock(Warehouse productInWarehouse, int quantity)
-        {
-            productInWarehouse.AvailableQuantity -= quantity;
-            await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
-        }
+        //public async Task UpdateWarehouseStock(Warehouse productInWarehouse, int quantity)
+        //{
+        //    productInWarehouse.AvailableQuantity -= quantity;
+        //    await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
+        //}
 
         public async Task<IQueryable<Warehouse>> GetProductsOfBranch(int branchId)
         {
@@ -165,6 +170,98 @@ namespace _2Sport_BE.Infrastructure.Services
                 return null;
             }
             
+        }
+
+        public async Task<bool> UpdateSaleAvailableStock(int saleOrderId)
+        {
+            var saleOrderDetails = await _unitOfWork.OrderDetailRepository
+                                       .GetAsync(od => od.SaleOrderId == saleOrderId);
+            if (saleOrderDetails == null) return false;
+
+            try
+            {
+                foreach (var item in saleOrderDetails)
+                {
+                    var productInWarehouse = await _unitOfWork.WarehouseRepository
+                        .GetObjectAsync(wh => wh.ProductId == item.ProductId && wh.BranchId == item.BranchId);
+                    if (productInWarehouse != null)
+                    {
+                        productInWarehouse.AvailableQuantity += item.Quantity;
+                        await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
+                    }
+                }
+                return true;
+            }
+            catch (Exception)
+            {
+
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateRentalStock(RentalOrder rentalOrder, bool isDelivered, bool isCanceled)
+        {
+            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var childOrders = await _unitOfWork.RentalOrderRepository
+                                       .GetAsync(od => od.ParentOrderCode == rentalOrder.RentalOrderCode);
+
+                    if (rentalOrder.BranchId != null) //Đơn đã thuộc về chi nhánh
+                    {
+                        if (childOrders.Any())
+                        {
+                            foreach (var item in childOrders)
+                            {
+                                var productInWarehouse = await _unitOfWork.WarehouseRepository
+                                    .GetObjectAsync(wh => wh.ProductId == item.ProductId && wh.BranchId == item.BranchId);
+
+
+                                if (productInWarehouse == null) return false;
+
+                                    if (isDelivered)
+                                {
+                                    productInWarehouse.AvailableQuantity -= item.Quantity;
+                                    productInWarehouse.TotalQuantity -= item.Quantity;
+                                }
+                                if (isCanceled)
+                                {
+                                    productInWarehouse.AvailableQuantity += item.Quantity;
+                                }
+                                await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
+                            }
+                        }
+                        else
+                        {
+                            var productInWarehouse = await _unitOfWork.WarehouseRepository
+                                   .GetObjectAsync(wh => wh.ProductId == rentalOrder.ProductId && wh.BranchId == rentalOrder.BranchId);
+
+                            if (isDelivered)
+                            {
+                                if (productInWarehouse.AvailableQuantity < rentalOrder.Quantity)
+                                    throw new Exception($"Not enough stock for Product ID {rentalOrder.ProductId}");
+
+                                productInWarehouse.AvailableQuantity -= rentalOrder.Quantity;
+                                productInWarehouse.TotalQuantity -= rentalOrder.Quantity;
+                            }
+
+                            if (isCanceled)
+                            {
+                                // Khi đơn bị hủy, cộng lại số lượng khả dụng
+                                productInWarehouse.AvailableQuantity += rentalOrder.Quantity;
+                            }
+                            await _unitOfWork.WarehouseRepository.UpdateAsync(productInWarehouse);
+                        }
+                    }
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+            }
         }
     }
 }
