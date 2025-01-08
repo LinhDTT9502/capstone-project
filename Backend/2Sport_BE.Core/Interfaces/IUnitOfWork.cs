@@ -35,7 +35,7 @@ namespace _2Sport_BE.Repository.Interfaces
         IGenericRepository<RentalOrder> RentalOrderRepository { get; }
         IGenericRepository<RefundRequest> RefundRequestRepository { get; }
         IGenericRepository<Notification> NotificationRepository { get; }
-
+        IGenericRepository<ReturnRequest> ReturnRequestRepository { get; }
         Task<IDbContextTransaction> BeginTransactionAsync();
         void Save();
         Task<bool> SaveChanges();

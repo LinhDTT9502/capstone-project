@@ -13,6 +13,7 @@
         RETURNED = 8,             // Đã trả hàng
         REFUND_PROCESSING = 9,
         REFUNDED = 10,             // Đã hoàn tiền
-        COMPLETED = 11       // Đã hoàn thành
+        COMPLETED = 11,              // Đã hoàn thành
+        AWAITING_PICKUP = 12,    // Chờ khách nhận hàng
     }
 }

@@ -42,6 +42,9 @@ namespace _2Sport_BE.Infrastructure.Helpers
         string HashPassword(string password);
         string GetFormattedDateInGMT7(DateTime date);
         ClaimsPrincipal GetPrincipalFromToken(string token);
+        DateTime GetTimeInUtcPlus7();
+
+        int GetTimeSpan(DateTime d1, DateTime d2);
     }
     public class MethodHelper : IMethodHelper
     {   
@@ -186,6 +189,22 @@ namespace _2Sport_BE.Infrastructure.Helpers
             return (validatedToken is JwtSecurityToken jwtSecurityToken) &&
                    jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
                        StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public DateTime GetTimeInUtcPlus7()
+        {
+            TimeSpan utcOffset = TimeSpan.FromHours(7);
+            TimeZoneInfo utcPlus7TimeZone = TimeZoneInfo.CreateCustomTimeZone("UTC+7", utcOffset, "UTC+7", "UTC+7");
+
+            // Lấy thời gian UTC hiện tại và chuyển đổi
+            DateTime utcNow = DateTime.UtcNow;
+            return TimeZoneInfo.ConvertTimeFromUtc(utcNow, utcPlus7TimeZone);
+        }
+
+        public int GetTimeSpan(DateTime d1, DateTime d2)
+        {
+            TimeSpan t = d1 - d2;
+            return t.Days;
         }
     }
 }
