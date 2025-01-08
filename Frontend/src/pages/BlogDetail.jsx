@@ -72,7 +72,10 @@ const BlogDetail = () => {
 
           <div className="flex items-center mb-8 border-b pb-4">
             <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white text-2xl mr-4">
-              <i className="fas fa-user"></i>
+            <img
+            src={"/assets/images/staff-avatar.png"}
+            alt="Blog Cover"
+          />
             </div>
             <div>
               <p className="text-xl font-medium text-gray-800">{blog.createdByStaffFullName}</p>

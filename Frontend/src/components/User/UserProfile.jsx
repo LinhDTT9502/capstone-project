@@ -12,6 +12,7 @@ import {
   faVenusMars,
   faMapMarkerAlt,
   faBirthdayCake,
+  faGem,
   faCrown,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -55,30 +56,30 @@ const UserProfile = () => {
         const data = response.data.user.data;
         setUserData(data);
 
-         const {
-           phoneNumber,
-           phoneNumberConfirmed,
-           imgAvatarPath,
-           fullName,
-           gender,
-           address,
-           dob,
-           email,
-           emailConfirmed,
-         } = data;
-         setPhone(phoneNumber || "");
-         setPhoneNumberConfirmed(phoneNumberConfirmed || false);
-         setAvatar(imgAvatarPath || "/assets/images/default-avatar.jpg");
-         setEmail(email)
-         setEmailConfirmed(emailConfirmed);
-         setFullName(fullName); 
-         setFormData((prev) => ({
-           ...prev,
-           FullName: fullName || prev.FullName,
-           Gender: gender || prev.Gender,
-           Address: address || prev.Address,
-           BirthDate: dob || prev.BirthDate,
-         }));
+        const {
+          phoneNumber,
+          phoneNumberConfirmed,
+          imgAvatarPath,
+          fullName,
+          gender,
+          address,
+          dob,
+          email,
+          emailConfirmed,
+        } = data;
+        setPhone(phoneNumber || "");
+        setPhoneNumberConfirmed(phoneNumberConfirmed || false);
+        setAvatar(imgAvatarPath || "/assets/images/default-avatar.jpg");
+        setEmail(email);
+        setEmailConfirmed(emailConfirmed);
+        setFullName(fullName);
+        setFormData((prev) => ({
+          ...prev,
+          FullName: fullName || prev.FullName,
+          Gender: gender || prev.Gender,
+          Address: address || prev.Address,
+          BirthDate: dob || prev.BirthDate,
+        }));
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -152,55 +153,56 @@ const UserProfile = () => {
     await fetchUserData();
   };
 
-const convertToISODate = (date) => {
-  if (!date) return "";
-  const d = new Date(date);
+  const convertToISODate = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
 
-  // Lấy ngày/tháng/năm theo múi giờ local mà không bị ảnh hưởng bởi UTC
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
-  const day = String(d.getDate()).padStart(2, "0");
+    // Lấy ngày/tháng/năm theo múi giờ local mà không bị ảnh hưởng bởi UTC
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
+    const day = String(d.getDate()).padStart(2, "0");
 
-  return `${year}-${month}-${day}`; // Trả về 'YYYY-MM-DD'
-};
-// Hàm chuyển đổi ngược lại 'YYYY-MM-DD' thành 'YYYY-MM-DDTHH:MM:SS.MMM'
-const convertToFullISODate = (date) => {
-  if (!date) return "";
-  const d = new Date(date);
-  return d.toISOString(); // Trả về 'YYYY-MM-DDTHH:MM:SS.MMM'
-};
+    return `${year}-${month}-${day}`; // Trả về 'YYYY-MM-DD'
+  };
+  // Hàm chuyển đổi ngược lại 'YYYY-MM-DD' thành 'YYYY-MM-DDTHH:MM:SS.MMM'
+  const convertToFullISODate = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    return d.toISOString(); // Trả về 'YYYY-MM-DDTHH:MM:SS.MMM'
+  };
 
-
-const getMembershipStyles = (membershipLevel) => {
-  switch (membershipLevel) {
-    case "Gold_Member":
-      return {
-        label: "Thành viên vàng",
-        textColor: "#FFD700", // Vàng
-        bgColor: "#FFF8DC", // Màu nền nhạt
-      };
-    case "Silver_Member":
-      return {
-        label: "Thành viên bạc",
-        textColor: "#C0C0C0", // Bạc
-        bgColor: "#F5F5F5", // Màu nền nhạt
-      };
-    case "Diamond_Member":
-      return {
-        label: "Thành viên kim cương",
-        textColor: "#1E90FF", // Xanh ngọc
-        bgColor: "#E6F7FF", // Màu nền nhạt
-      };
-    default:
-      return {
-        label: "Thành viên đồng",
-        textColor: "#CD7F32", // Đồng
-        bgColor: "#FDF5E6", // Màu nền nhạt
-      };
-  }
-};
-
-
+  const getMembershipStyles = (membershipLevel) => {
+    switch (membershipLevel) {
+      case "Gold_Member":
+        return {
+          label: "Thành viên vàng",
+          textColor: "#FFD700", // Vàng
+          bgColor: "#FFF8DC", // Màu nền nhạt
+          icon: faGem,
+        };
+      case "Silver_Member":
+        return {
+          label: "Thành viên bạc",
+          textColor: "#C0C0C0", // Bạc
+          bgColor: "#F5F5F5", // Màu nền nhạt
+          icon: faGem,
+        };
+      case "Diamond_Member":
+        return {
+          label: "Thành viên kim cương",
+          textColor: "#1E90FF", // Xanh ngọc
+          bgColor: "#E6F7FF", // Màu nền nhạt
+          icon: faGem,
+        };
+      default:
+        return {
+          label: "Thành viên đồng",
+          textColor: "#CD7F32", // Đồng
+          bgColor: "#FDF5E6", // Màu nền nhạt
+          icon: faGem,
+        };
+    }
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -213,18 +215,18 @@ const getMembershipStyles = (membershipLevel) => {
           {t("user_profile.user_profile")}
         </h2>
         <div className="space-y-6">
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="relative">
+        <div className="flex items-center space-x-6 mb-8 bg-white p-6 rounded-lg shadow-md">
+        <div className="relative">
               <img
                 src={avatar}
                 alt="Avatar"
-                className="w-20 h-20 rounded-full object-cover border-2 border-orange-500"
+                className="w-24 h-24 rounded-full object-cover border-4 border-orange-500 shadow-lg"
                 onError={(e) =>
                   (e.target.src = "/assets/images/default-avatar.jpg")
                 }
               />
-              <div className="absolute bottom-0 right-0">
-                <AvatarUpload
+    <div className="absolute -bottom-2 -right-2">
+    <AvatarUpload
                   userId={user.UserId}
                   onAvatarChange={handleAvatarChange}
                   imgAvatarPath={avatar}
@@ -233,37 +235,48 @@ const getMembershipStyles = (membershipLevel) => {
                 />
               </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-500">
-              {userData.fullName}
-            </h3>
-            {userData.customerDetail && (
-              <div className="text-gray-500">
-                <div>
-                  <span>
-                    Điểm tích lũy: {userData.customerDetail.loyaltyPoints} -{" "}
-                    <span
-                      style={{
-                        backgroundColor: getMembershipStyles(
-                          userData.customerDetail.membershipLevel
-                        ).bgColor,
-                        color: getMembershipStyles(
-                          userData.customerDetail.membershipLevel
-                        ).textColor,
-                        padding: "5px 10px",
-                        borderRadius: "5px",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {
-                        getMembershipStyles(
-                          userData.customerDetail.membershipLevel
-                        ).label
-                      }
-                    </span>
-                  </span>
-                </div>
-              </div>
-            )}
+
+            <div className="h-24 border-l-2 border-gray-200 mx-4"></div>
+
+            <div className="flex-grow">
+            <div className="flex items-center justify-between mb-2">
+            <h3 className="text-2xl font-bold text-gray-800">
+            {userData.fullName}
+  </h3>
+  <span
+    style={{
+      backgroundColor: getMembershipStyles(
+        userData.customerDetail.membershipLevel
+      ).bgColor,
+      color: getMembershipStyles(
+        userData.customerDetail.membershipLevel
+      ).textColor,
+    }}
+    className="flex items-center px-4 py-2 rounded-full shadow-md transition-all duration-300 hover:shadow-lg"
+    >
+    <FontAwesomeIcon
+      icon={
+        getMembershipStyles(userData.customerDetail.membershipLevel).icon
+      }
+      className="mr-2 text-lg"
+      />
+    <span className="text-sm font-medium">
+      {getMembershipStyles(userData.customerDetail.membershipLevel).label}
+    </span>
+  </span>
+</div>
+
+{userData.customerDetail && (
+      <div className="text-gray-600 font-medium">
+        <div className="flex items-center">
+          <FontAwesomeIcon icon={faCrown} className="mr-2 text-yellow-500" />
+          <span>
+            Điểm tích lũy: {userData.customerDetail.loyaltyPoints}
+          </span>
+        </div>
+      </div>
+    )}
+            </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
             <div className="relative">
