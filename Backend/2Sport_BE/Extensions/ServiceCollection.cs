@@ -65,8 +65,8 @@ namespace _2Sport_BE.Extensions
 			services.AddScoped<IWarehouseService, WarehouseService>();
 			services.AddScoped<IImageService, ImageService>();
 			services.AddScoped<IImageVideosService, ImageVideosService>();
+            services.AddScoped<IReturnRequestService, ReturnRequestService>();
 
-            
             #region Order_Services
             //SaleOrder
             services.AddScoped<ISaleOrderService, SaleOrderService>();

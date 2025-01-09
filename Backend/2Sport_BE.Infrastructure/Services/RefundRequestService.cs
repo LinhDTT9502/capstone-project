@@ -41,19 +41,6 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task<ResponseDTO<RefundRequestVM>> CreateRefundRequest(RefundRequestCM refundRequestCM)
         {
             var response = new ResponseDTO<RefundRequestVM>();
-            if (!refundRequestCM.IsAgreementAccepted)
-            {
-                response.IsSuccess = false;
-                response.Message = "You must accept the terms and conditions to request a refund.";
-                return response;
-            }
-
-            if (string.IsNullOrEmpty(refundRequestCM.OrderCode))
-            {
-                response.IsSuccess = false;
-                response.Message = "OrderCode is required.";
-                return response;
-            }
 
             using (var transaction = await _unitOfwork.BeginTransactionAsync())
             {

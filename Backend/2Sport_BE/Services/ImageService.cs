@@ -16,6 +16,7 @@ namespace _2Sport_BE.Services
         Task<ImageUploadResult> UploadImageToCloudinaryAsync(IFormFile file);
         Task<ImageUploadResult> UploadImageToCloudinaryAsync(string filePath);
         Task<ImageUploadResult> UploadImageToCloudinaryAsync(IFormFile file, string folder);
+        Task<VideoUploadResult> UploadVideoToCloudinaryAsync(IFormFile file, string folder);
         Task<List<string>> ListImagesAsync(string folderName);
         Task<bool> DeleteAnImage(string fileName, string folderName);
         Task<bool> DeleteAFolder(string folderName);

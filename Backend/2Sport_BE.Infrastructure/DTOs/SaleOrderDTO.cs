@@ -1,4 +1,5 @@
 ﻿using _2Sport_BE.Repository.Models;
+using _2Sport_BE.Service.DTOs;
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -99,6 +100,8 @@ namespace _2Sport_BE.Infrastructure.DTOs
        
         public List<SaleOrderDetailVM> SaleOrderDetailVMs { get; set; }
         public List<Review> Reviews { get; set; }
+        public List<ReturnRequestVM> ReturnRequests { get; set; }
+        public List<RefundRequestVM> RefundRequests { get; set; }
     }
     public class RevenueVM
     {

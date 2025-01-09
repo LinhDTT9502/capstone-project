@@ -14,7 +14,6 @@ namespace _2Sport_BE.Repository.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ReturnID { get; set; }
-
         public int? SaleOrderID { get; set; }
 
         [ForeignKey("SaleOrderID")]

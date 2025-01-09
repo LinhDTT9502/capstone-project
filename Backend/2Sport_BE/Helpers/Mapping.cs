@@ -10,6 +10,12 @@ namespace _2Sport_BE.Helpers
     {
         public Mapping()
         {
+            #region ReturnRequest
+            CreateMap<ReturnRequest, ReturnRequestVM>().ReverseMap();
+            //CreateMap<RefundRequest, RefundRequestVM>().ReverseMap();
+            //CreateMap<RefundRequest, RefundRequestUM>().ReverseMap();
+            //CreateMap<RefundRequestUM, RefundRequest>().ReverseMap();
+            #endregion
             #region RefundRequest
             CreateMap<Feedback, FeedbackCM>().ReverseMap();
             CreateMap<Feedback, FeedbackVM>().ReverseMap();

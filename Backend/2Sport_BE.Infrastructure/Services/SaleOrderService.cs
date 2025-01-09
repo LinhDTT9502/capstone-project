@@ -8,6 +8,7 @@ using _2Sport_BE.Services;
 using _2Sport_BE.Service.Enums;
 using _2Sport_BE.Service.Helpers;
 using _2Sport_BE.Service.Services;
+using _2Sport_BE.Service.DTOs;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -190,7 +191,7 @@ namespace _2Sport_BE.Infrastructure.Services
             var response = new ResponseDTO<SaleOrderVM>();
             try
             {
-                var saleOrder = (await _unitOfWork.SaleOrderRepository.GetObjectAsync(_ => _.Id == id, new string[] { "User", "OrderDetails", "Reviews" }));
+                var saleOrder = (await _unitOfWork.SaleOrderRepository.GetObjectAsync(_ => _.Id == id, new string[] { "User", "OrderDetails", "Reviews", "ReturnRequests" }));
                 if (saleOrder == null)
                 {
                     response.IsSuccess = true;
@@ -422,7 +423,7 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             try
             {
-                var saleOder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.SaleOrderCode.Equals(SaleOrderCode), new string[] { "User", "OrderDetails" });
+                var saleOder = await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.SaleOrderCode.Equals(SaleOrderCode), new string[] { "User", "OrderDetails", "Reviews", "ReturnRequests", "RefundRequests" });
                 if (saleOder == null)
                 {
                     return GenerateErrorResponse($"SaleOrder with code {SaleOrderCode} are not found");
@@ -689,7 +690,7 @@ namespace _2Sport_BE.Infrastructure.Services
         #region CRUD_SALE_ORDER_BASIC
         public async Task<SaleOrder> FindSaleOrderById(int orderId)
         {
-            return await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId);
+            return await _unitOfWork.SaleOrderRepository.GetObjectAsync(o => o.Id == orderId, new string[] { "OrderDetails" });
         }
         public async Task<SaleOrder> FindSaleOrderByCode(string orderCode)
         {
@@ -856,7 +857,8 @@ namespace _2Sport_BE.Infrastructure.Services
                     Size = od.Size,
                 }).ToList();
             }
-
+            result.ReturnRequests = _mapper.Map<List<ReturnRequestVM>>(order.ReturnRequests.ToList());
+            result.RefundRequests = _mapper.Map<List<RefundRequestVM>>(order.RefundRequests.ToList());
             return new ResponseDTO<SaleOrderVM>
             {
                 IsSuccess = true,
