@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faTimes, faVideo, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 
-const RefundRequestsPopup = ({ orderDetail }) => {
+const ReturnRequestsPopup = ({ orderDetail }) => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
 
   const returnRequests =
@@ -190,6 +190,6 @@ const RefundRequestsPopup = ({ orderDetail }) => {
   );
 };
 
-export default RefundRequestsPopup;
+export default ReturnRequestsPopup;
 
   
