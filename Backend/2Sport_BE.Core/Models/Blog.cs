@@ -12,7 +12,7 @@ namespace _2Sport_BE.Repository.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Column("CoverImgPath", TypeName = "varchar")]
+        [Column("CoverImgPath", TypeName = "nvarchar")]
         [MaxLength(500)]
         public string CoverImgPath { get; set; }
 
