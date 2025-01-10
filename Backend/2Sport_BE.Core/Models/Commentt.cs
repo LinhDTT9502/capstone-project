@@ -18,7 +18,7 @@ namespace _2Sport_BE.Repository.Models
         public int UserId { get; set; }
         public int? ParentCommentId { get; set; }
 
-        [Column("ProductCode", TypeName = "nvarchar(15)")]
+        [Column("ProductCode", TypeName = "nvarchar(25)")]
         public string ProductCode { get; set; }
 
         [Column("Content", TypeName = "nvarchar")]
