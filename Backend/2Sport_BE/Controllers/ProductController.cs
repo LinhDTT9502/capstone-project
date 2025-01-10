@@ -1134,6 +1134,10 @@ namespace _2Sport_BE.Controllers
                                     Price = decimal.Parse(priceValue),
                                     CreateAt = DateTime.Now,
                                     IsRent = false,
+                                    Height = decimal.TryParse(heightValue, out var heightProduct) ? heightProduct : 0,
+                                    Weight = decimal.TryParse(weightValue, out var weigthProduct) ? weigthProduct : 0,
+                                    Length = decimal.TryParse(lengthValue, out var lengthProduct) ? lengthProduct : 0,
+                                    Width = decimal.TryParse(widthValue, out var widthProduct) ? widthProduct : 0,
                                 };
                                 if (newProduct.Condition >= 80 &&
                                !(newProduct.CategoryId == (int)CategoryIDs.BasketballBall ||
