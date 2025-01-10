@@ -148,12 +148,13 @@ namespace _2Sport_BE.Service.Services
             {
                 var warehouse = await _unitOfWork.WarehouseRepository.GetAsync(_ => _.ProductId == product.Id);
 
-                var status = true;
-                if (warehouse.FirstOrDefault().AvailableQuantity == 0)
+                var status = warehouse.FirstOrDefault()?.AvailableQuantity > 0;
+                var conditionStatusPair = new ConditionStatusDTO
                 {
-                    status = false;
-                }
-                var conditionStatusPair = new ConditionStatusDTO() { Status = status, Condition = product.Condition };
+                    Status = status,
+                    Condition = product.Condition
+                };
+
                 if (!listConditions.Any(cs => cs.Condition == conditionStatusPair.Condition &&
                                               cs.Status == conditionStatusPair.Status))
                 {
@@ -161,8 +162,12 @@ namespace _2Sport_BE.Service.Services
                 }
             }
 
-            return listConditions;
+            // Sort by Condition (or any property) in descending order
+            return listConditions
+                .OrderByDescending(cs => cs.Condition) // Replace 'cs.Condition' with the desired property
+                .ToList();
         }
+
 
 
         public async Task<List<SizeStatusDTO>> GetSizesOfProduct(string productCode, string color)
