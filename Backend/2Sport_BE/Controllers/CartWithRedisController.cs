@@ -56,20 +56,21 @@ namespace _2Sport_BE.Controllers
                 }
                 var query = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey)
                                                         ?? new List<CartItem>();
+                var userCartItems = query.Where(cartItem => cartItem.UserId == userId).ToList();
                 //var query = await _cartItemService.GetCartItems(userId, defaultSearch.currentPage, defaultSearch.perPage);
-                if (query != null)
+                if (userCartItems != null)
                 {
-                    var cartItems = query.Select(_ => _mapper.Map<CartItem, CartItemVM>(_)).ToList();
+                    var cartItems = userCartItems.Select(_ => _mapper.Map<CartItem, CartItemVM>(_)).ToList();
                     if (cartItems != null)
                     {
                         foreach (var carItem in cartItems)
                         {
                             if (carItem.Quantity == 0)
                             {
-                                var deleteCartItem = query.Find(_ => _.CartItemId.Equals(carItem.CartItemId));
-                                query.Remove(deleteCartItem);
-                                _redisCacheService.SetData(_cartItemsKey, query, TimeSpan.FromDays(30));
-                                cartItems = query.Select(_ => _mapper.Map<CartItem, CartItemVM>(_)).ToList();
+                                var deleteCartItem = userCartItems.Find(_ => _.CartItemId.Equals(carItem.CartItemId));
+                                userCartItems.Remove(deleteCartItem);
+                                _redisCacheService.SetData(_cartItemsKey, userCartItems);
+                                cartItems = userCartItems.Select(_ => _mapper.Map<CartItem, CartItemVM>(_)).ToList();
                             }
                             var product = await _unitOfWork.ProductRepository.FindAsync(carItem.ProductId);
                             carItem.ProductName = product.ProductName;
