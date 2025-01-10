@@ -51,7 +51,7 @@ public class OrderDetail
     [Column("UnitPrice", TypeName = "decimal")]
     public decimal? UnitPrice { get; set; }
 
-    [Column("ImgAvatarPath", TypeName = "varchar")]
+    [Column("ImgAvatarPath", TypeName = "nvarchar")]
     [MaxLength(500)]
     public string? ImgAvatarPath { get; set; }
 

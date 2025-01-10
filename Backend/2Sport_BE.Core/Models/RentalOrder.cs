@@ -67,7 +67,7 @@ namespace _2Sport_BE.Repository.Models
         [Column("RentPrice", TypeName = "decimal")]
         public decimal? RentPrice { get; set; }
 
-        [Column("ImgAvatarPath", TypeName = "varchar")]
+        [Column("ImgAvatarPath", TypeName = "nvarchar")]
         [MaxLength(500)]
         public string? ImgAvatarPath { get; set; }
 
