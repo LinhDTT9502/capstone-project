@@ -91,8 +91,6 @@ namespace _2Sport_BE.Controllers
                 productVM.CategoryName = category.CategoryName;
                 var sport = await _sportService.GetSportById(productVM.SportId);
                 productVM.SportName = sport.Name;
-                var reviews = await _reviewService.GetReviewsOfProduct(product.ProductCode);
-                productVM.Reviews = reviews.ToList();
                 var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                 productVM.Likes = numOfLikes;
                 productVM.ListImages.Add(productVM.ImgAvatarPath);
@@ -170,8 +168,6 @@ namespace _2Sport_BE.Controllers
                     productVM.CategoryName = category.CategoryName;
                     var sport = await _sportService.GetSportById(productVM.SportId);
                     productVM.SportName = sport.Name;
-                    var reviews = await _reviewService.GetReviewsOfProduct(productCode);
-                    productVM.Reviews = reviews.ToList();
                     var numOfLikes = await _likeService.CountLikesOfProduct(productCode);
                     productVM.Likes = numOfLikes;
                     productVM.ListImages.Add(productVM.ImgAvatarPath);
@@ -340,8 +336,6 @@ namespace _2Sport_BE.Controllers
 
                 foreach (var product in result)
                 {
-                    var reviews = await _reviewService.GetReviewsOfProduct(product.ProductCode);
-                    product.Reviews = reviews.ToList();
                     var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                     product.Likes = numOfLikes;
                 }
@@ -377,8 +371,6 @@ namespace _2Sport_BE.Controllers
 
                 foreach (var product in result)
                 {
-                    var reviews = await _reviewService.GetReviewsOfProduct(product.ProductCode);
-                    product.Reviews = reviews.ToList();
                     var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                     product.Likes = numOfLikes;
                 }
@@ -421,8 +413,6 @@ namespace _2Sport_BE.Controllers
 
                 foreach (var product in result)
                 {
-                    var reviews = await _reviewService.GetReviewsOfProduct(product.ProductCode);
-                    product.Reviews = reviews.ToList();
                     var numOfLikes = await _likeService.CountLikesOfProduct(product.ProductCode);
                     product.Likes = numOfLikes;
                 }

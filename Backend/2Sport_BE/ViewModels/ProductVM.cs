@@ -48,10 +48,8 @@ namespace _2Sport_BE.ViewModels
         public int? CategoryID { get; set; }
 		public string CategoryName { get; set; }
         public decimal? Price { get; set; }
-
         public List<string> ListImages { get; set; }
         public int Likes { get; set; }
-        public ICollection<Review> Reviews { get; set; }
         public string ProductCode { get; set; }
         public bool? Status { get; set; }
         public string ImgAvatarPath { get; set; }
