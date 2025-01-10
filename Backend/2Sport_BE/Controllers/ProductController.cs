@@ -444,9 +444,10 @@ namespace _2Sport_BE.Controllers
                 productCM.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
             {
                 product.IsRent = true;
-                product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * productCM.Condition / 100)) * 1000m;
+                product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100), -3);
+
             }
-           
+
             try
             {
                 var userId = GetCurrentUserIdFromToken();
@@ -1069,7 +1070,7 @@ namespace _2Sport_BE.Controllers
                                 product.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
                             {
                                 product.IsRent = true;
-                                product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100)) * 1000m;
+                                product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100), -3);
                             }
                             else
                             {
@@ -1134,7 +1135,8 @@ namespace _2Sport_BE.Controllers
                                 newProduct.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
                                 {
                                     newProduct.IsRent = true;
-                                    newProduct.RentPrice = Math.Round((decimal)(newProduct.Price * (decimal)0.1 * newProduct.Condition / 100)) * 1000m;
+                                    product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100), -3);
+
                                 }
 
                                 var existedProductWithProductCodeAndColor = (await _productService
