@@ -53,16 +53,6 @@ const SaleOrder = () => {
     0
   );
 
-  // Calculate totalDiscount (sum of price * discount% * quantity)
-  const totalDiscount = selectedProducts.reduce(
-    (acc, item) =>
-      acc + (item.price || 0) * ((item.discount || 0) / 100) * (item.quantity || 1),
-    0
-  );
-
-  // Calculate totalPrice (subTotal - totalDiscount)
-  const totalPrice = subTotal - totalDiscount;
-
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
   };
@@ -70,10 +60,10 @@ const SaleOrder = () => {
     setLoading(true);
 
     try {
-      // if (!userData.address.trim()) {
-      //   toast.error("Vui lòng nhập địa chỉ giao hàng.");
-      //   return;
-      // }
+      if (!userData.address.trim()) {
+        toast.error("Vui lòng nhập địa chỉ giao hàng.");
+        return;
+      }
 
       if (!userData.fullName.trim()) {
         toast.error("Vui lòng nhập họ và tên!");
@@ -207,10 +197,7 @@ const SaleOrder = () => {
                           <li>Tình trạng: {item.condition}%</li>
                           <li className="text-rose-700">
                             Đơn giá bán:{" "}
-                            {(item.price || 0).toLocaleString(
-                              "Vi-vn"
-                            )}
-                            ₫
+                            {(item.price || 0).toLocaleString("Vi-vn")}₫
                           </li>
                         </ul>
                       </div>
@@ -278,7 +265,7 @@ const SaleOrder = () => {
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold"> Tổng tiền hàng</h3>
                   <p className="text-base">
-                    {totalPrice.toLocaleString("Vi-vn")}₫
+                    {subTotal.toLocaleString("Vi-vn")}₫
                   </p>
                 </div>
                 <div className="flex justify-between items-center">
@@ -294,7 +281,7 @@ const SaleOrder = () => {
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Tổng thanh toán</h3>
                   <p className="text-base">
-                    {totalPrice.toLocaleString("Vi-vn")}₫
+                    {subTotal.toLocaleString("Vi-vn")}₫
                   </p>
                 </div>
               </div>
@@ -310,8 +297,9 @@ const SaleOrder = () => {
             <Button
               onClick={handleOrder}
               disabled={loading}
-              className={`bg-orange-500 text-white px-6 py-3 rounded w-2/6 ${loading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+              className={`bg-orange-500 text-white px-6 py-3 rounded w-2/6 ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
               {loading ? "Đang xử lý..." : "Đặt hàng"}
             </Button>

@@ -57,7 +57,9 @@ const Logout = () => {
             toast.success("Bạn đã đăng xuất thành công");
             navigate('/');
             dispatch(logout());
-            localStorage.clear();
+            // localStorage.clear();
+            localStorage.removeItem("token");
+            localStorage.removeItem("refreshToken");
         } catch (error) {
             console.error('There was an error making the request!', error);
             console.error('Response data:', error.response?.data);

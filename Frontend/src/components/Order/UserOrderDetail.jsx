@@ -21,6 +21,7 @@ import {
   faFlagCheckered,
   faArrowsDownToLine,
   faCreditCard,
+  faHouse,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   Button,
@@ -36,6 +37,11 @@ import DoneSaleOrderButton from "../User/DoneSaleOrderButton";
 import CancelSaleOrderButton from "../User/CancelSaleOrderButton";
 import ReviewButton from "../Review/ReviewButton";
 import ReviewSaleOrderModal from "../Review/ReviewSaleOrderModal";
+import OrderCancellationInfo from "../User/OrderCancellationInfo";
+import RefundRequestsPopup from "./RefundRequestsPopup";
+import RefundRequestForm from "../Refund/RefundRequestForm ";
+import RefundRequestPopup from "./RefundRequestButton";
+import RefundRequestButton from "./RefundRequestButton";
 
 export default function UserOrderDetail() {
   const { orderCode } = useParams();
@@ -91,7 +97,7 @@ const getCurrentStepIndex = (orderStatusId) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/get-order-by-code?orderCode=${orderCode}`,
+        `https://localhost:7276/api/SaleOrder/get-order-by-code?orderCode=${orderCode}`,
         {
           headers: {
             accept: "*/*",
@@ -176,26 +182,10 @@ const getCurrentStepIndex = (orderStatusId) => {
           </button>
         </div>
         {orderStatus === "Đã hủy" && (
-          <div className="bg-yellow-50 p-4 rounded-lg shadow-sm mb-6">
-            <p className="text-xl">
-              <b className="text-red-500">Đã hủy đơn hàng </b>
-              <i className="text-lg">
-                vào lúc{" "}
-                {new Date(updatedAt).toLocaleString("vi-VN", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  second: "2-digit",
-                })}
-              </i>
-            </p>
-            <p className="flex items-center gap-2 mb-2">
-              <FontAwesomeIcon icon={faBolt} style={{ color: "#fd7272" }} />
-              <span className="font-semibold">Lý do:</span> {orderDetail.reason}
-            </p>
-          </div>
+          <OrderCancellationInfo
+            updatedAt={orderDetail.updatedAt}
+            reason={orderDetail.reason}
+          />
         )}
         {paymentStatus === "Đã thanh toán" && (
           <div className="bg-green-500 p-4 rounded-lg shadow-sm mb-6">
@@ -362,7 +352,7 @@ const getCurrentStepIndex = (orderStatusId) => {
                       "bg-gray-100 text-gray-800"
                     }`}
                   >
-                    {paymentStatus == "N/A"? "Chưa thanh toán" : paymentStatus }
+                    {paymentStatus == "N/A" ? "Chưa thanh toán" : paymentStatus}
                   </span>
                 </p>
                 <p className="flex items-center gap-2 mb-2">
@@ -384,6 +374,23 @@ const getCurrentStepIndex = (orderStatusId) => {
                     <i>{deliveryMethod}</i>
                   </span>
                 </p>
+                <div className="pt-2">
+                  <h2 className="text-lg font-bold mb-2 text-gray-700">
+                    Chi nhánh giao hàng
+                  </h2>
+                  {orderDetail.branchId && (
+                    <p className="flex items-center gap-2 mb-2">
+                      <FontAwesomeIcon
+                        icon={faHouse}
+                        className="text-blue-500"
+                      />
+                      <span className="font-base">Chi nhánh giao hàng:</span>{" "}
+                      <span className="break-words">
+                        <i>{orderDetail.branchName || orderDetail.branchId}</i>
+                      </span>
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
             {/* Buttons */}
@@ -418,18 +425,22 @@ const getCurrentStepIndex = (orderStatusId) => {
                   className="w-full"
                 />
               )}
-              {(orderStatus === "Đã giao hàng") && (
+              {orderStatus === "Đã hoàn thành" && (
                 <ReviewButton
                   orderStatus={orderStatus}
                   saleOrderId={id}
                   setConfirmReload={setConfirmReload}
                 />
               )}
-             
+
+              {orderStatus === "Đã hủy" &&
+                paymentStatus === "Đã thanh toán" &&
+                orderDetail.refundRequests.$values?.length == 0 && (
+                  <RefundRequestForm orderDetail={orderDetail} />
+                )}
             </div>
           </div>
         </div>
-
         <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
           {products.map((product) => (
             <div
@@ -510,9 +521,49 @@ const getCurrentStepIndex = (orderStatusId) => {
                     </p>
                   </div>
                 </div>
+                <div className="">
+                  {orderDetail.orderStatus === "Đã giao hàng" &&
+                    orderDetail.deliveryMethod === "Giao hàng tận nơi" && (
+                      <Button
+                        className={`text-red-700 bg-white border border-red-700 rounded-md hover:bg-red-200 px-4 py-2 ${
+                          orderDetail.returnRequests !== null &&
+                          orderDetail.returnRequests.$values.some(
+                            (item) => item.productCode === product.productCode
+                          )
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        onClick={() =>
+                          navigate("/return", {
+                            state: {
+                              product,
+                              orderDetail,
+                            },
+                          })
+                        }
+                        disabled={
+                          orderDetail.returnRequests !== null &&
+                          orderDetail.returnRequests.$values.some(
+                            (item) => item.productCode === product.productCode
+                          )
+                        }
+                      >
+                        Trả Hàng/Hoàn Tiền
+                      </Button>
+                    )}
+                </div>
               </div>
             </div>
           ))}
+          <div className="flex justify-end items-center">
+            {orderStatus === "Đã hủy" &&
+              paymentStatus === "Đã thanh toán" &&
+              orderDetail.refundRequests.$values?.length > 0 && (
+                <RefundRequestPopup
+                  refundRequests={orderDetail.refundRequests}
+                />
+              )}
+          </div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-lg mt-6 text-gray-700">
           <p className="text-xl flex justify-between">
@@ -521,8 +572,10 @@ const getCurrentStepIndex = (orderStatusId) => {
           </p>
           <p className="flex justify-between">
             <b className="text-xl py-2 ">Phí vận chuyển: </b>
-            <p className="text-sm py-2 ">
-              {orderDetail.transportFee || "2Sport sẽ liên hệ và thông báo sau"}
+            <p className="text-xl py-2">
+              {orderDetail.tranSportFee !== 0
+                ? `${orderDetail.tranSportFee.toLocaleString("vi-VN")}₫`
+                : "2Sport sẽ liên hệ và thông báo sau"}
             </p>
           </p>
           <p className="text-xl flex justify-between items-center text-gray-700">
@@ -535,57 +588,6 @@ const getCurrentStepIndex = (orderStatusId) => {
           </p>
         </div>
       </div>
-      {/* Review Modal */}
-      {/* {showReviewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-96 max-w-full">
-            <h3 className="text-2xl font-semibold mb-4 text-gray-800">
-              Đánh giá sản phẩm
-            </h3>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Đánh giá của bạn
-              </label>
-              <StarRating
-                rating={reviewData.star}
-                onRatingChange={(newRating) =>
-                  setReviewData({ ...reviewData, star: newRating })
-                }
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="review"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Nhận xét
-              </label>
-              <textarea
-                id="review"
-                rows="4"
-                className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
-                value={reviewData.review}
-                onChange={(e) =>
-                  setReviewData({ ...reviewData, review: e.target.value })
-                }
-                placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
-              ></textarea>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button
-                color="gray"
-                onClick={() => setShowReviewModal(false)}
-                className="px-4 py-2 rounded-lg"
-              >
-                Hủy
-              </Button>
-              <button onClick={handleSubmitReview}>
-                {loading ? "Đang tiến hành..." : "Gửi đánh giá"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )} */}
     </div>
   );
 }

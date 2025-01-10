@@ -29,7 +29,7 @@ const DoneSaleOrderButton = ({ saleOrderId, setConfirmReload }) => {
         toast.success("Đơn hàng của bạn đã được hoàn tất thành công.");
               // setConfirmReload(true);
               setShowModal(false);
-              setReviewModal(true);
+              // setReviewModal(true);
       } else {
         alert("Không thể hoàn tất đơn hàng. Vui lòng thử lại sau.");
       }
