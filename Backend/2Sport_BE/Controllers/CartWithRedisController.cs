@@ -69,7 +69,7 @@ namespace _2Sport_BE.Controllers
                             {
                                 var deleteCartItem = userCartItems.Find(_ => _.CartItemId.Equals(carItem.CartItemId));
                                 userCartItems.Remove(deleteCartItem);
-                                _redisCacheService.SetData(_cartItemsKey, userCartItems);
+                                _redisCacheService.SetData(_cartItemsKey, userCartItems, TimeSpan.FromDays(30));
                                 cartItems = userCartItems.Select(_ => _mapper.Map<CartItem, CartItemVM>(_)).ToList();
                             }
                             var product = await _unitOfWork.ProductRepository.FindAsync(carItem.ProductId);
