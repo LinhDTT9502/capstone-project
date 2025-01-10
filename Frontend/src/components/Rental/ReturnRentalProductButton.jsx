@@ -15,7 +15,7 @@ const ReturnRentalProductButton = (selectedOrderId) => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "https://localhost:7276/api/RentalOrder/request-return",
+        "https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/request-return",
         {
           selectedReturnOrderId: selectedOrderId.selectedOrderId,
           requestTimestamp: new Date().toISOString(),
