@@ -98,7 +98,7 @@ const getNextStepId = (currentStepId, orderStatusId) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://localhost:7276/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
+        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
         {
           headers: {
             accept: "*/*",
