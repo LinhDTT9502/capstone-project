@@ -947,7 +947,7 @@ namespace _2Sport_BE.Controllers
                 //{
                 //    dbct.BulkInsert(products);
                 //}
-                return Ok("Import product successfullu!");
+                return Ok("Import product successfully!");
             }
             catch (Exception e)
             {
@@ -1139,6 +1139,7 @@ namespace _2Sport_BE.Controllers
                                !(newProduct.CategoryId == (int)CategoryIDs.BasketballBall ||
                                 newProduct.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
                                 {
+                                    newProduct.IsRent = true;
                                     newProduct.RentPrice = Math.Round((decimal)(newProduct.Price * (decimal)0.1 * newProduct.Condition / 100));
                                 }
 
