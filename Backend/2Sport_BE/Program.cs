@@ -227,7 +227,21 @@ using (var scope = app.Services.CreateScope())
            () => saleOrderService.CheckPendingOrderForget(),
            Cron.Hourly
        );
-
+        recurringJobs.AddOrUpdate(
+           "CompletedSaleOrder",
+           () => saleOrderService.CompletedSaleOrder(),
+           Cron.Hourly
+       );
+        recurringJobs.AddOrUpdate(
+          "RefundSaleOrder",
+          () => saleOrderService.RefundSaleOrder(),
+          Cron.Hourly()
+      );
+        recurringJobs.AddOrUpdate(
+          "RefundRentalOrder",
+          () => rentalOrderService.RefundRentalOrder(),
+          Cron.Hourly()
+      );
     });
 }
 
