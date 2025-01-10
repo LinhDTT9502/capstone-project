@@ -92,6 +92,40 @@ namespace _2Sport_BE.Controllers
         }
 
         [HttpGet]
+        [Route("check-availabe-of-product-by-productCode-color-size-and-condition")]
+        public async Task<IActionResult> CheckAvailableOfProduct(string productCode, string color, string size, int condition)
+        {
+            try
+            {
+                var product = (await _productService.GetProductByProductCodeSizeColorCondition(productCode, size, color, condition))
+                                                .FirstOrDefault();
+                if (product is null)
+                {
+                    return BadRequest("cannot find product!");
+                }
+                var availabeQuantity = 0;
+
+                var warehouse = (await _warehouseService.GetWarehouseByProductId(product.Id)).FirstOrDefault();
+                if (warehouse is not null)
+                {
+                    availabeQuantity += (int)warehouse.AvailableQuantity;
+                }
+                if (availabeQuantity > 0)
+                {
+                    return Ok("Available!");
+                }
+                else
+                {
+                    return Ok("Sold out!");
+                }
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
+        [HttpGet]
         [Route("list-products-of-branch/{branchId}")]
         public async Task<IActionResult> GetProductsOfBranch(int branchId)
         {
