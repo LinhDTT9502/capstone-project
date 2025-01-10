@@ -1067,14 +1067,7 @@ namespace _2Sport_BE.Controllers
                         {
                             if (!string.IsNullOrEmpty(avaImgValue))
                             {
-                                var imgURL = await UploadAvaImgFile(avaImgValue);
-                                if (imgURL != null) {
-                                    product.ImgAvatarPath = imgURL;
-                                }
-                                else
-                                {
-                                    return "Upload image failed!";
-                                }
+                                product.ImgAvatarPath = avaImgValue;
                             }
                             else
                             {
@@ -1155,15 +1148,7 @@ namespace _2Sport_BE.Controllers
                                 {
                                     if (!string.IsNullOrEmpty(avaImgValue))
                                     {
-                                        var imgURL = await UploadAvaImgFile(avaImgValue);
-                                        if (imgURL != null)
-                                        {
-                                            newProduct.ImgAvatarPath = imgURL;
-                                        }
-                                        else
-                                        {
-                                            return "Upload image failed!";
-                                        }
+                                        newProduct.ImgAvatarPath = avaImgValue;
                                     }
                                     else
                                     {
@@ -1294,53 +1279,51 @@ namespace _2Sport_BE.Controllers
         private async Task<bool> UploadProductImages(int productId, string? firstImgValue, 
                         string? secondImgValue, string? thirdImgValue, string? fourthImgValue, string? fifthImgValue)
         {
-            var listProductImages = new List<string>();
-            if (!string.IsNullOrEmpty(firstImgValue))
+            try
             {
-                listProductImages.Add(firstImgValue);
-            }
-            if (!string.IsNullOrEmpty(secondImgValue))
-            {
-                listProductImages.Add(secondImgValue);
-            }
-            if (!string.IsNullOrEmpty(thirdImgValue))
-            {
-                listProductImages.Add(thirdImgValue);
-            }
-            if (!string.IsNullOrEmpty(fourthImgValue))
-            {
-                listProductImages.Add(fourthImgValue);
-            }
-            if (!string.IsNullOrEmpty(fifthImgValue))
-            {
-                listProductImages.Add(fifthImgValue);
-            }
-
-            if (listProductImages.Count > 0)
-            {
-                foreach (var imagePath in listProductImages)
+                var listProductImages = new List<string>();
+                if (!string.IsNullOrEmpty(firstImgValue))
                 {
-                    //var imageFile = ConvertToIFormFile(imagePath);
-                    var uploadResult = await _imageService.UploadImageToCloudinaryAsync(imagePath);
-                    if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    listProductImages.Add(firstImgValue);
+                }
+                if (!string.IsNullOrEmpty(secondImgValue))
+                {
+                    listProductImages.Add(secondImgValue);
+                }
+                if (!string.IsNullOrEmpty(thirdImgValue))
+                {
+                    listProductImages.Add(thirdImgValue);
+                }
+                if (!string.IsNullOrEmpty(fourthImgValue))
+                {
+                    listProductImages.Add(fourthImgValue);
+                }
+                if (!string.IsNullOrEmpty(fifthImgValue))
+                {
+                    listProductImages.Add(fifthImgValue);
+                }
+
+                if (listProductImages.Count > 0)
+                {
+                    foreach (var imagePath in listProductImages)
                     {
                         var imageObject = new ImagesVideo()
                         {
                             ProductId = productId,
-                            ImageUrl = uploadResult.SecureUri.AbsoluteUri,
+                            ImageUrl = imagePath,
                             CreateAt = DateTime.Now,
                             VideoUrl = null,
                         };
                         await _imageVideosService.AddImage(imageObject);
                     }
-                    else
-                    {
-                        return false;
-
-                    }
                 }
+                return true;
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
             }
-            return true;
+            
         }
 
         [NonAction]
