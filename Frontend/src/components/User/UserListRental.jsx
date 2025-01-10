@@ -14,6 +14,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import CancelRentalOrderButton from "./CancelRentalOrderButton";
 import { toast } from "react-toastify";
 import DoneRentalOrderButton from "./DoneRentalOrderButton";
+import ReturnRequestButton from "../../pages/ReturnPage";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -372,6 +373,15 @@ export default function UserListRental() {
                       >
                         Thanh toán
                       </Button>
+                    )}
+                  {parent.orderStatus === "Đã hủy" &&
+                    parent.depositAmount > 0 && (
+                      <button
+                        className="text-red-700 bg-white border border-red-700 rounded-md hover:bg-red-200 px-4 py-2"
+                        onClick={() => navigate("/return")}
+                      >
+                        Trả Hàng/Hoàn Tiền
+                      </button>
                     )}
                   {parent.orderStatus === "Chờ xử lý" && (
                     <CancelRentalOrderButton

@@ -316,7 +316,7 @@ const GuestOrder = () => {
                   <p className="text-gray-600 font-semibold text-lg pl-2  ">
                     Thành tiền:{" "}
                     <span className="text-orange-500">
-                      {order.totalAmount.toLocaleString("Vi-vn")}₫
+                      {order.totalAmount.toLocaleString("Vi-vn")} ₫
                     </span>
                   </p>
                   <div className="flex gap-2">

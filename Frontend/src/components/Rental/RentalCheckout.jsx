@@ -447,13 +447,23 @@ export default function RentalCheckout() {
                     {selectedOrder.subTotal.toLocaleString("vi-VN")}₫
                   </p>
                 </div>
-                <div className="flex justify-between mb-2">
+                <div className="flex justify-between mb-4">
                   <p className="font-medium text-gray-700 mr-2">
                     Phí vận chuyển:
                   </p>
-                  <p className="font-medium text-gray-700">
-                    {selectedOrder.tranSportFee.toLocaleString("vi-VN")}₫
-                  </p>
+                  <div className="relative group">
+                    <p className="font-medium text-gray-700">
+                      {selectedOrder.totalAmount > 2000000 ||
+                      selectedOrder.deliveryMethod === "Đến cửa hàng nhận"
+                        ? "Miễn phí"
+                        : `2Sport sẽ liên hệ lại sau`}
+                    </p>
+                    {/* Tooltip */}
+                    <div className="absolute bottom-0 left-0 hidden group-hover:block bg-gray-800 text-white text-sm rounded p-2 w-40">
+                      Phí vận chuyển sẽ miễn phí nếu tổng tiền hơn 2 triệu hoặc
+                      bạn chọn phương thức "Đến cửa hàng nhận".
+                    </div>
+                  </div>
                 </div>
                 <div className="flex justify-between mb-4">
                   <p className="text-lg font-semibold text-gray-800">
