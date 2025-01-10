@@ -857,8 +857,14 @@ namespace _2Sport_BE.Infrastructure.Services
                     Size = od.Size,
                 }).ToList();
             }
-            result.ReturnRequests = _mapper.Map<List<ReturnRequestVM>>(order.ReturnRequests.ToList());
-            result.RefundRequests = _mapper.Map<List<RefundRequestVM>>(order.RefundRequests.ToList());
+            result.ReturnRequests = order.ReturnRequests != null && order.ReturnRequests.Any()
+    ? _mapper.Map<List<ReturnRequestVM>>(order.ReturnRequests)
+    : null;
+
+            result.RefundRequests = order.RefundRequests != null && order.RefundRequests.Any()
+                ? _mapper.Map<List<RefundRequestVM>>(order.RefundRequests)
+                : null;
+
             return new ResponseDTO<SaleOrderVM>
             {
                 IsSuccess = true,

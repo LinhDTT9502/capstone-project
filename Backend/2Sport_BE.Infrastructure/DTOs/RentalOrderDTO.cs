@@ -196,15 +196,13 @@ namespace _2Sport_BE.Infrastructure.DTOs
     public class ReturnRequestModel
     {
         public int SelectedReturnOrderId { get; set; }
-        public int ParentOrderId { get; set; }
-        public string Reason { get; set; }
-
+        //public int ParentOrderId { get; set; }
+        public DateTime? RequestTimestamp { get; set; }
     }
 
     public class ReturnRequestModelUM
     {
         public int SelectedReturnOrderId { get; set; }
-        public int ParentOrderId { get; set; }            // ID của parent order
         public bool IsRestocked { get; set; }      // Đã nhập kho lại chưa
         public bool IsInspected { get; set; }      // Đã kiểm tra chưa
         public decimal? LateFee { get; set; }       // Phí trễ hạn

@@ -1098,15 +1098,16 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
                     else
                     {
+                        var oldBranch = rentalOrder.BranchId.Value;
                         if (rentalOrder.OrderStatus >= (int)RentalOrderStatus.CONFIRMED)
                             return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
 
                         var childOrder = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode.Equals(rentalOrder.RentalOrderCode));
 
                         rentalOrder.OrderStatus = (int)RentalOrderStatus.PENDING;
-                        rentalOrder.UpdatedAt = DateTime.Now;
-
                         rentalOrder.BranchId = null;
+                        rentalOrder.BranchName = null;
+                        rentalOrder.UpdatedAt = null;
 
                         if (childOrder.Any())
                         {
@@ -1114,12 +1115,13 @@ namespace _2Sport_BE.Infrastructure.Services
                             {
                                 item.OrderStatus = (int)RentalOrderStatus.PENDING;
                                 item.BranchId = null;
-                                item.UpdatedAt = DateTime.Now;
-                                await _unitOfWork.RentalOrderRepository.UpdateAsync(item);
+                                item.BranchName = null;
+                                item.UpdatedAt = null;
                             }
+                            await _unitOfWork.RentalOrderRepository.UpdateRangeAsync(childOrder.ToList());
                         }
 
-                        await _notificationService.NotifyForRejectOrderAsync(rentalOrder.RentalOrderCode, rentalOrder.BranchId.Value);
+                        await _notificationService.NotifyForRejectOrderAsync(rentalOrder.RentalOrderCode, oldBranch);
                         await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
                         await transaction.CommitAsync();
@@ -1377,10 +1379,7 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             return order.RentalDays;
         }
-        private decimal CalculateTotalAmount(decimal? subTotal = 0, decimal? transportFee = 0, decimal? lateFee = 0, decimal? damageFee = 0, decimal? depositAmount = 0)
-        {
-            return (decimal)(subTotal + transportFee + lateFee + damageFee - depositAmount);
-        }
+
         private decimal CalculateTotalAmount(RentalOrder rentalOrder)
         {
             return (rentalOrder.SubTotal ?? 0)
@@ -1628,9 +1627,8 @@ namespace _2Sport_BE.Infrastructure.Services
                 };
             }
 
-            selectedOrder.Reason = returnRequestModel.Reason;
             selectedOrder.OrderStatus = (int)RentalOrderStatus.RETURN_REQUESTED;
-            selectedOrder.ReturnDate = _methodHelper.GetTimeInUtcPlus7();
+            selectedOrder.ReturnDate = returnRequestModel.RequestTimestamp;
             selectedOrder.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
             await _unitOfWork.RentalOrderRepository.UpdateAsync(selectedOrder);
 
