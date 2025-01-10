@@ -205,10 +205,7 @@ const Checkout = () => {
                           </p>
                           <p className="font-sm text-base text-rose-700">
                             Đơn giá bán:{" "}
-                            {new Intl.NumberFormat("vi-VN", {
-                              style: "currency",
-                              currency: "VND",
-                            }).format(item.unitPrice)}
+                            {item.unitPrice.toLocaleString("Vi-vn")}₫
                           </p>
                         </div>
                       </div>
@@ -228,10 +225,23 @@ const Checkout = () => {
                 <p className="font-medium text-gray-700 mr-2">
                   Phí vận chuyển:
                 </p>
-                <p className="font-medium text-gray-700">
-                  {selectedOrder.tranSportFee.toLocaleString("vi-VN")}₫
-                </p>
+                <div className="relative group">
+                  <p className="font-medium text-gray-700">
+                    {selectedOrder.totalAmount > 2000000 ||
+                    selectedOrder.deliveryMethod === "Đến cửa hàng nhận"
+                      ? "Miễn phí"
+                      : `${selectedOrder.tranSportFee.toLocaleString(
+                          "vi-VN"
+                        )}₫` || "2Sport sẽ liên hệ và thông báo sau"}
+                  </p>
+                  {/* Tooltip */}
+                  <div className="absolute bottom-0 left-0 hidden group-hover:block bg-gray-800 text-white text-sm rounded p-2 w-40">
+                    Phí vận chuyển sẽ miễn phí nếu tổng tiền hơn 2 triệu hoặc
+                    bạn chọn phương thức "Đến cửa hàng nhận".
+                  </div>
+                </div>
               </div>
+
               <div className="flex justify-between mb-4">
                 <p className="text-lg font-semibold text-gray-800">
                   Tổng cộng:

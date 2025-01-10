@@ -14,7 +14,6 @@ import {
   faTruck,
   faCoins,
   faBolt,
-
   faVenusMars,
   faDollarSign,
   faClock,
@@ -24,6 +23,7 @@ import {
   faArrowsDownToLine,
   faRecycle,
   faCreditCard,
+  faHouse,
 } from "@fortawesome/free-solid-svg-icons";
 import { Button, Tooltip, Typography, Input, Stepper, Step } from "@material-tailwind/react";
 import CancelRentalOrderButton from "../User/CancelRentalOrderButton";
@@ -32,6 +32,7 @@ import ExtensionRequestButton from "../User/ExtensionRequestButton";
 import ExtensionStatusMessage from "./ExtensionStatusMessage";
 import OrderCancellationInfo from "../User/OrderCancellationInfo";
 import OrderDepositInfo from "./OrderDepositInfo";
+import ReturnRentalProductButton from "./ReturnRentalProductButton";
 
 export default function UserRentalDetail() {
   const { orderCode } = useParams();
@@ -72,21 +73,32 @@ export default function UserRentalDetail() {
     { id: 14, label: "Đã Hoàn Thành" },
   ];
 
-  const getCurrentStepIndex = (orderStatusId) => {
-      if (orderStatusId === 6) {
-        return ORDER_STEPS.findIndex((step) => step.id === 4);
-      } else {
-    const step = ORDER_STEPS.find((step) => step.id === orderStatusId);
-    return step ? ORDER_STEPS.indexOf(step) : -1; 
-      }
+const getCurrentStepId = (orderStatusId) => {
+  // Trả về stepId từ orderStatusId
+  const step = ORDER_STEPS.find((step) => step.id === orderStatusId);
+  return step ? step.id : null; // Trả về id nếu tìm thấy, nếu không trả về null
+};
 
-  };
+const getNextStepId = (currentStepId, orderStatusId) => {
+  const validSteps = ORDER_STEPS.map((step) => step.id);
+
+  // Nếu orderStatusId yêu cầu ở một bước trước hoặc là một bước không thể tiến lên (ví dụ: "RETURN_REQUESTED")
+  if (orderStatusId === 11 && currentStepId === 8) {
+    return currentStepId; // Giữ nguyên bước nếu yêu cầu trả sản phẩm mà hiện tại đang trong "Đang thuê"
+  }
+
+  // Nếu trạng thái tiếp theo hợp lệ, di chuyển đến bước tiếp theo
+  const currentStepIndex = validSteps.indexOf(currentStepId);
+  const nextStepIndex = validSteps.indexOf(orderStatusId);
+  return nextStepIndex > currentStepIndex ? orderStatusId : currentStepId;
+};
+
 
   const fetchOrderDetail = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
+        `https://localhost:7276/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
         {
           headers: {
             accept: "*/*",
@@ -109,7 +121,8 @@ export default function UserRentalDetail() {
 
   useEffect(() => {
     fetchOrderDetail();
-    getCurrentStepIndex();
+    getCurrentStepId();
+    getNextStepId();
   }, [orderCode, reload, confirmReload]);
 
   if (isLoading)
@@ -178,15 +191,31 @@ export default function UserRentalDetail() {
             {/* Stepper */}
             <div className="mb-16 bg-orange-100">
               <Stepper
-                activeStep={getCurrentStepIndex(orderStatusId)}
+                activeStep={getNextStepId(
+                  getCurrentStepId(orderStatusId),
+                  orderStatusId
+                )} // Điều chỉnh để không thay đổi bước khi cần thiết
                 className="p-2 rounded-lg"
               >
                 {ORDER_STEPS.map((status, index) => {
-                  const currentIndex = getCurrentStepIndex(orderStatusId);
+                  const currentStepId = getCurrentStepId(orderStatusId);
+                  const nextStepId = getNextStepId(
+                    currentStepId,
+                    orderStatusId
+                  );
 
-                  const isRedStep =
-                    orderStatusId === 6 && index >= currentIndex;
-                  const isCompleted = index <= currentIndex;
+                  const isValidOrderStatus = ORDER_STEPS.some(
+                    (step) => step.id === orderStatusId
+                  );
+
+                  const isRedStep = isValidOrderStatus
+                    ? orderStatusId === 6 && status.id >= nextStepId
+                    : false;
+
+                  const isCompleted = isValidOrderStatus
+                    ? status.id <= nextStepId
+                    : false;
+
                   return (
                     <Step
                       key={index}
@@ -211,19 +240,19 @@ export default function UserRentalDetail() {
                         >
                           <FontAwesomeIcon
                             icon={
-                              index === 0
+                              status.id === 1
                                 ? faClock
-                                : index === 1
+                                : status.id === 2
                                 ? faCheckCircle
-                                : index === 2
+                                : status.id === 3
                                 ? faCogs
-                                : index === 3
+                                : status.id === 4
                                 ? faTruck
-                                : index === 4
+                                : status.id === 5
                                 ? faArrowsDownToLine
-                                : index === 5
+                                : status.id === 9
                                 ? faRecycle
-                                : index === 6
+                                : status.id === 14
                                 ? faFlagCheckered
                                 : faClock
                             }
@@ -368,6 +397,20 @@ export default function UserRentalDetail() {
                   </span>
                 </p>
               </div>
+              {orderDetail.branchId && (
+                <div className="pt-2">
+                  <h2 className="text-lg font-bold mb-2 text-gray-700">
+                    Chi nhánh giao hàng
+                  </h2>
+                  <p className="flex items-center gap-2 mb-2">
+                    <FontAwesomeIcon icon={faHouse} className="text-blue-500" />
+                    <span className="font-base">Chi nhánh giao hàng:</span>{" "}
+                    <span className="break-words">
+                      <i>{orderDetail.branchName}</i>
+                    </span>
+                  </p>
+                </div>
+              )}
             </div>
             <div className="col-span-1 flex flex-col gap-4">
               {/* Thanh toan button */}
@@ -463,6 +506,21 @@ export default function UserRentalDetail() {
                       </p>
                     </div>
                   </div>
+                  {orderStatus === "Đã giao hàng" && (
+                    <ExtensionRequestButton
+                      parentOrder={orderDetail}
+                      selectedChildOrder={orderDetail}
+                      setExtendReload={setExtendReload}
+                    />
+                  )}
+                  {console.log(child)}
+                  {(orderStatus === "Đã giao hàng" ||
+                    orderStatus === "Đang gia hạn" &&
+                    child.extensionStatus === "2") && (
+                    <ReturnRentalProductButton
+                      selectedOrderId={orderDetail.id}
+                    />
+                  )}
                 </div>
                 <div className="pt-2 flex justify-between items-center gap-4">
                   <div className="flex items-center gap-2">
@@ -636,6 +694,10 @@ export default function UserRentalDetail() {
                     setExtendReload={setExtendReload}
                   />
                 )}
+                {(orderStatus === "Đã giao hàng" ||
+                  orderStatus === "Đang gia hạn") && (
+                  <ReturnRentalProductButton selectedOrderId={orderDetail.id} />
+                )}
               </div>
             </div>
           )}
@@ -643,7 +705,7 @@ export default function UserRentalDetail() {
         <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
           <p className="text-xl flex justify-between">
             <b>Tạm tính: </b>
-            <i>{orderDetail.subTotal.toLocaleString("vi-VN")}₫</i>
+            <i>{orderDetail.subTotal.toLocaleString("vi-VN")} ₫</i>
           </p>
           <p className="flex justify-between">
             <b className="text-xl py-2 ">Phí vận chuyển: </b>
@@ -654,7 +716,7 @@ export default function UserRentalDetail() {
           <p className="text-xl flex justify-between">
             <b>Thành tiền: </b>
             <i className="text-orange-500 font-bold">
-              {orderDetail.totalAmount.toLocaleString("vi-VN")}₫
+              {orderDetail.totalAmount.toLocaleString("vi-VN")} ₫
             </i>
           </p>
         </div>

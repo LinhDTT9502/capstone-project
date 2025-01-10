@@ -183,7 +183,6 @@ const UserCart = () => {
 
   return (
     <div className="container mx-auto px-20 py-10">
-      
       <div className="flex justify-between items-center">
         <h1 className="font-alfa text-orange-500 text-2xl">
           {t("user_cart.shopping_cart")}
@@ -334,14 +333,14 @@ const UserCart = () => {
                   </button>
                 </div>
                 <div className="w-2/12 text-center">
-                  {(item.price).toLocaleString()}
+                  {item.price.toLocaleString("vi-VN")} ₫
                 </div>
                 <div className="w-2/12 text-center">
-                  {(item.price * item.quantity).toLocaleString()}
+                  {(item.price * item.quantity).toLocaleString("vi-VN")} ₫
                 </div>
                 <div className="w-2/12 text-center">
                   {item.rentPrice !== 0
-                    ? item.rentPrice.toLocaleString()
+                    ? item.rentPrice.toLocaleString("vi-VN") + " ₫"
                     : "Sản phẩm chỉ bán"}
                 </div>
                 <div className="w-1/12 text-center">

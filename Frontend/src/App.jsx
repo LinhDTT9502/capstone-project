@@ -52,6 +52,7 @@ import PaymentFail from './pages/AfterPayment/PaymentFail';
 import GuestRoutes from './routes/GuestRoutes';
 import { ToastContainer } from 'react-toastify';
 import PrivateRoute from './routes/PrivateRoute';
+import ReturnPage from './pages/ReturnPage';
 
 
 function App() {
@@ -62,7 +63,6 @@ function App() {
     <>
       {/* {!isStaffOrAdmin && ( */}
       <div>
-        
         <Header />
         <ScrollToTop />
         <div className="fixed bottom-0 left-0 right-0 z-50 pb-4 pl-4 flex flex-col items-end space-y-4 sm:flex-row sm:justify-between sm:items-end sm:space-y-0 sm:space-x-4 w-fit">
@@ -78,13 +78,13 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route
-                path="/manage-account/*"
-                element={
-                  <PrivateRoute allowedRoles={["Customer"]}>
-                   <UserRoutes />
-                  </PrivateRoute>
-                }
-              />
+            path="/manage-account/*"
+            element={
+              <PrivateRoute allowedRoles={["Customer"]}>
+                <UserRoutes />
+              </PrivateRoute>
+            }
+          />
           {/* <Route path="/manage-account/*" element={<UserRoutes />} /> */}
           <Route path="/guest/*" element={<GuestRoutes />} />
           <Route path="/refund-request" element={<RefundForm />} />
@@ -105,7 +105,7 @@ function App() {
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-success-2" element={<PaymentSuccessV2 />} />
           <Route path="/payment-cancel" element={<PaymentFail />} />
-
+          <Route path="/return" element={<ReturnPage />} />
           {/* <Route path='/blog-list' element={<BlogList/>}/>
         <Route path='/blog-detail' element={<BlogDetail/>}/> */}
 
