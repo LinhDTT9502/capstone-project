@@ -120,7 +120,8 @@ namespace _2Sport_BE.Controllers
                     storageClient.UploadObject(bucketName, objectName, "image/jpeg", fileStream);
                 }
                 return Ok($"Uploaded {localFilePath} to bucket {bucketName} as {objectName}");
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return Ok(ex.Message);
             }
@@ -187,7 +188,7 @@ namespace _2Sport_BE.Controllers
         public async Task<IActionResult> GetColorsOfProduct(string productCode)
         {
             var colors = await _productService.GetColorsOfProduct(productCode);
-            return Ok(new { total = colors.Count, data = colors }); 
+            return Ok(new { total = colors.Count, data = colors });
         }
 
 
@@ -215,7 +216,7 @@ namespace _2Sport_BE.Controllers
             try
             {
                 var query = await _productService.GetProducts(_ => _.Id > 0, null, "ImagesVideos", defaultSearch.currentPage, defaultSearch.perPage);
-                
+
                 var products = query.ToList();
                 foreach (var product in products)
                 {
@@ -444,8 +445,7 @@ namespace _2Sport_BE.Controllers
                 productCM.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
             {
                 product.IsRent = true;
-                product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100), -3);
-
+                product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100) / 1000) * 1000;
             }
 
             try
@@ -683,7 +683,7 @@ namespace _2Sport_BE.Controllers
                     if (productCM.Condition >= 80)
                     {
                         product.IsRent = true;
-                        product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * productCM.Condition / 100));
+                        product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100) / 1000) * 1000;
                     }
                     try
                     {
@@ -999,7 +999,7 @@ namespace _2Sport_BE.Controllers
                         string.IsNullOrEmpty(colorValue) ||
                         string.IsNullOrEmpty(conditionValue) ||
                         string.IsNullOrEmpty(avaImgValue) ||
-                        string.IsNullOrEmpty(heightValue)||
+                        string.IsNullOrEmpty(heightValue) ||
                         string.IsNullOrEmpty(weightValue) ||
                         string.IsNullOrEmpty(lengthValue) ||
                         string.IsNullOrEmpty(widthValue))
@@ -1070,7 +1070,7 @@ namespace _2Sport_BE.Controllers
                                 product.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
                             {
                                 product.IsRent = true;
-                                product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100), -3);
+                                product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100) / 1000) * 1000;
                             }
                             else
                             {
@@ -1085,9 +1085,9 @@ namespace _2Sport_BE.Controllers
                             var thirdImgValue = reader.GetValue(18)?.ToString();
                             var fourthImgValue = reader.GetValue(19)?.ToString();
                             var fifthImgValue = reader.GetValue(20)?.ToString();
-                            var isSuccess = await UploadProductImages(product.Id,firstImgValue, secondImgValue, thirdImgValue,
+                            var isSuccess = await UploadProductImages(product.Id, firstImgValue, secondImgValue, thirdImgValue,
                                                         fourthImgValue, fifthImgValue);
-                            
+
                             if (!isSuccess)
                             {
                                 return "Upload image failed!";
@@ -1135,7 +1135,7 @@ namespace _2Sport_BE.Controllers
                                 newProduct.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
                                 {
                                     newProduct.IsRent = true;
-                                    product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100), -3);
+                                    product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100) / 1000) * 1000;
 
                                 }
 
@@ -1154,7 +1154,8 @@ namespace _2Sport_BE.Controllers
                                     {
                                         return "There is no image file!";
                                     }
-                                } else
+                                }
+                                else
                                 {
                                     newProduct.ImgAvatarPath = existedProductWithProductCodeAndColor.ImgAvatarPath;
                                 }
@@ -1177,7 +1178,8 @@ namespace _2Sport_BE.Controllers
                                         return "Upload image failed!";
                                     }
 
-                                } else
+                                }
+                                else
                                 {
                                     var images = await _imageVideosService.GetAsyncs(
                                                                 _ => _.ProductId == existedProduct.Id);
@@ -1192,7 +1194,7 @@ namespace _2Sport_BE.Controllers
                                         };
                                         await _imageVideosService.AddImage(imageObject);
                                     }
-                                    
+
                                 }
 
                                 var warehouse = new Warehouse()
@@ -1276,7 +1278,7 @@ namespace _2Sport_BE.Controllers
         }
 
         [NonAction]
-        private async Task<bool> UploadProductImages(int productId, string? firstImgValue, 
+        private async Task<bool> UploadProductImages(int productId, string? firstImgValue,
                         string? secondImgValue, string? thirdImgValue, string? fourthImgValue, string? fifthImgValue)
         {
             try
@@ -1318,12 +1320,13 @@ namespace _2Sport_BE.Controllers
                     }
                 }
                 return true;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return false;
             }
-            
+
         }
 
         [NonAction]
@@ -1444,7 +1447,8 @@ namespace _2Sport_BE.Controllers
                 }
                 return Ok(product);
 
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
@@ -1501,7 +1505,8 @@ namespace _2Sport_BE.Controllers
                     {
                         updatedProduct.IsRent = productUM.IsRent;
                         updatedProduct.RentPrice = 0;
-                    } else
+                    }
+                    else
                     {
                         updatedProduct.IsRent = productUM.IsRent;
                         updatedProduct.RentPrice = productUM.RentPrice;
@@ -1610,7 +1615,7 @@ namespace _2Sport_BE.Controllers
 
         [HttpPut]
         [Route("edit-description-of-product/{productCode}")]
-        public async Task<IActionResult> EditDescriptionOfPrduct (string productCode, string description)
+        public async Task<IActionResult> EditDescriptionOfPrduct(string productCode, string description)
         {
             try
             {
@@ -1807,7 +1812,8 @@ namespace _2Sport_BE.Controllers
                     return BadRequest("Delete failed");
                 }
                 return Ok("Delete successully!");
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
