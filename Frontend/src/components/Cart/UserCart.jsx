@@ -344,6 +344,8 @@ const UserCart = () => {
                     : "Sản phẩm chỉ bán"}
                 </div>
                 <div className="w-1/12 text-center">
+                  {console.log(item)}
+
                   <button
                     className="text-red-500"
                     onClick={() => handleRemoveFromCart(item.cartItemId)}

@@ -33,18 +33,14 @@ const ReviewButton = ({ orderStatus, saleOrderId, setConfirmReload }) => {
             Đánh giá
           </Button>
         ) : (
-          <div className="relative">
-            <div className="absolute top-[-70px] left-[-230px]">
-              <Button
-                disabled={true}
-                color="white"
-                size="sm"
-                className="text-green-500 bg-white border border-green-500 rounded-md hover:bg-yellow-200"
-              >
-                Đã đánh giá
-              </Button>
-            </div>
-          </div>
+          <Button
+            disabled={true}
+            color="white"
+            size="sm"
+            className="text-green-500 bg-white border border-green-500 rounded-md hover:bg-yellow-200"
+          >
+            Đã đánh giá
+          </Button>
         )}
         <ReviewSaleOrderModal
           saleOrderId={saleOrderId}

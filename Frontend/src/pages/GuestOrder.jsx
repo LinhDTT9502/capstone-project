@@ -10,6 +10,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import CancelSaleOrderButton from "../components/User/CancelSaleOrderButton";
 import DoneSaleOrderButton from "../components/User/DoneSaleOrderButton";
+import ReviewButton from "../components/Review/ReviewButton";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -348,13 +349,21 @@ const GuestOrder = () => {
                         setConfirmReload={setConfirmReload}
                       />
                     )}
+                    {order.orderStatus === "Đã hoàn thành" && (
+                      <ReviewButton
+                        orderStatus={order.orderStatus}
+                        saleOrderId={order.id}
+                        setConfirmReload={setConfirmReload}
+                      />
+                    )}
+
                     <Button
                       color="orange"
                       className="w-40 text-white rounded-md hover:bg-orange-700"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(
-                         `/guest/guest-sale-order/${order.saleOrderCode}`
+                          `/manage-account/sale-order/${order.saleOrderCode}`
                         );
                       }}
                     >

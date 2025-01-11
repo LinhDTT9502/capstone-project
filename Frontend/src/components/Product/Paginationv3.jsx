@@ -35,7 +35,7 @@ const Paginationv3 = ({ currentPage, totalPages, onPageChange }) => {
     };
   
     return (
-      <nav className="flex items-center justify-end space-x-2 mt-8">
+      <nav className="flex items-center justify-end space-x-2 py-4">
         <div
           className={`w-8 h-8 flex items-center justify-center rounded-full ${
             currentPage === 1

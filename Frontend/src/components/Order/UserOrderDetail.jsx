@@ -38,10 +38,10 @@ import CancelSaleOrderButton from "../User/CancelSaleOrderButton";
 import ReviewButton from "../Review/ReviewButton";
 import ReviewSaleOrderModal from "../Review/ReviewSaleOrderModal";
 import OrderCancellationInfo from "../User/OrderCancellationInfo";
-import RefundRequestsPopup from "./RefundRequestsPopup";
 import RefundRequestForm from "../Refund/RefundRequestForm ";
 import RefundRequestPopup from "./RefundRequestButton";
 import RefundRequestButton from "./RefundRequestButton";
+import ReturnRequestsPopup from "./RefundRequestsPopup";
 
 export default function UserOrderDetail() {
   const { orderCode } = useParams();
@@ -555,6 +555,11 @@ const getCurrentStepIndex = (orderStatusId) => {
               </div>
             </div>
           ))}
+          <div>
+            <ReturnRequestsPopup
+              orderDetail={orderDetail}
+            ></ReturnRequestsPopup>
+          </div>
           <div className="flex justify-end items-center">
             {orderStatus === "Đã hủy" &&
               paymentStatus === "Đã thanh toán" &&
