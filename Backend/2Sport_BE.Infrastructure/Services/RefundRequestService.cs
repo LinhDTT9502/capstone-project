@@ -4,17 +4,12 @@ using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.DTOs;
 using _2Sport_BE.Service.Enums;
 using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
     public interface IRefundRequestService
     {
-        ResponseDTO<List<RefundRequest>> GetAllRefundRequest();
+        Task<ResponseDTO<List<RefundRequestVM>>> GetAllRefundRequest();
         Task<ResponseDTO<RefundRequestVM>> CreateRefundRequest(RefundRequestCM refundRequestCM);
         Task<ResponseDTO<bool>> UpdateRefundRequest(int refundRequestId, RefundRequestUM refundRequestUM);
         Task<ResponseDTO<bool>> DeleteRefundRequest(int refundRequestId);
@@ -175,10 +170,41 @@ namespace _2Sport_BE.Infrastructure.Services
             }
         }
 
-        public ResponseDTO<List<RefundRequest>> GetAllRefundRequest()
+        public async Task<ResponseDTO<List<RefundRequestVM>>> GetAllRefundRequest()
         {
-            throw new NotImplementedException();
+            var response = new ResponseDTO<List<RefundRequestVM>>();
+
+            try
+            {
+                // Lấy tất cả yêu cầu hoàn tiền từ repository
+                var refundRequests = await _unitOfwork.RefundRequestRepository.GetAllAsync();
+
+                if (refundRequests == null || !refundRequests.Any())
+                {
+                    response.IsSuccess = true;
+                    response.Message = "No refund requests found.";
+                    response.Data = new List<RefundRequestVM>();
+                    return response;
+                }
+
+                // Ánh xạ refundRequests sang refundRequestVMs
+                var refundRequestVMs = refundRequests.Select(r => _mapper.Map<RefundRequestVM>(r)).ToList();
+
+                response.IsSuccess = true;
+                response.Message = "Refund requests retrieved successfully.";
+                response.Data = refundRequestVMs;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                // Bắt lỗi và trả về phản hồi
+                response.IsSuccess = false;
+                response.Message = $"An error occurred while retrieving refund requests: {ex.Message}";
+                response.Data = null;
+                return response;
+            }
         }
+
 
         public async Task<ResponseDTO<List<RefundRequestVM>>> GetAllSaleRefundRequests(string status = null, int? branchId = null)
         {
@@ -211,6 +237,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 return response;
             }
         }
+
         public async Task<ResponseDTO<List<RefundRequestVM>>> GetAllRentalRefundRequests(string status = null, int? branchId = null)
         {
             var response = new ResponseDTO<List<RefundRequestVM>>();

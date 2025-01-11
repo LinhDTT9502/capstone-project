@@ -9,6 +9,8 @@ using _2Sport_BE.Service.Enums;
 using _2Sport_BE.Service.Helpers;
 using _2Sport_BE.Service.Services;
 using _2Sport_BE.Service.DTOs;
+using StackExchange.Redis;
+using _2Sport_BE.Repository.Implements;
 
 namespace _2Sport_BE.Infrastructure.Services
 {
@@ -51,6 +53,8 @@ namespace _2Sport_BE.Infrastructure.Services
 
         Task<ResponseDTO<int>> CancelSaleOrderAsync(int orderId, string reason);
         Task CheckPendingOrderForget();
+        Task CompletedSaleOrder();
+        Task RefundSaleOrder();
     }
     public class SaleOrderService : ISaleOrderService
     {
@@ -90,6 +94,52 @@ namespace _2Sport_BE.Infrastructure.Services
             foreach (var order in pendingOrders)
             {
                 await _notificationService.NotifyForPendingOrderAsync(order.SaleOrderCode, false, order.CreatedAt.Value, order.BranchId);
+            }
+        }
+
+        public async Task CompletedSaleOrder()
+        {
+            var deliveredOrders = await _unitOfWork.SaleOrderRepository.GetAndIncludeAsync(o => o.OrderStatus == (int)OrderStatus.DELIVERED, new string[] { "ReturnRequests" });
+            if (deliveredOrders.Any())
+            {
+                foreach (var order in deliveredOrders)
+                {
+                    if (!order.ReturnRequests.Any())
+                    {
+                        order.OrderStatus = (int)OrderStatus.COMPLETED;
+
+                    }
+                }
+            }
+            await _unitOfWork.SaleOrderRepository.UpdateRangeAsync(deliveredOrders.ToList());
+        }
+        public async Task RefundSaleOrder()
+        {
+            var orders = await _unitOfWork.SaleOrderRepository
+                .GetAndIncludeAsync(o => o.OrderStatus == (int)OrderStatus.CANCELLED && o.PaymentStatus == (int)PaymentStatus.PAID,
+                                        new string[] { "RefurnRequests" });
+            if (orders.Any())
+            {
+                foreach (var order in orders)
+                {
+                    var existedRefund = order.RefundRequests;
+                    if(existedRefund == null || !existedRefund.Any())
+                    {
+                        RefundRequest newRefund = new RefundRequest
+                        {
+                            SaleOrderCode = order.SaleOrderCode,
+                            SaleOrderID = order.Id,
+                            BranchId = order.BranchId != null ? order.BranchId.Value : 0,
+                            IsAgreementAccepted = true,
+                            Reason = "Đơn đã hủy, chưa hoàn lại tiền",
+                            Status = RefundStatus.Pending.ToString(),
+                            Notes = string.Empty,
+                            CreatedAt = _methodHelper.GetTimeInUtcPlus7()
+                        };
+                        await _unitOfWork.RefundRequestRepository.InsertAsync(newRefund);
+
+                    }
+                }
             }
         }
 
@@ -904,7 +954,8 @@ namespace _2Sport_BE.Infrastructure.Services
                 else
                 {
                     SaleOrder.BranchId = branchId;
-
+                    SaleOrder.BranchName = branch.BranchName;
+                    SaleOrder.UpdatedAt = null;
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(SaleOrder);
 
 
@@ -1106,11 +1157,6 @@ namespace _2Sport_BE.Infrastructure.Services
                     {
                         return ValidationResult.Invalid("Đơn hàng chỉ có thể xử lý khi đã được xác nhận.");
                     }
-
-                    if (paymentMethod != (int)OrderMethods.COD && paymentStatus != (int)PaymentStatus.PAID)
-                    {
-                        return ValidationResult.Invalid("Đơn hàng chỉ có thể xử lý khi thanh toán đã hoàn tất (trừ khi sử dụng COD).");
-                    }
                     break;
 
                 case (int)OrderStatus.SHIPPED:
@@ -1118,10 +1164,11 @@ namespace _2Sport_BE.Infrastructure.Services
                     {
                         return ValidationResult.Invalid("Đơn hàng chỉ có thể giao khi đang được xử lý.");
                     }
-
-                    if (paymentMethod != (int)OrderMethods.COD && paymentStatus != (int)PaymentStatus.PAID)
+                    break;
+                case (int)OrderStatus.AWAITING_PICKUP:
+                    if (currentOrderStatus != (int)OrderStatus.PROCESSING || saleOrder.DeliveryMethod != "STORE_PICKUP")
                     {
-                        return ValidationResult.Invalid("Đơn hàng chỉ có thể giao khi thanh toán đã hoàn tất (trừ khi sử dụng COD).");
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể đánh dấu là chờ nhận hàng khi phương thức vận chuyển là Đến cửa hàng nhận.");
                     }
                     break;
 
@@ -1161,7 +1208,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     break;
 
                 case (int)OrderStatus.COMPLETED:
-                    if (currentOrderStatus != (int)OrderStatus.DELIVERED && currentOrderStatus != (int)OrderStatus.REFUNDED)
+                    if (currentOrderStatus != (int)OrderStatus.DELIVERED || currentOrderStatus != (int)OrderStatus.REFUNDED)
                     {
                         return ValidationResult.Invalid("Đơn hàng chỉ có thể hoàn thành khi đã giao hàng hoặc hoàn tiền.");
                     }

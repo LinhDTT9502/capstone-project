@@ -19,6 +19,7 @@ namespace _2Sport_BE.Infrastructure.Services
 {
     public interface IRentalOrderService
     {
+        Task RefundRentalOrder();
         Task CheckRentalOrdersForExpiration();//Background Jobs
         Task CheckPendingOrderForget();
 
@@ -108,6 +109,35 @@ namespace _2Sport_BE.Infrastructure.Services
             foreach (var order in pendingOrders)
             {
                 await _notificationService.NotifyForPendingOrderAsync(order.RentalOrderCode, true, order.CreatedAt.Value, order.BranchId);
+            }
+        }
+        public async Task RefundRentalOrder()
+        {
+            var orders = await _unitOfWork.RentalOrderRepository
+                .GetAndIncludeAsync(o => o.OrderStatus == (int)OrderStatus.CANCELLED && (o.PaymentStatus == (int)PaymentStatus.PAID || o.DepositAmount > 0),
+                                        new string[] { "RefundRequests" });
+            if (orders.Any())
+            {
+                foreach (var order in orders)
+                {
+                    var existedRefund = order.RefundRequests;
+                    if (existedRefund == null || !existedRefund.Any())
+                    {
+                        RefundRequest newRefund = new RefundRequest
+                        {
+                            RentalOrderCode = order.RentalOrderCode,
+                            RentalOrderID = order.Id,
+                            BranchId = order.BranchId != null ? order.BranchId.Value : 0,
+                            IsAgreementAccepted = true,
+                            Reason = "Đơn đã hủy, chưa hoàn lại tiền cọc",
+                            Status = RefundStatus.Pending.ToString(),
+                            Notes = string.Empty,
+                            CreatedAt = _methodHelper.GetTimeInUtcPlus7()
+                        };
+                        await _unitOfWork.RefundRequestRepository.InsertAsync(newRefund);
+
+                    }
+                }
             }
         }
         #endregion
@@ -933,11 +963,12 @@ namespace _2Sport_BE.Infrastructure.Services
                         foreach (var child in childs)
                         {
                             AssignBranchInformation(child, branch);
+                            child.UpdatedAt = null;
                         }
                         await _unitOfWork.RentalOrderRepository.UpdateRangeAsync(childs.ToList());
                     }
+                    rentalOrder.UpdatedAt = null;
                     await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
-                   
 
                     response.IsSuccess = true;
                     response.Message = $"BranchId of SaleOrder with id = {orderId} updated successfully";
@@ -1525,8 +1556,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     break;
 
                 case (int)RentalOrderStatus.PROCESSING:
-                    if (currentOrderStatus != (int)RentalOrderStatus.CONFIRMED ||
-                        (paymentMethod != (int)OrderMethods.COD && (depositStatus != (int)DepositStatus.PARTIALLY_PAID && depositStatus != (int)DepositStatus.FULL_PAID)))
+                    if (currentOrderStatus != (int)RentalOrderStatus.CONFIRMED)
                     {
                         return ValidationResult.Invalid("Đơn hàng chỉ có thể xử lý khi đã được xác nhận và có đặt cọc (một phần hoặc đầy đủ).");
                     }
@@ -1554,15 +1584,15 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
                     break;
 
-                case (int)RentalOrderStatus.FAILED:
-                    return ValidationResult.Valid();
-
                 case (int)RentalOrderStatus.AWAITING_PICKUP:
-                    if (currentOrderStatus != (int)RentalOrderStatus.PROCESSING)
+                    if (currentOrderStatus != (int)OrderStatus.PROCESSING || rentalOrder.DeliveryMethod != "STORE_PICKUP")
                     {
-                        return ValidationResult.Invalid("Đơn hàng chỉ có thể chuyển sang trạng thái chờ khách nhận khi đang được xử lý.");
+                        return ValidationResult.Invalid("Đơn hàng chỉ có thể đánh dấu là chờ nhận hàng khi phương thức vận chuyển là Đến cửa hàng nhận.");
                     }
                     break;
+
+                case (int)RentalOrderStatus.FAILED:
+                    return ValidationResult.Valid();
 
                 case (int)RentalOrderStatus.EXTENSION_REQUESTED:
                     if (currentOrderStatus != (int)RentalOrderStatus.RENTED)
@@ -1586,7 +1616,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     break;
 
                 case (int)RentalOrderStatus.COMPLETED:
-                    if (currentOrderStatus != (int)RentalOrderStatus.RETURNED && currentOrderStatus != (int)RentalOrderStatus.INSPECTING)
+                    if (currentOrderStatus != (int)RentalOrderStatus.RETURNED)
                     {
                         return ValidationResult.Invalid("Đơn hàng chỉ có thể hoàn tất sau khi đã trả hoặc kiểm tra sản phẩm.");
                     }
@@ -1707,7 +1737,6 @@ namespace _2Sport_BE.Infrastructure.Services
                 };
             }
         }
-
 
         private async Task<bool> NotifyReturnRequest(RentalOrder order)
         {

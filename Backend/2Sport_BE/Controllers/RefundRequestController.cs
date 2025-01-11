@@ -1,5 +1,6 @@
 ﻿using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.Infrastructure.Services;
+using _2Sport_BE.Repository.Interfaces;
 using _2Sport_BE.Service.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,12 +12,14 @@ namespace _2Sport_BE.Controllers
     public class RefundRequestController : ControllerBase
     {
         private readonly IRefundRequestService _refundRequestService;
-        public RefundRequestController(IRefundRequestService refundRequestService)
+        private readonly IUnitOfWork _unitOfWork;
+        public RefundRequestController(IRefundRequestService refundRequestService, IUnitOfWork unitOfWork)
         {
             _refundRequestService = refundRequestService;
+            _unitOfWork = unitOfWork;
         }
         [HttpGet("getAll")]
-        public async Task<IActionResult> GetAllRefundRequests([FromQuery] string orderType, [FromQuery] string status = null, [FromQuery] int? branchId = null)
+        public async Task<IActionResult> GetAllRefundRequests([FromQuery] string? orderType, [FromQuery] string? status = null, [FromQuery] int? branchId = null)
         {
             var response = new ResponseDTO<List<RefundRequestVM>>();
             if(orderType == "1")
@@ -28,9 +31,9 @@ namespace _2Sport_BE.Controllers
             }
             else
             {
-
+                response = await _refundRequestService.GetAllRefundRequest();
             }
-
+            
             if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
