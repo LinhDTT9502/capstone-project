@@ -39,9 +39,9 @@ import ReviewButton from "../Review/ReviewButton";
 import ReviewSaleOrderModal from "../Review/ReviewSaleOrderModal";
 import OrderCancellationInfo from "../User/OrderCancellationInfo";
 import RefundRequestForm from "../Refund/RefundRequestForm ";
-import RefundRequestPopup from "./RefundRequestButton";
-import RefundRequestButton from "./RefundRequestButton";
-import ReturnRequestsPopup from "./RefundRequestsPopup";
+import RefundRequestPopup from "./RefundRequestPopup";
+import RefundRequestButton from "./RefundRequestPopup";
+import ReturnRequestsPopup from "./ReturnRequestsPopup";
 
 export default function UserOrderDetail() {
   const { orderCode } = useParams();
@@ -378,18 +378,17 @@ const getCurrentStepIndex = (orderStatusId) => {
                   <h2 className="text-lg font-bold mb-2 text-gray-700">
                     Chi nhánh giao hàng
                   </h2>
-                  {orderDetail.branchId && (
-                    <p className="flex items-center gap-2 mb-2">
-                      <FontAwesomeIcon
-                        icon={faHouse}
-                        className="text-blue-500"
-                      />
-                      <span className="font-base">Chi nhánh giao hàng:</span>{" "}
-                      <span className="break-words">
+                  <p className="flex items-center gap-2 mb-2">
+                    <FontAwesomeIcon icon={faHouse} className="text-blue-500" />
+                    <span className="font-base">Chi nhánh giao hàng:</span>{" "}
+                    <span className="break-words">
+                      {orderDetail.branchId ? (
                         <i>{orderDetail.branchName || orderDetail.branchId}</i>
-                      </span>
-                    </p>
-                  )}
+                      ) : (
+                        <i>Chưa chỉ định chi nhánh giao hàng</i>
+                      )}
+                    </span>
+                  </p>
                 </div>
               </div>
             </div>
@@ -555,18 +554,22 @@ const getCurrentStepIndex = (orderStatusId) => {
               </div>
             </div>
           ))}
-          <div>
-            <ReturnRequestsPopup
-              orderDetail={orderDetail}
-            ></ReturnRequestsPopup>
+          {/* trả hàng/hòan tiền*/}
+          <div className="flex justify-end items-center">
+            {orderDetail.returnRequests != null && (
+              <ReturnRequestsPopup
+                orderDetail={orderDetail}
+              ></ReturnRequestsPopup>
+            )}
           </div>
+
+          {/* return list */}
+          {console.log(orderDetail)}
           <div className="flex justify-end items-center">
             {orderStatus === "Đã hủy" &&
               paymentStatus === "Đã thanh toán" &&
-              orderDetail.refundRequests.$values?.length > 0 && (
-                <RefundRequestPopup
-                  refundRequests={orderDetail.refundRequests}
-                />
+              orderDetail.refundRequests != null && (
+                <RefundRequestPopup refundRequests={orderDetail} />
               )}
           </div>
         </div>

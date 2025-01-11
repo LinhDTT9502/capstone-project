@@ -6,7 +6,6 @@ import { Button } from "@material-tailwind/react";
 const ReturnRentalProductButton = (selectedOrderId) => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-    console.log(selectedOrderId);
   const togglePopup = () => {
     setIsPopupVisible(!isPopupVisible);
   };

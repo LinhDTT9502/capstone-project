@@ -161,7 +161,6 @@ const ProductDetails = () => {
     <div className="container mx-auto px-4 md:px-20 py-10 bg-white rounded-lg shadow-lg">
       {product && (
         <>
-          {console.log(product)}
           <div className="flex flex-col md:flex-row gap-8 justify-between">
             <div className="md:w-2/5 relative">
               <img

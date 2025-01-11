@@ -38,7 +38,7 @@ const RentalOrder = () => {
 
     const nextDay = new Date(newStartDate);
     nextDay.setDate(nextDay.getDate() + 1);
-    setEndDate(nextDay.toISOString().split("T")[0]);
+    // setEndDate(nextDay.toISOString().split("T")[0]);
   };
 
   const handleEndDateChange = (e) => setEndDate(e.target.value);
@@ -53,7 +53,7 @@ const RentalOrder = () => {
     if (!startDate || !endDate) return 0;
     const start = new Date(startDate);
     const end = new Date(endDate);
-    return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
   };
 
   const rentalDays = calculateRentalDays();
@@ -266,15 +266,7 @@ const productArray = [rentalData.product];
                         <input
                           type="date"
                           min={
-                            startDate
-                              ? new Date(
-                                  new Date(startDate).setDate(
-                                    new Date(startDate).getDate() + 1
-                                  )
-                                )
-                                  .toISOString()
-                                  .split("T")[0]
-                              : getTomorrowDate()
+                          getTomorrowDate()
                           }
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}

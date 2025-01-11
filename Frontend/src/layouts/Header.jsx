@@ -69,18 +69,19 @@ function Header() {
     };
   }, []);
 
-  // const getNotification = async () => {
-  //   const data = await getNoti(user.UserId, token);
-  //   console.log(data);
-  //   const sortedData = data.sort(
-  //     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-  //   );
-  //   setNoti(sortedData);
-  // };
+  const getNotification = async () => {
+    if(token){
+      const data = await getNoti(user.UserId, token);
+      const sortedData = data.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setNoti(sortedData);
+    }
+  };
 
-  // useEffect(() => {
-  //   getNotification();
-  // }, [user]);
+  useEffect(() => {
+    getNotification();
+  }, [user]);
 
   const handleLinkClick = () => {
     setIsPolicyDropdownOpen(false);
@@ -367,7 +368,7 @@ function Header() {
                 </div>
                 <p>Giỏ hàng</p>
               </Link>
-              {/* {token && (
+              {token && (
                 <>
                   <Menu open={openNoti} handler={setOpenNoti}>
                     <MenuHandler>
@@ -433,7 +434,7 @@ function Header() {
                     </MenuList>
                   </Menu>
                 </>
-              )} */}
+              )}
             </div>
           </div>
           <motion.div

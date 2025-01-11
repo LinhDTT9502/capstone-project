@@ -125,9 +125,52 @@ const ProductList = ({
                   <h3 className="font-semibold mt-4">{product.productName}</h3>
 
                   {/* Product Price */}
-                  <p className="text-red-700 text-lg font-bold mt-auto">
-                    {product.price.toLocaleString("vi-VN")}₫
-                  </p>
+                  {product.price !== product.listedPrice ? (
+                    <>
+                      <span className="text-red-700 text-lg font-bold mt-autrelative group">
+                        {product.price.toLocaleString("VI-vn")}₫ {/* Tooltip */}
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-max bg-gray-500 text-white text-sm px-3 py-2 rounded hidden group-hover:block z-10 shadow-lg">
+                          <p className="mb-1">
+                            💰 <strong>Chi tiết giảm giá:</strong>
+                          </p>
+                          <ul className="list-disc list-inside">
+                            <li>
+                              Giá gốc:{" "}
+                              {product.listedPrice.toLocaleString("VI-vn")}₫
+                            </li>
+                            <li>
+                              Giảm giá:{" "}
+                              {(
+                                product.listedPrice - product.price
+                              ).toLocaleString("VI-vn")}
+                              ₫
+                            </li>
+                            <li>
+                              Giá sau giảm:{" "}
+                              {product.price.toLocaleString("VI-vn")}₫
+                            </li>
+                            <li>
+                              Phần trăm giảm:{" "}
+                              {(
+                                ((product.listedPrice - product.price) /
+                                  product.listedPrice) *
+                                100
+                              ).toFixed(0)}
+                              %
+                            </li>
+                          </ul>
+                        </div>
+                      </span>{" "}
+                      -{" "}
+                      <span className="line-through text-gray-500 text-lg">
+                        {product.listedPrice.toLocaleString("VI-vn")}₫
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-red-700 text-lg font-bold mt-aut">
+                      {product.listedPrice.toLocaleString("VI-vn")}₫
+                    </span>
+                  )}
                 </div>
               </div>
             ))
