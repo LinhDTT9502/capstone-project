@@ -27,7 +27,7 @@ const DoneSaleOrderButton = ({ saleOrderId, setConfirmReload }) => {
       
       if (response && response.data.isSuccess) {
         toast.success("Đơn hàng của bạn đã được hoàn tất thành công.");
-              // setConfirmReload(true);
+              setConfirmReload(true);
               setShowModal(false);
               // setReviewModal(true);
       } else {
@@ -89,12 +89,12 @@ const DoneSaleOrderButton = ({ saleOrderId, setConfirmReload }) => {
         </div>
       )}
 
-      <ReviewSaleOrderModal
+      {/* <ReviewSaleOrderModal
         saleOrderId={saleOrderId}
         setReviewModal={setReviewModal}
         reviewModal={reviewModal}
         setConfirmReload={setConfirmReload}
-      />
+      /> */}
     </>
   );
 };

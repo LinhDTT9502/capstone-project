@@ -5,18 +5,22 @@ const useOrderNotification = (onNotificationReceived) => {
   const [connection, setConnection] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+   const options = {
+     headers: {
+       Authorization: `Bearer ${localStorage.getItem("token")}`,
+     },
+     withCredentials: true,
+   };
 
-    const newConnection = new signalR.HubConnectionBuilder()
-      //   .configureLogging(signalR.LogLevel.Debug)
-      .withUrl(`https://localhost:7276/notificationHub`, {
-        accessTokenFactory: () => `${token}`,
-        skipNegotiation: true,
-        transport: signalR.HttpTransportType.WebSockets,
-        withCredentials: true
-      })
-      .withAutomaticReconnect() // Tự động kết nối lại
-      .build();
+   // Create a new SignalR connection
+   const newConnection = new signalR.HubConnectionBuilder()
+     .withUrl(
+       "https://capstone-project-703387227873.asia-southeast1.run.app/notificationHub",
+       options
+     )
+     .withAutomaticReconnect() // Enable automatic reconnect
+     .build();
+
 
     setConnection(newConnection);
 

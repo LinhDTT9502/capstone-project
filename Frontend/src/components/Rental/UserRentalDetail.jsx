@@ -25,7 +25,14 @@ import {
   faCreditCard,
   faHouse,
 } from "@fortawesome/free-solid-svg-icons";
-import { Button, Tooltip, Typography, Input, Stepper, Step } from "@material-tailwind/react";
+import {
+  Button,
+  Tooltip,
+  Typography,
+  Input,
+  Stepper,
+  Step,
+} from "@material-tailwind/react";
 import CancelRentalOrderButton from "../User/CancelRentalOrderButton";
 import DoneRentalOrderButton from "../User/DoneRentalOrderButton";
 import ExtensionRequestButton from "../User/ExtensionRequestButton";
@@ -33,6 +40,8 @@ import ExtensionStatusMessage from "./ExtensionStatusMessage";
 import OrderCancellationInfo from "../User/OrderCancellationInfo";
 import OrderDepositInfo from "./OrderDepositInfo";
 import ReturnRentalProductButton from "./ReturnRentalProductButton";
+import RentalRefundRequestForm from "../Refund/RentalRefundRequestForm";
+import RefundRequestPopup from "../Order/RefundRequestPopup";
 
 export default function UserRentalDetail() {
   const { orderCode } = useParams();
@@ -43,7 +52,6 @@ export default function UserRentalDetail() {
   const [reload, setReload] = useState(false);
   const [confirmReload, setConfirmReload] = useState(false);
   const [extendReload, setExtendReload] = useState(false);
-
 
   const statusColors = {
     "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -72,27 +80,37 @@ export default function UserRentalDetail() {
     { id: 9, label: "Đang Gia Hạn" },
     { id: 14, label: "Đã Hoàn Thành" },
   ];
+  
+  const compareDates = (date1, date2) => {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
 
-const getCurrentStepId = (orderStatusId) => {
-  // Trả về stepId từ orderStatusId
-  const step = ORDER_STEPS.find((step) => step.id === orderStatusId);
-  return step ? step.id : null; // Trả về id nếu tìm thấy, nếu không trả về null
-};
+    return (
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate()
+    );
+  };
 
-const getNextStepId = (currentStepId, orderStatusId) => {
-  const validSteps = ORDER_STEPS.map((step) => step.id);
+  const getCurrentStepId = (orderStatusId) => {
+    // Trả về stepId từ orderStatusId
+    const step = ORDER_STEPS.find((step) => step.id === orderStatusId);
+    return step ? step.id : null; // Trả về id nếu tìm thấy, nếu không trả về null
+  };
 
-  // Nếu orderStatusId yêu cầu ở một bước trước hoặc là một bước không thể tiến lên (ví dụ: "RETURN_REQUESTED")
-  if (orderStatusId === 11 && currentStepId === 8) {
-    return currentStepId; // Giữ nguyên bước nếu yêu cầu trả sản phẩm mà hiện tại đang trong "Đang thuê"
-  }
+  const getNextStepId = (currentStepId, orderStatusId) => {
+    const validSteps = ORDER_STEPS.map((step) => step.id);
 
-  // Nếu trạng thái tiếp theo hợp lệ, di chuyển đến bước tiếp theo
-  const currentStepIndex = validSteps.indexOf(currentStepId);
-  const nextStepIndex = validSteps.indexOf(orderStatusId);
-  return nextStepIndex > currentStepIndex ? orderStatusId : currentStepId;
-};
+    // Nếu orderStatusId yêu cầu ở một bước trước hoặc là một bước không thể tiến lên (ví dụ: "RETURN_REQUESTED")
+    if (orderStatusId === 11 && currentStepId === 8) {
+      return currentStepId; // Giữ nguyên bước nếu yêu cầu trả sản phẩm mà hiện tại đang trong "Đang thuê"
+    }
 
+    // Nếu trạng thái tiếp theo hợp lệ, di chuyển đến bước tiếp theo
+    const currentStepIndex = validSteps.indexOf(currentStepId);
+    const nextStepIndex = validSteps.indexOf(orderStatusId);
+    return nextStepIndex > currentStepIndex ? orderStatusId : currentStepId;
+  };
 
   const fetchOrderDetail = async () => {
     try {
@@ -397,21 +415,24 @@ const getNextStepId = (currentStepId, orderStatusId) => {
                   </span>
                 </p>
               </div>
-              {orderDetail.branchId && (
-                <div className="pt-2">
-                  <h2 className="text-lg font-bold mb-2 text-gray-700">
-                    Chi nhánh giao hàng
-                  </h2>
-                  <p className="flex items-center gap-2 mb-2">
-                    <FontAwesomeIcon icon={faHouse} className="text-blue-500" />
-                    <span className="font-base">Chi nhánh giao hàng:</span>{" "}
-                    <span className="break-words">
-                      <i>{orderDetail.branchName}</i>
-                    </span>
-                  </p>
-                </div>
-              )}
+              <div className="pt-2">
+                <h2 className="text-lg font-bold mb-2 text-gray-700">
+                  Chi nhánh giao hàng
+                </h2>
+                <p className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon icon={faHouse} className="text-blue-500" />
+                  <span className="font-base">Chi nhánh giao hàng:</span>{" "}
+                  <span className="break-words">
+                    {orderDetail.branchId ? (
+                      <i>{orderDetail.branchName || orderDetail.branchId}</i>
+                    ) : (
+                      <i>Chưa chỉ định chi nhánh giao hàng</i>
+                    )}
+                  </span>
+                </p>
+              </div>
             </div>
+            {/* Buttons */}
             <div className="col-span-1 flex flex-col gap-4">
               {/* Thanh toan button */}
               {paymentStatus !== "Đã đặt cọc" &&
@@ -426,7 +447,6 @@ const getNextStepId = (currentStepId, orderStatusId) => {
                       })
                     }
                   >
-                    {console.log(orderDetail)}
                     Thanh toán
                   </Button>
                 )}
@@ -446,7 +466,19 @@ const getNextStepId = (currentStepId, orderStatusId) => {
                   className="w-full"
                 />
               )}
-              {/* REVIEW */}
+              {/* Refund button */}
+              {orderDetail.orderStatus === "Đã hủy" &&
+                (orderDetail.paymentStatus === "Đã thanh toán" ||
+                  orderDetail.depositAmount > 0) &&
+                orderDetail.refundRequests == null && (
+                  <RentalRefundRequestForm orderDetail={orderDetail} />
+                )}
+              {/* RefundRequests list button */}
+              {orderDetail.refundRequests != null && (
+                <RefundRequestPopup
+                  refundRequests={orderDetail.refundRequests}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -506,21 +538,19 @@ const getNextStepId = (currentStepId, orderStatusId) => {
                       </p>
                     </div>
                   </div>
-                  {orderStatus === "Đã giao hàng" && (
-                    <ExtensionRequestButton
-                      parentOrder={orderDetail}
-                      selectedChildOrder={orderDetail}
-                      setExtendReload={setExtendReload}
-                    />
-                  )}
-                  {console.log(child)}
-                  {(orderStatus === "Đã giao hàng" ||
-                    orderStatus === "Đang gia hạn" &&
-                    child.extensionStatus === "2") && (
-                    <ReturnRentalProductButton
-                      selectedOrderId={orderDetail.id}
-                    />
-                  )}
+                  {orderStatus === "Đã giao hàng" &&
+                    compareDates(child.rentalEndDate, new Date()) && (
+                      <ExtensionRequestButton
+                        parentOrder={orderDetail}
+                        selectedChildOrder={child}
+                        setExtendReload={setExtendReload}
+                      />
+                    )}
+                  {compareDates(child.rentalEndDate, new Date()) ||
+                  (child.extendedDueDate &&
+                    compareDates(child.extendedDueDate, new Date())) ? (
+                    <ReturnRentalProductButton selectedOrderId={child.id} />
+                  ) : null}
                 </div>
                 <div className="pt-2 flex justify-between items-center gap-4">
                   <div className="flex items-center gap-2">
@@ -694,10 +724,11 @@ const getNextStepId = (currentStepId, orderStatusId) => {
                     setExtendReload={setExtendReload}
                   />
                 )}
-                {(orderStatus === "Đã giao hàng" ||
-                  orderStatus === "Đang gia hạn") && (
+                {compareDates(orderDetail.rentalEndDate, new Date()) ||
+                (orderDetail.extendedDueDate &&
+                  compareDates(orderDetail.extendedDueDate, new Date())) ? (
                   <ReturnRentalProductButton selectedOrderId={orderDetail.id} />
-                )}
+                ) : null}
               </div>
             </div>
           )}
@@ -705,18 +736,26 @@ const getNextStepId = (currentStepId, orderStatusId) => {
         <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
           <p className="text-xl flex justify-between">
             <b>Tạm tính: </b>
-            <i>{orderDetail.subTotal.toLocaleString("vi-VN")} ₫</i>
+            <i>{orderDetail.subTotal.toLocaleString("vi-VN")}₫</i>
           </p>
           <p className="flex justify-between">
-            <b className="text-xl py-2 ">Phí vận chuyển: </b>
-            <p className="text-sm py-2 ">
+            <b className="text-xl">Phí vận chuyển: </b>
+            <i className="text-base">
               {orderDetail.transportFee || "2Sport sẽ liên hệ và thông báo sau"}
-            </p>
+            </i>
           </p>
+          {orderDetail.extensionCost > 0 && (
+            <p className="flex justify-between">
+              <b className="text-xl">Phí gia hạn: </b>
+              <i className="text-base">
+                {orderDetail.extensionCost.toLocaleString("vi-VN")}₫
+              </i>
+            </p>
+          )}
           <p className="text-xl flex justify-between">
             <b>Thành tiền: </b>
             <i className="text-orange-500 font-bold">
-              {orderDetail.totalAmount.toLocaleString("vi-VN")} ₫
+              {orderDetail.totalAmount.toLocaleString("vi-VN")}₫
             </i>
           </p>
         </div>

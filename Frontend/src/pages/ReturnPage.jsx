@@ -154,6 +154,7 @@ const ReturnPage = () => {
                 onChange={handleOptionChange}
               >
                 <option value="">Chọn Lý Do</option>
+                <option value="Giao sai hàng">Giao sai hàng</option>
                 <option value="Hàng bị lỗi">Hàng bị lỗi</option>
                 <option value="Hàng không đúng mô tả">
                   Hàng không đúng mô tả

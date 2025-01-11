@@ -11,7 +11,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle, faHourglass, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 
-const RefundRequestButton = ({ refundRequests }) => {
+const RefundRequestPopup = ({ refundRequests }) => {
   const [open, setOpen] = useState(false);
 
   const toggleDialog = () => setOpen(!open);
@@ -23,13 +23,18 @@ const RefundRequestButton = ({ refundRequests }) => {
   };
 
   return (
-    <div className="p-4">
-      <Button onClick={toggleDialog} color="blue" ripple={true}>
+    <>
+      <Button
+        size="sm"
+        onClick={toggleDialog}
+        ripple={true}
+        className=" text-blue-700 bg-white border border-blue-700 rounded-md hover:bg-blue-200"
+      >
         Xem yêu cầu hoàn tiền
       </Button>
 
       <Dialog open={open} handler={toggleDialog} size="xl">
-        <DialogHeader className="text-lg font-bold">
+        <DialogHeader className="text-lg font-bold text-orange-500 uppercase">
           Danh sách Yêu cầu hoàn tiền
         </DialogHeader>
         <DialogBody divider>
@@ -96,8 +101,8 @@ const RefundRequestButton = ({ refundRequests }) => {
           </Button>
         </DialogFooter>
       </Dialog>
-    </div>
+    </>
   );
 };
 
-export default RefundRequestButton;
+export default RefundRequestPopup;
