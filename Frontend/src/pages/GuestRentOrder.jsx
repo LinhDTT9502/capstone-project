@@ -30,7 +30,7 @@ const paymentStatusColors = {
   "Đang chờ thanh toán": "text-yellow-800",
   "Đã đặt cọc": "text-blue-800",
   "Đã thanh toán": "text-green-800",
-  "Đã hủy": "btext-red-800",
+  "Đã hủy": "text-red-800",
 };
 
 export default function GuestRentalOrderList() {
@@ -178,10 +178,11 @@ export default function GuestRentalOrderList() {
           ].map((status) => (
             <button
               key={status}
-              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${selectedStatus === status
+              className={`px-4 py-2 m-1 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${
+                selectedStatus === status
                   ? "bg-orange-500 text-white" // Màu khi được chọn
                   : statusColors[status] || "bg-gray-200 text-gray-700" // Áp dụng màu từ statusColors
-                }`}
+              }`}
               onClick={() => setSelectedStatus(status)}
             >
               {status}
@@ -225,9 +226,10 @@ export default function GuestRentalOrderList() {
                     {parent.rentalOrderCode}
                   </span>
                   <span
-                    className={`px-3 py-1 ml-2.5 rounded-full text-xs font-medium ${statusColors[parent.orderStatus] ||
+                    className={`px-3 py-1 ml-2.5 rounded-full text-xs font-medium ${
+                      statusColors[parent.orderStatus] ||
                       "bg-gray-100 text-gray-800"
-                      }`}
+                    }`}
                   >
                     {parent.orderStatus}
                   </span>
@@ -235,9 +237,10 @@ export default function GuestRentalOrderList() {
                 <p className=" text-gray-600">
                   Trạng thái thanh toán:
                   <span
-                    className={`ml-2 font-medium ${paymentStatusColors[parent.paymentStatus] ||
+                    className={`ml-2 font-medium ${
+                      paymentStatusColors[parent.paymentStatus] ||
                       "text-gray-800"
-                      }`}
+                    }`}
                   >
                     {parent.paymentStatus}
                   </span>
@@ -263,7 +266,6 @@ export default function GuestRentalOrderList() {
 
             {expandedOrderId === parent.id && (
               <div className="mt-4 pl-8 border-l">
-                {/* {console.log(groupedOrders)} */}
                 {groupedOrders.children[parent.rentalOrderCode]?.length > 0 ? (
                   groupedOrders.children[parent.rentalOrderCode].map(
                     (child) => (
@@ -371,6 +373,15 @@ export default function GuestRentalOrderList() {
                       >
                         Thanh toán
                       </Button>
+                    )}
+                  {parent.orderStatus === "Đã hủy" &&
+                    parent.depositAmount > 0 && (
+                      <button
+                        className="text-red-700 bg-white border border-red-700 rounded-md hover:bg-red-200 px-4 py-2"
+                        onClick={() => navigate("/return")}
+                      >
+                        Trả Hàng/Hoàn Tiền
+                      </button>
                     )}
                   {parent.orderStatus === "Chờ xử lý" && (
                     <CancelRentalOrderButton

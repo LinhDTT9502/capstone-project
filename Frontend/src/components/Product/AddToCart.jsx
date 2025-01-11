@@ -40,11 +40,11 @@ const AddToCart = ({ product, quantity, selectedColor, selectedSize, selectedCon
             selectedCondition,
           };
           if (!token) {
-            dispatch(addCart(itemPayload));
             toast.info(`${product.productName} đã được thêm vào giỏ hàng`);
+            dispatch(addCart(itemPayload));
           } else {
             const addToCartResponse = await addToCart(token, product.id, quantity);
-            console.log(addToCartResponse);
+            // console.log(addToCartResponse);
             toast.success(`${product.productName} đã được thêm vào giỏ hàng`);
             setCartCount((prevCount) => prevCount + quantity);
           }

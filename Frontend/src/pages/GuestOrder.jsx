@@ -321,8 +321,9 @@ const GuestOrder = () => {
                     </span>
                   </p>
                   <div className="flex gap-2">
-                    {order.paymentStatus === "N/A" &&
-                      order.orderStatus === "Chờ xử lý" && (
+                    {order.paymentStatus !== "Đã thanh toán" &&
+                      (order.orderStatus === "Đã xác nhận" ||
+                        order.orderStatus === "Chờ xử lý") && (
                         <Button
                           color="white"
                           size="sm"
@@ -336,8 +337,7 @@ const GuestOrder = () => {
                           Thanh toán
                         </Button>
                       )}
-                    {order.orderStatus === "Chờ xử lý" &&
-                      order.paymentStatus != "Đã hủy" && (
+                    {order.orderStatus === "Chờ xử lý" && (
                         <CancelSaleOrderButton
                           saleOrderId={order.id}
                           setReload={setReload}
@@ -349,21 +349,13 @@ const GuestOrder = () => {
                         setConfirmReload={setConfirmReload}
                       />
                     )}
-                    {order.orderStatus === "Đã hoàn thành" && (
-                      <ReviewButton
-                        orderStatus={order.orderStatus}
-                        saleOrderId={order.id}
-                        setConfirmReload={setConfirmReload}
-                      />
-                    )}
-
                     <Button
                       color="orange"
                       className="w-40 text-white rounded-md hover:bg-orange-700"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(
-                          `/manage-account/sale-order/${order.saleOrderCode}`
+                          `/guest/guest-sale-order/${order.saleOrderCode}`
                         );
                       }}
                     >

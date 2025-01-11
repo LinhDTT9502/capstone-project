@@ -37,8 +37,6 @@ const LikeButton = ({
           } catch (error) {
             console.error("Error parsing JSON:", error);
           }
-        } else {
-          console.log("No data found in localStorage.");
         }
 
         // const savedIsLiked = localStorage.getItem(`likeStatus-${productId}`);
