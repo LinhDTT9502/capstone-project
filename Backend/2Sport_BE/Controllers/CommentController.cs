@@ -48,6 +48,14 @@ namespace _2Sport_BE.Controllers
                 {
                     var product = await _productService.GetProductByProductCode(item.ProductCode);
                     var user = await _userService.GetUserById(item.UserId);
+                    if (product == null)
+                    {
+                        return BadRequest($"Cannot find product with product code: {item.ProductCode}");
+                    }
+                    if (user == null)
+                    {
+                        return BadRequest($"Cannot find user with user id: {item.UserId}");
+                    }
                     item.ProductName = product.ProductName ?? "";
                     item.FullName = user.FullName ?? "";
                     item.Email = user.Email ?? "";
