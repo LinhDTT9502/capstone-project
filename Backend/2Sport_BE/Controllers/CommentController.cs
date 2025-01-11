@@ -159,6 +159,12 @@ namespace _2Sport_BE.Controllers
                     var product = (await _unitOfWork.ProductRepository.GetAsync(_ => _.ProductCode.ToLower()
                                                                                     .Equals(productCode.ToLower())))
                                                                                     .FirstOrDefault();
+
+                    if (product == null)
+                    {
+                        return BadRequest("Please check product code!");
+                    }
+
                     var isSuccessNotify = await _notificationService.NotifyForComment(currUserId, 
                                                                     coordinators.ToList(), product);
                     if (!isSuccessNotify)
@@ -198,6 +204,11 @@ namespace _2Sport_BE.Controllers
                     var product = (await _unitOfWork.ProductRepository.GetAsync(_ => _.ProductCode.ToLower()
                                                                                     .Equals(productCode.ToLower())))
                                                                                     .FirstOrDefault();
+
+                    if (product == null)
+                    {
+                        return BadRequest("Please check product code!");
+                    }
                     var isSuccessNotify = await _notificationService
                                             .NotifyForReplyComment(currUserId.ToString(), product);
                     if (!isSuccessNotify)
