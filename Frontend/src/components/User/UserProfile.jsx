@@ -215,8 +215,8 @@ const UserProfile = () => {
           {t("user_profile.user_profile")}
         </h2>
         <div className="space-y-6">
-        <div className="flex items-center space-x-6 mb-8 bg-white p-6 rounded-lg shadow-md">
-        <div className="relative">
+          <div className="flex items-center space-x-6 mb-8 bg-white p-6 rounded-lg shadow-md">
+            <div className="relative">
               <img
                 src={avatar}
                 alt="Avatar"
@@ -225,8 +225,8 @@ const UserProfile = () => {
                   (e.target.src = "/assets/images/default-avatar.jpg")
                 }
               />
-    <div className="absolute -bottom-2 -right-2">
-    <AvatarUpload
+              <div className="absolute -bottom-2 -right-2">
+                <AvatarUpload
                   userId={user.UserId}
                   onAvatarChange={handleAvatarChange}
                   imgAvatarPath={avatar}
@@ -239,43 +239,54 @@ const UserProfile = () => {
             <div className="h-24 border-l-2 border-gray-200 mx-4"></div>
 
             <div className="flex-grow">
-            <div className="flex items-center justify-between mb-2">
-            <h3 className="text-2xl font-bold text-gray-800">
-            {userData.fullName}
-  </h3>
-  <span
-    style={{
-      backgroundColor: getMembershipStyles(
-        userData.customerDetail.membershipLevel
-      ).bgColor,
-      color: getMembershipStyles(
-        userData.customerDetail.membershipLevel
-      ).textColor,
-    }}
-    className="flex items-center px-4 py-2 rounded-full shadow-md transition-all duration-300 hover:shadow-lg"
-    >
-    <FontAwesomeIcon
-      icon={
-        getMembershipStyles(userData.customerDetail.membershipLevel).icon
-      }
-      className="mr-2 text-lg"
-      />
-    <span className="text-sm font-medium">
-      {getMembershipStyles(userData.customerDetail.membershipLevel).label}
-    </span>
-  </span>
-</div>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-2xl font-bold text-gray-800">
+                  {userData.fullName}
+                </h3>
+                {userData.customerDetail && (
+                  <span
+                    style={{
+                      backgroundColor: getMembershipStyles(
+                        userData.customerDetail.membershipLevel
+                      ).bgColor,
+                      color: getMembershipStyles(
+                        userData.customerDetail.membershipLevel
+                      ).textColor,
+                    }}
+                    className="flex items-center px-4 py-2 rounded-full shadow-md transition-all duration-300 hover:shadow-lg"
+                  >
+                    <FontAwesomeIcon
+                      icon={
+                        getMembershipStyles(
+                          userData.customerDetail.membershipLevel
+                        ).icon
+                      }
+                      className="mr-2 text-lg"
+                    />
+                    <span className="text-sm font-medium">
+                      {
+                        getMembershipStyles(
+                          userData.customerDetail.membershipLevel
+                        ).label
+                      }
+                    </span>
+                  </span>
+                )}
+              </div>
 
-{userData.customerDetail && (
-      <div className="text-gray-600 font-medium">
-        <div className="flex items-center">
-          <FontAwesomeIcon icon={faCrown} className="mr-2 text-yellow-500" />
-          <span>
-            Điểm tích lũy: {userData.customerDetail.loyaltyPoints}
-          </span>
-        </div>
-      </div>
-    )}
+              {userData.customerDetail && (
+                <div className="text-gray-600 font-medium">
+                  <div className="flex items-center">
+                    <FontAwesomeIcon
+                      icon={faCrown}
+                      className="mr-2 text-yellow-500"
+                    />
+                    <span>
+                      Điểm tích lũy: {userData.customerDetail.loyaltyPoints}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
