@@ -13,6 +13,7 @@ using ValidationResult = _2Sport_BE.Infrastructure.Helpers.ValidationResult;
 using StackExchange.Redis;
 using System.Runtime.Intrinsics.X86;
 using _2Sport_BE.Service.Services;
+using _2Sport_BE.Service.DTOs;
 
 
 namespace _2Sport_BE.Infrastructure.Services
@@ -415,7 +416,7 @@ namespace _2Sport_BE.Infrastructure.Services
             try
             {
                 var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(
-                    r => r.RentalOrderCode == orderCode
+                    r => r.RentalOrderCode == orderCode, new string[] { "RefundRequests" }
                 );
 
                 var listChild = await _unitOfWork.RentalOrderRepository.GetAsync(r => r.ParentOrderCode == rentalOrder.RentalOrderCode);
@@ -943,14 +944,14 @@ namespace _2Sport_BE.Infrastructure.Services
                 var branch = await _unitOfWork.BranchRepository.GetObjectAsync(b => b.Id == branchId);
                 if (branch is null)
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = $"Branch with id = {branchId} is not found!";
                     response.Data = 0;
                 }
                 var rentalOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
                 if (rentalOrder == null)
                 {
-                    response.IsSuccess = false;
+                    response.IsSuccess = true;
                     response.Message = $"SaleOrder with id = {orderId} is not found!";
                     response.Data = 0;
                 }
@@ -1375,6 +1376,10 @@ namespace _2Sport_BE.Infrastructure.Services
             result.DeliveryMethod = _deliveryMethodService.GetDescription(order.DeliveryMethod);
             result.Id = order.Id;
             result.OrderStatusId = order.OrderStatus;
+            result.RefundRequests = order.RefundRequests != null && order.RefundRequests.Any()
+            ? _mapper.Map<List<RefundRequestVM>>(order.RefundRequests)
+            : null;
+
             if (listChild == null || !listChild.Any())
             {
                 listChild = new List<RentalOrder>();
