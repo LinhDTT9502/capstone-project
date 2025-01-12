@@ -21,8 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("AppSettings:MailSettings"));
 //Setting PayOs
 builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOSSettings"));
-//Register SignalR
-builder.Services.AddSignalR();
+
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.Register();
@@ -57,6 +56,7 @@ builder.Services.AddAuthentication(options =>
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
@@ -70,12 +70,14 @@ builder.Services.AddAuthentication(options =>
                 var path = context.HttpContext.Request.Path;
                 if (path.StartsWithSegments("/notificationHub"))
                 {
-                       var accessToken = context.Request.Query["access_token"];
-            if (!string.IsNullOrEmpty(accessToken))
-            {
-                context.Token = accessToken;
-            }
+                    // Lấy token từ header Authorization
+                    var authorizationHeader = context.Request.Headers["Authorization"].ToString();
+                    if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer "))
+                    {
+                        context.Token = authorizationHeader.Substring("Bearer ".Length).Trim();
+                    }
                 }
+
                 return Task.CompletedTask;
             }
         };
@@ -146,6 +148,10 @@ builder.Services.AddCors(options =>
            .AllowCredentials()
     );
 });
+
+//Register SignalR
+builder.Services.AddSignalR();
+
 //builder.Services.AddHttpsRedirection(options =>
 //{
 //    options.HttpsPort = 443;
@@ -172,12 +178,10 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-app.UseCors("CorsPolicy");
 app.UseRouting();
+app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseStaticFiles();
-app.UseWebSockets();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
@@ -187,6 +191,10 @@ app.UseEndpoints(endpoints =>
     }).RequireCors("CorsPolicy");
 
 });
+app.UseStaticFiles();
+app.UseWebSockets();
+
+
 app.MapGet("/", () => Results.Redirect("/swagger"));
 app.UseHangfireServer();
 app.UseHangfireDashboard("/hangfire", new DashboardOptions

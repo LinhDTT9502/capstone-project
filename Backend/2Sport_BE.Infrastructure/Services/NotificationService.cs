@@ -596,26 +596,26 @@ namespace _2Sport_BE.Infrastructure.Services
                     await _notificationHub.SendNotificationToCustomer(userId.ToString(), message);
 
 
-                    var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
-                                    ?? new List<Notification>();
+                    //var listNotificationsInCache = _redisCacheService.GetData<List<Notification>>(_notificationKey)
+                    //                ?? new List<Notification>();
 
-                    var notificationId = listNotificationsInCache.Count;
+                    //var notificationId = listNotificationsInCache.Count;
 
-                    var notifications = new Notification
-                    {
-                        Id = notificationId + 1,
-                        UserId = userId,
-                        Message = message,
-                        Type = "Normal",
-                        CreatedAt = DateTime.UtcNow,
-                        IsRead = false
-                    };
+                    //var notifications = new Notification
+                    //{
+                    //    Id = notificationId + 1,
+                    //    UserId = userId,
+                    //    Message = message,
+                    //    Type = "Normal",
+                    //    CreatedAt = DateTime.UtcNow,
+                    //    IsRead = false
+                    //};
 
-                    //save notifications to redis
-                    listNotificationsInCache.Add(notifications);
-                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
+                    ////save notifications to redis
+                    //listNotificationsInCache.Add(notifications);
+                    //_redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
 
-                    await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+                    //await _unitOfWork.NotificationRepository.InsertAsync(notifications);
                 }
             }
             catch (Exception ex)

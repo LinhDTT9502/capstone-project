@@ -96,7 +96,7 @@ namespace _2Sport_BE.Infrastructure.Services
         #region BackgroundJobServices
         public async Task CheckRentalOrdersForExpiration()
         {
-            var expiringOrders = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.RentalEndDate >= DateTime.Now.Date.AddDays(1) && o.ParentOrderCode == null);
+            var expiringOrders = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.RentalEndDate >= DateTime.Now.Date.AddDays(1) && o.ParentOrderCode == null && o.OrderStatus >= (int)RentalOrderStatus.DELIVERED);
 
             foreach (var order in expiringOrders)
             {
