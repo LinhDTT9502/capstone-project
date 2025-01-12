@@ -9,6 +9,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { addGuestRentalOrder } from "../../redux/slices/guestOrderSlice";
+import { removeFromCart } from "../../redux/slices/cartSlice";
 const RentalPlacedOrder = () => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
@@ -43,17 +44,29 @@ const RentalPlacedOrder = () => {
   };
 
   const handleDateChange = (id, field, value) => {
-    setSelectedProducts((prevProducts) =>
-      prevProducts.map((product) =>
-       (product.id || product.cartItemId) === id
-          ? {
-            ...product,
-            [field]: value,
-          }
-          : product
-      )
-    );
+    if (field === "rentalStartDate") {
+      // Update rentalStartDate for all products
+      setSelectedProducts((prevProducts) =>
+        prevProducts.map((product) => ({
+          ...product,
+          rentalStartDate: value, // Apply the same start date to all products
+        }))
+      );
+    } else {
+      // Update the specific field for the specific product
+      setSelectedProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          (product.id || product.cartItemId) === id
+            ? {
+                ...product,
+                [field]: value,
+              }
+            : product
+        )
+      );
+    }
   };
+  
 
 const updatedProducts = selectedProducts.map((product) => {
   const rentStartDate = product.rentalStartDate
@@ -65,7 +78,7 @@ const updatedProducts = selectedProducts.map((product) => {
 
   const rentDays =
     rentStartDate && rentEndDate
-      ? Math.floor((rentEndDate - rentStartDate) / (1000 * 60 * 60 * 24)) + 1
+      ? Math.floor((rentEndDate - rentStartDate) / (1000 * 60 * 60 * 24)) 
       : 0;
   const subTotal = product.quantity * product.rentPrice * rentDays;
   const totalPrice = product.quantity * product.rentPrice * rentDays;
@@ -169,12 +182,15 @@ const updatedProducts = selectedProducts.map((product) => {
         }
       );
       const orderID = response.data.id;
-      const orderRentalCode = response.data.saleOrderCode
+      const orderRentalCode = response.data.data.rentalOrderCode
       console.log(response);
         if (!token) {
           dispatch(addGuestRentalOrder(response.data.data))
         }
         setApiResponse(response.data.data);
+        updatedProducts.forEach(product => {
+          dispatch(removeFromCart(product.id || product.productId));
+        });
         navigate("/order_success", {
           state: {
             orderID: orderID,
