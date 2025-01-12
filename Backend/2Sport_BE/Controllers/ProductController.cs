@@ -1135,7 +1135,8 @@ namespace _2Sport_BE.Controllers
                                 newProduct.CategoryId == (int)CategoryIDs.BadmintonShuttlecock))
                                 {
                                     newProduct.IsRent = true;
-                                    product.RentPrice = Math.Round((decimal)(product.Price * (decimal)0.1 * product.Condition / 100) / 1000) * 1000;
+                                    newProduct.RentPrice = Math.Round((decimal)
+                                            (newProduct.Price * (decimal)0.1 * newProduct.Condition / 100) / 1000) * 1000;
 
                                 }
 
