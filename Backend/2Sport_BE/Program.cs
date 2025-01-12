@@ -65,21 +65,17 @@ builder.Services.AddAuthentication(options =>
         options.TokenValidationParameters = tokenValidationParameters;
         options.Events = new JwtBearerEvents
         {
-            OnMessageReceived = context =>
-            {
-                var path = context.HttpContext.Request.Path;
-                if (path.StartsWithSegments("/notificationHub"))
-                {
-                    // Lấy token từ header Authorization
-                    var authorizationHeader = context.Request.Headers["Authorization"].ToString();
-                    if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer "))
-                    {
-                        context.Token = authorizationHeader.Substring("Bearer ".Length).Trim();
-                    }
-                }
-
-                return Task.CompletedTask;
-            }
+             OnMessageReceived = context =>
+             {
+                 var accessToken = context.Request.Query["access_token"];
+                 var path = context.HttpContext.Request.Path;
+                 if (!string.IsNullOrEmpty(accessToken) &&
+                     (path.StartsWithSegments("/notificationHub")))
+                 {
+                     context.Token = accessToken;
+                 }
+                 return Task.CompletedTask;
+             }
         };
     })
    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -150,7 +146,10 @@ builder.Services.AddCors(options =>
 });
 
 //Register SignalR
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true; // Optional: bật chi tiết lỗi
+});
 
 //builder.Services.AddHttpsRedirection(options =>
 //{
@@ -178,6 +177,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("CorsPolicy");
 app.UseAuthentication();
@@ -185,13 +185,9 @@ app.UseAuthorization();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
-    endpoints.MapHub<NotificationHub>("/notificationHub", opts =>
-    {
-        opts.Transports = HttpTransportType.WebSockets | HttpTransportType.LongPolling;
-    }).RequireCors("CorsPolicy");
-
+    endpoints.MapHub<NotificationHub>("/notificationHub");
 });
-app.UseStaticFiles();
+
 app.UseWebSockets();
 
 
