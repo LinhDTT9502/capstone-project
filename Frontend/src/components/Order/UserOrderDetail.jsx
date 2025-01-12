@@ -434,9 +434,17 @@ const getCurrentStepIndex = (orderStatusId) => {
 
               {orderStatus === "Đã hủy" &&
                 paymentStatus === "Đã thanh toán" &&
-                orderDetail.refundRequests.$values?.length == 0 && (
+                orderDetail.refundRequests === null && (
                   <RefundRequestForm orderDetail={orderDetail} />
                 )}
+              {orderDetail.refundRequests != null && (
+                <RefundRequestPopup
+                  refundRequests={orderDetail.refundRequests}
+                />
+              )}
+              {orderDetail.returnRequests != null && (
+                <ReturnRequestsPopup orderDetail={orderDetail} />
+              )}
             </div>
           </div>
         </div>
@@ -554,24 +562,6 @@ const getCurrentStepIndex = (orderStatusId) => {
               </div>
             </div>
           ))}
-          {/* trả hàng/hòan tiền*/}
-          <div className="flex justify-end items-center">
-            {orderDetail.returnRequests != null && (
-              <ReturnRequestsPopup
-                orderDetail={orderDetail}
-              ></ReturnRequestsPopup>
-            )}
-          </div>
-
-          {/* return list */}
-          {console.log(orderDetail)}
-          <div className="flex justify-end items-center">
-            {orderStatus === "Đã hủy" &&
-              paymentStatus === "Đã thanh toán" &&
-              orderDetail.refundRequests != null && (
-                <RefundRequestPopup refundRequests={orderDetail} />
-              )}
-          </div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-lg mt-6 text-gray-700">
           <p className="text-xl flex justify-between">

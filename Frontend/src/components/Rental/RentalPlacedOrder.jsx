@@ -42,18 +42,14 @@ const RentalPlacedOrder = () => {
     return tomorrow.toISOString().split("T")[0];
   };
 
-  const handleDateChange = (id, field, value) => {
-    setSelectedProducts((prevProducts) =>
-      prevProducts.map((product) =>
-       (product.id || product.cartItemId) === id
-          ? {
-            ...product,
-            [field]: value,
-          }
-          : product
-      )
-    );
-  };
+const handleDateChangeForAll = (field, value) => {
+  setSelectedProducts((prevProducts) =>
+    prevProducts.map((product) => ({
+      ...product,
+      [field]: value,
+    }))
+  );
+};
 
 const updatedProducts = selectedProducts.map((product) => {
   const rentStartDate = product.rentalStartDate
@@ -99,10 +95,10 @@ const updatedProducts = selectedProducts.map((product) => {
       toast.error("Số điện thoại phải có 10 chữ số.");
       return;
     }
-    // if (!userData.address.trim()) {
-    //   toast.error("Vui lòng nhập địa chỉ giao hàng.");
-    //   return;
-    // }
+    if (!userData.address.trim()) {
+      toast.error("Vui lòng nhập địa chỉ giao hàng.");
+      return;
+    }
 
     for (const product of updatedProducts) {
       if (!product.rentalStartDate || !product.rentalEndDate) {
@@ -110,7 +106,8 @@ const updatedProducts = selectedProducts.map((product) => {
         return;
       }
       if (
-        new Date(product.rentalStartDate) >= new Date(product.rentalEndDate)
+        new Date(product.rentalStartDate).setHours(0, 0, 0, 0) >
+        new Date(product.rentalEndDate).setHours(0, 0, 0, 0)
       ) {
         toast.error("Ngày kết thúc phải sau ngày bắt đầu.");
         return;
@@ -168,9 +165,8 @@ const updatedProducts = selectedProducts.map((product) => {
           },
         }
       );
-      const orderID = response.data.id;
-      const orderRentalCode = response.data.saleOrderCode
-      console.log(response);
+      const orderID = response.data.data.id;
+      const orderRentalCode = response.data.data.rentalOrderCode;
         if (!token) {
           dispatch(addGuestRentalOrder(response.data.data))
         }
@@ -268,44 +264,30 @@ const updatedProducts = selectedProducts.map((product) => {
                         <div className="flex flex-col space-y-4 w-full md:w-auto">
                           <div className="flex items-center">
                             <label className="text-sm w-1/3 md:w-auto mr-2">
-                              Ngày bắt đầu thuê:
+                              Ngày bắt đầu:
                             </label>
                             <input
                               type="date"
-                              min={getTomorrowDate()}
                               value={product.rentalStartDate || ""}
-                              onChange={(e) =>
-                                handleDateChange(
-                                  product.id || product.cartItemId,
-                                  "rentalStartDate",
-                                  e.target.value
-                                )
-                              }
-                              className="border rounded px-3 py-2 text-sm flex-1"
+                              readOnly
+                              className="border rounded px-3 py-2 text-sm flex-1 bg-gray-100 cursor-not-allowed"
                             />
                           </div>
                           <div className="flex items-center">
                             <label className="text-sm w-1/3 md:w-auto mr-2">
-                              Ngày kết thúc thuê:
+                              Ngày kết thúc:
                             </label>
                             <input
                               type="date"
-                              min={product.rentalStartDate || getTomorrowDate()}
                               value={product.rentalEndDate || ""}
-                              onChange={(e) =>
-                                handleDateChange(
-                                  product.id || product.cartItemId,
-                                  "rentalEndDate",
-                                  e.target.value
-                                )
-                              }
-                              className="border rounded px-3 py-2 text-sm flex-1"
+                              readOnly
+                              className="border rounded px-3 py-2 text-sm flex-1 bg-gray-100 cursor-not-allowed"
                             />
                           </div>
                         </div>
                       </div>
                       {/* Divider */}
-                      <div className="h-px bg-gray-300 my-5"></div>
+                      <div className="h-px bg-gray-300 my-2"></div>
                       {/* Thành tiền */}
                       <div className="p-2 bg-gray-50 rounded-lg shadow-sm border">
                         <div className="flex items-center justify-between">
@@ -351,6 +333,35 @@ const updatedProducts = selectedProducts.map((product) => {
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="p-4 rounded bg-gray-50 text-gray-700 font-semibold">
+              <div className="flex items-center pb-2">
+                <p className="text-base w-1/3 md:w-auto mr-2">
+                  Ngày bắt đầu thuê:<span> </span>
+                </p>
+
+                <input
+                  type="date"
+                  min={getTomorrowDate()}
+                  onChange={(e) =>
+                    handleDateChangeForAll("rentalStartDate", e.target.value)
+                  }
+                  className="border rounded px-3 py-2 text-sm flex-1"
+                />
+              </div>
+              <div className="flex items-center">
+                <label className="text-base w-1/3 md:w-auto mr-2">
+                  Ngày kết thúc thuê:
+                </label>
+                <input
+                  type="date"
+                  min={getTomorrowDate()}
+                  onChange={(e) =>
+                    handleDateChangeForAll("rentalEndDate", e.target.value)
+                  }
+                  className="border rounded px-3 py-2 text-sm flex-1"
+                />
+              </div>
             </div>
 
             {/* Phần note */}
