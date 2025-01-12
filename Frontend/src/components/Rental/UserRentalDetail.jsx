@@ -80,7 +80,7 @@ export default function UserRentalDetail() {
     { id: 9, label: "Đang Gia Hạn" },
     { id: 14, label: "Đã Hoàn Thành" },
   ];
-  
+
   const compareDates = (date1, date2) => {
     const d1 = new Date(date1);
     const d2 = new Date(date2);
@@ -538,7 +538,7 @@ export default function UserRentalDetail() {
                       </p>
                     </div>
                   </div>
-                  {orderStatus === "Đã giao hàng" &&
+                  {/* {orderStatus === "Đã giao hàng" &&
                     compareDates(child.rentalEndDate, new Date()) && (
                       <ExtensionRequestButton
                         parentOrder={orderDetail}
@@ -550,7 +550,7 @@ export default function UserRentalDetail() {
                   (child.extendedDueDate &&
                     compareDates(child.extendedDueDate, new Date())) ? (
                     <ReturnRentalProductButton selectedOrderId={child.id} />
-                  ) : null}
+                  ) : null} */}
                 </div>
                 <div className="pt-2 flex justify-between items-center gap-4">
                   <div className="flex items-center gap-2">
@@ -597,13 +597,19 @@ export default function UserRentalDetail() {
                       </svg>
                     </Tooltip>
                   </div>
-                  {orderStatus === "Đã giao hàng" && (
-                    <ExtensionRequestButton
-                      parentOrder={orderDetail}
-                      selectedChildOrder={child}
-                      setExtendReload={setExtendReload}
-                    />
-                  )}
+                  {orderStatus === "Đã giao hàng" &&
+                    compareDates(child.rentalEndDate, new Date()) && (
+                      <ExtensionRequestButton
+                        parentOrder={orderDetail}
+                        selectedChildOrder={child}
+                        setExtendReload={setExtendReload}
+                      />
+                    )}
+                  {compareDates(child.rentalEndDate, new Date()) ||
+                  (child.extendedDueDate &&
+                    compareDates(child.extendedDueDate, new Date())) ? (
+                    <ReturnRentalProductButton selectedOrderId={child.id} />
+                  ) : null}
                 </div>
               </div>
             ))

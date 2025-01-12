@@ -188,9 +188,15 @@ const DeliveryAddress = ({
               </div>
             </div>
           )}
-          {!shipment && (
-            <div className="">
-              <ShipmentList />
+          {shipment === null && (
+            <div className="text-orange-500 font-bolt">
+              <p>
+                Hãy chọn thông tin vận chuyển{" "}
+                <span>
+                  {" "}
+                  <ShipmentList />
+                </span>
+              </p>
             </div>
           )}
         </>

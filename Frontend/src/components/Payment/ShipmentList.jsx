@@ -16,7 +16,7 @@ export default function ShipmentList() {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [selectedShipment, setSelectedShipment] = useState(null);
-  const [isShipmentListOpen, setIsShipmentListOpen] = useState(true);
+  const [isShipmentListOpen, setIsShipmentListOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [currentShipment, setCurrentShipment] = useState(null);
   const [reload, setReload] = useState(false);
