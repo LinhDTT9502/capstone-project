@@ -91,7 +91,7 @@ namespace _2Sport_BE.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return StatusCode(500, ex.Message);
             }
 
         }
