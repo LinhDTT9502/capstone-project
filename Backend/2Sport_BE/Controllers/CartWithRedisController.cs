@@ -376,6 +376,31 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpDelete]
+        [Route("reset-cart")]
+        public async Task<IActionResult> ResetCart ()
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
+                var listCartItems = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey)
+                                                       ?? new List<CartItem>();
+                
+                listCartItems.Clear();
+                _redisCacheService.SetData(_cartItemsKey, listCartItems);
+                return Ok($"Reset cart successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
         protected int GetCurrentUserIdFromToken()
         {
             int UserId = 0;
