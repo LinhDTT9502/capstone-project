@@ -49,7 +49,7 @@ export default function GuestRentalOrderList() {
       const detailedOrderList = await Promise.all(
         rentalOrdersList.map(async (order) => {
           const response = await axios.get(
-            `https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/RentalOrder/get-rental-order-by-orderCode?orderCode=${order.rentalOrderCode}`,
+            `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${order.rentalOrderCode}`,
             { headers: { accept: "*/*" } }
           );
           if (response.data.isSuccess) {

@@ -104,31 +104,44 @@ const ProductList = ({
                 key={product.id}
                 className="bg-white border border-gray-200 hover:border-red-500 hover:drop-shadow-lg p-4 relative flex flex-col justify-between text-left h-full hover:cursor-pointer"
               >
+                {/* Discount Badge */}
+                {product.discount > 0 && (
+                  <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">
+                    -{product.discount}%
+                  </div>
+                )}
+
+                {/* Product Image */}
+                <Link
+                  to={`/product/${product.productCode}`}
+                  className="flex-1 flex items-center justify-center"
+                >
+                  <img
+                    src={product.imgAvatarPath}
+                    alt={product.productName}
+                    className="object-contain w-full max-h-48 mx-auto"
+                  />
+                </Link>
+
+                {/* Product Name */}
+                <div className="mt-4">
+                  <h3
+                    className="font-semibold text-lg line-clamp-2 overflow-hidden text-ellipsis"
+                    style={{ maxHeight: "3rem" }} // Giới hạn chiều cao cho 2 dòng
+                  >
+                    {product.productName}
+                  </h3>
+                </div>
+
+                <div className="h-px bg-gray-300 my-4 sm:my-2"></div>
+
+                {/* Product Price */}
                 <div>
-                  {/* Discount Badge */}
-                  {product.discount > 0 && (
-                    <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">
-                      -{product.discount}%
-                    </div>
-                  )}
-
-                  {/* Product Image */}
-                  <Link to={`/product/${product.productCode}`}>
-                    <img
-                      src={product.imgAvatarPath}
-                      alt={product.productName}
-                      className="object-contain w-full h-48 mx-auto"
-                    />
-                  </Link>
-
-                  {/* Product Name */}
-                  <h3 className="font-semibold mt-4">{product.productName}</h3>
-
-                  {/* Product Price */}
                   {product.price !== product.listedPrice ? (
                     <>
-                      <span className="text-red-700 text-lg font-bold mt-autrelative group">
-                        {product.price.toLocaleString("VI-vn")}₫ {/* Tooltip */}
+                      <span className="text-red-700 text-lg font-bold relative group">
+                        Giá bán: {product.price.toLocaleString("VI-vn")}₫{" "}
+                        {/* Tooltip */}
                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 w-max bg-gray-500 text-white text-sm px-3 py-2 rounded hidden group-hover:block z-10 shadow-lg">
                           <p className="mb-1">
                             💰 <strong>Chi tiết giảm giá:</strong>
@@ -167,8 +180,19 @@ const ProductList = ({
                       </span>
                     </>
                   ) : (
-                    <span className="text-red-700 text-lg font-bold mt-aut">
-                      {product.listedPrice.toLocaleString("VI-vn")}₫
+                    <span className="text-red-700 text-base font-bold">
+                      Giá bán: {product.listedPrice.toLocaleString("VI-vn")}₫
+                    </span>
+                  )}
+                  <br />
+                  {/* Product rent price */}
+                  {product.isRent ? (
+                    <span className="text-blue-700 text-base font-bold">
+                      Giá thuê: {product.rentPrice.toLocaleString("VI-vn")}₫
+                    </span>
+                  ) : (
+                    <span className="text-gray-700 text-base font-bold">
+                      Sản phẩm chỉ bán
                     </span>
                   )}
                 </div>

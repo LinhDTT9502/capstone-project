@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const ZaloButton = () => {
   return (
-    <div className="fixed bottom-10 right-0 z-50">
+    <div className="fixed bottom-16 right-0 z-50">
       <Link
         to="https://zalo.me/0385160050"
         target="_blank"
