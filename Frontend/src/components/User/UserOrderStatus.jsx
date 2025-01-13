@@ -42,7 +42,7 @@ export default function UserOrderStatus() {
   const [searchQuery, setSearchQuery] = useState("");
   const [reload, setReload] = useState(false);
   const [confirmReload, setConfirmReload] = useState(false);
-
+  const [reviewedReload, setReviewedReload] = useState(false);
 
   const navigate = useNavigate();
 
@@ -64,7 +64,7 @@ export default function UserOrderStatus() {
   };
   useEffect(() => {
     fetchOrders();
-  }, [user.UserId, reload, confirmReload]);
+  }, [user.UserId, reload, confirmReload, reviewedReload]);
 
   const toggleExpand = (orderId) => {
     setExpandedOrderId((prevOrderId) =>
@@ -308,7 +308,7 @@ export default function UserOrderStatus() {
                     <ReviewButton
                       orderStatus={order.orderStatus}
                       saleOrderId={order.id}
-                      setConfirmReload={setConfirmReload}
+                      setReviewedReload={setReviewedReload}
                     />
                   )}
 
