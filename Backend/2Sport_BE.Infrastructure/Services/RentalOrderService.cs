@@ -96,7 +96,7 @@ namespace _2Sport_BE.Infrastructure.Services
         #region BackgroundJobServices
         public async Task CheckRentalOrdersForExpiration()
         {
-            var expiringOrders = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.RentalEndDate >= DateTime.Now.Date.AddDays(1) && o.ParentOrderCode == null);
+            var expiringOrders = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.RentalEndDate >= DateTime.Now.Date.AddDays(1) && o.ParentOrderCode == null && o.OrderStatus >= (int)RentalOrderStatus.DELIVERED && o.IsExtended == false);
 
             foreach (var order in expiringOrders)
             {
@@ -469,10 +469,14 @@ namespace _2Sport_BE.Infrastructure.Services
                     rentalOrder.RentalOrderCode = _methodHelper.GenerateOrderCode();
                     rentalOrder.Note = rentalOrderCM.Note;
                     rentalOrder.CreatedAt = DateTime.Now;
-                    rentalOrder.DeliveryMethod = DeliveryMethod;
                     rentalOrder.OrderStatus = (int)RentalOrderStatus.PENDING;
-                    //ParentCode For Child Orders
-                    string parentOrderCode = rentalOrder.RentalOrderCode;
+                    rentalOrder.DeliveryMethod = DeliveryMethod;
+                    if (DeliveryMethod.Equals("STORE_PICKUP"))
+                    {
+                        rentalOrder.UpdatedAt = DateTime.Now;
+                    }
+                        //ParentCode For Child Orders
+                        string parentOrderCode = rentalOrder.RentalOrderCode;
 
                     if (rentalOrderCM.ProductInformations.Count == 1) // Create only 1 order
                     {
@@ -859,79 +863,72 @@ namespace _2Sport_BE.Infrastructure.Services
         public async Task<ResponseDTO<int>> CancelRentalOrderAsync(int orderId, string reason)
         {
             var response = new ResponseDTO<int>();
-            using (var transaction = await _unitOfWork.BeginTransactionAsync())
+            try
             {
-                try
+                var order = _unitOfWork.RentalOrderRepository.FindObject(o => o.Id == orderId);
+
+                if (order is null)
                 {
-                    var order = await _unitOfWork.RentalOrderRepository.GetObjectAsync(o => o.Id == orderId);
-
-                    if (order is null)
-                    {
-                        response.IsSuccess = false;
-                        response.Message = "Không tìm thấy đơn hàng!";
-                        response.Data = 0;
-                        return response;
-                    }
-
-                    if (order.OrderStatus != (int)RentalOrderStatus.PENDING)
-                    {
-                        response.IsSuccess = false;
-                        response.Message = "Đơn hàng không thể hủy ở trạng thái hiện tại!";
-                        response.Data = 0;
-                        return response;
-                    }
-
-                    order.OrderStatus = (int)RentalOrderStatus.CANCELED;
-                    order.Reason = reason;
-                    order.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
-
-                    await _unitOfWork.RentalOrderRepository.UpdateAsync(order);
-
-                    var childs = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode == order.RentalOrderCode);
-
-                    if (childs != null && childs.Any())
-                    {
-                        foreach (var child in childs)
-                        {
-                            child.OrderStatus = (int)RentalOrderStatus.CANCELED;
-                            child.Reason = reason;
-                            order.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
-
-                            await _unitOfWork.RentalOrderRepository.UpdateAsync(child);
-                        }
-                    }
-
-                    if (order.BranchId != null)
-                    {
-                        var isRestocked = await _warehouseService.UpdateRentalStock(order, isDelivered: false, isCanceled: true);
-                        if (!isRestocked)
-                        {
-                            response.IsSuccess = false;
-                            response.Message = "Có lỗi trong quá trình cập nhật số lượng!";
-                            response.Data = 0;
-                            return response;
-                        }
-                    }
-
-                    await _notificationService.NotifyToGroupAsync(
-                        $"Đơn hàng T-{order.RentalOrderCode} đã bị hủy bởi khách hàng",
-                        order.BranchId
-                    );
-
-                    await transaction.CommitAsync();
-
-                    response.IsSuccess = true;
-                    response.Message = "Đơn hàng đã được hủy thành công!";
-                    response.Data = 1;
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-
                     response.IsSuccess = false;
-                    response.Message = $"Đã xảy ra lỗi: {ex.Message}";
+                    response.Message = "Không tìm thấy đơn hàng!";
                     response.Data = 0;
+                    return response;
                 }
+
+                if (order.OrderStatus != (int)RentalOrderStatus.PENDING)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Đơn hàng không thể hủy ở trạng thái hiện tại!";
+                    response.Data = 0;
+                    return response;
+                }
+
+                order.OrderStatus = (int)RentalOrderStatus.CANCELED;
+                order.Reason = reason;
+                order.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
+
+                await _unitOfWork.RentalOrderRepository.UpdateAsync(order);
+
+                var childs = await _unitOfWork.RentalOrderRepository.GetAsync(_ => _.ParentOrderCode == order.RentalOrderCode);
+
+                if (childs != null && childs.Any())
+                {
+                    foreach (var child in childs)
+                    {
+                        child.OrderStatus = (int)RentalOrderStatus.CANCELED;
+                        child.Reason = reason;
+                        order.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
+
+                        await _unitOfWork.RentalOrderRepository.UpdateAsync(child);
+                    }
+                }
+
+                if (order.BranchId != null)
+                {
+                    var isRestocked = await _warehouseService.UpdateRentalStock(order, isDelivered: false, isCanceled: true);
+                    if (!isRestocked)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = "Có lỗi trong quá trình cập nhật số lượng!";
+                        response.Data = 0;
+                        return response;
+                    }
+                }
+
+                await _notificationService.NotifyToGroupAsync(
+                    $"Đơn hàng T-{order.RentalOrderCode} đã bị hủy bởi khách hàng",
+                    order.BranchId
+                );
+
+                response.IsSuccess = true;
+                response.Message = "Đơn hàng đã được hủy thành công!";
+                response.Data = 1;
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = $"Đã xảy ra lỗi: {ex.Message}";
+                response.Data = 0;
             }
             return response;
         }
@@ -1275,7 +1272,6 @@ namespace _2Sport_BE.Infrastructure.Services
                 {
                     parentOrder.OrderStatus = (int)RentalOrderStatus.EXTENSION_REQUESTED;
                     parentOrder.ExtensionCost += orderExtensionCost;
-                    parentOrder.TotalAmount += parentOrder.ExtensionCost.Value;
                     parentOrder.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
 
                     await _unitOfWork.RentalOrderRepository.UpdateAsync(parentOrder);
@@ -1287,6 +1283,7 @@ namespace _2Sport_BE.Infrastructure.Services
                 rentalOrder.ExtendedDueDate = rentalOrder.RentalEndDate.Value.AddDays(rentalOrder.ExtensionDays.Value);
                 rentalOrder.ExtensionCost = orderExtensionCost;
                 rentalOrder.UpdatedAt =_methodHelper.GetTimeInUtcPlus7();
+                rentalOrder.TotalAmount = CalculateTotalAmount(rentalOrder);
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
                 
                 return new ResponseDTO<int>

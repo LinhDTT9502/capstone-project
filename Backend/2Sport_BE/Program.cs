@@ -21,8 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("AppSettings:MailSettings"));
 //Setting PayOs
 builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("PayOSSettings"));
-//Register SignalR
-builder.Services.AddSignalR();
+
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.Register();
@@ -57,6 +56,7 @@ builder.Services.AddAuthentication(options =>
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
@@ -65,19 +65,17 @@ builder.Services.AddAuthentication(options =>
         options.TokenValidationParameters = tokenValidationParameters;
         options.Events = new JwtBearerEvents
         {
-            OnMessageReceived = context =>
-            {
-                var path = context.HttpContext.Request.Path;
-                if (path.StartsWithSegments("/notificationHub"))
-                {
-                       var accessToken = context.Request.Query["access_token"];
-            if (!string.IsNullOrEmpty(accessToken))
-            {
-                context.Token = accessToken;
-            }
-                }
-                return Task.CompletedTask;
-            }
+             OnMessageReceived = context =>
+             {
+                 var accessToken = context.Request.Query["access_token"];
+                 var path = context.HttpContext.Request.Path;
+                 if (!string.IsNullOrEmpty(accessToken) &&
+                     (path.StartsWithSegments("/notificationHub")))
+                 {
+                     context.Token = accessToken;
+                 }
+                 return Task.CompletedTask;
+             }
         };
     })
    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -146,6 +144,13 @@ builder.Services.AddCors(options =>
            .AllowCredentials()
     );
 });
+
+//Register SignalR
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true; // Optional: bật chi tiết lỗi
+});
+
 //builder.Services.AddHttpsRedirection(options =>
 //{
 //    options.HttpsPort = 443;
@@ -172,21 +177,20 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-app.UseCors("CorsPolicy");
+app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseStaticFiles();
-app.UseWebSockets();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
-    endpoints.MapHub<NotificationHub>("/notificationHub", opts =>
-    {
-        opts.Transports = HttpTransportType.WebSockets | HttpTransportType.LongPolling;
-    }).RequireCors("CorsPolicy");
-
+    endpoints.MapHub<NotificationHub>("/notificationHub");
 });
+
+app.UseWebSockets();
+
+
 app.MapGet("/", () => Results.Redirect("/swagger"));
 app.UseHangfireServer();
 app.UseHangfireDashboard("/hangfire", new DashboardOptions

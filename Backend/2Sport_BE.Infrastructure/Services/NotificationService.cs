@@ -315,7 +315,7 @@ namespace _2Sport_BE.Infrastructure.Services
             listNotificationsInCache.Add(notifications);
             _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
 
-            //await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+            await _unitOfWork.NotificationRepository.InsertAsync(notifications);
 
             await _notificationHub.SendNotificationToCustomer(customerId, message);
         }
@@ -613,9 +613,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
                     //save notifications to redis
                     listNotificationsInCache.Add(notifications);
-                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));
-
-                    await _unitOfWork.NotificationRepository.InsertAsync(notifications);
+                    _redisCacheService.SetData(_notificationKey, listNotificationsInCache, TimeSpan.FromDays(30));       
                 }
             }
             catch (Exception ex)

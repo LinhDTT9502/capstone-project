@@ -14,11 +14,8 @@ namespace _2Sport_BE.Infrastructure.Hubs
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class NotificationHub : Hub
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public NotificationHub(IHttpContextAccessor httpContextAccessor)
+        public NotificationHub()
         {
-            _httpContextAccessor = httpContextAccessor;
         }
         private string GetCurrentUserBranchFromToken()
         {
@@ -97,7 +94,11 @@ namespace _2Sport_BE.Infrastructure.Hubs
             }
             else
             {
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, userId);
+                if (!string.IsNullOrWhiteSpace(userId))
+                {
+                    await Clients.Group(userId).SendAsync("ReceiveNotification", "I", "disconnect");
+                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, userId);
+                }
             }
 
             await base.OnDisconnectedAsync(exception);

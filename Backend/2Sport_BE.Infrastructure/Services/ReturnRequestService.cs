@@ -152,7 +152,7 @@ namespace _2Sport_BE.Service.Services
                 {
                     return new ResponseDTO<List<ReturnRequest>>
                     {
-                        IsSuccess = false,
+                        IsSuccess = true,
                         Message = "No return requests found for the given Branch ID.",
                         Data = null
                     };

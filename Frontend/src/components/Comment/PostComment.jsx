@@ -23,7 +23,7 @@ const PostComment = ({ productCode, onCommentPosted }) => {
     setIsSubmitting(true);
     try {
       await axios.post(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/Comment/comment/${productCode}`,
+        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/Comment/comment/${productCode}`,
         { content },
         {
           headers: {

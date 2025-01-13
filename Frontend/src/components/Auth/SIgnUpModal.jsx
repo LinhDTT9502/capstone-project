@@ -109,7 +109,7 @@ export default function SignUpModal({ isOpen, closeModal, openSignInModal }) {
 
   const resendVerificationEmail = async () => {
     try {
-      await fetch('https://capstone-project-703387227873.asia-southeast1.run.app/api/User/send-verification-email', {
+      await fetch('https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/User/send-verification-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

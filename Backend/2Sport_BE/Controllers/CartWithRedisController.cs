@@ -91,7 +91,7 @@ namespace _2Sport_BE.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return StatusCode(500, ex.Message);
             }
 
         }
@@ -369,6 +369,31 @@ namespace _2Sport_BE.Controllers
                 _redisCacheService.SetData(_cartItemsKey, listCartItems, TimeSpan.FromDays(30));
                 await _cartItemService.DeleteCartItem(cartItemId);
                 return Ok($"Delete cart item with id: {cartItemId}");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpDelete]
+        [Route("reset-cart")]
+        public async Task<IActionResult> ResetCart ()
+        {
+            try
+            {
+                var userId = GetCurrentUserIdFromToken();
+
+                if (userId == 0)
+                {
+                    return Unauthorized();
+                }
+                var listCartItems = _redisCacheService.GetData<List<CartItem>>(_cartItemsKey)
+                                                       ?? new List<CartItem>();
+                
+                listCartItems.Clear();
+                _redisCacheService.SetData(_cartItemsKey, listCartItems, TimeSpan.FromDays(30));
+                return Ok($"Reset cart successfully!");
             }
             catch (Exception ex)
             {

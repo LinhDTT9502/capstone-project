@@ -13,7 +13,7 @@ const ReviewSaleOrderModal = ({ saleOrderId, reviewModal, setReviewModal, setCon
             }
 
             const response = await axios.get(
-                `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/get-sale-order-detail?orderId=${saleOrderId}`,
+                `https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/SaleOrder/get-sale-order-detail?orderId=${saleOrderId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -66,7 +66,7 @@ const ReviewSaleOrderModal = ({ saleOrderId, reviewModal, setReviewModal, setCon
 
             for (const product of reviewsToSubmit) {
                 await axios.post(
-                    `https://capstone-project-703387227873.asia-southeast1.run.app/api/Review/add-review/${saleOrderId}`,
+                    `https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/Review/add-review/${saleOrderId}`,
                     {
                         productId: product.productId,
                         star: product.rated,

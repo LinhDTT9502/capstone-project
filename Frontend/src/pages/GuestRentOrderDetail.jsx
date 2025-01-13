@@ -101,7 +101,7 @@ export default function GuestRentOrderDetail() {
   const fetchOrderDetail = async () => {
     try {
       const response = await axios.get(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
+        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
         {
           headers: {
             accept: "*/*",

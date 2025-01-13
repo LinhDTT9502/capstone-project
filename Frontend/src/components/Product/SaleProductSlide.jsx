@@ -18,7 +18,7 @@ export default function FeatureProductSlide() {
     const getFeature = async () => {
       try {
         const productFeatured = await axios.get(
-          "https://capstone-project-703387227873.asia-southeast1.run.app/api/Product/list-products",
+          "https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/Product/list-products",
           { sortBy, isAscending },
           {
             headers: {

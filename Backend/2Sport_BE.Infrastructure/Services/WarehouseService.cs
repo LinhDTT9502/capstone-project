@@ -155,11 +155,10 @@ namespace _2Sport_BE.Infrastructure.Services
                 {
                     warehouse.Product = await _unitOfWork.ProductRepository.FindAsync(warehouse.ProductId);
                 }
-                var warehouseDTOs = warehouses.GroupBy(w => new { w.Product.ProductCode, w.Product.ProductName })
+                var warehouseDTOs = warehouses.GroupBy(w => new { w.Product.ProductCode })
                             .Select(group => new WarehouseDTO
                             {
                                 ProductCode = group.Key.ProductCode,
-                                ProductName = group.Key.ProductName,
                                 TotalQuantity = group.Sum(w => w.TotalQuantity ?? 0),
                                 AvailableQuantity = group.Sum(w => w.AvailableQuantity ?? 0)
                             }).ToList();

@@ -117,7 +117,7 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             var orders = await _unitOfWork.SaleOrderRepository
                 .GetAndIncludeAsync(o => o.OrderStatus == (int)OrderStatus.CANCELLED && o.PaymentStatus == (int)PaymentStatus.PAID,
-                                        new string[] { "RefurnRequests" });
+                                        new string[] { "RefundRequests" });
             if (orders.Any())
             {
                 foreach (var order in orders)
@@ -131,7 +131,7 @@ namespace _2Sport_BE.Infrastructure.Services
                             SaleOrderID = order.Id,
                             BranchId = order.BranchId != null ? order.BranchId.Value : 0,
                             IsAgreementAccepted = true,
-                            Reason = "Đơn đã hủy, chưa hoàn lại tiền",
+                            Reason = "Đơn mua đã hủy, chưa hoàn lại tiền",
                             Status = RefundStatus.Pending.ToString(),
                             Notes = string.Empty,
                             CreatedAt = _methodHelper.GetTimeInUtcPlus7()
@@ -522,7 +522,10 @@ namespace _2Sport_BE.Infrastructure.Services
                     AssignSaleOrderInfomation(saleOrder, saleOrderCM);
 
                     saleOrder.OrderStatus = (int?)OrderStatus.PENDING;
-
+                    if (DeliveryMethod.Equals("STORE_PICKUP"))
+                    {
+                        saleOrder.UpdatedAt = DateTime.Now;
+                    }
                     await _unitOfWork.SaleOrderRepository.InsertAsync(saleOrder);
 
                     string saleOrderCode = saleOrder.SaleOrderCode;

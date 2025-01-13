@@ -116,7 +116,7 @@ export default function UserRentalDetail() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
+        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
         {
           headers: {
             accept: "*/*",
@@ -723,7 +723,7 @@ export default function UserRentalDetail() {
                 </div>
 
                 {/* Button Yêu cầu gia hạn */}
-                {orderStatus === "Đã giao hàng" && (
+                {orderStatus === "Đã giao hàng"  && (
                   <ExtensionRequestButton
                     parentOrder={orderDetail}
                     selectedChildOrder={orderDetail}

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://capstone-project-703387227873.asia-southeast1.run.app/api/Product';
+const API_BASE_URL = 'https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/Product';
 const perPage = 15;
 
 export const getProductList = (currentPage) => {
