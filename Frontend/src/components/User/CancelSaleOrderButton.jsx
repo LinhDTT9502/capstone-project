@@ -17,7 +17,7 @@ const CancelSaleOrderButton = ({ saleOrderId, setReload }) => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/request-cancel/${saleOrderId}?reason=${encodeURIComponent(
+        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/SaleOrder/request-cancel/${saleOrderId}?reason=${encodeURIComponent(
           reason
         )}`,
         {

@@ -168,7 +168,7 @@ function Header() {
     // Set the selectedOrder to the numeric part
     setSelectedOrder(numericOrderCode);
     const response = await fetch(
-      `https://capstone-project-703387227873.asia-southeast1.run.app/api/Notification/update-status?id=${id}&isRead=true`,
+      `https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/Notification/update-status?id=${id}&isRead=true`,
       {
         method: "PUT",
         headers: {
