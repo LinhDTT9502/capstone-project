@@ -57,7 +57,7 @@ namespace _2Sport_BE.Controllers
                     item.Quantity = 0;
                     foreach (var product in products)
                     {
-                        if (product.CategoryId == item.Id)
+                        if (product.CategoryId == item.Id && product.Status == true)
                         {
                             item.Quantity += 1;
                         }
