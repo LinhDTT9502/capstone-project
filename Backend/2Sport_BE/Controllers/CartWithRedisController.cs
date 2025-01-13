@@ -392,7 +392,7 @@ namespace _2Sport_BE.Controllers
                                                        ?? new List<CartItem>();
                 
                 listCartItems.Clear();
-                _redisCacheService.SetData(_cartItemsKey, listCartItems);
+                _redisCacheService.SetData(_cartItemsKey, listCartItems, TimeSpan.FromDays(30));
                 return Ok($"Reset cart successfully!");
             }
             catch (Exception ex)
