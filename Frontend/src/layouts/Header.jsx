@@ -41,7 +41,7 @@ function Header() {
   const { scrollYProgress } = useScroll();
   const { t } = useTranslation("translation");
   const [enabled, setEnabled] = useState(true);
-  const { cartCount, setCartCount } = useCart();
+  const { cartCount, setCartCount, reload } = useCart();
   const token = localStorage.getItem("token");
   const [openNoti, setOpenNoti] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -70,7 +70,7 @@ function Header() {
   }, []);
 
   const getNotification = async () => {
-    if(token){
+    if (token) {
       const data = await getNoti(user.UserId, token);
       const sortedData = data.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -105,21 +105,22 @@ function Header() {
     };
   }, [prevScrollY]);
 
-  useEffect(() => {
-    const fetchCartCount = async () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        const cartData = await getUserCart(token);
-        const totalItems = cartData.reduce(
-          (acc, item) => acc + item.quantity,
-          0
-        );
-        setCartCount(totalItems);
-      }
-    };
+  const fetchCartCount = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const cartData = await getUserCart(token);
+      const totalItems = cartData.length
+      setCartCount(totalItems);
+    }
+  };
 
+  
+
+  useEffect(() => {
     fetchCartCount();
-  }, [setCartCount]);
+    console.log(reload);
+    
+  }, [setCartCount, reload]);
 
   useOrderNotification((message) => {
     setNotifications((prev) => [...prev, message]); // Add new notification to the list
@@ -200,9 +201,8 @@ function Header() {
     <>
       <div className="w-full relative z-50 pb-28">
         <div
-          className={`fixed top-0 left-0 right-0 transition-all duration-300 ease-in-out ${
-            visible ? "transform translate-y-0" : "transform -translate-y-full"
-          }`}
+          className={`fixed top-0 left-0 right-0 transition-all duration-300 ease-in-out ${visible ? "transform translate-y-0" : "transform -translate-y-full"
+            }`}
         >
           {" "}
           <div className="bg-white/95 backdrop-blur-lg font-medium text-black flex justify-between items-center relative text-xs py-2 z-50">
@@ -357,17 +357,18 @@ function Header() {
               <SearchOrderDropDown />
 
               <SignInModal />
-              <Link to="/cart" className="flex space-x-2 ">
+              <Link to="/cart" className="flex space-x-2">
                 <div className="relative">
                   <FontAwesomeIcon icon={faCartShopping} className="pr-1" />
-                  {cartCount > 0 && token && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[0.625rem] font-bold rounded-full h-[1rem] w-4  leading-none flex items-center justify-center">
+                  {cartCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[0.625rem] font-bold rounded-full h-[1rem] w-4 leading-none flex items-center justify-center">
                       {cartCount}
                     </span>
                   )}
                 </div>
                 <p>Giỏ hàng</p>
               </Link>
+
               {token && (
                 <>
                   <Menu open={openNoti} handler={setOpenNoti}>
@@ -411,18 +412,17 @@ function Header() {
                   ${notiItem.isRead ? "bg-white" : "bg-blue-50"} 
                   hover:bg-gray-200 transition-colors duration-150 ease-in-out
                 `}
-                              // onClick={(event) => handleNotificationClick(notiItem.id, event)}
+                            // onClick={(event) => handleNotificationClick(notiItem.id, event)}
                             >
                               <div className="flex items-center py-3 px-4">
                                 {!notiItem.isRead && (
                                   <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 flex-shrink-0"></span>
                                 )}
                                 <p
-                                  className={`text-sm ${
-                                    notiItem.isRead
+                                  className={`text-sm ${notiItem.isRead
                                       ? "text-gray-600"
                                       : "text-gray-800 font-medium"
-                                  }`}
+                                    }`}
                                 >
                                   {highlightNumbers(notiItem)}
                                 </p>
