@@ -522,7 +522,10 @@ namespace _2Sport_BE.Infrastructure.Services
                     AssignSaleOrderInfomation(saleOrder, saleOrderCM);
 
                     saleOrder.OrderStatus = (int?)OrderStatus.PENDING;
-
+                    if (DeliveryMethod.Equals("STORE_PICKUP"))
+                    {
+                        saleOrder.UpdatedAt = DateTime.Now;
+                    }
                     await _unitOfWork.SaleOrderRepository.InsertAsync(saleOrder);
 
                     string saleOrderCode = saleOrder.SaleOrderCode;
