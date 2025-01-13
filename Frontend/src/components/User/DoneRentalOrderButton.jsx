@@ -12,7 +12,7 @@ const DoneRentalOrderButton = ({ rentalOrderId, setConfirmReload }) => {
     const newStatus = 5;
     try {
       const response = await axios.put(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/update-rental-order-status/${rentalOrderId}?orderStatus=${newStatus}`,
+        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/RentalOrder/update-rental-order-status/${rentalOrderId}?orderStatus=${newStatus}`,
 
         {
           headers: {

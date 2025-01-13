@@ -128,16 +128,6 @@ function Productv2Page() {
 
               <div className="relative inline-block mt-6">
                 <img src="/assets/images/product/hero.png" alt="Hero" />
-                <div className="absolute top-[10%] left-1/2 transform -translate-x-1/2 text-center p-[10px]">
-                  <span className="text-white font-bold text-xl font-poppins">
-                    {t("productv2.get_yours")}
-                  </span>
-                  <br />
-                  <span className="text-white font-bold text-3xl uppercase font-poppins">
-                    {t("productv2.best_gear")}
-                  </span>
-                  <br />
-                </div>
 
                 <div className="absolute top-[85%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-orange-5000 p-2">
                   <span className="text-black font-bold">{t("productv2.shop_now")}</span>

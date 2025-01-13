@@ -1,89 +1,77 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import * as signalR from "@microsoft/signalr";
 
-const useOrderNotification = (onNotificationReceived) => {
-  const [connection, setConnection] = useState(null);
+const useOrderNotification = (
+  onNotificationReceived,
+  hubUrl = "https://twosport-api-offcial-685025377967.asia-southeast1.run.app/notificationHub"
+) => {
+  const connectionRef = useRef(null); // Use useRef to persist the connection object across renders
 
   useEffect(() => {
-   const options = {
-     headers: {
-       Authorization: `Bearer ${localStorage.getItem("token")}`,
-     },
-     withCredentials: true,
-   };
+    // Create the SignalR connection
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(hubUrl, {
+        accessTokenFactory: () => localStorage.getItem("token"), // Fetch token dynamically
+        transport: signalR.HttpTransportType.All, // Auto-select transport
+      })
+      .withAutomaticReconnect([0, 2000, 5000, 10000]) // Reconnect intervals
+      .build();
 
-   // Create a new SignalR connection
-   const newConnection = new signalR.HubConnectionBuilder()
-     .withUrl(
-       "https://capstone-project-703387227873.asia-southeast1.run.app/notificationHub",
-       options
-     )
-     .withAutomaticReconnect() // Enable automatic reconnect
-     .build();
+    connectionRef.current = connection;
 
+    const startConnection = async () => {
+      try {
+        await connection.start();
+        console.log("SignalR Connected");
 
-    setConnection(newConnection);
+        // Register event listeners
+        connection.on("ReceiveMessage", (message) => {
+          console.log("ReceiveMessage received:", message);
+          if (onNotificationReceived) {
+            onNotificationReceived(message);
+          }
+        });
 
-    // Cleanup function
+        connection.on("ReceiveNotification", (notification) => {
+          console.log("Notification received:", notification);
+          if (onNotificationReceived) {
+            onNotificationReceived(notification);
+          }
+        });
+      } catch (error) {
+        console.error("Error connecting to SignalR:", error);
+      }
+    };
+
+    // Start the connection
+    startConnection();
+
+    // Handle connection lifecycle events
+    connection.onclose(() => {
+      console.error("SignalR connection closed.");
+      // Handle reconnection attempts if needed
+    });
+
+    connection.onreconnecting(() => {
+      console.log("SignalR reconnecting...");
+      // Handle reconnection progress if needed
+    });
+
+    connection.onreconnected(() => {
+      console.log("SignalR reconnected.");
+      // Handle post-reconnection actions if needed
+    });
+
+    // Cleanup the connection on unmount
     return () => {
-      if (
-        connection &&
-        connection.state !== signalR.HubConnectionState.Disconnected
-      ) {
-        connection.stop();
+      if (connectionRef.current) {
+        connectionRef.current.stop();
         console.log("SignalR connection stopped.");
       }
     };
-  }, []); // Only run once
+  }, [hubUrl, onNotificationReceived]); // Dependencies: hubUrl and callback
 
-  useEffect(() => {
-    if (connection) {
-      const startConnection = async () => {
-        if (connection.state === signalR.HubConnectionState.Connected) {
-          console.log("SignalR is already connected.");
-          return;
-        }
-
-        if (
-          connection.state === signalR.HubConnectionState.Connecting ||
-          connection.state === signalR.HubConnectionState.Reconnecting
-        ) {
-          console.log("SignalR is already connecting or reconnecting.");
-          return;
-        }
-
-        try {
-          await connection.start();
-          console.log("SignalR Connected");
-
-          //Group
-          connection.on("ReceiveMessage", (message) => {
-            console.log("ReceiveMessage received:", message);
-            onNotificationReceived(message);
-          });
-
-          //User
-          connection.on("ReceiveNotification", (message) => {
-            console.log("Notification received:", message);
-            onNotificationReceived(message);
-          });
-        } catch (error) {
-          console.error("Error connecting to SignalR:", error);
-        }
-      };
-
-      if (connection) {
-        startConnection();
-
-        return () => {
-          if (connection) {
-            connection.off("ReceiveNotification");
-            connection.stop();
-          }
-        };
-      }
-    }
-  }, [connection, onNotificationReceived]);
+  return connectionRef.current;
 };
 
 export default useOrderNotification;
@@ -93,7 +81,7 @@ export default useOrderNotification;
 // class useOrderNotification {
 //     constructor() {
 //         this.connection = new HubConnectionBuilder()
-//             .withUrl('https://capstone-project-703387227873.asia-southeast1.run.app/notificationHub', {
+//             .withUrl('https://twosport-api-offcial-685025377967.asia-southeast1.run.app//notificationHub', {
 //                 accessTokenFactory: () => localStorage.getItem('token') // Assume JWT token is stored in localStorage
 //             })
 //             .build();
