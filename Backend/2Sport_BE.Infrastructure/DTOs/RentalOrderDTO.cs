@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using _2Sport_BE.Service.DTOs;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
@@ -173,6 +174,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
 
         public decimal? ExtensionCost { get; set; }
         public string? ExtensionStatus { get; set; }
+        public DateTime? ExtendedDueDate { get; set; }
         #endregion
 
         public string? Reason { get; set; }
@@ -185,6 +187,7 @@ namespace _2Sport_BE.Infrastructure.DTOs
         #endregion
         public string? PaymentLink { get; set; }
         public List<RentalOrderVM>? childOrders { get; set; }
+        public List<RefundRequestVM> RefundRequests { get; set; }
     }
     public class ExtensionRequestModel
     {

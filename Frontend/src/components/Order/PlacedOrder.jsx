@@ -11,6 +11,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { Button, Tooltip, Typography } from "@material-tailwind/react";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { removeFromCart } from "../../redux/slices/cartSlice";
 
 const PlacedOrder = () => {
   const user = useSelector(selectUser);
@@ -123,6 +124,9 @@ const PlacedOrder = () => {
           // console.log(response.data, "")
         }
         console.log(response);
+        selectedProducts.forEach(item => {
+          dispatch(removeFromCart(item.id || item.productId));
+        });
         navigate("/order_success", {
           state: {
             orderID: orderID,
