@@ -27,6 +27,7 @@ const statusColors = {
   "Đã hủy": "bg-red-200 text-red-900",
   "Đang gia hạn": "bg-fuchsia-200 text-fuchsia-900",
   "Đã hoàn thành": "bg-green-100 text-green-800",
+  "Đang thuê": "bg-gray-200 text-gray-800",
 };
 
 const paymentStatusColors = {
@@ -175,6 +176,7 @@ export default function UserListRental() {
             "Đã xác nhận",
             "Đã giao cho ĐVVC",
             "Đã giao hàng",
+            "Đang thuê",
             "Đang gia hạn",
             "Đã hoàn thành",
             "Đã hủy",
