@@ -39,11 +39,12 @@ const ProductList = ({
     const getProducts = async () => {
       try {
         const productsData = await fetchProducts();
+        const sortedProducts = [...productsData.products].sort((a, b) => a.price - b.price);
 
         dispatch(
           setProducts({
             data: {
-              products: productsData.products,
+              products: sortedProducts,
               total: productsData.total,
             },
           })
