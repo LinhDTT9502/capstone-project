@@ -75,7 +75,7 @@ const getBranchName = (branchId) => {
                     <tr key={request.$id} className="hover:bg-gray-50">
                       <td className="px-4 py-2 border">{index+1}</td>
                       <td className="px-4 py-2 border">
-                        {request.saleOrderCode || "N/A"}
+                        {request.rentalOrderCode || "N/A"}
                       </td>
                       <td className="px-4 py-2 border">{request.reason}</td>
                       <td className="px-4 py-2 border">

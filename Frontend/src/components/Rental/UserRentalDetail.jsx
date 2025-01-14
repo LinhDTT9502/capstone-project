@@ -91,6 +91,7 @@ export default function UserRentalDetail() {
         d1.getDate() === d2.getDate()
       );
     };
+
     const getCurrentStepId = (orderStatusId) => {
       if (orderStatusId === 11) {
         // Trường hợp đặc biệt, có thể là trạng thái trả hàng
@@ -469,7 +470,7 @@ export default function UserRentalDetail() {
               )}
               {/* Refund button */}
               {orderDetail.orderStatus === "Đã hủy" &&
-                (orderDetail.paymentStatus === "Đã thanh toán" ||
+                (orderDetail.paymentStatus === "Đã đặt cọc" ||
                   orderDetail.depositAmount > 0) &&
                 orderDetail.refundRequests == null && (
                   <RentalRefundRequestForm
@@ -478,7 +479,7 @@ export default function UserRentalDetail() {
                   />
                 )}
               {/* RefundRequests list button */}
-              {orderDetail.refundRequests != null && (
+              {orderDetail.refundRequests !== null && (
                 <RefundRequestPopup
                   refundRequests={orderDetail.refundRequests}
                 />
@@ -533,6 +534,7 @@ export default function UserRentalDetail() {
                         <span className="font-semibold">Kích thước:</span>{" "}
                         <i>{child.size}</i>
                       </p>
+                      {console.log(child)}
                       <p>
                         <span className="font-semibold">Thời gian thuê:</span>{" "}
                         <i>
@@ -540,6 +542,27 @@ export default function UserRentalDetail() {
                           - {new Date(child.rentalEndDate).toLocaleDateString()}
                         </i>
                       </p>
+                      {child.extendedDueDate != null && (
+                        <p>
+                          <span className="font-semibold">Thời gian gia hạn:</span>{" "}
+                          <i>
+                            {new Date(child.rentalEndDate).toLocaleDateString()}{" "}
+                            -{" "}
+                            {new Date(
+                              child.extendedDueDate
+                            ).toLocaleDateString()}
+                          </i>
+                        </p>
+                      )}
+                      {child.extensionCost != 0 && (
+                        <p>
+                          <span className="font-semibold">Phí gia hạn:</span>{" "}
+                          <i>
+                            {orderDetail.extensionCost.toLocaleString("vi-VN")}₫
+                            (x {child.extensionDays} ngày)
+                          </i>
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -715,14 +738,14 @@ export default function UserRentalDetail() {
                 </div>
 
                 {/* Button Yêu cầu gia hạn */}
-                {orderStatus === "Đã giao hàng" && (
+                {orderStatus === "Đang thuê" && (
                   <ExtensionRequestButton
                     parentOrder={orderDetail}
                     selectedChildOrder={orderDetail}
                     setExtendReload={setExtendReload}
                   />
                 )}
-                {orderDetail.orderStatus === "Đã giao hàng" ||
+                {orderDetail.orderStatus === "Đang thuê" ||
                 orderDetail.orderStatus === "Đang gia hạn" ? (
                   <ReturnRentalProductButton selectedOrderId={orderDetail.id} />
                 ) : null}

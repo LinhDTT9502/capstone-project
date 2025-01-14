@@ -15,6 +15,8 @@ import CancelRentalOrderButton from "./CancelRentalOrderButton";
 import { toast } from "react-toastify";
 import DoneRentalOrderButton from "./DoneRentalOrderButton";
 import ReturnRequestButton from "../../pages/ReturnPage";
+import RentalRefundRequestForm from "../Refund/RentalRefundRequestForm";
+import RefundRequestPopup from "../Order/RefundRequestPopup";
 
 const statusColors = {
   "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -53,6 +55,7 @@ export default function UserListRental() {
   const [searchQuery, setSearchQuery] = useState("");
   const [reload, setReload] = useState(false);
   const [confirmReload, setConfirmReload] = useState(false);
+  const [refundReload, setRefundReload] = useState(false);
 
   useEffect(() => {
     const fetchRentalOrders = async () => {
@@ -83,7 +86,7 @@ export default function UserListRental() {
       }
     };
     fetchRentalOrders();
-  }, [user.UserId, reload, confirmReload]);
+  }, [user.UserId, reload, confirmReload, refundReload]);
 
   const handleSearch = () => {
     if (!searchQuery) {
@@ -374,7 +377,7 @@ export default function UserListRental() {
                         Thanh toán
                       </Button>
                     )}
-                  {parent.orderStatus === "Đã hủy" &&
+                  {/* {parent.orderStatus === "Đã hủy" &&
                     parent.depositAmount > 0 && (
                       <button
                         className="text-red-700 bg-white border border-red-700 rounded-md hover:bg-red-200 px-4 py-2"
@@ -382,6 +385,19 @@ export default function UserListRental() {
                       >
                         Trả Hàng/Hoàn Tiền
                       </button>
+                    )} */}
+                  {parent.orderStatus === "Đã hủy" &&
+                    parent.depositAmount > 0 &&
+                    (parent.refundRequests === null)&& (
+                      <RentalRefundRequestForm
+                        orderDetail={parent}
+                        setRefundReload={setRefundReload}
+                      />
+                    )}
+                  {(parent.refundRequests !== null) && (
+                      <RefundRequestPopup
+                        refundRequests={parent.refundRequests}
+                      />
                     )}
                   {parent.orderStatus === "Chờ xử lý" && (
                     <CancelRentalOrderButton
