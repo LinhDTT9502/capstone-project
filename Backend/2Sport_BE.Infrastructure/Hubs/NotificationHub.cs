@@ -41,7 +41,7 @@ namespace _2Sport_BE.Infrastructure.Hubs
             string branchId = GetCurrentUserBranchFromToken();
             string userId = GetCurrentUserIdFromToken();
 
-            if (userRole == "Order Coordinator")
+            if (userRole == "Coordinator")
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, "Coordinator");
             }
@@ -72,7 +72,7 @@ namespace _2Sport_BE.Infrastructure.Hubs
             string userId = GetCurrentUserIdFromToken();
 
             // Xử lý dựa trên vai trò người dùng để xóa khỏi các nhóm phù hợp
-            if (userRole == "Order Coordinator")
+            if (userRole == "Coordinator")
             {
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Coordinator");
             }

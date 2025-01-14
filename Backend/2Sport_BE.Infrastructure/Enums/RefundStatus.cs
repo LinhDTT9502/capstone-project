@@ -10,7 +10,6 @@ namespace _2Sport_BE.Service.Enums
 {
     public enum RefundStatus : int
     {
-        [EnumMember(Value = "HEhE")]
         Pending,       // Yêu cầu hoàn tiền đang chờ xử lý
         Approved,      // Yêu cầu hoàn tiền đã được chấp thuận
         Rejected,      // Yêu cầu hoàn tiền bị từ chối
