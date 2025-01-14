@@ -332,12 +332,18 @@ namespace _2Sport_BE.Infrastructure.Services
                 if (rentalOrder == null)
                     return _rentalOrderService.GenerateErrorResponse($"Rental Order with code {paymentResponse.OrderCode} is not found!");
 
-                if (rentalOrder.DepositStatus == (int)DepositStatus.PARTIALLY_PENDING) rentalOrder.DepositStatus = (int)DepositStatus.PARTIALLY_PENDING;
-                else rentalOrder.DepositStatus = (int)DepositStatus.FULL_PAID;
+                if (rentalOrder.DepositStatus == (int)DepositStatus.PARTIALLY_PENDING)
+                {
+                    rentalOrder.DepositStatus = (int)DepositStatus.PARTIALLY_PENDING;
+                    rentalOrder.DepositAmount = rentalOrder.SubTotal / 2;
+                }
+                else
+                {
+                    rentalOrder.DepositStatus = (int)DepositStatus.FULL_PAID;
+                    rentalOrder.DepositAmount = rentalOrder.SubTotal;
+                }
 
                 rentalOrder.PaymentStatus = (int)PaymentStatus.DEPOSIT;
-
-
                 rentalOrder.PaymentDate = _methodHelper.GetTimeInUtcPlus7();
                 rentalOrder.DepositDate = _methodHelper.GetTimeInUtcPlus7();
                 rentalOrder.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();

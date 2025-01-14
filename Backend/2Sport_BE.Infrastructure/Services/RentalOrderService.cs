@@ -1446,8 +1446,10 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             return (rentalOrder.SubTotal ?? 0)
                  + (rentalOrder.TranSportFee ?? 0)
-                 + (rentalOrder.LateFee ?? 0)
-                 + (rentalOrder.DamageFee ?? 0);
+                 + (rentalOrder.ExtensionCost ?? 0)
+                + (rentalOrder.LateFee ?? 0)
+                + (rentalOrder.DamageFee ?? 0);
+              
         }
 
         private void AssignRentalDates(RentalOrder rentalOrder, RentalDates rentalDates)
