@@ -13,10 +13,10 @@ namespace _2Sport_BE.Helpers
         public Mapping()
         {
             #region ReturnRequest
-            //CreateMap<ReturnRequest, ReturnRequestVM>().ReverseMap();
-            CreateMap<RefundRequest, RefundRequestVM>()
-                     .ForMember(dest => dest.Status,
-                                opt => opt.MapFrom(src => EnumDisplayHelper.MapRefundStatusToDescription(src.Status)));
+            CreateMap<ReturnRequest, ReturnRequestVM>().ReverseMap();
+            //CreateMap<RefundRequest, RefundRequestVM>()
+            //         .ForMember(dest => dest.Status,
+            //                    opt => opt.MapFrom(src => EnumDisplayHelper.MapRefundStatusToDescription(src.Status)));
             //CreateMap<RefundRequest, RefundRequestVM>().ReverseMap();
             //CreateMap<RefundRequest, RefundRequestUM>().ReverseMap();
             //CreateMap<RefundRequestUM, RefundRequest>().ReverseMap();
