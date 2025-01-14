@@ -3,6 +3,7 @@ using _2Sport_BE.Infrastructure.Services;
 using _2Sport_BE.Repository.Models;
 using _2Sport_BE.Service.Services;
 using _2Sport_BE.Services;
+using _2Sport_BE.Services.Caching;
 using _2Sport_BE.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,14 +19,22 @@ namespace _2Sport_BE.Controllers
         private readonly IChatService _chatService;
         private readonly IUserService _userService;
         private readonly IImageService _imageService;
+        private readonly IRedisCacheService _redisCacheService;
+        private readonly string _chatSessionKey;
+        private readonly string _messageKey;
 
         public ChatController(IChatService chatService, 
                               IUserService userService,
-                              IImageService imageService)
+                              IImageService imageService,
+                              IRedisCacheService redisCacheService,
+                              IConfiguration configuration)
         {
             _chatService = chatService;
             _userService = userService;
             _imageService = imageService;
+            _redisCacheService = redisCacheService;
+            _chatSessionKey = configuration.GetValue<string>("RedisKeys:ChatSessions");
+            _messageKey = configuration.GetValue<string>("RedisKeys:Messages");
         }
 
         [HttpPost]
@@ -207,6 +216,31 @@ namespace _2Sport_BE.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpDelete]
+        [Route("reset-chats")]
+        public async Task<IActionResult> ResetChats()
+        {
+            try
+            {
+                var listChatSessions = _redisCacheService.GetData<List<ChatSession>>(_chatSessionKey)
+                                                       ?? new List<ChatSession>();
+
+                listChatSessions.Clear();
+                _redisCacheService.SetData(_chatSessionKey, listChatSessions, TimeSpan.FromDays(30));
+
+                var listMessages = _redisCacheService.GetData<List<Message>>(_messageKey)
+                                       ?? new List<Message>();
+
+                listMessages.Clear();
+                _redisCacheService.SetData(_messageKey, listMessages, TimeSpan.FromDays(30));
+                return Ok($"Reset chats successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
             }
         }
 
