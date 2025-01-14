@@ -175,7 +175,7 @@ namespace _2Sport_BE.Controllers
                     productVM.ListImages.Reverse();
                 }
 
-                return Ok(productVMs);
+                return Ok(productVMs.OrderByDescending(_ => _.Condition));
             }
             catch (Exception ex)
             {
@@ -235,7 +235,7 @@ namespace _2Sport_BE.Controllers
                     product.ListImages.Add(product.ImgAvatarPath);
                     product.ListImages.Reverse();
                 }
-                return Ok(new { total = result.Count, data = result });
+                return Ok(new { total = result.Count, data = result.OrderByDescending(_ => _.Condition) });
             }
             catch (Exception ex)
             {
