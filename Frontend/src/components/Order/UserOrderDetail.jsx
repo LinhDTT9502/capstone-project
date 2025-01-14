@@ -143,6 +143,7 @@ const getCurrentStepIndex = (orderStatusId) => {
     paymentDate,
     totalAmount,
     paymentMethod,
+    subTotal,
   } = orderDetail;
 
   const products = orderDetail?.saleOrderDetailVMs?.$values || [];
@@ -205,7 +206,7 @@ const getCurrentStepIndex = (orderStatusId) => {
                 style={{ color: "#FFD43B" }}
               />
               <span className="font-semibold">Số tiền: </span>
-              {totalAmount.toLocaleString("Vi-vn")}₫
+              {subTotal.toLocaleString("Vi-vn")}₫
             </p>
           </div>
         )}
