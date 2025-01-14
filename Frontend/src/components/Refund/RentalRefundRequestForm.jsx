@@ -3,8 +3,8 @@ import { Button, Input, Textarea, Checkbox } from "@material-tailwind/react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const RentalRefundRequestForm = ({ orderDetail }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false); 
+const RentalRefundRequestForm = ({ orderDetail, setRefundReload }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderCode, setOrderCode] = useState("");
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
@@ -25,7 +25,6 @@ const RentalRefundRequestForm = ({ orderDetail }) => {
       return;
     }
 
-    
     const payload = {
       orderCode: orderDetail.rentalOrderCode,
       orderType: 2,
@@ -53,6 +52,7 @@ const RentalRefundRequestForm = ({ orderDetail }) => {
         setNotes("");
         setIsAgreementAccepted(false);
         setIsModalOpen(false);
+        setRefundReload(true);
       } else {
         toast.warning(response.data.message);
       }
@@ -80,7 +80,7 @@ const RentalRefundRequestForm = ({ orderDetail }) => {
   return (
     <div>
       {/* Step 2: Nút mở pop-up */}
-      <Button onClick={openModal} color="orange" className="w-full">
+      <Button onClick={openModal} color="lime" className="w-full">
         Yêu cầu hoàn tiền
       </Button>
 
@@ -92,7 +92,7 @@ const RentalRefundRequestForm = ({ orderDetail }) => {
               Biểu mẫu yêu cầu hoàn tiền
             </h2>
             <p className="text-sm text-gray-600 mb-6">
-                 Vui lòng cung cấp thông tin đầy đủ và lý do chi tiết.
+              Vui lòng cung cấp thông tin đầy đủ và lý do chi tiết.
             </p>
 
             {/* Form yêu cầu hoàn tiền */}

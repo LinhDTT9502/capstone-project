@@ -16,7 +16,7 @@ const ReturnPage = () => {
   const [description, setDescription] = useState(""); // Mô tả vấn đề
   const [loading, setLoading] = useState(false); 
   const navigate = useNavigate();
-
+  console.log(product)
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
   };
