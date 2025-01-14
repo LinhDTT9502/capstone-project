@@ -164,7 +164,7 @@ namespace _2Sport_BE.Service.Services
 
             // Sort by Condition (or any property) in descending order
             return listConditions
-                .OrderBy(cs => cs.Condition) // Replace 'cs.Condition' with the desired property
+                .OrderByDescending(cs => cs.Condition) // Replace 'cs.Condition' with the desired property
                 .ToList();
         }
 
