@@ -163,9 +163,7 @@ namespace _2Sport_BE.Service.Services
             }
 
             // Sort by Condition (or any property) in descending order
-            return listConditions
-                .OrderByDescending(cs => cs.Condition) // Replace 'cs.Condition' with the desired property
-                .ToList();
+            return listConditions.ToList();
         }
 
 
@@ -250,7 +248,6 @@ namespace _2Sport_BE.Service.Services
                 var query = await _unitOfWork.ProductRepository.GetAsync(filter, orderBy, includeProperties, null, null);
                 // Group by ProductCode and ProductName, then select the first item in each group
                 var distinctProducts = query
-                    .OrderByDescending(_ => _.Condition)
                     .GroupBy(p => new { p.ProductCode })
                     .Select(g => g.First());
                 return distinctProducts.AsQueryable();
