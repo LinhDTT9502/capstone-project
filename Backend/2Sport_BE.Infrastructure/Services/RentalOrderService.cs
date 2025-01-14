@@ -109,11 +109,12 @@ namespace _2Sport_BE.Infrastructure.Services
             {
                 var parentOrder = group.First();
 
+                var orderCode = parentOrder.ParentOrderCode != null ? parentOrder.ParentOrderCode.ToString() : parentOrder.RentalOrderCode;
                 await _notificationService.SendRentalOrderExpirationNotificationAsync(
-                    parentOrder.UserId.ToString(),
-                    parentOrder.RentalOrderCode,
-                    (DateTime)parentOrder.RentalEndDate
-                );
+                 parentOrder.UserId.ToString(),
+                 orderCode,
+                 (DateTime)parentOrder.RentalEndDate
+                   );
 
                 await _mailService.SendRentalOrderReminder(
                     parentOrder,
@@ -204,7 +205,7 @@ namespace _2Sport_BE.Infrastructure.Services
             try
             {
                 var orders = await _unitOfWork.RentalOrderRepository
-                    .GetAsync(o => o.UserId == userId);
+                    .GetAndIncludeAsync(o => o.UserId == userId, new string[] { "RefundRequests" });
 
                 if (orders != null && orders.Any())
                 {
@@ -1558,6 +1559,10 @@ namespace _2Sport_BE.Infrastructure.Services
                 : "N/A";
             rentalOrderVM.DeliveryMethod = _deliveryMethodService.GetDescription(rentalOrder.DeliveryMethod);
             rentalOrderVM.OrderStatusId = rentalOrder.OrderStatus;
+            rentalOrderVM.RefundRequests = rentalOrder.RefundRequests != null && rentalOrder.RefundRequests.Any()
+            ? _mapper.Map<List<RefundRequestVM>>(rentalOrder.RefundRequests)
+            : null;
+
         }
 
         private ValidationResult ValidateStatusTransition(RentalOrder rentalOrder, int newStatus)
