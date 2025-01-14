@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogHeader,
@@ -10,17 +10,35 @@ import {
 } from "@material-tailwind/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle, faHourglass, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { fetchBranchs } from "../../services/branchService";
 
 const RefundRequestPopup = ({ refundRequests }) => {
   const [open, setOpen] = useState(false);
-
+  const [branches, setBranches] = useState([]);
   const toggleDialog = () => setOpen(!open);
+
+const getBranchName = (branchId) => {
+  const branch = branches.find((b) => b.id === branchId);
+  return branch ? branch.branchName : "Unknown Branch";
+};
 
   const statusColors = {
     Pending: "yellow",
     Approved: "green",
     Rejected: "red",
   };
+
+  useEffect(() => {
+    const loadBranches = async () => {
+      try {
+        const data = await fetchBranchs(); // Replace this with your API call
+        setBranches(data);
+      } catch (error) {
+        console.error('Error fetching branch data:', error);
+      }
+    };
+    loadBranches();
+  }, []);
 
   return (
     <>
@@ -43,7 +61,7 @@ const RefundRequestPopup = ({ refundRequests }) => {
               <table className="table-auto w-full text-left border-collapse border border-gray-200">
                 <thead>
                   <tr className="bg-gray-100 text-gray-700 uppercase text-sm">
-                    <th className="px-4 py-2 border">Mã yêu cầu</th>
+                    <th className="px-4 py-2 border">No</th>
                     <th className="px-4 py-2 border">Mã đơn hàng</th>
                     <th className="px-4 py-2 border">Lý do</th>
                     <th className="px-4 py-2 border">Trạng thái</th>
@@ -53,9 +71,9 @@ const RefundRequestPopup = ({ refundRequests }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {refundRequests.$values.map((request) => (
+                  {refundRequests.$values.map((request, index) => (
                     <tr key={request.$id} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 border">{request.refundID}</td>
+                      <td className="px-4 py-2 border">{index+1}</td>
                       <td className="px-4 py-2 border">
                         {request.saleOrderCode || "N/A"}
                       </td>
@@ -75,7 +93,9 @@ const RefundRequestPopup = ({ refundRequests }) => {
                           }
                         />
                       </td>
-                      <td className="px-4 py-2 border">{request.branchId}</td>
+                      <td className="px-4 py-2 border">
+                        {getBranchName(request.branchId)}
+                      </td>
                       <td className="px-4 py-2 border">
                         {new Date(request.createdAt).toLocaleString("vi-VN")}
                       </td>

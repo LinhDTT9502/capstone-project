@@ -48,6 +48,15 @@ const RentalOrder = () => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().split("T")[0];
   };
+  
+  const getMinEndDate = () => {
+    if (!startDate) {
+      return getTomorrowDate(); // Nếu chưa chọn startDate, mặc định là ngày mai
+    }
+    const minEndDate = new Date(startDate);
+    minEndDate.setDate(minEndDate.getDate() + 1);
+    return minEndDate.toISOString().split("T")[0];
+  };
 
   const calculateRentalDays = () => {
     if (!startDate || !endDate) return 0;
@@ -141,7 +150,7 @@ const RentalOrder = () => {
         ],
       };
 
-      console.log("Dữ liệu hợp lệ, bắt đầu gửi yêu cầu...");
+      // console.log("Dữ liệu hợp lệ, bắt đầu gửi yêu cầu...");
       const response = await axios.post(
         "https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/RentalOrder/create",
         payload,
@@ -265,9 +274,7 @@ const productArray = [rentalData.product];
                         </label>
                         <input
                           type="date"
-                          min={
-                          getTomorrowDate()
-                          }
+                          min={getMinEndDate()}
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
                           className="border rounded px-3 py-2 text-sm flex-1"
@@ -395,20 +402,6 @@ const productArray = [rentalData.product];
                 {loading ? "Đang xử lý..." : "Đặt hàng"}
               </Button>
             </div>
-
-            {/* <div className="flex justify-center mt-6">
-              <button
-                onClick={handleCreateRentalOrder}
-                disabled={loading}
-                className={`bg-orange-500 text-white w-full py-3 rounded ${
-                  loading
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-orange-600"
-                }`}
-              >
-                {loading ? "Đang tiến hành..." : "Tạo đơn hàng"}
-              </button>
-            </div> */}
           </div>
         </div>
       </div>

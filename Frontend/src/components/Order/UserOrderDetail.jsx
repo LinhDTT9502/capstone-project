@@ -31,16 +31,12 @@ import {
   Typography,
 } from "@material-tailwind/react";
 import { submitReview } from "../../services/reviewService";
-import StarRating from "../Product/StarRating";
-import { toast } from "react-toastify";
 import DoneSaleOrderButton from "../User/DoneSaleOrderButton";
 import CancelSaleOrderButton from "../User/CancelSaleOrderButton";
 import ReviewButton from "../Review/ReviewButton";
-import ReviewSaleOrderModal from "../Review/ReviewSaleOrderModal";
 import OrderCancellationInfo from "../User/OrderCancellationInfo";
 import RefundRequestForm from "../Refund/RefundRequestForm ";
 import RefundRequestPopup from "./RefundRequestPopup";
-import RefundRequestButton from "./RefundRequestPopup";
 import ReturnRequestsPopup from "./ReturnRequestsPopup";
 
 export default function UserOrderDetail() {
@@ -49,12 +45,10 @@ export default function UserOrderDetail() {
   const [orderDetail, setOrderDetail] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [reason, setReason] = useState("");
-  const [loading, setLoading] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [confirmReload, setConfirmReload] = useState(false);
   const [reload, setReload] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [refundReload, setRefundReload] = useState(false);
 
 
   const statusColors = {
@@ -121,7 +115,7 @@ const getCurrentStepIndex = (orderStatusId) => {
   useEffect(() => {
     fetchOrderDetail();
     getCurrentStepIndex();
-  }, [orderCode, reload, confirmReload]);
+  }, [orderCode, reload, confirmReload, refundReload]);
 
   if (isLoading)
     return (
@@ -435,7 +429,10 @@ const getCurrentStepIndex = (orderStatusId) => {
               {orderStatus === "Đã hủy" &&
                 paymentStatus === "Đã thanh toán" &&
                 orderDetail.refundRequests === null && (
-                  <RefundRequestForm orderDetail={orderDetail} />
+                  <RefundRequestForm
+                    orderDetail={orderDetail}
+                    setRefundReload={setRefundReload}
+                  />
                 )}
               {orderDetail.refundRequests != null && (
                 <RefundRequestPopup
@@ -569,13 +566,19 @@ const getCurrentStepIndex = (orderStatusId) => {
             <i>{orderDetail.subTotal.toLocaleString("vi-VN")}₫</i>
           </p>
           <p className="flex justify-between">
-            <b className="text-xl py-2 ">Phí vận chuyển: </b>
-            <p className="text-xl py-2">
-              {orderDetail.tranSportFee !== 0
-                ? `${orderDetail.tranSportFee.toLocaleString("vi-VN")}₫`
-                : "2Sport sẽ liên hệ và thông báo sau"}
-            </p>
+            <b className="text-xl py-2">Phí vận chuyển: </b>
+            <span className="text-xl py-2">
+              {orderDetail.totalAmount > 2000000 ||
+              orderDetail.deliveryMethod === "Đến cửa hàng nhận" ? (
+                <i>Miễn phí vận chuyển</i>
+              ) : orderDetail.tranSportFee !== 0 ? (
+                <>{`${orderDetail.tranSportFee.toLocaleString("vi-VN")}₫`}</>
+              ) : (
+                "2Sport sẽ liên hệ và thông báo sau"
+              )}
+            </span>
           </p>
+
           <p className="text-xl flex justify-between items-center text-gray-700">
             <span className="flex items-center gap-1">
               <b>Thành tiền:</b>

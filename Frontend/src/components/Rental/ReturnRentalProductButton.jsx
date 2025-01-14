@@ -45,7 +45,7 @@ const ReturnRentalProductButton = (selectedOrderId) => {
     <div className="p-1">
       {/* Button mở popup */}
       <Button
-        className="text-yellow-700 bg-white border border-yellow-700 rounded-md hover:bg-yellow-200"
+        className="text-orange-700 bg-white border border-orange-700 rounded-md hover:bg-orange-200"
         onClick={togglePopup}
         size="sm"
       >
