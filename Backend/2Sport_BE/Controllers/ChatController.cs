@@ -167,6 +167,49 @@ namespace _2Sport_BE.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("get-all-chat-sessions-of-coordinator")]
+        public async Task<IActionResult> GetAllChatSessionsOfCoordinator()
+        {
+            try
+            {
+                var coordinatorId = GetCurrentUserIdFromToken();
+                if (coordinatorId == 0)
+                {
+                    return Unauthorized();
+                }
+                var chatSessions = await _chatService.GetAllChatSession();
+                if (chatSessions is null)
+                {
+                    return Ok("There is not chat session!");
+                }
+                return Ok(chatSessions);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("get-all-messages-in-chat-sessions/{chatSessionId}")]
+        public async Task<IActionResult> GetAllMessagesInChatSession(Guid chatSessionId)
+        {
+            try
+            {
+                var messages = await _chatService.GetAllMessagesInChatSession(chatSessionId);
+                if (messages is null)
+                {
+                    return Ok("There is no message!");
+                }
+                return Ok(messages);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         protected int GetCurrentUserIdFromToken()
         {
             int UserId = 0;

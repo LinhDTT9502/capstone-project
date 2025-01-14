@@ -1,5 +1,18 @@
 ﻿namespace _2Sport_BE.Service.DTOs
 {
+    public class ChatSessionVM()
+    {
+        public Guid ChatSessionId { get; set; }
+        public int? CustomerId { get; set; }
+        public string? CustomerName { get; set; }
+        public int CoordinatorId { get; set; }
+        public string CoordinatorName { get; set; }
+        public int? ManagerId { get; set; }
+        public string? ManagerName { get; set; }
+        public int LastSenderId { get; set; }
+        public string LastSenderName { get; set; }
+        public string LastSenderMessage { get; set; }
+    }
     public class ChatVM()
     {
         public Guid ChatSessionId { get; set; }

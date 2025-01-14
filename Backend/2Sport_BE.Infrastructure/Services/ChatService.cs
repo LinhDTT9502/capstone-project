@@ -27,6 +27,8 @@ namespace _2Sport_BE.Service.Services
                                                        int senderId, int receiverId,
                                                        string message, string imgUrl);
         Task<ChatVM> GetMessagesOfCustomer(int customerId);
+        Task<List<ChatSessionVM>> GetAllChatSession();
+        Task<List<MessageVM>> GetAllMessagesInChatSession(Guid chatSessionId);
     }
 
     public class ChatService : IChatService
@@ -65,8 +67,10 @@ namespace _2Sport_BE.Service.Services
 
                 if (chatSessionOfCustomer is not null)
                 {
-                    var chatSessionId = chatSessionOfCustomer.Id;
+                    chatSessionOfCustomer.LastSenderId = senderId;
+                    _redisCacheService.SetData(_chatSessionsKey, listChatSessions, TimeSpan.FromDays(30));
 
+                    var chatSessionId = chatSessionOfCustomer.Id;
                     var messageObject = new Message()
                     {
                         Id = Guid.NewGuid(),
@@ -89,6 +93,7 @@ namespace _2Sport_BE.Service.Services
                         ManagerId = null,
                         CustomerId = senderId,
                         CoordinatorId = receiverId,
+                        LastSenderId = senderId,
                     };
                     listChatSessions.Add(chatSession);
                     _redisCacheService.SetData(_chatSessionsKey, listChatSessions, TimeSpan.FromDays(30));
@@ -121,6 +126,13 @@ namespace _2Sport_BE.Service.Services
         {
             try
             {
+                var listChatSessions = _redisCacheService.GetData<List<ChatSession>>(_chatSessionsKey)
+                                                               ?? new List<ChatSession>();
+                var chatSessionOfCoordinator = listChatSessions.Find(_ => _.Id == chatSessionId);
+                chatSessionOfCoordinator.LastSenderId = senderId;
+                _redisCacheService.SetData(_chatSessionsKey, listChatSessions, TimeSpan.FromDays(30));
+
+
                 var listMessages = _redisCacheService.GetData<List<Message>>(_messagesKey)
                                                                 ?? new List<Message>();
 
@@ -158,6 +170,9 @@ namespace _2Sport_BE.Service.Services
 
                 if (chatSessionOfCoordinator is not null)
                 {
+                    chatSessionOfCoordinator.LastSenderId = senderId;
+                    _redisCacheService.SetData(_chatSessionsKey, listChatSessions, TimeSpan.FromDays(30));
+
                     var chatSessionId = chatSessionOfCoordinator.Id;
 
                     var messageObject = new Message()
@@ -184,6 +199,7 @@ namespace _2Sport_BE.Service.Services
                         ManagerId = null,
                         CustomerId = senderId,
                         CoordinatorId = receiverId,
+                        LastSenderId = senderId,
                     };
                     listChatSessions.Add(chatSession);
                     _redisCacheService.SetData(_chatSessionsKey, listChatSessions, TimeSpan.FromDays(30));
@@ -215,6 +231,12 @@ namespace _2Sport_BE.Service.Services
         {
             try
             {
+                var listChatSessions = _redisCacheService.GetData<List<ChatSession>>(_chatSessionsKey)
+                                               ?? new List<ChatSession>();
+                var chatSessionOfManager = listChatSessions.Find(_ => _.Id == chatSessionId);
+                chatSessionOfManager.LastSenderId = senderId;
+                _redisCacheService.SetData(_chatSessionsKey, listChatSessions, TimeSpan.FromDays(30));
+
                 var listMessages = _redisCacheService.GetData<List<Message>>(_messagesKey)
                                                                 ?? new List<Message>();
 
@@ -262,9 +284,9 @@ namespace _2Sport_BE.Service.Services
                     {
                         MessageId = message.Id,
                         SenderId = message.SenderId,
-                        SenderName = (await _unitOfWork.UserRepository.FindAsync(message.SenderId)).FullName,
+                        SenderName = (await _unitOfWork.UserRepository.FindAsync(message.SenderId)).FullName ?? "",
                         ReceiverId = message.ReceiverId,
-                        ReceiverName = (await _unitOfWork.UserRepository.FindAsync(message.ReceiverId)).FullName,
+                        ReceiverName = (await _unitOfWork.UserRepository.FindAsync(message.ReceiverId)).FullName ?? "",
                         Content = message.Content,
                         ImageUrl = message.ImageUrl,
                         Timestamp = message.Timestamp
@@ -279,7 +301,7 @@ namespace _2Sport_BE.Service.Services
                     CustomerName = (await _unitOfWork.UserRepository.FindAsync(customerId)).FullName,
                     CoordinatorId = chatSessionOfCustomer.CoordinatorId,
                     CoordinatorName = (await _unitOfWork.UserRepository
-                                                .FindAsync(chatSessionOfCustomer.CoordinatorId)).FullName,
+                                                .FindAsync(chatSessionOfCustomer.CoordinatorId)).FullName ?? "",
                     MessageVMs = messagesVMs,
                 };
                 return chatVM;
@@ -289,6 +311,99 @@ namespace _2Sport_BE.Service.Services
                 return null;
             }
         }
+
+        public async Task<List<ChatSessionVM>> GetAllChatSession()
+        {
+            var listChatSessions = _redisCacheService.GetData<List<ChatSession>>(_chatSessionsKey)
+                                                                                ?? new List<ChatSession>();
+
+            if (listChatSessions.Count <= 0)
+            {
+                return null;
+            }
+
+            var listChatSessionVMs = new List<ChatSessionVM>();
+
+            var listMessages = _redisCacheService.GetData<List<Message>>(_messagesKey)
+                                            ?? new List<Message>();
+            foreach (var chatSession in listChatSessions)
+            {
+                var listMessageByChatSessionId = listMessages
+                        .Where(_ => _.ChatSessionId.Equals(chatSession.Id)).ToList();
+
+                var lastMessage = "";
+                if (listMessageByChatSessionId.Count > 0)
+                {
+                    lastMessage = listMessageByChatSessionId.LastOrDefault().Content;
+                }
+
+                var customerName = "";
+                var managerName = "";
+                var lastSenderName = "";
+                if (chatSession.CustomerId is not null)
+                {
+                    customerName = (await _unitOfWork.UserRepository
+                                    .FindAsync(chatSession.CustomerId)).FullName;   
+                }
+                if (chatSession.ManagerId is not null)
+                {
+                    managerName = (await _unitOfWork.UserRepository
+                                    .FindAsync(chatSession.ManagerId)).FullName;
+                }
+                if (chatSession.LastSenderId != 0)
+                {
+                    lastSenderName = (await _unitOfWork.UserRepository
+                                    .FindAsync(chatSession.LastSenderId)).FullName;
+                }
+                var chatSessionVM = new ChatSessionVM()
+                {
+                    ChatSessionId = chatSession.Id,
+                    CustomerId = chatSession.CustomerId,
+                    CustomerName = customerName,
+                    ManagerId = chatSession.ManagerId,
+                    ManagerName = managerName,
+                    CoordinatorId = chatSession.CoordinatorId,
+                    CoordinatorName = (await _unitOfWork.UserRepository
+                                    .FindAsync(chatSession.CoordinatorId)).FullName ?? "",
+                    LastSenderId = chatSession.LastSenderId,
+                    LastSenderName = lastSenderName ?? "",
+                    LastSenderMessage = lastMessage,
+                };
+                listChatSessionVMs.Add(chatSessionVM);
+            }
+            return listChatSessionVMs;
+        }
+
+        public async Task<List<MessageVM>> GetAllMessagesInChatSession(Guid chatSessionId)
+        {
+            var allMessages = _redisCacheService.GetData<List<Message>>(_messagesKey)
+                                            ?? new List<Message>();
+            var listMessages = allMessages.Where(_ => _.ChatSessionId.Equals(chatSessionId)).ToList();
+
+            if (listMessages.Count <= 0)
+            {
+                return null;
+            }
+
+            var listMessageVMs = new List<MessageVM>(); 
+            foreach (var message in listMessages)
+            {
+                var messageVM = new MessageVM()
+                {
+                    MessageId = message.Id,
+                    SenderId = message.SenderId,
+                    SenderName = (await _unitOfWork.UserRepository.FindAsync(message.SenderId)).FullName ?? "",
+                    ReceiverId = message.ReceiverId,
+                    ReceiverName = (await _unitOfWork.UserRepository.FindAsync(message.ReceiverId)).FullName ?? "",
+                    Content = message.Content,
+                    ImageUrl = message.ImageUrl,
+                    Timestamp = message.Timestamp
+                };
+                listMessageVMs.Add(messageVM);
+            }
+            return listMessageVMs;
+        }
+
     }
 
     public class ChatSession()
@@ -297,6 +412,7 @@ namespace _2Sport_BE.Service.Services
         public int? CustomerId { get; set; }
         public int CoordinatorId { get; set; }
         public int? ManagerId { get; set; }
+        public int LastSenderId { get; set; }
     }
 
     public class Message()
