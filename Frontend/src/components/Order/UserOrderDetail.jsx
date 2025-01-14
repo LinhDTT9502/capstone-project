@@ -37,6 +37,7 @@ import ReviewButton from "../Review/ReviewButton";
 import OrderCancellationInfo from "../User/OrderCancellationInfo";
 import RefundRequestForm from "../Refund/RefundRequestForm ";
 import RefundRequestPopup from "./RefundRequestPopup";
+import { toast } from 'react-toastify';
 import ReturnRequestsPopup from "./ReturnRequestsPopup";
 
 export default function UserOrderDetail() {
@@ -155,7 +156,7 @@ const getCurrentStepIndex = (orderStatusId) => {
         review: reviewData.review,
         status: true,
       });
-      alert("Cảm ơn bạn đã đánh giá sản phẩm!");
+        toast.success("Cảm ơn bạn đã đánh giá sản phẩm!");
       // setShowReviewModal(false);
     } catch (error) {
       console.error("Error submitting review:", error);
