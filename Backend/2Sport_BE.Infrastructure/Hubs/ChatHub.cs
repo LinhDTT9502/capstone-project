@@ -8,7 +8,7 @@ namespace _2Sport_BE.Infrastructure.Hubs
 {
     public interface IChatHub
     {
-        Task SendMessageToGroup(string groupName, string message);
+        //Task SendMessageToGroup(string groupName, string message);
         Task SendMessageToSpecificUser(string userId, string message);
     }
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
