@@ -11,6 +11,7 @@ const ProductReviews = ({ productCode }) => {
   const [error, setError] = useState(null);
 const user = useSelector(selectUser);
 
+
   useEffect(() => {
     const loadReviews = async () => {
       try {
@@ -51,7 +52,8 @@ const user = useSelector(selectUser);
             
           <div key={index} className="bg-white p-4 rounded-lg shadow">
             <div className="flex items-center mb-2">
-              <div className="font-bold mr-2">{review.userId}</div>
+              <div className="font-bold mr-2">{review.userName}</div>
+              
               <div className="text-yellow-400">
                 {[...Array(5)].map((_, i) => (
                   <FontAwesomeIcon
@@ -63,9 +65,9 @@ const user = useSelector(selectUser);
               </div>
             </div>
             <p className="text-gray-600">{review.reviewContent}</p>
-            <div className="text-sm text-gray-400 mt-2">
+            {/* <div className="text-sm text-gray-400 mt-2">
               {new Date(review.createdAt).toLocaleDateString()}
-            </div>
+            </div> */}
           </div>
         ))}
       </div>
