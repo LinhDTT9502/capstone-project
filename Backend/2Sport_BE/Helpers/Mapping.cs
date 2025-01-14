@@ -3,6 +3,8 @@ using _2Sport_BE.Infrastructure.DTOs;
 using _2Sport_BE.ViewModels;
 using AutoMapper;
 using _2Sport_BE.Service.DTOs;
+using _2Sport_BE.Service.Enums;
+using _2Sport_BE.Service.Helpers;
 
 namespace _2Sport_BE.Helpers
 {
@@ -11,7 +13,10 @@ namespace _2Sport_BE.Helpers
         public Mapping()
         {
             #region ReturnRequest
-            CreateMap<ReturnRequest, ReturnRequestVM>().ReverseMap();
+            //CreateMap<ReturnRequest, ReturnRequestVM>().ReverseMap();
+            CreateMap<RefundRequest, RefundRequestVM>()
+                     .ForMember(dest => dest.Status,
+                                opt => opt.MapFrom(src => EnumDisplayHelper.MapRefundStatusToDescription(src.Status)));
             //CreateMap<RefundRequest, RefundRequestVM>().ReverseMap();
             //CreateMap<RefundRequest, RefundRequestUM>().ReverseMap();
             //CreateMap<RefundRequestUM, RefundRequest>().ReverseMap();

@@ -96,7 +96,6 @@ namespace _2Sport_BE.Infrastructure.Hubs
             {
                 if (!string.IsNullOrWhiteSpace(userId))
                 {
-                    await Clients.Group(userId).SendAsync("ReceiveNotification", "I", "disconnect");
                     await Groups.RemoveFromGroupAsync(Context.ConnectionId, userId);
                 }
             }

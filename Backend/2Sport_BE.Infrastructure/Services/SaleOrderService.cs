@@ -561,7 +561,10 @@ namespace _2Sport_BE.Infrastructure.Services
                     saleOrder.TotalAmount = saleOrderCM.SaleCosts.TotalAmount ?? (decimal)(saleOrder.SubTotal + saleOrder.TranSportFee);
 
                     await _unitOfWork.SaleOrderRepository.UpdateAsync(saleOrder);
-
+                    if (saleOrder.UserId != 0)
+                    {
+                        await _notificationService.SendNoifyToUser(saleOrder.UserId.Value, null, $"Đơn hàng mua mã {saleOrder.SaleOrderCode} đặt thành công");
+                    }
                     await _notificationService.NotifyForCreatingNewOrderAsync(saleOrder.SaleOrderCode, false, saleOrder.BranchId);
 
                     await _mailService.SendSaleOrderInformationToCustomer(saleOrder, saleOrder.OrderDetails.ToList(), saleOrder.Email);
@@ -1169,7 +1172,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     }
                     break;
                 case (int)OrderStatus.AWAITING_PICKUP:
-                    if (currentOrderStatus != (int)OrderStatus.PROCESSING || saleOrder.DeliveryMethod != "STORE_PICKUP")
+                    if ((currentOrderStatus != (int)OrderStatus.PROCESSING || saleOrder.DeliveryMethod != "STORE_PICKUP"))
                     {
                         return ValidationResult.Invalid("Đơn hàng chỉ có thể đánh dấu là chờ nhận hàng khi phương thức vận chuyển là Đến cửa hàng nhận.");
                     }
@@ -1211,7 +1214,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     break;
 
                 case (int)OrderStatus.COMPLETED:
-                    if (currentOrderStatus != (int)OrderStatus.DELIVERED || currentOrderStatus != (int)OrderStatus.REFUNDED)
+                    if (!(currentOrderStatus != (int)OrderStatus.DELIVERED || currentOrderStatus != (int)OrderStatus.REFUNDED))
                     {
                         return ValidationResult.Invalid("Đơn hàng chỉ có thể hoàn thành khi đã giao hàng hoặc hoàn tiền.");
                     }

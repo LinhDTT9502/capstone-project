@@ -96,17 +96,35 @@ namespace _2Sport_BE.Infrastructure.Services
         #region BackgroundJobServices
         public async Task CheckRentalOrdersForExpiration()
         {
-            var expiringOrders = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.RentalEndDate >= DateTime.Now.Date.AddDays(1) && o.ParentOrderCode == null && o.OrderStatus >= (int)RentalOrderStatus.DELIVERED && o.IsExtended == false);
+            var expiringOrders = await _unitOfWork.RentalOrderRepository
+                .GetAsync(o => o.RentalEndDate.Value.Date >= DateTime.Now.AddDays(1).Date &&
+                o.OrderStatus >= (int)RentalOrderStatus.DELIVERED &&
+                o.IsExtended == false);
 
-            foreach (var order in expiringOrders)
+            var groupedOrders = expiringOrders
+        .GroupBy(o => o.ParentOrderCode ?? o.RentalOrderCode) // Nhóm theo mã đơn cha
+        .ToList();
+
+            foreach (var group in groupedOrders)
             {
-                await _notificationService.SendRentalOrderExpirationNotificationAsync(order.UserId.ToString(), order.RentalOrderCode, (DateTime)order.RentalEndDate);
-                await _mailService.SendRentalOrderReminder(order, order.Email);
+                var parentOrder = group.First();
+
+                await _notificationService.SendRentalOrderExpirationNotificationAsync(
+                    parentOrder.UserId.ToString(),
+                    parentOrder.RentalOrderCode,
+                    (DateTime)parentOrder.RentalEndDate
+                );
+
+                await _mailService.SendRentalOrderReminder(
+                    parentOrder,
+                    parentOrder.Email
+                );
             }
         }
         public async Task CheckPendingOrderForget()
         {
-            var pendingOrders = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.CreatedAt.Value.AddHours(1) == DateTime.Now.Date && o.ParentOrderCode == null);
+            var pendingOrders = await _unitOfWork.RentalOrderRepository
+                .GetAsync(o => o.CreatedAt.Value.Date.AddHours(1) == DateTime.Now.Date && o.ParentOrderCode == null && o.OrderStatus == (int)RentalOrderStatus.PENDING);
             foreach (var order in pendingOrders)
             {
                 await _notificationService.NotifyForPendingOrderAsync(order.RentalOrderCode, true, order.CreatedAt.Value, order.BranchId);
@@ -508,9 +526,11 @@ namespace _2Sport_BE.Infrastructure.Services
                             AssignRentalCost(rentalOrder, item);
                         }
                         await _unitOfWork.RentalOrderRepository.InsertAsync(rentalOrder);
-
                         await _unitOfWork.SaveChanges();
-
+                        if(rentalOrder.UserId != 0)
+                        {
+                            await _notificationService.SendNoifyToUser(rentalOrder.UserId.Value, null, $"Đơn hàng thuê mã {rentalOrder.RentalOrderCode} đặt thành công");
+                        }
                         await _notificationService.NotifyForCreatingNewOrderAsync(rentalOrder.RentalOrderCode, true, rentalOrder.BranchId);
                         await _mailService.SendRentalOrderInformationToCustomer(rentalOrder, null, rentalOrder.Email);
                         response = GenerateSuccessResponse(rentalOrder, null, "Rental order created successfully");
@@ -571,6 +591,11 @@ namespace _2Sport_BE.Infrastructure.Services
                         rentalOrder.TotalAmount = CalculateTotalAmount(rentalOrder);
 
                         await _unitOfWork.RentalOrderRepository.InsertAsync(rentalOrder);
+
+                        if (rentalOrder.UserId != 0)
+                        {
+                            await _notificationService.SendNoifyToUser(rentalOrder.UserId.Value, null, $"Đơn hàng thuê mã {rentalOrder.RentalOrderCode} đặt thành công");
+                        }
 
                         //Send notifications to Coordinator
                         var listChild = await _unitOfWork.RentalOrderRepository.GetAsync(o => o.ParentOrderCode.Equals(rentalOrder.RentalOrderCode));
@@ -1248,7 +1273,7 @@ namespace _2Sport_BE.Infrastructure.Services
         {
             try
             {
-                var rentalOrder = await _unitOfWork.RentalOrderRepository
+                var rentalOrder = await _unitOfWork.RentalOrderRepository //selected order
                     .GetObjectAsync(r => r.RentalOrderCode == rentalOrderCode);
 
                 if (rentalOrder == null)
@@ -1267,23 +1292,27 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 var orderExtensionCost = rentalOrder.RentPrice * rentalOrder.ExtensionDays * rentalOrder.Quantity;
 
-                var parentOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(r => r.RentalOrderCode == rentalOrder.ParentOrderCode);
-                if(parentOrder != null)
+                
+                if(rentalOrder.ParentOrderCode != null)
                 {
+                    var parentOrder = await _unitOfWork.RentalOrderRepository.GetObjectAsync(r => r.RentalOrderCode == rentalOrder.ParentOrderCode);
+
                     parentOrder.OrderStatus = (int)RentalOrderStatus.EXTENSION_REQUESTED;
                     parentOrder.ExtensionCost += orderExtensionCost;
+                    parentOrder.TotalAmount = CalculateTotalAmount(parentOrder);
                     parentOrder.UpdatedAt = _methodHelper.GetTimeInUtcPlus7();
 
                     await _unitOfWork.RentalOrderRepository.UpdateAsync(parentOrder);
                 }
 
                 rentalOrder.ExtensionStatus = (int)ExtensionRequestStatus.APPROVED;
-                rentalOrder.OrderStatus = (int)RentalOrderStatus.EXTENSION_REQUESTED;
                 rentalOrder.IsExtended = true;
+                rentalOrder.OrderStatus = (int)RentalOrderStatus.EXTENSION_REQUESTED;
                 rentalOrder.ExtendedDueDate = rentalOrder.RentalEndDate.Value.AddDays(rentalOrder.ExtensionDays.Value);
                 rentalOrder.ExtensionCost = orderExtensionCost;
-                rentalOrder.UpdatedAt =_methodHelper.GetTimeInUtcPlus7();
                 rentalOrder.TotalAmount = CalculateTotalAmount(rentalOrder);
+                rentalOrder.UpdatedAt =_methodHelper.GetTimeInUtcPlus7();
+
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
                 
                 return new ResponseDTO<int>
@@ -1326,7 +1355,6 @@ namespace _2Sport_BE.Infrastructure.Services
 
                 rentalOrder.ExtensionStatus = (int)ExtensionRequestStatus.REJECTED;
                 rentalOrder.IsExtended = false;
-
                 rentalOrder.ExtendedDueDate = null;
 
                 await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
@@ -1587,7 +1615,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     break;
 
                 case (int)RentalOrderStatus.AWAITING_PICKUP:
-                    if (currentOrderStatus != (int)OrderStatus.PROCESSING || rentalOrder.DeliveryMethod != "STORE_PICKUP")
+                    if (!(currentOrderStatus != (int)OrderStatus.PROCESSING || rentalOrder.DeliveryMethod != "STORE_PICKUP"))
                     {
                         return ValidationResult.Invalid("Đơn hàng chỉ có thể đánh dấu là chờ nhận hàng khi phương thức vận chuyển là Đến cửa hàng nhận.");
                     }
