@@ -93,7 +93,13 @@ namespace _2Sport_BE.Controllers
             if (response.IsSuccess) return Ok(response);
             return BadRequest(response);
         }
-
+        [HttpGet("get-return-request")]
+        public async Task<IActionResult> GetReturnRequest()
+        {
+            var response = await _rentalOrderServices.GetReturnRequestByBranchAsync();
+            if (response.IsSuccess) return Ok(response);
+            return BadRequest(response);
+        }
         [HttpGet("get-extension-orders/{extensionStatus}")]
         public async Task<IActionResult> GetExtensionOrders(int extensionStatus,[FromQuery]int branchId)
         {

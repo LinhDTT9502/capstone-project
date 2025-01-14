@@ -56,6 +56,7 @@ namespace _2Sport_BE.Infrastructure.Services
 
         Task<ResponseDTO<int>> RequestReturnAsync(ReturnRequestModel returnRequestModel);
         Task<ResponseDTO<int>> ProcessReturnOrder(ReturnRequestModelUM rentalInfor);
+        Task<ResponseDTO<List<RentalOrderVM>>> GetReturnRequestByBranchAsync();
     }
 
     public class RentalOrderService : IRentalOrderService
@@ -281,7 +282,44 @@ namespace _2Sport_BE.Infrastructure.Services
             }
             return response;
         }
+        public async Task<ResponseDTO<List<RentalOrderVM>>> GetReturnRequestByBranchAsync()
+        {
+            var response = new ResponseDTO<List<RentalOrderVM>>();
 
+            try
+            {
+                var rentalOrders = await _unitOfWork.RentalOrderRepository.GetAsync(
+                    r => r.OrderStatus == 11 && r.ParentOrderCode != null
+                );
+
+                if (rentalOrders != null && rentalOrders.Any())
+                {
+                    var resultList = rentalOrders.Select(rentalOrder =>
+                    {
+                        var result = _mapper.Map<RentalOrderVM>(rentalOrder);
+                        MapToRentalOrderVM(rentalOrder, result);
+                        return result;
+                    }).ToList();
+
+                    response.IsSuccess = true;
+                    response.Message = "Rental orders retrieved successfully";
+                    response.Data = resultList;
+                }
+                else
+                {
+                    response.IsSuccess = true;
+                    response.Message = "Rental orders are not found";
+                    response.Data = new List<RentalOrderVM>();
+                }
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = $"Error: {ex.Message}";
+
+            }
+            return response;
+        }
         public async Task<ResponseDTO<List<RentalOrderVM>>> GetRentalOrderByParentCodeAsync(string parentCode)
         {
             var response = new ResponseDTO<List<RentalOrderVM>>();
@@ -1121,7 +1159,6 @@ namespace _2Sport_BE.Infrastructure.Services
                         if (rentalOrder.OrderStatus >= (int)RentalOrderStatus.CONFIRMED)
                             return GenerateErrorResponse($"Sales order status with id = {orderId} has been previously confirmed!");
 
-                        rentalOrder.OrderStatus = (int)RentalOrderStatus.PENDING;
                         rentalOrder.UpdatedAt = DateTime.Now;
                         await _unitOfWork.RentalOrderRepository.UpdateAsync(rentalOrder);
 
