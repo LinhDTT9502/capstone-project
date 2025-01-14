@@ -5,7 +5,7 @@ const useOrderNotification = (
   onNotificationReceived,
   hubUrl = "https://twosport-api-offcial-685025377967.asia-southeast1.run.app/notificationHub"
 ) => {
-  const connectionRef = useRef(null); // Use useRef to persist the connection object across renders
+  const connectionRef = useRef(null);
 
   useEffect(() => {
     // Create the SignalR connection

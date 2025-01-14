@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/Review';
+const API_BASE_URL = 'https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/Review';
 
 // Lấy tất cả các review
 export const getAllReviews = () => {

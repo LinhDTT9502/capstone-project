@@ -49,7 +49,7 @@ const UserProfile = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/User/get-users-detail?userId=${user.UserId}`,
+        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/User/get-users-detail?userId=${user.UserId}`,
         { headers: { accept: "*/*" } }
       );
       if (response.data.user.isSuccess) {

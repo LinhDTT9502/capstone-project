@@ -52,7 +52,7 @@ const GuestOrder = () => {
     const detailedOrderList = []; // Danh sách tạm thời
     for (const order of orders) {
       const response = await axios.get(
-        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/SaleOrder/get-order-by-code?orderCode=${order.saleOrderCode}`,
+        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/SaleOrder/get-order-by-code?orderCode=${order.saleOrderCode}`,
         { headers: { accept: "*/*" } }
       );
       const data = response.data.data;

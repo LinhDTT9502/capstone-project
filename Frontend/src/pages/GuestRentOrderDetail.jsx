@@ -101,7 +101,7 @@ export default function GuestRentOrderDetail() {
   const fetchOrderDetail = async () => {
     try {
       const response = await axios.get(
-        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
+        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
         {
           headers: {
             accept: "*/*",
@@ -560,9 +560,8 @@ export default function GuestRentOrderDetail() {
                         setExtendReload={setExtendReload}
                       />
                     )}
-                  {compareDates(child.rentalEndDate, new Date()) ||
-                  (child.extendedDueDate &&
-                    compareDates(child.extendedDueDate, new Date())) ? (
+                  {child.orderStatus === "Đã giao hàng" ||
+                  child.orderStatus === "Đang gia hạn" ? (
                     <ReturnRentalProductButton selectedOrderId={child.id} />
                   ) : null}
                 </div>
@@ -697,9 +696,8 @@ export default function GuestRentOrderDetail() {
                     setExtendReload={setExtendReload}
                   />
                 )}
-                {compareDates(orderDetail.rentalEndDate, new Date()) ||
-                (orderDetail.extendedDueDate &&
-                  compareDates(orderDetail.extendedDueDate, new Date())) ? (
+                {orderDetail.orderStatus === "Đã giao hàng" ||
+                orderDetail.orderStatus === "Đang gia hạn" ? (
                   <ReturnRentalProductButton selectedOrderId={orderDetail.id} />
                 ) : null}
               </div>

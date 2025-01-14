@@ -37,7 +37,7 @@ const RentalRefundRequestForm = ({ orderDetail }) => {
     setIsSubmitting(true);
     try {
       const response = await axios.post(
-        "https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/RefundRequest/create",
+        "https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/RefundRequest/create",
         payload,
         {
           headers: {

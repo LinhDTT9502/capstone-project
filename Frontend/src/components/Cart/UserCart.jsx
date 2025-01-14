@@ -13,7 +13,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
 import { checkQuantityProduct } from "../../services/warehouseService";
-import { useCart } from "./CartContext";
+import { CartProvider, useCart } from "./CartContext";
 // import { ProductType } from "../Product/ProductType";
 
 const UserCart = () => {
@@ -23,6 +23,7 @@ const UserCart = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const { setCartCount } = useCart();
+  const [reload, setReload] = useState(false);
   const [editingQuantities, setEditingQuantities] = useState({});
 
   const getCart = async () => {
@@ -45,11 +46,12 @@ const UserCart = () => {
     if (!confirmed) return;
     toast.success("Xóa sản phẩm khỏi giỏ hàng thành công!");
     getCart();
+    setReload(true)
   };
 
   const handleReduceQuantity = async (item) => {
     const response = await reduceCartItem(item.cartItemId, token);
-    setCartCount((prevCount) => prevCount - 1);
+    setReload(true)
     getCart();
   };
 
@@ -59,9 +61,7 @@ const UserCart = () => {
      console.log(response);
     if (item.quantity < response.availableQuantity) {
       const data = await addToCart(token, item.productId, 1);
-      console.error(data)
-
-      setCartCount((prevCount) => prevCount + 1);
+      setReload(true)
       getCart();
     } else {
       alert(
@@ -73,7 +73,7 @@ const UserCart = () => {
   const handleQuantityChange = async (item, quantity) => {
     try {
       var response = await updateCartItemQuantity(item.cartItemId, quantity, token);
-      console.log(response)
+      setReload(true)
       getCart();
     } catch (error) {
       console.log(error.response.data);
@@ -97,7 +97,7 @@ const UserCart = () => {
     }
   };
 
-  const totalItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
+  const totalItems = cartData.length;
   
   const totalPrice = selectedItems.reduce((acc, cartItemId) => {
     const item = cartData.find((item) => item.cartItemId === cartItemId);
@@ -182,6 +182,7 @@ const UserCart = () => {
   });
 
   return (
+    <CartProvider reload={reload}>
     <div className="container mx-auto px-20 py-10">
       <div className="flex justify-between items-center">
         <h1 className="font-alfa text-orange-500 text-2xl">
@@ -401,6 +402,7 @@ const UserCart = () => {
         </div>
       )}
     </div>
+    </CartProvider>
   );
 };
 

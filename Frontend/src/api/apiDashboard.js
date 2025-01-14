@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api/Order';
+const API_BASE_URL = 'https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/Order';
 
 export const fetchOrdersAPI = () => {
   return axios.get(`${API_BASE_URL}/get-all-orders`, {

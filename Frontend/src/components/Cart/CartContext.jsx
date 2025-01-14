@@ -1,11 +1,34 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { selectCartItems } from '../../redux/slices/cartSlice';
+import { getUserCart } from '../../services/cartService';
 
-// Create the Cart Context
 const CartContext = createContext();
 
-// Create the Cart Provider
-export const CartProvider = ({ children }) => {
+export const CartProvider = ({ children, reload }) => {
   const [cartCount, setCartCount] = useState(0);
+  const guestCartItems = useSelector(selectCartItems);
+
+  useEffect(() => {
+    const updateCartCount = async () => {
+      const token = localStorage.getItem("token");
+
+      if (token) {
+        try {
+          const cartData = await getUserCart(token);
+          const totalItems = cartData.length;
+          setCartCount(totalItems);
+        } catch (error) {
+          console.error("Failed to fetch user cart count:", error);
+        }
+      } else {
+        const guestCartCount = guestCartItems.length;
+        setCartCount(guestCartCount);
+      }
+    };
+
+    updateCartCount();
+  }, [guestCartItems, reload]);
 
   return (
     <CartContext.Provider value={{ cartCount, setCartCount }}>
@@ -14,7 +37,6 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-// Create a custom hook for consuming the Cart Context
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {

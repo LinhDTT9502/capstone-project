@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = 'https://twosport-api-offcial-685025377967.asia-southeast1.run.app//api';
+const API_BASE_URL = 'https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api';
 
 export const getUserOrders = (id, token) => {
   const url = `${API_BASE_URL}/SaleOrder/get-orders-by-user?userId=${id}`;
