@@ -705,21 +705,44 @@ export default function GuestRentOrderDetail() {
           )}
         </div>
         <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
-          <p className="text-xl flex justify-between">
-            <b>Tạm tính: </b>
+          <p className="flex justify-between">
+            <b className="text-gray-700 text-lg">Tạm tính: </b>
             <i>{orderDetail.subTotal.toLocaleString("vi-VN")}₫</i>
           </p>
           <p className="flex justify-between">
-            <b className="text-xl">Phí vận chuyển: </b>
+            <b className="text-gray-700 text-lg">Phí vận chuyển: </b>
             <i className="text-base">
-              {orderDetail.transportFee || "2Sport sẽ liên hệ và thông báo sau"}
+              {orderDetail.totalAmount > 2000000 ||
+              orderDetail.deliveryMethod === "Đến cửa hàng nhận" ? (
+                <i>Miễn phí vận chuyển</i>
+              ) : orderDetail.tranSportFee !== 0 ? (
+                <>{`${orderDetail.tranSportFee.toLocaleString("vi-VN")}₫`}</>
+              ) : (
+                "2Sport sẽ liên hệ và thông báo sau"
+              )}
             </i>
           </p>
           {orderDetail.extensionCost > 0 && (
-            <p className="flex justify-between">
-              <b className="text-xl">Phí gia hạn: </b>
+            <p className="flex justify-between ">
+              <b className="text-gray-700 text-lg">Phí gia hạn thêm: </b>
               <i className="text-base">
                 {orderDetail.extensionCost.toLocaleString("vi-VN")}₫
+              </i>
+            </p>
+          )}
+          {orderStatus === "Đã trả sản phẩm" && (
+            <p className="flex justify-between">
+              <b className=" text-gray-700 text-lg">Phí trễ hạn: </b>
+              <i className="text-base">
+                {orderDetail.lateFee.toLocaleString("vi-VN")}₫
+              </i>
+            </p>
+          )}
+          {orderStatus === "Đã trả sản phẩm" && (
+            <p className="flex justify-between">
+              <b className=" text-gray-700 text-lg">Phí hư hỏng: </b>
+              <i className="text-base">
+                {orderDetail.damageFee.toLocaleString("vi-VN")}₫
               </i>
             </p>
           )}

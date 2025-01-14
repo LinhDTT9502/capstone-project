@@ -226,13 +226,27 @@ const Checkout = () => {
                   Phí vận chuyển:
                 </p>
                 <div className="relative group">
-                  <p className="font-medium text-gray-700">
+                  {/* <p className="font-medium text-gray-700">
                     {selectedOrder.totalAmount > 2000000 ||
                     selectedOrder.deliveryMethod === "Đến cửa hàng nhận"
                       ? "Miễn phí"
                       : `${selectedOrder.tranSportFee.toLocaleString(
                           "vi-VN"
                         )}₫` || "2Sport sẽ liên hệ và thông báo sau"}
+                  </p> */}
+                  <p className="flex justify-between">
+                    <span className="font-medium text-gray-700">
+                      {selectedOrder.totalAmount > 2000000 ||
+                      selectedOrder.deliveryMethod === "Đến cửa hàng nhận" ? (
+                        <i>Miễn phí vận chuyển</i>
+                      ) : selectedOrder.tranSportFee !== 0 ? (
+                        <>{`${selectedOrder.tranSportFee.toLocaleString(
+                          "vi-VN"
+                        )}₫`}</>
+                      ) : (
+                        "2Sport sẽ thông báo sau"
+                      )}
+                    </span>
                   </p>
                   {/* Tooltip */}
                   <div className="absolute bottom-0 left-0 hidden group-hover:block bg-gray-800 text-white text-sm rounded p-2 w-40">

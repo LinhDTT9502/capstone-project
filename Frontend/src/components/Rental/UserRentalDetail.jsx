@@ -8,14 +8,11 @@ import {
   faEnvelope,
   faPhone,
   faMapMarkerAlt,
-  faShoppingCart,
   faMoneyBillWave,
-  faCalendarAlt,
   faTruck,
   faCoins,
   faBolt,
   faVenusMars,
-  faDollarSign,
   faClock,
   faCheckCircle,
   faCogs,
@@ -52,6 +49,7 @@ export default function UserRentalDetail() {
   const [reload, setReload] = useState(false);
   const [confirmReload, setConfirmReload] = useState(false);
   const [extendReload, setExtendReload] = useState(false);
+  const [refundReload, setRefundReload] = useState(false);
 
   const statusColors = {
     "Chờ xử lý": "bg-yellow-100 text-yellow-800",
@@ -71,6 +69,7 @@ export default function UserRentalDetail() {
     "Đã thanh toán": "text-green-800",
     "Đã hủy": "text-red-800",
   };
+
   const ORDER_STEPS = [
     { id: 1, label: "Chờ Xác Nhận Đơn Hàng" },
     { id: 2, label: "Đã Xác Nhận Thông Tin" },
@@ -82,16 +81,16 @@ export default function UserRentalDetail() {
     { id: 14, label: "Đã Hoàn Thành" },
   ];
 
-  const compareDates = (date1, date2) => {
-    const d1 = new Date(date1);
-    const d2 = new Date(date2);
-
-    return (
-      d1.getFullYear() === d2.getFullYear() &&
-      d1.getMonth() === d2.getMonth() &&
-      d1.getDate() === d2.getDate()
-    );
-  };
+    const compareDates = (date1, date2) => {
+      const d1 = new Date(date1);
+      const d2 = new Date(date2);
+        d2.setDate(d2.getDate() + 1);
+      return (
+        d1.getFullYear() === d2.getFullYear() &&
+        d1.getMonth() === d2.getMonth() &&
+        d1.getDate() === d2.getDate()
+      );
+    };
     const getCurrentStepId = (orderStatusId) => {
       if (orderStatusId === 11) {
         // Trường hợp đặc biệt, có thể là trạng thái trả hàng
@@ -100,55 +99,55 @@ export default function UserRentalDetail() {
       const step = ORDER_STEPS.find((step) => step.id === orderStatusId);
       return step ? step.id : null;
     };
- const filteredSteps = ORDER_STEPS.filter((step) => {
-   if (step.id === 11) {
-     // Chỉ thêm "Đang Gia Hạn" nếu trạng thái hiện tại là 9
-     return  false;
-   }
-   return true;
- });
-
-  const getNextStepId = (currentStepId, orderStatusId) => {
-    const validSteps = ORDER_STEPS.map((step) => step.id);
-    if (orderStatusId === 11 && (currentStepId === 8 || currentStepId === 9)) {
-      currentStepId = 9;
-      return currentStepId;
-    }
-    const currentStepIndex = validSteps.indexOf(currentStepId);
-    const nextStepIndex = validSteps.indexOf(orderStatusId);
-    return nextStepIndex > currentStepIndex ? orderStatusId : currentStepId;
-  };
-
-  const fetchOrderDetail = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
-        {
-          headers: {
-            accept: "*/*",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.isSuccess) {
-        setOrderDetail(response.data.data);
-      } else {
-        setError("Failed to fetch order details");
+    const filteredSteps = ORDER_STEPS.filter((step) => {
+      if (step.id === 11) {
+        // Chỉ thêm "Đang Gia Hạn" nếu trạng thái hiện tại là 9
+        return  false;
       }
-    } catch (err) {
-      setError(err.message || "An error occurred while fetching order details");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return true;
+    });
+
+    const getNextStepId = (currentStepId, orderStatusId) => {
+      const validSteps = ORDER_STEPS.map((step) => step.id);
+      if (orderStatusId === 11 && (currentStepId === 8 || currentStepId === 9)) {
+        currentStepId = 9;
+        return currentStepId;
+      }
+      const currentStepIndex = validSteps.indexOf(currentStepId);
+      const nextStepIndex = validSteps.indexOf(orderStatusId);
+      return nextStepIndex > currentStepIndex ? orderStatusId : currentStepId;
+    };
+
+    const fetchOrderDetail = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
+          {
+            headers: {
+              accept: "*/*",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data.isSuccess) {
+          setOrderDetail(response.data.data);
+        } else {
+          setError("Failed to fetch order details");
+        }
+      } catch (err) {
+        setError(err.message || "An error occurred while fetching order details");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   useEffect(() => {
     fetchOrderDetail();
     getCurrentStepId();
     getNextStepId();
-  }, [orderCode, reload, confirmReload]);
+  }, [orderCode, reload, confirmReload, refundReload, extendReload]);
 
   if (isLoading)
     return (
@@ -221,82 +220,79 @@ export default function UserRentalDetail() {
                 activeStep={getCurrentStepId(orderStatusId)}
                 className="p-2 rounded-lg"
               >
-                {filteredSteps.map((status, index) => {
-                  const currentStepId = getCurrentStepId(orderStatusId);
+                {filteredSteps
+                  .filter((status, index) => {
+                    const currentStepId = getCurrentStepId(orderStatusId);
 
-                  const nextStepId = getNextStepId(
-                    currentStepId,
-                    orderStatusId
-                  );
+                    // Hiển thị 3 trạng thái đầu tiên hoặc các trạng thái đã đi qua và trạng thái hiện tại
+                    return index < 3 || status.id <= currentStepId;
+                  })
+                  .map((status) => {
+                    const currentStepId = getCurrentStepId(orderStatusId);
 
-                  const isValidOrderStatus = ORDER_STEPS.some(
-                    (step) => step.id === orderStatusId
-                  );
+                    const isValidOrderStatus = ORDER_STEPS.some(
+                      (step) => step.id === orderStatusId
+                    );
 
-                  const isRedStep = isValidOrderStatus
-                    ? orderStatusId === 6 && status.id >= nextStepId
-                    : false;
+                    const isCompleted = isValidOrderStatus
+                      ? status.id < currentStepId // Các bước đã hoàn thành
+                      : false;
 
-                  const isCompleted = isValidOrderStatus
-                    ? status.id <= nextStepId
-                    : false;
+                    const isCurrent = status.id === currentStepId; // Bước hiện tại
 
-                  return (
-                    <Step
-                      key={status.id}
-                      completed={isCompleted}          
-                    >
-                      <div className="relative flex flex-col items-center">
-                        {/* Back ground color*/}
-                        <div
-                          className={`w-10 h-10 flex items-center justify-center rounded-full ${
-                            isCompleted
-                              ? "bg-green-500 text-white"
-                              : isRedStep
-                              ? "bg-red-600 text-white"
-                              : "bg-gray-300 text-gray-600"
-                          }`}
-                        >
-                          {/* Icon */}
-                          <FontAwesomeIcon
-                            icon={
-                              status.id === 1
-                                ? faClock
-                                : status.id === 2
-                                ? faCheckCircle
-                                : status.id === 3
-                                ? faCogs
-                                : status.id === 4
-                                ? faTruck
-                                : status.id === 5
-                                ? faArrowsDownToLine
-                                : status.id === 8
-                                ? faRecycle
-                                : status.id === 9
-                                ? faRecycle
-                                : status.id === 14
-                                ? faFlagCheckered
-                                : faClock
-                            }
-                            className="text-lg"
-                          />
+                    return (
+                      <Step key={status.id} completed={isCompleted}>
+                        <div className="relative flex flex-col items-center">
+                          {/* Back ground color */}
+                          <div
+                            className={`w-10 h-10 flex items-center justify-center rounded-full ${
+                              isCompleted
+                                ? "bg-green-500 text-white"
+                                : isCurrent
+                                ? "bg-blue-500 text-white"
+                                : "bg-gray-300 text-gray-600"
+                            }`}
+                          >
+                            {/* Icon */}
+                            <FontAwesomeIcon
+                              icon={
+                                status.id === 1
+                                  ? faClock
+                                  : status.id === 2
+                                  ? faCheckCircle
+                                  : status.id === 3
+                                  ? faCogs
+                                  : status.id === 4
+                                  ? faTruck
+                                  : status.id === 5
+                                  ? faArrowsDownToLine
+                                  : status.id === 8
+                                  ? faRecycle
+                                  : status.id === 9
+                                  ? faRecycle
+                                  : status.id === 14
+                                  ? faFlagCheckered
+                                  : faClock
+                              }
+                              className="text-lg"
+                            />
+                          </div>
+                          {/* Text label */}
+                          <div
+                            className={`absolute top-12 text-xs font-medium text-wrap w-20 text-center ${
+                              isCompleted
+                                ? "text-green-600"
+                                : isCurrent
+                                ? "text-blue-600"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {status.label}
+                          </div>
                         </div>
-                        {/* Text lable */}
-                        <div
-                          className={`absolute top-12 text-xs font-medium text-wrap w-20 text-center ${
-                            isCompleted
-                              ? "text-green-600"
-                              : isRedStep
-                              ? "text-red-600"
-                              : "text-gray-600"
-                          }`}
-                        >
-                          {status.label}
-                        </div>
-                      </div>
-                    </Step>
-                  );
-                })}
+                      </Step>
+                    );
+                  })}
               </Stepper>
             </div>
             <div className="flex justify-between items-center">
@@ -476,7 +472,10 @@ export default function UserRentalDetail() {
                 (orderDetail.paymentStatus === "Đã thanh toán" ||
                   orderDetail.depositAmount > 0) &&
                 orderDetail.refundRequests == null && (
-                  <RentalRefundRequestForm orderDetail={orderDetail} />
+                  <RentalRefundRequestForm
+                    orderDetail={orderDetail}
+                    setRefundReload={setRefundReload}
+                  />
                 )}
               {/* RefundRequests list button */}
               {orderDetail.refundRequests != null && (
@@ -589,18 +588,20 @@ export default function UserRentalDetail() {
                       </svg>
                     </Tooltip>
                   </div>
-                  {orderStatus === "Đã giao hàng" &&
-                    compareDates(child.rentalEndDate, new Date()) && (
-                      <ExtensionRequestButton
-                        parentOrder={orderDetail}
-                        selectedChildOrder={child}
-                        setExtendReload={setExtendReload}
-                      />
-                    )}
-                  {child.orderStatus === "Đã giao hàng" ||
-                  child.orderStatus === "Đang gia hạn" ? (
-                    <ReturnRentalProductButton selectedOrderId={child.id} />
-                  ) : null}
+                  <div className="flex justify-end">
+                    {orderStatus === "Đang thuê" &&
+                      compareDates(child.rentalEndDate, new Date()) && (
+                        <ExtensionRequestButton
+                          parentOrder={orderDetail}
+                          selectedChildOrder={child}
+                          setExtendReload={setExtendReload}
+                        />
+                      )}
+                    {orderStatus === "Đang thuê" ||
+                    orderStatus === "Đang gia hạn" ? (
+                      <ReturnRentalProductButton selectedOrderId={child.id} />
+                    ) : null}
+                  </div>
                 </div>
               </div>
             ))
@@ -730,21 +731,44 @@ export default function UserRentalDetail() {
           )}
         </div>
         <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
-          <p className="text-xl flex justify-between">
-            <b>Tạm tính: </b>
+          <p className="flex justify-between">
+            <b className="text-gray-700 text-lg">Tạm tính: </b>
             <i>{orderDetail.subTotal.toLocaleString("vi-VN")}₫</i>
           </p>
           <p className="flex justify-between">
-            <b className="text-xl">Phí vận chuyển: </b>
+            <b className="text-gray-700 text-lg">Phí vận chuyển: </b>
             <i className="text-base">
-              {orderDetail.transportFee || "2Sport sẽ liên hệ và thông báo sau"}
+              {orderDetail.totalAmount > 2000000 ||
+              orderDetail.deliveryMethod === "Đến cửa hàng nhận" ? (
+                <i>Miễn phí vận chuyển</i>
+              ) : orderDetail.tranSportFee !== 0 ? (
+                <>{`${orderDetail.tranSportFee.toLocaleString("vi-VN")}₫`}</>
+              ) : (
+                "2Sport sẽ liên hệ và thông báo sau"
+              )}
             </i>
           </p>
           {orderDetail.extensionCost > 0 && (
-            <p className="flex justify-between">
-              <b className="text-xl">Phí gia hạn: </b>
+            <p className="flex justify-between ">
+              <b className="text-gray-700 text-lg">Phí gia hạn thêm: </b>
               <i className="text-base">
                 {orderDetail.extensionCost.toLocaleString("vi-VN")}₫
+              </i>
+            </p>
+          )}
+          {orderStatus === "Đã trả sản phẩm" && (
+            <p className="flex justify-between">
+              <b className=" text-gray-700 text-lg">Phí trễ hạn: </b>
+              <i className="text-base">
+                {orderDetail.lateFee.toLocaleString("vi-VN")}₫
+              </i>
+            </p>
+          )}
+          {orderStatus === "Đã trả sản phẩm" && (
+            <p className="flex justify-between">
+              <b className=" text-gray-700 text-lg">Phí hư hỏng: </b>
+              <i className="text-base">
+                {orderDetail.damageFee.toLocaleString("vi-VN")}₫
               </i>
             </p>
           )}

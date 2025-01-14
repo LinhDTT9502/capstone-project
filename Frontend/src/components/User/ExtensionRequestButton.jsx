@@ -13,7 +13,7 @@ const ExtensionRequestButton = ({
   const [extensionDate, setExtensionDate] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const isDisabled =
-    parentOrder.orderStatus !== "Đã giao hàng" ||
+    parentOrder.orderStatus !== "Đang thuê" ||
     selectedChildOrder.extensionStatus === "1";
   const [loading, setLoading] = useState(false);
 
@@ -30,7 +30,6 @@ const ExtensionRequestButton = ({
     const extensionDays = Math.ceil(
       (selectedDateObj - rentalEndDateObj) / (1000 * 60 * 60 * 24)
     ) - 1;
-   console.log(extensionDays);
     const payload = {
       parentOrderId: parentOrder.id,
       childOrderId:
@@ -39,7 +38,6 @@ const ExtensionRequestButton = ({
           : null,
       extensionDays: extensionDays,
     };
-   console.log(payload)
     try {
       const response = await axios.post(
         `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/RentalOrder/request-extension`,
@@ -79,12 +77,12 @@ const ExtensionRequestButton = ({
     setSelectedDate(null);
   };
   return (
-    <>
+    <div className="p-1">
       <Button
         className={`p-2 ${
           isDisabled
-            ? "text-yellow-700 bg-white border border-yellow-700 rounded-md hover:bg-yellow-200 cursor-not-allowed"
-            : "text-yellow-700 bg-white border border-yellow-700 rounded-md hover:bg-yellow-200"
+            ? "text-emerald-700 bg-white border border-emerald-700 rounded-md hover:bg-emerald-200 cursor-not-allowed"
+            : "text-emerald-700 bg-white border border-emerald-700 rounded-md hover:bg-emerald-200"
         }`}
         onClick={() => {
           if (!isDisabled) {
@@ -194,7 +192,7 @@ const ExtensionRequestButton = ({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 
