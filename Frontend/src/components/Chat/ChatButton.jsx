@@ -2,34 +2,85 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMessage } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
+import { fetchCustomerChat } from "../../services/ChatService";
+import { useEffect } from "react";
+import { useSelector } from 'react-redux';
+import { selectUser } from "../../redux/slices/authSlice";
 
 const ChatButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [chatLogs, setChatLogs] = useState([]);
+  const [chatSessionId, setChatSessionId] = useState(null)
+  const user = useSelector(selectUser);
+  const [imageFile, setImageFile] = useState(null)
 
-  const branchId = 3; 
-  const senderRole = "Coordinator"; 
-  const receiverRole = "a";
+  const fetchChats = async () => {
+    try {
+      const response = await fetchCustomerChat();
+      console.log(response.messageVMs.$values);
+      setChatSessionId(response.chatSessionId)
+      setChatLogs(response.messageVMs.$values)
+      // // If there are chat sessions, set the first one as the selected chat
+      // if (response && response.length > 0) {
+      //   setSelectedChat(response[0]);
+      //   fetchChatContent(response[0].chatSessionId); // Fetch chat content for the first session
+      // }
+    } catch (error) {
+      console.error("Error fetching chat sessions:", error);
+    }
+  };
+  useEffect(() => {
 
-  const sendMessage = async () => {
+    fetchChats();
+  }, []);
+
+  const handleSendMessage = async () => {
     if (!message.trim()) return;
 
+    // Prepare the request data
+    const token = localStorage.getItem("token");
+    const senderRole = "Customer";
+    const receiverRole = "Coordinator";
+    const messageContent = message.trim();
+
+    const formData = new FormData();
+    formData.append("message", messageContent);
+    formData.append("chatSessionId", chatSessionId);
+    formData.append("senderRole", senderRole);
+    formData.append("receiverRole", receiverRole);
+
+    if (imageFile) {
+      formData.append("imageFile", imageFile);
+    }
+
     try {
-      // Gọi API để gửi tin nhắn
       const response = await axios.post(
         `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/Chat/send-message`,
-        { message },
+        formData,
         {
-          params: { branchId, senderRole, receiverRole },
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "accept": "*/*",
+          },
+          params: {
+            chatSessionId,
+            senderRole,
+            receiverRole,
+            message: messageContent,
+          },
         }
       );
 
-      setChatLogs((prevLogs) => [...prevLogs, { sender: "You", message }]);
-      setMessage("");
+      if (response) {
+        fetchChats(); // Fetch updated chat content after sending the message
+        setMessage(""); // Clear the message input
+        setImageFile(null); // Clear the selected image
+      } else {
+        console.error("Failed to send message:", response.status);
+      }
     } catch (error) {
-      console.error("Failed to send message:", error);
+      console.error("Error sending message:", error);
     }
   };
 
@@ -63,24 +114,25 @@ const ChatButton = () => {
 
             {/* Chat logs */}
             <div className="p-4 h-64 overflow-y-auto">
-              {chatLogs.map((log, index) => (
+              {chatLogs.map((chat, index) => (
                 <div
                   key={index}
-                  className={`flex ${
-                    log.sender === "You" ? "justify-end" : "justify-start"
-                  } mb-2`}
+                  className={`mb-2 flex ${chat.senderId == user.UserId ? "justify-end" : "justify-start"
+                    }`}
                 >
                   <div
-                    className={`px-3 py-2 rounded-lg text-sm ${
-                      log.sender === "You"
-                        ? "bg-orange-500 text-white"
-                        : "bg-gray-200 text-gray-800"
-                    }`}
+                    className={`p-3 rounded-lg max-w-3/4 ${chat.senderId == user.UserId
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-300 text-black"
+                      }`}
                   >
-                    {log.message}
+                    <p>{chat.content}</p>
+                    {/* {chat.imageUrl&&<img src={chat.imageUrl}/> } */}
+
                   </div>
                 </div>
               ))}
+
             </div>
 
             {/* Input */}
@@ -92,11 +144,11 @@ const ChatButton = () => {
                 placeholder="Nhập tin nhắn..."
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") sendMessage();
+                  if (e.key === "Enter") handleSendMessage();
                 }}
               />
               <button
-                onClick={sendMessage}
+                onClick={handleSendMessage}
                 className="mt-2 bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
               >
                 Gửi
