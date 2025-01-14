@@ -10,13 +10,14 @@ import {
 
 } from "@material-tailwind/react";
 import { addToCart } from '../../services/cartService';
-import { useCart } from '../Cart/CartContext';
+import { CartProvider, useCart } from '../Cart/CartContext';
 import { checkQuantityProduct } from '../../services/warehouseService';
 
 const AddToCart = ({ product, quantity, selectedColor, selectedSize, selectedCondition }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const { setCartCount } = useCart();
+  const [reload, setReload] = useState(false);
 
   const handleAddToCart = async () => {
     if (!selectedColor) {
@@ -28,7 +29,7 @@ const AddToCart = ({ product, quantity, selectedColor, selectedSize, selectedCon
     } else {
       try {
         const response = await checkQuantityProduct(product.id);
-  
+
         if (quantity <= response.availableQuantity) {
           const token = localStorage.getItem("token");
 
@@ -46,7 +47,8 @@ const AddToCart = ({ product, quantity, selectedColor, selectedSize, selectedCon
             const addToCartResponse = await addToCart(token, product.id, quantity);
             // console.log(addToCartResponse);
             toast.success(`${product.productName} đã được thêm vào giỏ hàng`);
-            setCartCount((prevCount) => prevCount + quantity);
+            setCartCount((prevCount) => prevCount);
+            setReload(true)
           }
         } else {
           alert(
@@ -54,20 +56,21 @@ const AddToCart = ({ product, quantity, selectedColor, selectedSize, selectedCon
           );
         }
       } catch (error) {
-  
+
       }
     }
   };
-  
+
 
   return (
-
-    <Button
-      className="w-full"
-      onClick={() => handleAddToCart()}
-    >
-      {t("product_list.add_to_cart")}
-    </Button>
+    <CartProvider reload={reload}>
+      <Button
+        className="w-full"
+        onClick={() => handleAddToCart()}
+      >
+        {t("product_list.add_to_cart")}
+      </Button>
+    </CartProvider>
   );
 };
 

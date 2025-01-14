@@ -16,7 +16,7 @@ const DoneSaleOrderButton = ({ saleOrderId, setConfirmReload }) => {
     setLoading(true);
     try {
       const response = await axios.put(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/update-order-status/${saleOrderId}?status=${newStatus}`,
+        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/SaleOrder/update-order-status/${saleOrderId}?status=${newStatus}`,
         
         {
           headers: {

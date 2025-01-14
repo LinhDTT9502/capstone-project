@@ -97,7 +97,7 @@ const getCurrentStepIndex = (orderStatusId) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/SaleOrder/get-order-by-code?orderCode=${orderCode}`,
+        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/SaleOrder/get-order-by-code?orderCode=${orderCode}`,
         {
           headers: {
             accept: "*/*",

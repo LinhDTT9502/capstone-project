@@ -57,7 +57,7 @@ export default function RentalCheckout() {
         };
 
         const response = await axios.post(
-          "https://capstone-project-703387227873.asia-southeast1.run.app/api/Checkout/checkout-rental-order",
+          "https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/Checkout/checkout-rental-order",
           payload,
           {
             headers: {

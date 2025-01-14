@@ -52,6 +52,8 @@ namespace _2Sport_BE.Extensions
             services.AddTransient<ICommentService, CommentService>();
             services.AddScoped<ISportService, SportService>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IChatHub, ChatHubService>();
+            services.AddScoped<IChatService, ChatService>();
             services.AddScoped<ICartItemService, CartItemService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IShipmentDetailService, ShipmentDetailService>();

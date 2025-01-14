@@ -18,7 +18,7 @@ const DeleteComment = ({ commentId, onDeleteSuccess }) => {
 
     axios
       .delete(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/Comment/remove-comment/${commentId}`,
+        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/Comment/remove-comment/${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

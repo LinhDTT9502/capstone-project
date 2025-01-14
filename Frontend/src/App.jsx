@@ -53,6 +53,7 @@ import GuestRoutes from './routes/GuestRoutes';
 import { ToastContainer } from 'react-toastify';
 import PrivateRoute from './routes/PrivateRoute';
 import ReturnPage from './pages/ReturnPage';
+import ChatButton from './components/Chat/ChatButton';
 
 
 function App() {
@@ -72,6 +73,7 @@ function App() {
           <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
             <ZaloButton />
             <FacebookButton />
+            <ChatButton />
           </div>
         </div>
         {/* <BreadcrumbsDefault/> */}

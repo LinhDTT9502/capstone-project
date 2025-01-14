@@ -37,6 +37,7 @@ namespace _2Sport_BE.Infrastructure.Services
         Task<User> FindUserByPhoneNumber(string phoneNumber);
         Task<ResponseDTO<List<UserVM>>> GetUserByRoleIdAndBranchId(int roleId, int branchId);
         Task<ResponseDTO<List<UserVM>>> GetByRoleUsersWithoutBranch(int roleId);
+        Task<List<User>> GetUserByRoleId(int roleId);
     }
     public class UserService : IUserService
     {
@@ -582,6 +583,18 @@ namespace _2Sport_BE.Infrastructure.Services
             }
 
             return response;
+        }
+
+        public async Task<List<User>> GetUserByRoleId(int roleId)
+        {
+            try {
+                var users = await _unitOfWork.UserRepository.GetAsync(_ => _.RoleId == roleId);
+                return users.ToList();
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
         }
     }
 }

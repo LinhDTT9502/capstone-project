@@ -77,6 +77,7 @@ export default function UserRentalDetail() {
     { id: 3, label: " Đang Xử Lý Đơn Hàng" },
     { id: 4, label: "Đã Giao Cho ĐVVC" },
     { id: 5, label: "Đã Nhận Được Hàng" },
+    { id: 8, label: "Đang thuê" },
     { id: 9, label: "Đang Gia Hạn" },
     { id: 14, label: "Đã Hoàn Thành" },
   ];
@@ -91,22 +92,28 @@ export default function UserRentalDetail() {
       d1.getDate() === d2.getDate()
     );
   };
-
-  const getCurrentStepId = (orderStatusId) => {
-    // Trả về stepId từ orderStatusId
-    const step = ORDER_STEPS.find((step) => step.id === orderStatusId);
-    return step ? step.id : null; // Trả về id nếu tìm thấy, nếu không trả về null
-  };
+    const getCurrentStepId = (orderStatusId) => {
+      if (orderStatusId === 11) {
+        // Trường hợp đặc biệt, có thể là trạng thái trả hàng
+        return 5; // Chuyển tới bước "Đã Nhận Được Hàng"
+      }
+      const step = ORDER_STEPS.find((step) => step.id === orderStatusId);
+      return step ? step.id : null;
+    };
+ const filteredSteps = ORDER_STEPS.filter((step) => {
+   if (step.id === 11) {
+     // Chỉ thêm "Đang Gia Hạn" nếu trạng thái hiện tại là 9
+     return  false;
+   }
+   return true;
+ });
 
   const getNextStepId = (currentStepId, orderStatusId) => {
     const validSteps = ORDER_STEPS.map((step) => step.id);
-
-    // Nếu orderStatusId yêu cầu ở một bước trước hoặc là một bước không thể tiến lên (ví dụ: "RETURN_REQUESTED")
-    if (orderStatusId === 11 && currentStepId === 8) {
-      return currentStepId; // Giữ nguyên bước nếu yêu cầu trả sản phẩm mà hiện tại đang trong "Đang thuê"
+    if (orderStatusId === 11 && (currentStepId === 8 || currentStepId === 9)) {
+      currentStepId = 9;
+      return currentStepId;
     }
-
-    // Nếu trạng thái tiếp theo hợp lệ, di chuyển đến bước tiếp theo
     const currentStepIndex = validSteps.indexOf(currentStepId);
     const nextStepIndex = validSteps.indexOf(orderStatusId);
     return nextStepIndex > currentStepIndex ? orderStatusId : currentStepId;
@@ -116,7 +123,7 @@ export default function UserRentalDetail() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
+        `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-orderCode?orderCode=${orderCode}`,
         {
           headers: {
             accept: "*/*",
@@ -177,6 +184,8 @@ export default function UserRentalDetail() {
     updatedAt,
   } = orderDetail;
 
+
+
   const children = childOrders?.$values || [];
 
   return (
@@ -209,14 +218,12 @@ export default function UserRentalDetail() {
             {/* Stepper */}
             <div className="mb-16 bg-orange-100">
               <Stepper
-                activeStep={getNextStepId(
-                  getCurrentStepId(orderStatusId),
-                  orderStatusId
-                )} // Điều chỉnh để không thay đổi bước khi cần thiết
+                activeStep={getCurrentStepId(orderStatusId)}
                 className="p-2 rounded-lg"
               >
-                {ORDER_STEPS.map((status, index) => {
+                {filteredSteps.map((status, index) => {
                   const currentStepId = getCurrentStepId(orderStatusId);
+
                   const nextStepId = getNextStepId(
                     currentStepId,
                     orderStatusId
@@ -236,17 +243,11 @@ export default function UserRentalDetail() {
 
                   return (
                     <Step
-                      key={index}
-                      completed={isCompleted}
-                      className={`${
-                        isCompleted
-                          ? "bg-blue-500 text-wrap w-10 text-green-600"
-                          : isRedStep
-                          ? "bg-red-600 text-red-600"
-                          : "bg-green-600 text-green-600"
-                      }`}
+                      key={status.id}
+                      completed={isCompleted}          
                     >
                       <div className="relative flex flex-col items-center">
+                        {/* Back ground color*/}
                         <div
                           className={`w-10 h-10 flex items-center justify-center rounded-full ${
                             isCompleted
@@ -256,6 +257,7 @@ export default function UserRentalDetail() {
                               : "bg-gray-300 text-gray-600"
                           }`}
                         >
+                          {/* Icon */}
                           <FontAwesomeIcon
                             icon={
                               status.id === 1
@@ -268,6 +270,8 @@ export default function UserRentalDetail() {
                                 ? faTruck
                                 : status.id === 5
                                 ? faArrowsDownToLine
+                                : status.id === 8
+                                ? faRecycle
                                 : status.id === 9
                                 ? faRecycle
                                 : status.id === 14
@@ -277,6 +281,7 @@ export default function UserRentalDetail() {
                             className="text-lg"
                           />
                         </div>
+                        {/* Text lable */}
                         <div
                           className={`absolute top-12 text-xs font-medium text-wrap w-20 text-center ${
                             isCompleted
@@ -538,19 +543,6 @@ export default function UserRentalDetail() {
                       </p>
                     </div>
                   </div>
-                  {/* {orderStatus === "Đã giao hàng" &&
-                    compareDates(child.rentalEndDate, new Date()) && (
-                      <ExtensionRequestButton
-                        parentOrder={orderDetail}
-                        selectedChildOrder={child}
-                        setExtendReload={setExtendReload}
-                      />
-                    )}
-                  {compareDates(child.rentalEndDate, new Date()) ||
-                  (child.extendedDueDate &&
-                    compareDates(child.extendedDueDate, new Date())) ? (
-                    <ReturnRentalProductButton selectedOrderId={child.id} />
-                  ) : null} */}
                 </div>
                 <div className="pt-2 flex justify-between items-center gap-4">
                   <div className="flex items-center gap-2">
@@ -605,9 +597,8 @@ export default function UserRentalDetail() {
                         setExtendReload={setExtendReload}
                       />
                     )}
-                  {compareDates(child.rentalEndDate, new Date()) ||
-                  (child.extendedDueDate &&
-                    compareDates(child.extendedDueDate, new Date())) ? (
+                  {child.orderStatus === "Đã giao hàng" ||
+                  child.orderStatus === "Đang gia hạn" ? (
                     <ReturnRentalProductButton selectedOrderId={child.id} />
                   ) : null}
                 </div>
@@ -730,9 +721,8 @@ export default function UserRentalDetail() {
                     setExtendReload={setExtendReload}
                   />
                 )}
-                {compareDates(orderDetail.rentalEndDate, new Date()) ||
-                (orderDetail.extendedDueDate &&
-                  compareDates(orderDetail.extendedDueDate, new Date())) ? (
+                {orderDetail.orderStatus === "Đã giao hàng" ||
+                orderDetail.orderStatus === "Đang gia hạn" ? (
                   <ReturnRentalProductButton selectedOrderId={orderDetail.id} />
                 ) : null}
               </div>

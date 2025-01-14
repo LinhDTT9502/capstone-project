@@ -19,8 +19,6 @@ namespace _2Sport_BE.Infrastructure.Services
         Task NotifyPaymentCancellation(string orderCode, bool isRentalOrder, int? branchId = null);
         Task NotifyPaymentPaid(string orderCode, bool isRentalOrder, int? branchId = null);
         Task SendRentalOrderExpirationNotificationAsync(string customerId, string orderId, DateTime rentalEndDate);
-
-        //
         Task<ResponseDTO<List<Notification>>> GetNotificationByUserId(int userId);
         Task<ResponseDTO<Notification>> UpdateNotificationStatus(int notificationId, bool isRead);
         Task NotifyForExtensionRequestAsync(string parentOrderCode, string childOrderCode, int? branchId = null);

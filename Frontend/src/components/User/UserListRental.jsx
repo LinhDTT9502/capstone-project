@@ -59,7 +59,7 @@ export default function UserListRental() {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `https://capstone-project-703387227873.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-user?userId=${user.UserId}`,
+          `https://twosport-api-offcial-685025377967.asia-southeast1.run.app/api/RentalOrder/get-rental-order-by-user?userId=${user.UserId}`,
           {
             headers: {
               accept: "*/*",

@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 const FacebookButton = () => {
   return (
-    <div className="fixed bottom-28  right-0 z-50">
+    <div className="fixed bottom-36  right-0 z-50">
       <Link
         to="https://www.facebook.com/profile.php?id=61560697567321"
         target="_blank"
