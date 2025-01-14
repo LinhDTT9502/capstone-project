@@ -107,10 +107,10 @@ namespace _2Sport_BE.Infrastructure.Hubs
             _hubContext = hubContext;
         }
 
-        public async Task SendMessageToGroup(string groupName, string message)
-        {
-            await _hubContext.Clients.Group(groupName).SendAsync("ReceiveMessage", message);
-        }
+        //public async Task SendMessageToGroup(string groupName, string message)
+        //{
+        //    await _hubContext.Clients.Group(groupName).SendAsync("ReceiveMessage", message);
+        //}
 
         public async Task SendMessageToSpecificUser(string userId, string message)
         {
