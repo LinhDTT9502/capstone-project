@@ -23,8 +23,8 @@ namespace _2Sport_BE.Controllers
         private readonly IWarehouseService _warehouseService;
         private readonly IProductService _productService;
         private readonly IRedisCacheService _redisCacheService;
-        private readonly IMapper _mapper;
         private readonly string _cartItemsKey;
+        private readonly IMapper _mapper;
         public CartWithRedisController(IUnitOfWork unitOfWork,
                                        ICartItemService cartItemService,
                                        IWarehouseService warehouse,
@@ -37,8 +37,8 @@ namespace _2Sport_BE.Controllers
             _cartItemService = cartItemService;
             _productService = productService;
             _redisCacheService = redisCacheService;
-            _warehouseService = warehouse;
             _cartItemsKey = configuration.GetValue<string>("RedisKeys:CartItems");
+            _warehouseService = warehouse;
             _mapper = mapper;
         }
 
