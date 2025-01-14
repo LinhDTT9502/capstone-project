@@ -176,7 +176,6 @@ namespace _2Sport_BE.Infrastructure.Services
 
             try
             {
-                // Lấy tất cả yêu cầu hoàn tiền từ repository
                 var refundRequests = await _unitOfwork.RefundRequestRepository.GetAllAsync();
 
                 if (refundRequests == null || !refundRequests.Any())
@@ -187,8 +186,7 @@ namespace _2Sport_BE.Infrastructure.Services
                     return response;
                 }
 
-                // Ánh xạ refundRequests sang refundRequestVMs
-                var refundRequestVMs = refundRequests.Select(r => _mapper.Map<RefundRequestVM>(r)).ToList();
+                var refundRequestVMs = _mapper.Map<List<RefundRequestVM>>(refundRequests);
 
                 response.IsSuccess = true;
                 response.Message = "Refund requests retrieved successfully.";

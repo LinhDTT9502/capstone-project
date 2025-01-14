@@ -3,6 +3,8 @@ using _2Sport_BE.Service.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -70,6 +72,13 @@ namespace _2Sport_BE.Service.Helpers
         {ExtensionRequestStatus.PENDING, "Đang chờ xử lý"},
         {ExtensionRequestStatus.APPROVED, "Chấp nhận yêu cầu gia hạn"},
         {ExtensionRequestStatus.REJECTED, "Từ chối yêu cầu gia hạn"},
+
+         {RefundStatus.Pending, "Chờ xử lý"},
+        {RefundStatus.Approved, "Chấp nhận"},
+        {RefundStatus.Rejected, "Từ chối"},
+        {RefundStatus.Failed, "Thất bại"},
+        {RefundStatus.Processed, "Đã thanh toán"},
+         {RefundStatus.Completed, "Hoàn thành"},
     };
 
         public static string GetEnumDescription<TEnum>(int value) where TEnum : Enum
@@ -83,6 +92,37 @@ namespace _2Sport_BE.Service.Helpers
                 }
             }
             return "N/A";
+        }
+        public static string GetEnumDescription<TEnum>(string value) where TEnum : Enum
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                var enumType = typeof(TEnum);
+                var enumFields = enumType.GetFields(BindingFlags.Public | BindingFlags.Static);
+
+                foreach (var field in enumFields)
+                {
+                    var attribute = field.GetCustomAttribute<EnumMemberAttribute>();
+                    if (attribute?.Value == value)
+                    {
+                        return field.Name; // Trả về tên enum
+                    }
+                }
+            }
+            return "N/A";
+        }
+        public static string MapRefundStatusToDescription(string status)
+        {
+            return status switch
+            {
+                "Pending" => "Đang chờ xử lý",
+                "Approved" => "Đã chấp thuận",
+                "Rejected" => "Bị từ chối",
+                "Processed" => "Đã xử lý",
+                "Failed" => "Thất bại",
+                "Completed" => "Hoàn tất",
+                _ => "Không xác định"
+            };
         }
     }
 }
