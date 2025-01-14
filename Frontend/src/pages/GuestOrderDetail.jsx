@@ -355,7 +355,7 @@ const GuestOrderDetail = () => {
                     <span className="break-words">
                       {orderDetail.branchId ? (
                         <i>{orderDetail.branchName || orderDetail.branchId}</i>
-                      ) :(
+                      ) : (
                         <i>Chưa chỉ định chi nhánh giao hàng</i>
                       )}
                     </span>
@@ -532,12 +532,17 @@ const GuestOrderDetail = () => {
             <i>{orderDetail.subTotal.toLocaleString("vi-VN")}₫</i>
           </p>
           <p className="flex justify-between">
-            <b className="text-xl py-2 ">Phí vận chuyển: </b>
-            <p className="text-xl py-2">
-              {orderDetail.tranSportFee !== 0
-                ? `${orderDetail.tranSportFee.toLocaleString("vi-VN")}₫`
-                : "2Sport sẽ liên hệ và thông báo sau"}
-            </p>
+            <b className="text-xl py-2">Phí vận chuyển: </b>
+            <span className="text-xl py-2">
+              {orderDetail.totalAmount > 2000000 ||
+              orderDetail.deliveryMethod === "Đến cửa hàng nhận" ? (
+                <i>Miễn phí vận chuyển</i>
+              ) : orderDetail.tranSportFee !== 0 ? (
+                <>{`${orderDetail.tranSportFee.toLocaleString("vi-VN")}₫`}</>
+              ) : (
+                "2Sport sẽ liên hệ và thông báo sau"
+              )}
+            </span>
           </p>
           <p className="text-xl flex justify-between items-center text-gray-700">
             <span className="flex items-center gap-1">

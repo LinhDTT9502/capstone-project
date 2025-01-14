@@ -3,7 +3,7 @@ import { Button, Input, Textarea, Checkbox } from "@material-tailwind/react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const RefundRequestForm = ({ orderDetail }) => {
+const RefundRequestForm = ({ orderDetail, setRefundReload }) => {
   // Step 1: Tạo state để kiểm soát việc hiển thị modal
   const [isModalOpen, setIsModalOpen] = useState(false); // Trạng thái modal (mở/đóng)
   const [orderCode, setOrderCode] = useState(""); // Lưu mã đơn hàng
@@ -57,6 +57,7 @@ const RefundRequestForm = ({ orderDetail }) => {
         setNotes("");
         setIsAgreementAccepted(false);
         setIsModalOpen(false); // Đóng modal sau khi thành công
+        setRefundReload(true);
       } else {
         toast.warning(response.data.message);
       }
@@ -178,9 +179,7 @@ const RefundRequestForm = ({ orderDetail }) => {
                   type="submit"
                   color="orange"
                   className="w-full mt-4 hover:bg-gray-500"
-                  disabled={
-                    !isAgreementAccepted
-                  }
+                  disabled={!isAgreementAccepted}
                 >
                   {isSubmitting ? "Đang gửi..." : "Yêu cầu hoàn tiền"}
                 </Button>

@@ -42,29 +42,50 @@ const RentalPlacedOrder = () => {
     return tomorrow.toISOString().split("T")[0];
   };
 
-  const handleDateChange = (id, field, value) => {
-    if (field === "rentalStartDate") {
-      // Update rentalStartDate for all products
-      setSelectedProducts((prevProducts) =>
-        prevProducts.map((product) => ({
-          ...product,
-          rentalStartDate: value, // Apply the same start date to all products
-        }))
-      );
-    } else {
-      // Update the specific field for the specific product
-      setSelectedProducts((prevProducts) =>
-        prevProducts.map((product) =>
-          (product.id || product.cartItemId) === id
-            ? {
-                ...product,
-                [field]: value,
-              }
-            : product
-        )
-      );
-    }
-  };
+ const handleDateChange = (id, field, value) => {
+   if (field === "rentalStartDate") {
+     // Update rentalStartDate and adjust rentalEndDate for all products
+     setSelectedProducts((prevProducts) =>
+       prevProducts.map((product) => {
+         const newStartDate = new Date(value);
+         const currentEndDate = new Date(product.rentalEndDate);
+         const minEndDate = new Date(newStartDate);
+         minEndDate.setDate(minEndDate.getDate() + 1); // rentalEndDate = rentalStartDate + 1
+
+         return {
+           ...product,
+           rentalStartDate: value, // Update rentalStartDate
+           rentalEndDate:
+             currentEndDate <= minEndDate
+               ? minEndDate.toISOString().split("T")[0]
+               : product.rentalEndDate, // Adjust rentalEndDate if necessary
+         };
+       })
+     );
+   } else if (field === "rentalEndDate") {
+     // Update rentalEndDate for a specific product
+     setSelectedProducts((prevProducts) =>
+       prevProducts.map((product) => {
+         if ((product.id || product.cartItemId) === id) {
+           const rentalStartDate = new Date(product.rentalStartDate);
+           const selectedEndDate = new Date(value);
+           const minEndDate = new Date(rentalStartDate);
+           minEndDate.setDate(minEndDate.getDate() + 1); // rentalEndDate = rentalStartDate + 1
+
+           return {
+             ...product,
+             rentalEndDate:
+               selectedEndDate < minEndDate
+                 ? minEndDate.toISOString().split("T")[0] // Adjust rentalEndDate if invalid
+                 : value,
+           };
+         }
+         return product;
+       })
+     );
+   }
+ };
+
 
   const updatedProducts = selectedProducts.map((product) => {
     const rentStartDate = product.rentalStartDate
