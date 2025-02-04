@@ -534,7 +534,6 @@ export default function UserRentalDetail() {
                         <span className="font-semibold">Kích thước:</span>{" "}
                         <i>{child.size}</i>
                       </p>
-                      {console.log(child)}
                       <p>
                         <span className="font-semibold">Thời gian thuê:</span>{" "}
                         <i>
@@ -544,7 +543,9 @@ export default function UserRentalDetail() {
                       </p>
                       {child.extendedDueDate != null && (
                         <p>
-                          <span className="font-semibold">Thời gian gia hạn:</span>{" "}
+                          <span className="font-semibold">
+                            Thời gian gia hạn:
+                          </span>{" "}
                           <i>
                             {new Date(child.rentalEndDate).toLocaleDateString()}{" "}
                             -{" "}
@@ -612,7 +613,7 @@ export default function UserRentalDetail() {
                     </Tooltip>
                   </div>
                   <div className="flex justify-end">
-                    {orderStatus === "Đang thuê" &&
+                    {child.orderStatus === "8" &&
                       compareDates(child.rentalEndDate, new Date()) && (
                         <ExtensionRequestButton
                           parentOrder={orderDetail}
@@ -620,8 +621,8 @@ export default function UserRentalDetail() {
                           setExtendReload={setExtendReload}
                         />
                       )}
-                    {orderStatus === "Đang thuê" ||
-                    orderStatus === "Đang gia hạn" ? (
+                    {(child.orderStatus === "8" ||
+                    child.orderStatus === "9") ? (
                       <ReturnRentalProductButton selectedOrderId={child.id} />
                     ) : null}
                   </div>
