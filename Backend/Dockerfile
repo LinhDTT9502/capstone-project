@@ -10,10 +10,7 @@ COPY ["./Backend/2Sport_BE.Infrastructure/2Sport_BE.Infrastructure.csproj", "2Sp
 RUN dotnet restore "2Sport_BE/2Sport_BE.csproj"
 COPY . .
 WORKDIR "/src/2Sport_BE"
-RUN dotnet build "2Sport_BE.csproj" -c Release -o /app/build
-
-FROM build AS publish
-RUN dotnet publish "2Sport_BE.csproj" -c Release -o /app/publish
+RUN dotnet publish "2Sport_BE.csproj" -c Release -o /app/build
 
 FROM base AS final
 WORKDIR /app
