@@ -14,5 +14,5 @@ RUN dotnet publish "2Sport_BE.csproj" -c Release -o /app/build
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/build .
 ENTRYPOINT ["dotnet", "2Sport_BE.dll"]
