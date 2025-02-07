@@ -10,7 +10,7 @@ ____________________________
 | 2 | [Nguyen Quoc Nhan](https://github.com/NhanNguyen8080 "Nguyễn Quốc Nhân") | Product Design, Backend Development |
 | 3 | [Duong Thi Truc Linh](https://github.com/LinhDTT9502 "Dương Thị Trúc Linh") | Frontend Development |
 | 4 | [Duong Chi Khang](https://github.com/LinhDTT9502 "Dương Chí Khang") | Frontend Development |
-## :triangular_flag_on_post: License
+<!-- ## :triangular_flag_on_post: License
 
 This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International** license. See the [LICENSE](./LICENSE) file for details.
 
@@ -25,7 +25,7 @@ EngAce offers a suite of tools and functionalities aimed at making English learn
 ## :open_hands: Contribution
 We welcome contributions and encourage you to help this project better and better. If you encounter any issues or have suggestions for improvements, please open an issue in the [Issues](https://github.com/NhanNguyen8080/capstone-project/issues) section of the repository.
 Before submitting a pull request, please ensure that your changes are well-documented in the Pull Request description.
-
+-->
 ## Our product
 ### Landing page:
 ![Landing Page 1](https://res.cloudinary.com/dlr60hykj/image/upload/v1738817064/WebImages/Screenshot_2025-02-06_105315_g875tm.png)
