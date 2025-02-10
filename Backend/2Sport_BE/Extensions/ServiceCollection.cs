@@ -26,7 +26,7 @@ namespace _2Sport_BE.Extensions
             {
                 options.UseSqlServer(GetConnectionStrings(), b => b.MigrationsAssembly("2Sport_BE"));
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-            }, ServiceLifetime.Transient);
+            }, ServiceLifetime.Scoped);
 
             services.AddStackExchangeRedisCache(options =>
             {
